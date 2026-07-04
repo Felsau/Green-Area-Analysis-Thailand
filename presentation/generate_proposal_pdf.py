@@ -1026,7 +1026,9 @@ story.append(Spacer(1, 6))
 
 story.append(Paragraph(
     'บรรณานุกรมนี้รวบรวมแหล่งอ้างอิงทั้งทางวิชาการและทางเทคนิคที่ใช้ในการพัฒนาระบบ '
-    'รวมทั้งสิ้น 12 รายการ', S['p_no_indent']))
+    'รวมทั้งสิ้น 31 รายการ (วิชาการ 23 + มาตรฐาน/เทคนิค 8) '
+    'รายการเต็มพร้อม traceability ไปยังแต่ละ requirement และไฟล์โค้ดที่เกี่ยวข้อง '
+    'ดูได้ใน REQUIREMENTS.md §6-7 ของโปรเจกต์', S['p_no_indent']))
 story.append(Spacer(1, 6))
 
 story.append(Paragraph(b('แหล่งอ้างอิงทางวิชาการ (Academic Sources)'), S['h4']))
@@ -1041,21 +1043,99 @@ refs_academic = [
     'models to estimate the aboveground biomass of tropical trees. Global Change '
     'Biology, 20(10), 3177-3190. https://doi.org/10.1111/gcb.12629',
 
+    'Dong, H., Tang, L., Liu, J., Hu, X., & Shao, G. (2025). Remote sensing of '
+    'urban tree carbon stocks: A methodological review. ISPRS Journal of '
+    'Photogrammetry and Remote Sensing, 227.',
+
     'Drusch, M., Del Bello, U., Carlier, S., Colin, O., et al. (2012). Sentinel-2: '
     "ESA's Optical High-Resolution Mission for GMES Operational Services. Remote "
     'Sensing of Environment, 120, 25-36. https://doi.org/10.1016/j.rse.2011.11.026',
+
+    'Fulton, A. J., Ries, P. D., & Riley, G. E. (2025). Where Are the Benefits of '
+    'Trees Needed Most? A Comparison of Equity-Based Mapping Tools in Austin, '
+    'Texas. Arboriculture & Urban Forestry, 52(4). '
+    'https://doi.org/10.48044/jauf.2025.020',
 
     'Gorelick, N., Hancher, M., Dixon, M., Ilyushchenko, S., Thau, D., & Moore, R. '
     '(2017). Google Earth Engine: Planetary-scale geospatial analysis for everyone. '
     'Remote Sensing of Environment, 202, 18-27. '
     'https://doi.org/10.1016/j.rse.2017.06.031',
 
+    'Konijnendijk, C. C. (2023). Evidence-based guidelines for greener, healthier, '
+    'more resilient neighbourhoods: Introducing the 3-30-300 rule. Journal of '
+    'Forestry Research, 34, 821-830. https://doi.org/10.1007/s11676-022-01523-z',
+
+    'Lee, J., Lim, J., Lee, J., Park, J., & Won, M. (2024). Ground-Based NDVI '
+    'Network: Early Validation Practice with Sentinel-2 in South Korea. Sensors, '
+    '24(6), 1892. https://doi.org/10.3390/s24061892',
+
+    'Malakar, N. K., Hulley, G. C., Hook, S. J., Laraby, K., Cook, M., & '
+    'Schott, J. R. (2018). An Operational Land Surface Temperature Product for '
+    'Landsat Thermal Data: Methodology and Validation. IEEE Transactions on '
+    'Geoscience and Remote Sensing, 56(10), 5717-5735. '
+    'https://doi.org/10.1109/TGRS.2018.2824828',
+
+    'Mann, H. B. (1945). Nonparametric Tests Against Trend. Econometrica, 13(3), '
+    '245-259. https://www.jstor.org/stable/1907187 ; Kendall, M. G. (1975). Rank '
+    'Correlation Methods (4th ed.). London: Griffin.',
+
+    'Mehmood, K., Anees, S. A., Muhammad, S., Hussain, K., Shahzad, F., Liu, Q., '
+    'Ansari, M. J., Alharbi, S. A., & Khan, W. R. (2024). Analyzing vegetation '
+    'health dynamics across seasons and regions through NDVI and climatic '
+    'variables. Scientific Reports, 14, 11775. '
+    'https://doi.org/10.1038/s41598-024-62464-7',
+
+    'Nyelele, C., et al. (2022). A comparison of tree planting prioritization '
+    'frameworks (i-Tree Landscape vs. spatial decision support tool). Urban '
+    'Forestry & Urban Greening / USDA Forest Service. '
+    'https://www.fs.usda.gov/nrs/pubs/jrnl/2022/nrs_2022_nyelele_001.pdf',
+
+    'Pasquarella, V. J., Brown, C. F., Czerwinski, W., & Rucklidge, W. J. (2023). '
+    'Comprehensive Quality Assessment of Optical Satellite Imagery Using Weakly '
+    'Supervised Video Learning. IEEE/CVF CVPR Workshops (EarthVision), 2125-2135. '
+    'https://doi.org/10.1109/CVPRW59228.2023.00206',
+
+    'Rouse, J. W. Jr., Haas, R. H., Schell, J. A., & Deering, D. W. (1973/1974). '
+    'Monitoring Vegetation Systems in the Great Plains with ERTS. Third Earth '
+    'Resources Technology Satellite-1 Symposium, NASA SP-351, 309-317. '
+    'https://ntrs.nasa.gov/citations/19740022614',
+
     'Tatem, A. J. (2017). WorldPop, open data for spatial demography. '
     'Scientific Data, 4, 170004. https://doi.org/10.1038/sdata.2017.4',
 
-    'Tucker, C. J. (1979). Red and photographic infrared linear combinations for '
-    'monitoring vegetation. Remote Sensing of Environment, 8(2), 127-150. '
-    'https://doi.org/10.1016/0034-4257(79)90013-0',
+    'A multi-objective decision support framework to prioritize tree planting '
+    'locations in urban areas. (2021). Landscape and Urban Planning. '
+    'https://www.sciencedirect.com/science/article/abs/pii/S0169204621001353',
+
+    'Towards "Right Tree, Right Place" in urban environments: A systematic review '
+    'of decision-support methods and tools for urban tree planting. (2026). Urban '
+    'Forestry & Urban Greening. '
+    'https://www.sciencedirect.com/science/article/pii/S1618866726000750',
+
+    'Quantifying Regulating Ecosystem Services of Urban Trees using i-Tree Eco. '
+    '(2024). Forests, 15(8), 1446. https://www.mdpi.com/1999-4907/15/8/1446',
+
+    'Network-based assessment of urban forest and green space accessibility in '
+    'six major cities (London, New York, Paris, Tokyo, Seoul, Beijing). (2025). '
+    'Urban Forestry & Urban Greening. '
+    'https://www.sciencedirect.com/science/article/abs/pii/S1618866725001153',
+
+    'GIS-based analysis for assessing the accessibility at hierarchical levels of '
+    'urban green spaces. (2016). Urban Forestry & Urban Greening. '
+    'https://www.sciencedirect.com/science/article/abs/pii/S161886671630019X',
+
+    'An Application of the Grid-Based Two-Step Floating Catchment Area Method to '
+    'Assess the Spatial Accessibility of Green Spaces in Seoul, South Korea. '
+    '(2026). ISPRS International Journal of Geo-Information, 15(2), 71. '
+    'https://doi.org/10.3390/ijgi15020071',
+
+    'On the Suitability of Different Satellite Land Surface Temperature Products '
+    'to Study Surface Urban Heat Islands. (2024). Remote Sensing, 16(20), 3765. '
+    'https://doi.org/10.3390/rs16203765',
+
+    'The cooling effect of urban green spaces as nature-based solutions for '
+    'mitigating urban heat: insights from a decade-long systematic review. '
+    '(2025). Climate Risk Management, e00731.',
 ]
 for ref in refs_academic:
     story.append(Paragraph(ref, S['ref']))
@@ -1063,6 +1143,17 @@ for ref in refs_academic:
 story.append(Spacer(1, 4))
 story.append(Paragraph(b('แหล่งอ้างอิงด้านมาตรฐานและรายงานทางเทคนิค'), S['h4']))
 refs_technical = [
+    'American Forests. (2024). Tree Equity Score: Methodology. '
+    'https://www.treeequityscore.org/methodology',
+
+    'Google. Cloud Score+ S2_HARMONIZED V1 [dataset documentation]. Google Earth '
+    'Engine Data Catalog. '
+    'https://developers.google.com/earth-engine/datasets/catalog/'
+    'GOOGLE_CLOUD_SCORE_PLUS_V1_S2_HARMONIZED',
+
+    'Hijmans, R. J., Garcia, N., & Wieczorek, J. (2021). GADM database of Global '
+    'Administrative Areas, version 4.1. University of California, Berkeley.',
+
     'Intergovernmental Panel on Climate Change. (2019). 2019 Refinement to the 2006 '
     'IPCC Guidelines for National Greenhouse Gas Inventories, Volume 4: Agriculture, '
     'Forestry and Other Land Use, Chapter 4: Forest Land. Geneva: IPCC.',
@@ -1078,9 +1169,6 @@ refs_technical = [
 
     'Zanaga, D., Van De Kerchove, R., Daems, D., et al. (2022). ESA WorldCover '
     '10 m 2021 v200. Zenodo. https://doi.org/10.5281/zenodo.7254221',
-
-    'Hijmans, R. J., Garcia, N., & Wieczorek, J. (2021). GADM database of Global '
-    'Administrative Areas, version 4.1. University of California, Berkeley.',
 ]
 for ref in refs_technical:
     story.append(Paragraph(ref, S['ref']))

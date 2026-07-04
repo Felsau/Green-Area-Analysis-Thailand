@@ -37,8 +37,12 @@
 | Network-based / 2SFCA accessibility | การเข้าถึงพื้นที่สีเขียว | `[R8] [R9]` |
 | Bowler et al. 2010 — cooling effect ของพื้นที่สีเขียว | ΔLST estimation | `[R10]` |
 | IPCC 2019 Guidelines — carbon sequestration | CO₂ estimation | `[R11]` |
-| Sentinel-2 cloud masking / compositing best practice | วิธีวิทยา NDVI | `[R12]` |
+| Chave et al. 2014 allometry + EPA 2023 vehicle baseline | kg CO₂/ต้น/ปี, equivalent cars | `[R25] [R26]` |
+| NDVI formula (Rouse et al. — normalized difference NIR/Red) | สูตรคำนวณ NDVI | `[R23] [R24]` |
+| Google Cloud Score+ — per-pixel cloud masking (Sentinel-2) | วิธีวิทยา cloud-free compositing | `[R12]` |
 | ESA WorldCover v200 — built-up & validation | urban subset, accuracy | `[R13]` |
+| Landsat Collection 2 Level-2 ST product (single-channel algorithm) | คำนวณ LST จาก `ST_B10` | `[R14] [R15]` |
+| Mann-Kendall trend test | นัยสำคัญแนวโน้ม NDVI/LST รายปี | `[R16] [R17]` |
 
 ---
 
@@ -48,17 +52,17 @@
 
 | ID | Requirement | อ้างอิง |
 |---|---|---|
-| FR-01 | คำนวณค่า NDVI รายปีและรายเดือน ระดับจังหวัดและอำเภอ | `[R12]` |
-| FR-02 | คำนวณค่า LST (Land Surface Temperature) รายปีและรายเดือน ระดับจังหวัดและอำเภอ | — |
+| FR-01 | คำนวณค่า NDVI รายปีและรายเดือน ระดับจังหวัดและอำเภอ | `[R12] [R23] [R24]` |
+| FR-02 | คำนวณค่า LST (Land Surface Temperature) รายปีและรายเดือน ระดับจังหวัดและอำเภอ | `[R14] [R15]` |
 | FR-03 | แสดงแผนที่ NDVI/LST แบบ 3D extrusion ผ่าน deck.gl | — |
 | FR-04 | เปรียบเทียบหลายจังหวัดพร้อมกัน | — |
 | FR-05 | จัดอันดับจังหวัดตามค่าพื้นที่สีเขียวต่อคน เทียบมาตรฐาน WHO | `[R1]` |
 | FR-06 | คำนวณ AI Priority Score และแสดงเป็น Heatmap layer | `[R3]` |
 | FR-07 | แสดง 10 พิกัดที่ควรปลูกต้นไม้มากที่สุด พร้อม priority score | `[R3]` |
 | FR-08 | แนะนำพันธุ์ไม้พื้นถิ่นตาม 6 ภูมิภาค พร้อมเหตุผลทางนิเวศ (22 ชนิด) | `[R5]` |
-| FR-09 | ประมาณการ CO₂ sequestration และ cooling effect (ΔLST) | `[R10] [R11]` |
+| FR-09 | ประมาณการ CO₂ sequestration และ cooling effect (ΔLST) | `[R10] [R11] [R19] [R22] [R25] [R26]` |
 | FR-10 | Time-lapse animation แสดง NDVI ย้อนหลังหลายปี (ตั้งแต่ พ.ศ. 2558) | — |
-| FR-11 | Time-series chart + แนวโน้ม (Mann-Kendall) + forecast | — |
+| FR-11 | Time-series chart + แนวโน้ม (Mann-Kendall) + forecast | `[R16] [R17]` |
 | FR-12 | Urban Subset — clip ค่าด้วย ESA WorldCover Built-up | `[R13]` |
 | FR-13 | ส่งออก PDF Report คุณภาพระดับวิทยานิพนธ์ | — |
 | FR-14 | ปรับ Weight ของปัจจัยใน Priority Score ผ่าน UI | `[R3]` |
@@ -81,15 +85,15 @@
 
 | ID | Requirement | เหตุผล/อ้างอิง |
 |---|---|---|
-| FR-19 | Layer การเข้าถึง: % ประชากรที่เดินถึงสวนภายใน 300/500 ม. (network distance) | network analysis แม่นกว่า buffer/per-capita `[R8] [R9]` |
-| FR-20 | (ขั้นสูง) ใช้ **2SFCA** ถ่วงทั้ง supply (ขนาดสวน) และ demand (ความหนาแน่นประชากร) | วิธีมาตรฐานในงานวิจัย accessibility `[R9]` |
+| FR-19 | Layer การเข้าถึง: % ประชากรที่เดินถึงสวนภายใน 300/500 ม. (network distance) | network analysis แม่นกว่า buffer/per-capita `[R8] [R9] [R18]` |
+| FR-20 | (ขั้นสูง) ใช้ **2SFCA** ถ่วงทั้ง supply (ขนาดสวน) และ demand (ความหนาแน่นประชากร) | วิธีมาตรฐานในงานวิจัย accessibility `[R9] [R18]` |
 
 **ธีม 3 — มิติความเป็นธรรม/เปราะบาง (Equity) — additive เข้า Priority**
 
 | ID | Requirement | เหตุผล/อ้างอิง |
 |---|---|---|
-| FR-21 | **เพิ่ม** ปัจจัย equity/heat-vulnerability (สัดส่วนผู้สูงอายุ-เด็ก, heat exposure) เข้าสูตร Priority | prioritization ควรให้น้ำหนักชุมชนเปราะบาง `[R3] [R6]` |
-| FR-22 | คำนวณ **Green/Tree Equity Score (0–100)** ต่ออำเภอ (canopy + LST + ตัวชี้วัดสังคม) | เทียบ benchmark สากลได้ `[R6]` |
+| FR-21 | **เพิ่ม** ปัจจัย equity/heat-vulnerability (สัดส่วนผู้สูงอายุ-เด็ก, heat exposure) เข้าสูตร Priority | prioritization ควรให้น้ำหนักชุมชนเปราะบาง `[R3] [R6] [R21]` |
+| FR-22 | คำนวณ **Green/Tree Equity Score (0–100)** ต่ออำเภอ (canopy + LST + ตัวชี้วัดสังคม) | เทียบ benchmark สากลได้ `[R6] [R20] [R21]` |
 
 **ธีม 4 — บริการนิเวศเต็มรูป (i-Tree)**
 
@@ -147,10 +151,13 @@
 |---|---|---|
 | FR-06, FR-07, FR-14 | `[R3]` multi-objective | `routers/recommend/scoring.py` |
 | FR-17, FR-18 | `[R2]` 3-30-300 | (ใหม่) ขยาย `routers/ndvi/` + analysis |
-| FR-19, FR-20 | `[R8] [R9]` accessibility | (ใหม่) layer + GEE/network |
-| FR-21, FR-22 | `[R6]` Tree Equity | (ใหม่) เพิ่ม factor ใน scoring |
+| FR-19, FR-20 | `[R8] [R9] [R18]` accessibility | (ใหม่) layer + GEE/network |
+| FR-21, FR-22 | `[R6] [R20] [R21]` Tree Equity | (ใหม่) เพิ่ม factor ใน scoring |
 | FR-23–25 | `[R7]` i-Tree | ขยาย `estimate_impact` |
-| FR-09 | `[R10] [R11]` | `estimate_impact` (มีแล้ว) |
+| FR-01 | `[R12] [R23] [R24]` NDVI formula + cloud masking | `gee_utils.py` + `routers/ndvi/compute.py` (มีแล้ว) |
+| FR-02 | `[R14] [R15]` LST algorithm | `gee_utils.py` (มีแล้ว) |
+| FR-09 | `[R10] [R11] [R19] [R22] [R25] [R26]` | `impact.py` `estimate_impact` (มีแล้ว) |
+| FR-11 | `[R16] [R17]` Mann-Kendall | `stats_utils.py` (มีแล้ว) |
 | NFR-07, NFR-08 | `[R12] [R13]` | gee_utils + validation report |
 
 ---
@@ -180,10 +187,37 @@ https://www.who.int/europe/publications/i/item/9789289052498
 
 **[R11]** IPCC (2019). *2019 Refinement to the 2006 IPCC Guidelines for National Greenhouse Gas Inventories* — Vol. 4 (AFOLU). https://www.ipcc-nggip.iges.or.jp/public/2019rf/
 
-**[R12]** *Sentinel-2 cloud masking & cloud-free NDVI compositing best practice* (SCL + s2cloudless, การเลือก window ตามฤดู, median vs max-NDVI). อ้างอิงประกอบ: cloud-free NDVI composite (GEE) https://github.com/r-zimmerle/gee-ndvi-composite · *A globally applicable deep learning model for Sentinel-2 cloud and shadow detection*, **ISPRS Open Journal of Photogrammetry and Remote Sensing** (2025). https://www.sciencedirect.com/science/article/pii/S2666017225000847
+**[R12]** Pasquarella, V. J., Brown, C. F., Czerwinski, W., & Rucklidge, W. J. (2023). *Comprehensive Quality Assessment of Optical Satellite Imagery Using Weakly Supervised Video Learning.* **IEEE/CVF CVPR Workshops (EarthVision)**, 2125–2135. https://doi.org/10.1109/CVPRW59228.2023.00206 — เปเปอร์ต้นตำรับของ **Cloud Score+** (`GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED`, band `cs`) ที่ระบบใช้ mask เมฆ Sentinel-2 จริงใน `gee_utils.py` (แทน QA60 ที่ ESA เลิกเติมข้อมูลช่วง ม.ค.2022–ก.พ.2024) · เอกสารประกอบ: Pasquarella, V. (2023). *All Clear with Cloud Score+.* Google Earth Medium. https://medium.com/google-earth/all-clear-with-cloud-score-bd6ee2e2235e · Dataset catalog: https://developers.google.com/earth-engine/datasets/catalog/GOOGLE_CLOUD_SCORE_PLUS_V1_S2_HARMONIZED
+> _แก้ไข 2026-07-02: อ้างอิงเดิม ("SCL + s2cloudless") ไม่ตรงกับ implementation จริง (Cloud Score+) — แทนที่ด้วยเปเปอร์ที่ถูกต้อง_
 
 **[R13]** Zanaga, D., et al. *ESA WorldCover 10 m v200* (2021). European Space Agency. https://esa-worldcover.org/ · https://doi.org/10.5281/zenodo.7254221
 
+**[R14]** Malakar, N. K., Hulley, G. C., Hook, S. J., Laraby, K., Cook, M., & Schott, J. R. (2018). *An Operational Land Surface Temperature Product for Landsat Thermal Data: Methodology and Validation.* **IEEE Transactions on Geoscience and Remote Sensing**, 56(10), 5717–5735. https://doi.org/10.1109/TGRS.2018.2824828 — อัลกอริทึม single-channel ที่ USGS ใช้ผลิต band `ST_B10` (Landsat Collection 2 Level-2) ซึ่งระบบดึงมาใช้ตรงในการคำนวณ LST (`gee_utils.py`).
+
+**[R15]** *On the Suitability of Different Satellite Land Surface Temperature Products to Study Surface Urban Heat Islands.* **Remote Sensing**, 16(20), 3765 (2024). https://doi.org/10.3390/rs16203765 — เปรียบเทียบผลิตภัณฑ์ LST 5 แบบ รวม Landsat 8/9 Collection 2 ST สำหรับวิเคราะห์ urban heat island (กรณีศึกษา Madrid/Paris) ยืนยันความเหมาะสมของ ST_B10 กับงานลักษณะนี้.
+
+**[R16]** Mehmood, K., Anees, S. A., Muhammad, S., Hussain, K., Shahzad, F., Liu, Q., Ansari, M. J., Alharbi, S. A., & Khan, W. R. (2024). *Analyzing vegetation health dynamics across seasons and regions through NDVI and climatic variables.* **Scientific Reports**, 14, 11775. https://doi.org/10.1038/s41598-024-62464-7 — ใช้ Mann-Kendall trend test วิเคราะห์แนวโน้ม NDVI ระดับจังหวัด รูปแบบใกล้เคียงกับการใช้งานใน `stats_utils.py`.
+
+**[R17]** Mann, H. B. (1945). *Nonparametric Tests Against Trend.* **Econometrica**, 13(3), 245–259. https://www.jstor.org/stable/1907187 · Kendall, M. G. (1975). *Rank Correlation Methods* (4th ed.). London: Griffin. — ที่มาทางสถิติดั้งเดิมของ Mann-Kendall trend test.
+
+**[R18]** *An Application of the Grid-Based Two-Step Floating Catchment Area Method to Assess the Spatial Accessibility of Green Spaces in Seoul, South Korea.* **ISPRS International Journal of Geo-Information**, 15(2), 71 (2026). https://doi.org/10.3390/ijgi15020071 — เสนอ grid-based G2SFCA ปรับปรุงจาก 2SFCA มาตรฐาน สำหรับวัด accessibility ของพื้นที่สีเขียว อัปเดตต่อจาก `[R9]`.
+
+**[R19]** *The cooling effect of urban green spaces as nature-based solutions for mitigating urban heat: insights from a decade-long systematic review.* **Climate Risk Management** (2025), e00731 (เปิดอ่านผ่าน DOAJ/ScienceDirect pii S2212096325000452). — สังเคราะห์งานวิจัย 84 ฉบับ (2014–2024) รายงานช่วง cooling effect 1–7°C อัปเดตหลักฐานเชิงปริมาณต่อจาก Bowler et al. 2010 `[R10]`. _(รายชื่อผู้แต่งเต็มยังไม่ยืนยันอัตโนมัติ — ตรวจสอบก่อนลงบรรณานุกรมฉบับสมบูรณ์)_
+
+**[R20]** American Forests (2024). *Tree Equity Score Methodology.* https://www.treeequityscore.org/methodology — เอกสารระเบียบวิธีฉบับล่าสุด คำนวณ TES = 100(1 − GapScore × E) จาก 7 ตัวแปร (อายุ, การจ้างงาน, สุขภาพ, ความร้อน/สภาพภูมิอากาศ, รายได้, ภาษา, เชื้อชาติ) แทนที่เวอร์ชันเดิมใน `[R6]`.
+
+**[R21]** Fulton, A. J., Ries, P. D., & Riley, G. E. (2025). *Where Are the Benefits of Trees Needed Most? A Comparison of Equity-Based Mapping Tools in Austin, Texas.* **Arboriculture & Urban Forestry**, 52(4). https://doi.org/10.48044/jauf.2025.020 — เปรียบเทียบ Tree Equity Score กับเครื่องมือ equity-mapping อื่น กรณีศึกษาจริง.
+
+**[R22]** Dong, H., Tang, L., Liu, J., Hu, X., & Shao, G. (2025). *Remote sensing of urban tree carbon stocks: A methodological review.* **ISPRS Journal of Photogrammetry and Remote Sensing**, 227. — ทบทวนวิธี remote-sensing สำหรับประเมิน carbon stock ของต้นไม้ในเมือง เสริม IPCC 2019 `[R11]` ด้วยมุมมองเฉพาะ remote sensing. _(เลขหน้ายังไม่ยืนยันอัตโนมัติ — ตรวจสอบก่อนลงบรรณานุกรมฉบับสมบูรณ์)_
+
+**[R23]** Rouse, J. W. Jr., Haas, R. H., Schell, J. A., & Deering, D. W. (1973/1974). *Monitoring Vegetation Systems in the Great Plains with ERTS.* Third Earth Resources Technology Satellite-1 Symposium, NASA SP-351, pp. 309–317. https://ntrs.nasa.gov/citations/19740022614 — ต้นตำรับสูตร NDVI = (NIR − Red)/(NIR + Red) ที่ระบบใช้คำนวณผ่าน `normalizedDifference(['B8','B4'])`.
+
+**[R24]** Lee, J., Lim, J., Lee, J., Park, J., & Won, M. (2024). *Ground-Based NDVI Network: Early Validation Practice with Sentinel-2 in South Korea.* **Sensors**, 24(6), 1892. https://doi.org/10.3390/s24061892 — validate ค่า NDVI จาก Sentinel-2 (band B8/B4) เทียบกับเซนเซอร์ภาคพื้นดิน 8 จุด ยืนยันความแม่นยำของสูตรที่ใช้กับข้อมูลดาวเทียมชุดเดียวกับระบบนี้.
+
+**[R25]** Chave, J., Réjou-Méchain, M., Búrquez, A., et al. (2014). *Improved allometric models to estimate the aboveground biomass of tropical trees.* **Global Change Biology**, 20(10), 3177–3190. https://doi.org/10.1111/gcb.12629 — โมเดล pan-tropical allometry ที่ `green-area-backend/impact.py` ใช้เป็นฐานคำนวณค่า kg CO₂/ต้น/ปี ต่อชนิดพันธุ์ไม้ (พบว่าใช้จริงในโค้ดแต่ยังไม่เคยขึ้นบรรณานุกรมมาก่อน).
+
+**[R26]** U.S. Environmental Protection Agency (2023). *Greenhouse Gas Emissions from a Typical Passenger Vehicle.* EPA-420-F-23-014. Washington, DC: U.S. EPA. — ค่าอ้างอิง 4.6 ตัน CO₂/คัน/ปี ที่ `impact.py` ใช้แปลงผล CO₂ ที่ดูดซับได้เป็น "เทียบเท่ารถยนต์ที่ลดได้" (`equivalent_cars_off_road`).
+
 ---
 
-_อัปเดตล่าสุด: 2026-06-22 · ใช้คู่กับ Proposal (presentation/generate_proposal_pdf.py) ข้อ 7.4.3–7.4.4_
+_อัปเดตล่าสุด: 2026-07-02 · ใช้คู่กับ Proposal (presentation/generate_proposal_pdf.py) ข้อ 7.4.3–7.4.4_
