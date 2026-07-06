@@ -153,7 +153,7 @@
 | FR-17, FR-18 | `[R2]` 3-30-300 | (ใหม่) ขยาย `routers/ndvi/` + analysis |
 | FR-19, FR-20 | `[R8] [R9] [R18]` accessibility | (ใหม่) layer + GEE/network |
 | FR-21, FR-22 | `[R6] [R20] [R21]` Tree Equity | (ใหม่) เพิ่ม factor ใน scoring |
-| FR-23–25 | `[R7]` i-Tree | ขยาย `estimate_impact` |
+| FR-23–25 | `[R7]` i-Tree | `impact.py` `estimate_impact` → `ecosystem_services` (air pollution PM2.5/O₃/NO₂ + stormwater + มูลค่าบาท/ปี) **(มีแล้ว)** |
 | FR-01 | `[R12] [R23] [R24]` NDVI formula + cloud masking | `gee_utils.py` + `routers/ndvi/compute.py` (มีแล้ว) |
 | FR-02 | `[R14] [R15]` LST algorithm | `gee_utils.py` (มีแล้ว) |
 | FR-09 | `[R10] [R11] [R19] [R22] [R25] [R26]` | `impact.py` `estimate_impact` (มีแล้ว) |

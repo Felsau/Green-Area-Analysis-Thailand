@@ -69,6 +69,37 @@ export const buildRecommendReport = async (data) => {
     sections.push({ label: 'Species', html: sh });
   }
 
+  const im = recommendData.impact;
+  if (im && im.trees_total > 0) {
+    const baht = (v) => v == null ? '–'
+      : v >= 1e6 ? `${(v / 1e6).toLocaleString('th-TH', { maximumFractionDigits: 1 })} ล้านบาท`
+        : `${Math.round(v).toLocaleString('th-TH')} บาท`;
+    let ih = sectionTitle('ผลกระทบและมูลค่าบริการระบบนิเวศ (i-Tree)', { color: COLOR.green });
+    const rows = [
+      ['ต้นไม้รวม (400 ต้น/เฮกตาร์)', `${im.trees_total.toLocaleString()} ต้น`],
+      ['CO₂ ดูดซับ/ปี (ศักยภาพเต็ม)', `${im.annual_co2_tonnes.toLocaleString()} ตัน`],
+    ];
+    if (im.annual_co2_tonnes_low != null)
+      rows.push(['CO₂ ช่วงจริง (รวมอัตรารอด)', `${im.annual_co2_tonnes_low.toLocaleString()}–${im.annual_co2_tonnes_high.toLocaleString()} ตัน`]);
+    rows.push(['อุณหภูมิที่คาดว่าจะลดลง', `${im.expected_delta_lst_c}°C (canopy เต็มที่ ~${im.maturity_years} ปี)`]);
+    const eco = im.ecosystem_services;
+    if (eco) {
+      const air = eco.air_pollution_removal_kg;
+      rows.push(
+        ['ดูดซับมลพิษอากาศ/ปี', `${air.total.toLocaleString()} kg (PM2.5 ${air.pm25.toLocaleString()} · O₃ ${air.o3.toLocaleString()} · NO₂ ${air.no2.toLocaleString()})`],
+        ['ดักน้ำฝน/ลดน้ำท่วม/ปี', `${eco.stormwater_runoff_m3.toLocaleString()} m³`],
+        ['มูลค่าคาร์บอน/ปี', baht(eco.annual_value_thb.co2)],
+        ['มูลค่าอากาศสะอาด/ปี', baht(eco.annual_value_thb.air_pollution)],
+        ['มูลค่าจัดการน้ำฝน/ปี', baht(eco.annual_value_thb.stormwater)],
+        ['มูลค่าบริการนิเวศรวม/ปี', `${baht(eco.annual_value_thb.total)} (คาดจริง ~${baht(eco.annual_value_thb_expected)})`],
+      );
+    }
+    ih += table(['ตัวชี้วัด', 'ค่าประมาณการ'], rows, { firstColWidth: 240 });
+    if (im.methodology?.sources?.length)
+      ih += paragraph(`<span style="font-size:9pt;color:${COLOR.muted};">อ้างอิง: ${esc(im.methodology.sources.join(' · '))}</span>`);
+    sections.push({ label: 'Impact', html: ih });
+  }
+
   await renderSegmentsToPdf(
     sections,
     `recommend_report_${(districtEN || selectedProvinceEN || 'thailand').replace(/\s+/g, '_')}_${ts()}.pdf`,
