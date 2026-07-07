@@ -1026,10 +1026,36 @@ story.append(Spacer(1, 6))
 
 story.append(Paragraph(
     'บรรณานุกรมนี้รวบรวมแหล่งอ้างอิงทั้งทางวิชาการและทางเทคนิคที่ใช้ในการพัฒนาระบบ '
-    'รวมทั้งสิ้น 31 รายการ (วิชาการ 23 + มาตรฐาน/เทคนิค 8) '
-    'รายการเต็มพร้อม traceability ไปยังแต่ละ requirement และไฟล์โค้ดที่เกี่ยวข้อง '
-    'ดูได้ใน REQUIREMENTS.md §6-7 ของโปรเจกต์', S['p_no_indent']))
+    'รวมทั้งสิ้น 32 รายการ (วิชาการ 24 + มาตรฐาน/เทคนิค 8) กำกับด้วยรหัส [R1]–[R32] '
+    'ที่ตรงกันกับ REQUIREMENTS.md §7 ของโปรเจกต์ แต่ละรายการมีป้ายสถานะระบุว่าถูกนำไป'
+    'ใช้จริงในระบบที่พัฒนาแล้ว หรือเป็นงานวิจัยรองรับข้อเสนอต่อยอด รายการเต็มพร้อม '
+    'traceability ไปยัง requirement และไฟล์โค้ด ดูได้ใน REQUIREMENTS.md §6-7',
+    S['p_no_indent']))
+story.append(Spacer(1, 4))
+story.append(Paragraph(
+    '<font face="Sarabun-Bold">ป้ายสถานะ:</font> '
+    '<font color="#1e8e3e" face="Sarabun-Bold">[ใช้แล้ว]</font> = มีในระบบที่พัฒนาแล้ว (กลุ่ม A) · '
+    '<font color="#f97316" face="Sarabun-Bold">[ใช้บางส่วน]</font> = แนวคิดถูกนำมาใช้บางส่วน '
+    'ส่วนเต็มเป็นแผนต่อยอด · '
+    '<font color="#7c3aed" face="Sarabun-Bold">[แผนต่อยอด]</font> = งานวิจัยรองรับข้อเสนอ'
+    'กลุ่ม B ที่ยังไม่พัฒนา',
+    S['p_muted']))
 story.append(Spacer(1, 6))
+
+# ── สถานะการใช้งานจริงของแต่ละอ้างอิง (ตรงกับกลุ่ม A/B ใน REQUIREMENTS.md) ─────
+STATUS_TAG = {
+    'used':    ('#1e8e3e', 'ใช้แล้ว'),      # มีในระบบที่พัฒนาแล้ว (กลุ่ม A)
+    'partial': ('#f97316', 'ใช้บางส่วน'),   # แนวคิดถูกใช้บางส่วน ส่วนเต็มเป็น roadmap
+    'roadmap': ('#7c3aed', 'แผนต่อยอด'),    # งานวิจัยรองรับข้อเสนอกลุ่ม B (ยังไม่พัฒนา)
+}
+
+def ref_line(meta, text):
+    """เติมรหัส [R#] + ป้ายสถานะสีหน้ารายการอ้างอิง (ใช้ hanging indent เดิม)"""
+    rnum, status = meta
+    color, label = STATUS_TAG[status]
+    prefix = (f'<font face="Sarabun-Bold">[{rnum}]</font> '
+              f'<font face="Sarabun-Bold" size="8.5" color="{color}">[{label}]</font> ')
+    return Paragraph(prefix + text, S['ref'])
 
 story.append(Paragraph(b('แหล่งอ้างอิงทางวิชาการ (Academic Sources)'), S['h4']))
 
@@ -1085,6 +1111,11 @@ refs_academic = [
     'variables. Scientific Reports, 14, 11775. '
     'https://doi.org/10.1038/s41598-024-62464-7',
 
+    'Moukomla, S., Meeprom, P., & Intarat, K. (2026). Impact of Impervious '
+    'Surface Expansion on Urban Thermal Environment Across Tropical Southeast '
+    'Asian Megacities: Reliable Assessment Through Foundation Model Embeddings. '
+    'Earth, 7(3), 76. https://doi.org/10.3390/earth7030076',
+
     'Nyelele, C., et al. (2022). A comparison of tree planting prioritization '
     'frameworks (i-Tree Landscape vs. spatial decision support tool). Urban '
     'Forestry & Urban Greening / USDA Forest Service. '
@@ -1137,8 +1168,18 @@ refs_academic = [
     'mitigating urban heat: insights from a decade-long systematic review. '
     '(2025). Climate Risk Management, e00731.',
 ]
-for ref in refs_academic:
-    story.append(Paragraph(ref, S['ref']))
+# รหัส R# + สถานะ เรียงตรงลำดับกับ refs_academic ด้านบน (24 รายการ)
+meta_academic = [
+    ('R10', 'used'),    ('R25', 'used'),    ('R22', 'used'),    ('R27', 'used'),
+    ('R21', 'roadmap'), ('R28', 'used'),    ('R2',  'roadmap'), ('R24', 'used'),
+    ('R14', 'used'),    ('R17', 'used'),    ('R16', 'used'),    ('R32', 'used'),
+    ('R4',  'used'),
+    ('R12', 'used'),    ('R23', 'used'),    ('R29', 'used'),    ('R3',  'used'),
+    ('R5',  'used'),    ('R7',  'roadmap'), ('R8',  'partial'), ('R9',  'partial'),
+    ('R18', 'roadmap'), ('R15', 'used'),    ('R19', 'used'),
+]
+for meta, ref in zip(meta_academic, refs_academic):
+    story.append(ref_line(meta, ref))
 
 story.append(Spacer(1, 4))
 story.append(Paragraph(b('แหล่งอ้างอิงด้านมาตรฐานและรายงานทางเทคนิค'), S['h4']))
@@ -1170,8 +1211,15 @@ refs_technical = [
     'Zanaga, D., Van De Kerchove, R., Daems, D., et al. (2022). ESA WorldCover '
     '10 m 2021 v200. Zenodo. https://doi.org/10.5281/zenodo.7254221',
 ]
-for ref in refs_technical:
-    story.append(Paragraph(ref, S['ref']))
+# รหัส R# + สถานะ เรียงตรงลำดับกับ refs_technical ด้านบน (8 รายการ)
+# หมายเหตุ: American Forests รวม [R6, R20] (nationwide + methodology เป็นแหล่งเดียวกัน)
+# · Cloud Score+ dataset ใช้รหัส [R12] ร่วมกับเปเปอร์ Pasquarella ในหมวดวิชาการ
+meta_technical = [
+    ('R6, R20', 'roadmap'), ('R12', 'used'), ('R30', 'used'), ('R11', 'used'),
+    ('R26', 'used'),        ('R31', 'used'), ('R1',  'used'), ('R13', 'used'),
+]
+for meta, ref in zip(meta_technical, refs_technical):
+    story.append(ref_line(meta, ref))
 
 story.append(Spacer(1, 8))
 

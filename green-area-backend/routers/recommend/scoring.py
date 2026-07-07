@@ -9,7 +9,8 @@ import ee
 from fastapi import HTTPException
 
 from dependencies import WORLDPOP_YEAR, worldpop_unavailable_error
-from gee_utils import clean_s2_collection, get_lst_col, worldpop_pop_collection
+from gee_utils import (clean_s2_collection, get_lst_col, worldpop_pop_collection,
+                       dynamic_world_built)
 from impact import IMPACT_DEFAULTS
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,35 @@ W_ACCESS = 0.15   # การเข้าถึงพื้นที่สีเ
 # (urban core ร้อนกว่ารอบนอก ~5–10°C) · เดิมใช้ absolute 25–40°C ทำให้จังหวัดร้อน
 # ตามธรรมชาติได้คะแนนสูงทั้งจังหวัด จับ hotspot จริงไม่ได้
 LST_ANOMALY_SPREAD = 6.0
+
+# ── Peri-urban cooling opportunity (จากงานวิจัย Moukomla et al. 2026, Earth 7:76) ──
+# พื้นผิวทึบน้ำ (ISA) สัมพันธ์บวกกับความร้อนผิว แต่ "อิ่มตัว" ที่ใจกลางเมืองทึบเต็ม
+# (stratified Pearson r≈−0.14 ไม่ significant) — marginal cooling จากการปลูกต้นไม้สูงสุด
+# ที่ "ขอบเมืองกำลังขยาย" (pervious→mixed) ไม่ใช่ core ที่ทึบอยู่แล้ว หรือชนบทที่ยังเขียว
+# ใช้ Dynamic World built prob (annual mean, cloud-resilient) เป็น ISA แล้ว shape เป็น
+# trapezoid: ต่ำที่ ISA~0 (ทุ่ง/ป่า — ปัจจัยอื่นดูแลอยู่แล้ว) → สูงสุดช่วง fringe →
+# ลดลงที่ core ทึบ · เป็นปัจจัย additive (blend หลัง 4 ปัจจัยผู้ใช้ ไม่ลดมิติ/ไม่ทำให้ heatmap จืด)
+W_PERI = 0.15         # น้ำหนักคงที่ · 4 ปัจจัยผู้ใช้ถูก re-normalize ให้กินสัดส่วน (1 − W_PERI)
+PERI_RISE_ISA = 0.25  # ISA ที่ไต่ถึงโอกาสเต็ม (จาก 0 ที่ ISA=0)
+PERI_FALL_ISA = 0.60  # ISA ที่เริ่มอิ่มตัว (เกินนี้โอกาสลดลง)
+PERI_SAT_FLOOR = 0.15 # โอกาสคงเหลือที่ core ทึบเต็ม (ISA=1) — ไม่ 0 สนิท (ยังปลูกได้ ผลน้อย)
+
+
+def peri_urban_need_image(geom: ee.Geometry, year: int) -> ee.Image:
+    """peri_need (0–1): โอกาสลดความร้อนจากการปลูก สูงสุดที่ "ขอบเมืองกำลังขยาย".
+
+    Trapezoid บน ISA (Dynamic World built prob เฉลี่ยทั้งปี):
+      ไต่ 0→1 ช่วง ISA [0, PERI_RISE_ISA] · คงที่ 1 ช่วง [PERI_RISE_ISA, PERI_FALL_ISA]
+      · ลด 1→PERI_SAT_FLOOR ช่วง [PERI_FALL_ISA, 1] (อิ่มตัวที่ core ทึบเต็ม)
+    ทำด้วย min(rise, fall) · isa unmask(0) มาแล้ว → ไม่มีรู (สอดคล้อง lst_heat/pop_need)
+    """
+    isa = dynamic_world_built(geom, year)
+    rise = isa.divide(PERI_RISE_ISA).clamp(0, 1)
+    fall = ee.Image.constant(1).subtract(
+        isa.subtract(PERI_FALL_ISA)
+           .divide(1.0 - PERI_FALL_ISA).clamp(0, 1)
+           .multiply(1.0 - PERI_SAT_FLOOR))
+    return rise.min(fall).clamp(0, 1).unmask(0).rename('peri_need')
 
 
 def normalize_weights(w_ndvi: float, w_lst: float, w_pop: float,
@@ -190,20 +220,29 @@ def compute_priority(geom: ee.Geometry, year: int,
     # ไกลจากต้นไม้เดิม = เข้าถึงพื้นที่สีเขียวยาก → ควรปลูกก่อน (equity)
     access_need = access_need_image(geom)
 
-    # ── 5. Weighted Priority Score ──────────────────────────────
-    priority = (ndvi_deficit.multiply(w_ndvi)
-                .add(lst_heat.multiply(w_lst))
-                .add(pop_need.multiply(w_pop))
-                .add(access_need.multiply(w_access))
+    # ── 5. Peri-urban cooling opportunity (Moukomla et al. 2026) ─
+    # โอกาสลดความร้อนสูงสุดที่ขอบเมืองกำลังขยาย (ISA ปานกลาง) — ดู W_PERI ด้านบน
+    peri_need = peri_urban_need_image(geom, year)
+
+    # ── 6. Weighted Priority Score ──────────────────────────────
+    # 4 ปัจจัยผู้ใช้ (w_* normalize รวม 1.0) กินสัดส่วน (1 − W_PERI) · peri_need เป็นปัจจัย
+    # คงที่จากงานวิจัย · additive — ไม่ลดมิติ/ความคมของปัจจัยเดิม แค่เพิ่ม slice ใหม่ W_PERI
+    base4 = (ndvi_deficit.multiply(w_ndvi)
+             .add(lst_heat.multiply(w_lst))
+             .add(pop_need.multiply(w_pop))
+             .add(access_need.multiply(w_access)))
+    priority = (base4.multiply(1.0 - W_PERI)
+                .add(peri_need.multiply(W_PERI))
                 .rename('priority')
                 .clip(geom))
 
-    # ── 6. Plantability mask ────────────────────────────────────
+    # ── 7. Plantability mask ────────────────────────────────────
     # ส่ง mask แยกออกมา (ไม่ mask ตัว priority) ให้ top-locations + plantable-area
     # กรองจุดที่ปลูกได้จริง · lazy ee.Image — ไม่ถูก evaluate จนกว่าจะถูกใช้
     plantable = plantable_mask(geom)
 
-    return priority, ndvi_deficit, lst_heat, pop_need, access_need, plantable
+    return (priority, ndvi_deficit, lst_heat, pop_need, access_need, peri_need,
+            plantable)
 
 
 # ── Top-locations sampling ───────────────────────────────────────────────────
@@ -266,11 +305,12 @@ def _space_out(candidates: list[dict], n: int, min_sep_m: float) -> list[dict]:
 
 def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
                       lst_heat: ee.Image, pop_need: ee.Image, access_need: ee.Image,
+                      peri_need: ee.Image,
                       geom: ee.Geometry, plantable: ee.Image, n: int = 10):
     """หา top-n pixels ที่มี priority สูงสุด — เฉพาะบนพื้นที่ที่ปลูกได้จริง.
 
-    sample แบบ multi-band (priority + 4 องค์ประกอบ) ที่จุดเดียวกัน → คืน `factors`
-    ของแต่ละจุด (ขาดต้นไม้/ร้อน/คนหนาแน่น/เข้าถึงสีเขียวยาก) เพื่ออธิบายว่า "ทำไม" จุดนี้
+    sample แบบ multi-band (priority + 5 องค์ประกอบ) ที่จุดเดียวกัน → คืน `factors`
+    ของแต่ละจุด (ขาดต้นไม้/ร้อน/คนหนาแน่น/เข้าถึงสีเขียวยาก/ขอบเมืองลดร้อนคุ้ม) เพื่ออธิบายว่า "ทำไม" จุดนี้
     คะแนนสูง · updateMask(plantable) ก่อน sample → ไม่คืนจุดบนน้ำ/อาคาร/ป่าเดิม/ที่ชัน
 
     คัด priority เปอร์เซ็นไทล์สูง (TOP_SAMPLE_PERCENTILE) เฉพาะ plantable ก่อน sample
@@ -290,7 +330,7 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
         geometry=geom, scale=200, maxPixels=1e10, bestEffort=True).get('priority')
     p_thresh = ee.Number(ee.Algorithms.If(p_thresh, p_thresh, 0))
 
-    stack = priority.addBands([ndvi_deficit, lst_heat, pop_need, access_need])
+    stack = priority.addBands([ndvi_deficit, lst_heat, pop_need, access_need, peri_need])
     # gte() สืบ mask ของ plantable_priority มาด้วย → updateMask ตัดทั้ง non-plantable
     # และ pixel ที่ต่ำกว่า threshold ในคราวเดียว เหลือเฉพาะโซน hotspot ที่ปลูกได้
     hotspots = stack.updateMask(plantable_priority.gte(p_thresh))
@@ -315,6 +355,7 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
                 'lst_heat': round(float(p.get('lst_heat', 0)), 2),
                 'pop_need': round(float(p.get('pop_need', 0)), 2),
                 'access_need': round(float(p.get('access_need', 0)), 2),
+                'peri_urban': round(float(p.get('peri_need', 0)), 2),
             },
         })
     # candidates เรียงตาม priority มาแล้ว → คัดให้กระจาย ≥ TOP_MIN_SEPARATION_M

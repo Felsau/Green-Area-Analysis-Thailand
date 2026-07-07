@@ -14,11 +14,13 @@ const WEIGHT_SLIDERS = [
 ];
 
 // อธิบายว่า top-spot แต่ละจุดคะแนนสูงเพราะอะไร (factors จาก backend, ค่า 0–1)
+// peri_urban = โอกาสลดร้อนสูงสุดที่ขอบเมืองกำลังขยาย (Moukomla et al. 2026, Earth 7:76)
 const FACTOR_LABELS = {
   ndvi_deficit: 'ขาดต้นไม้',
   lst_heat: 'ร้อนกว่าเฉลี่ย',
   pop_need: 'ชุมชนหนาแน่น',
   access_need: 'ไกลพื้นที่สีเขียว',
+  peri_urban: 'ขอบเมืองลดร้อนคุ้ม',
 };
 
 const factorText = (factors) =>

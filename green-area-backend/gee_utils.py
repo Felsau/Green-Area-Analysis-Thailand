@@ -78,6 +78,22 @@ def worldpop_pop_collection(year: int):
             .filter(ee.Filter.eq('year', year)))
 
 
+def dynamic_world_built(geom, year: int):
+    """Dynamic World 'built' probability เฉลี่ยทั้งปี (0–1) = สัดส่วนพื้นผิวทึบน้ำ (ISA proxy).
+
+    GOOGLE/DYNAMICWORLD/V1 เป็น land cover 10 m near-real-time (deep learning) ที่ mask
+    เมฆรายภาพให้แล้ว → mean() ทั้งปีเป็น composite ที่ทนเมฆ (แนวเดียวกับงานวิจัย Moukomla
+    et al. 2026, Earth 7:76 ที่ใช้ built prob เป็น reference ของ impervious surface).
+    unmask(0): pixel ที่ไม่มีภาพทั้งปี (เมฆตลอด/นอกครอบคลุม) ถือว่า "ไม่ทึบ" ให้สอดคล้อง
+    กับ lst_heat/pop_need ที่ unmask แล้ว — ไม่เปิดรูใน priority · คืน band 'isa_frac'.
+    """
+    return (ee.ImageCollection('GOOGLE/DYNAMICWORLD/V1')
+            .filterBounds(geom)
+            .filterDate(f'{year}-01-01', f'{year + 1}-01-01')  # end exclusive
+            .select('built')
+            .mean().unmask(0).rename('isa_frac'))
+
+
 def reduce_lst(col, geom, scale):
     stats = (col.median()
                .reduceRegion(

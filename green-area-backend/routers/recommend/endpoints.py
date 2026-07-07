@@ -1,10 +1,13 @@
 """Recommendation endpoints — province + district level.
 
-Priority Score = w1·NDVI_deficit + w2·LST_heat + w3·population_need + w4·access_need
+Priority Score = (1−W_PERI)·(w1·NDVI_deficit + w2·LST_heat + w3·pop_need + w4·access_need)
+                 + W_PERI·peri_urban_need
 - NDVI_deficit : พื้นที่ NDVI ต่ำ = ขาดต้นไม้ → ค่าสูงคือควรปลูก
 - LST_heat     : อุณหภูมิผิวพื้นสูง = ร้อนเกินต้องการพืช → ค่าสูงคือควรปลูก
 - pop_need     : ประชากรหนาแน่น (WorldPop) = คนเยอะต้องการพื้นที่สีเขียว
 - access_need  : ไกลจากพื้นที่สีเขียวเดิม = เข้าถึงยาก (equity) → ค่าสูงคือควรปลูก
+- peri_urban   : ขอบเมืองกำลังขยาย (ISA ปานกลาง, Dynamic World) = ปลูกลดร้อนคุ้มสุด
+                 (Moukomla et al. 2026) → ปัจจัยคงที่ W_PERI, ไม่แตะ slider ผู้ใช้ 4 ตัว
 
 Province + district ใช้ flow เดียวกันทุกขั้น ต่างแค่ geometry/cache-key →
 รวมไว้ใน _run_recommendation() (district_name=None = province-level)
@@ -92,11 +95,11 @@ def _compute_recommendation_payload(geom: ee.Geometry, year: int,
     geometry/response) ให้แก้ที่เดียวเวลา compute logic เปลี่ยน
     """
     assert_imagery_available(geom, year)
-    priority, ndvi_deficit, lst_heat, pop_need, access_need, plantable = compute_priority(
-        geom, year, *weights)
+    (priority, ndvi_deficit, lst_heat, pop_need, access_need, peri_need,
+     plantable) = compute_priority(geom, year, *weights)
     tile_url = get_heatmap_url(priority)
     top = get_top_locations(priority, ndvi_deficit, lst_heat, pop_need, access_need,
-                            geom, plantable, n=10)
+                            peri_need, geom, plantable, n=10)
     plantable_m2 = compute_plantable_area_m2(priority, plantable, geom)
     impact = estimate_impact(plantable_m2, species)
     return tile_url, top, impact
@@ -171,7 +174,7 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
             if tile_url is None or impact is None:
                 try:
                     geom = ee.Geometry(raw_geom)
-                    priority, _, _, _, _, plantable = compute_priority(
+                    priority, _, _, _, _, _, plantable = compute_priority(
                         geom, year, w_ndvi, w_lst, w_pop, w_access)
                     if tile_url is None:
                         tile_url = get_heatmap_url(priority)

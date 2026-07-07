@@ -46,7 +46,10 @@ CURRENT_CACHE_VERSION = 2
 # v4 → v5: top_locations เปลี่ยนวิธี sample — คัด priority เปอร์เซ็นไทล์สูง (เฉพาะ plantable)
 #          ก่อนแล้วทุ่ม sample ลงโซน hotspot + seed คงที่ (เดิมสุ่มทั่ว geom จับ pixel สูงสุด
 #          จริงพลาดในจังหวัดใหญ่) → top_locations ที่ cache ด้วย v4 ต่างไป → stale
-RECOMMEND_CACHE_VERSION = 5
+# v5 → v6: เพิ่มปัจจัย peri-urban (โอกาสลดร้อนสูงสุดที่ขอบเมืองกำลังขยาย, จาก Moukomla
+#          et al. 2026) เป็น slice คงที่ W_PERI ใน priority → heatmap/top_locations ที่
+#          cache ด้วย v5 ต่างไป (+ factors เพิ่ม peri_urban) → stale
+RECOMMEND_CACHE_VERSION = 6
 MONTH_NAMES = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
                'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
 

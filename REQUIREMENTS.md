@@ -43,6 +43,11 @@
 | ESA WorldCover v200 — built-up & validation | urban subset, accuracy | `[R13]` |
 | Landsat Collection 2 Level-2 ST product (single-channel algorithm) | คำนวณ LST จาก `ST_B10` | `[R14] [R15]` |
 | Mann-Kendall trend test | นัยสำคัญแนวโน้ม NDVI/LST รายปี | `[R16] [R17]` |
+| Sentinel-2 (NDVI จาก B8/B4, 10 m) | แหล่งข้อมูล NDVI หลัก | `[R27]` |
+| Google Earth Engine | compute backend ของทั้งระบบ | `[R28]` |
+| WorldPop (ประชากร 100 m) | ปัจจัย `pop_need` ใน Priority Score | `[R29]` |
+| GADM v4.1 (ขอบเขตการปกครอง) | clip จังหวัด/อำเภอ 77/928 | `[R30]` |
+| Landsat C2 L2 Product Guide (`ST_B10`) | ระเบียบวิธีข้อมูล LST | `[R31]` |
 
 ---
 
@@ -150,6 +155,7 @@
 | Requirement | งานวิจัย/มาตรฐาน | จุดในระบบ (ปัจจุบัน/เป้าหมาย) |
 |---|---|---|
 | FR-06, FR-07, FR-14 | `[R3]` multi-objective | `routers/recommend/scoring.py` |
+| FR-06, FR-07 (peri-urban) | `[R32]` Moukomla 2026 — ISA→SUHI, ปลูกขอบเมืองคุ้มสุด | `scoring.py` `peri_urban_need_image` + `gee_utils.dynamic_world_built` (มีแล้ว) |
 | FR-17, FR-18 | `[R2]` 3-30-300 | (ใหม่) ขยาย `routers/ndvi/` + analysis |
 | FR-19, FR-20 | `[R8] [R9] [R18]` accessibility | (ใหม่) layer + GEE/network |
 | FR-21, FR-22 | `[R6] [R20] [R21]` Tree Equity | (ใหม่) เพิ่ม factor ใน scoring |
@@ -218,6 +224,21 @@ https://www.who.int/europe/publications/i/item/9789289052498
 
 **[R26]** U.S. Environmental Protection Agency (2023). *Greenhouse Gas Emissions from a Typical Passenger Vehicle.* EPA-420-F-23-014. Washington, DC: U.S. EPA. — ค่าอ้างอิง 4.6 ตัน CO₂/คัน/ปี ที่ `impact.py` ใช้แปลงผล CO₂ ที่ดูดซับได้เป็น "เทียบเท่ารถยนต์ที่ลดได้" (`equivalent_cars_off_road`).
 
+### แหล่งข้อมูล/แพลตฟอร์มหลัก (Data Sources & Platform)
+
+**[R27]** Drusch, M., Del Bello, U., Carlier, S., Colin, O., et al. (2012). *Sentinel-2: ESA's Optical High-Resolution Mission for GMES Operational Services.* **Remote Sensing of Environment**, 120, 25–36. https://doi.org/10.1016/j.rse.2011.11.026 — ภารกิจดาวเทียม Sentinel-2 (`COPERNICUS/S2_SR_HARMONIZED`, band B8/B4) ที่ระบบใช้เป็นแหล่งข้อมูลหลักคำนวณ NDVI (`gee_utils.py`, `routers/ndvi/compute.py`).
+
+**[R28]** Gorelick, N., Hancher, M., Dixon, M., Ilyushchenko, S., Thau, D., & Moore, R. (2017). *Google Earth Engine: Planetary-scale geospatial analysis for everyone.* **Remote Sensing of Environment**, 202, 18–27. https://doi.org/10.1016/j.rse.2017.06.031 — แพลตฟอร์มประมวลผลภูมิสารสนเทศที่ระบบใช้เป็น compute backend ทั้งหมด (NDVI/LST/priority/urban subset).
+
+**[R29]** Tatem, A. J. (2017). *WorldPop, open data for spatial demography.* **Scientific Data**, 4, 170004. https://doi.org/10.1038/sdata.2017.4 — ชุดข้อมูลประชากรเชิงพื้นที่ (WorldPop, 100 m) ที่ `routers/recommend/scoring.py` ใช้เป็นปัจจัย `pop_need` ใน Priority Score.
+
+**[R30]** Hijmans, R. J., Garcia, N., & Wieczorek, J. (2021). *GADM database of Global Administrative Areas, version 4.1.* University of California, Berkeley. https://gadm.org/ — ขอบเขตการปกครอง (77 จังหวัด / 928 อำเภอ) ที่ระบบใช้ clip ข้อมูลและ generate districts (`generate_districts.py`).
+
+**[R31]** U.S. Geological Survey (2022). *Landsat 8-9 Collection 2 Level 2 Science Product Guide.* Version 5.0. Sioux Falls, SD: USGS EROS Center. — เอกสารระเบียบวิธีของ Landsat Collection 2 Level-2 (band `ST_B10`) ที่ระบบดึงมาคำนวณ LST (`gee_utils.py`) ใช้คู่กับอัลกอริทึม `[R14]`.
+
+**[R32]** Moukomla, S., Meeprom, P., & Intarat, K. (2026). *Impact of Impervious Surface Expansion on Urban Thermal Environment Across Tropical Southeast Asian Megacities: Reliable Assessment Through Foundation Model Embeddings.* **Earth**, 7(3), 76. https://doi.org/10.3390/earth7030076 — **นำมาใช้แล้ว:** เป็นฐานของปัจจัยที่ 5 "peri-urban cooling opportunity" ใน Priority Score · ข้อค้นพบที่นำมาใช้: การเพิ่มพื้นที่สีเขียวน่าจะลดความร้อนได้คุ้มสุดที่ "ขอบเมืองกำลังขยาย" (pervious→mixed) และอิ่มตัวที่ใจกลางเมือง — สนับสนุนด้วย stratified Pearson r = 0.65/0.51 (โล่ง/ผสม) vs −0.14 (ทึบเต็ม) ส่วน 5.5 (Discussion) · implement ใน `routers/recommend/scoring.py` (`peri_urban_need_image` — trapezoid บน Dynamic World built-probability ผ่าน `gee_utils.dynamic_world_built`) ถ่วงน้ำหนักคงที่ 15% แบบ additive (ไม่ลดปัจจัยเดิม 4 ตัว) · ใช้กรอบนิยาม SUHI urban ISA≥50% / rural ≤10% ตาม Imhoff et al. (2010).
+> _หมายเหตุ: งานวิจัยรายงาน "ความสัมพันธ์เชิงสถิติ" (correlation) ระหว่าง ISA fraction กับ LST ไม่ได้ทดลองปลูกจริง และเตือนเองว่า correlation ไม่พิสูจน์ causation — น้ำหนัก 15% และปัจจัยเดิม 4 ตัวเป็นการออกแบบของโครงการ ไม่ได้มาจากงานวิจัย (งานวิจัยให้เพียงแนวคิดว่าขอบเมืองสำคัญ)_
+
 ---
 
-_อัปเดตล่าสุด: 2026-07-02 · ใช้คู่กับ Proposal (presentation/generate_proposal_pdf.py) ข้อ 7.4.3–7.4.4_
+_อัปเดตล่าสุด: 2026-07-07 · เลื่อน `[RW1]` → `[R32]` (Moukomla et al. 2026, Earth 7(3):76) เป็น "ใช้แล้ว" หลัง implement ปัจจัย peri-urban ใน `scoring.py` — รวมอ้างอิงที่ใช้จริงเป็น 32 รายการ · ก่อนหน้า (2026-07-06) เพิ่ม `[R27]`–`[R31]` (แหล่งข้อมูล/แพลตฟอร์ม) · ใช้คู่กับ Proposal (presentation/generate_proposal_pdf.py) ข้อ 7.4.3–7.4.4_
