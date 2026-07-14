@@ -1,4 +1,5 @@
-"""Tree planting impact coefficients — per-species CO₂ sequestration + cooling.
+"""Tree planting impact coefficients — CO₂ sequestration + cooling + i-Tree
+ecosystem services (air-pollution removal, stormwater interception, ฿ value).
 
 References:
   - IPCC 2019 Refinement to 2006 GL, Vol.4 Ch.4 — tropical secondary forest
@@ -8,6 +9,10 @@ References:
   - Bowler et al. 2010 (Landscape & Urban Planning) — meta-analysis of urban
     cooling: green sites cool ~1.0°C on average, up to 3°C in dense canopy
   - EPA 2023 — passenger vehicle average ≈ 4.6 t CO₂/year
+  - US Forest Service i-Tree Eco — ecosystem-service quantification & valuation
+    framework (air pollution removal, avoided stormwater runoff, ฿/year value)
+  - Nowak D.J. et al. 2014 (Environmental Pollution 193:119–129) — air-pollution
+    removal and value by urban trees across the United States
   - Thai Royal Forest Department species records + local growth studies
 
 ค่าทุกตัวเป็น *steady-state* ของต้นไม้โตเต็มที่ (≈ 10–15 ปี) ในเขตร้อน
@@ -65,11 +70,42 @@ SURVIVAL_LOW = 0.65
 SURVIVAL_HIGH = 0.90
 SEQUESTRATION_VARIANCE = 0.25
 
+# ── i-Tree ecosystem services (FR-23/24/25) — additive to CO₂ + cooling ───────
+# ค่าเฉลี่ยต่อ "ต้นโตเต็มที่" ต่อปี ในบริบทเมืองเขตร้อน — order-of-magnitude ตาม
+# ระเบียบวิธี i-Tree Eco (US Forest Service) + Nowak et al. 2014 · เป็นค่ากลาง
+# ปรับได้ตาม canopy/LAI/ความเข้มมลพิษพื้นที่ ไม่ใช่ค่าตายตัว · additive: เติมบริการ
+# นิเวศใหม่เข้ากับ CO₂+cooling เดิม ไม่แตะ/ลด field ใด
+
+# 1) การดูดซับมลพิษอากาศ (kg/ต้น/ปี) — dry deposition บนผิวใบ (Nowak et al. 2014)
+AIR_POLLUTANT_KG_PER_TREE = {
+    "pm25": 0.020,   # PM2.5 — อนุภาคเล็ก ผลกระทบสุขภาพสูงสุด
+    "o3":   0.050,   # O₃ — โอโซนระดับผิวดิน (ดูดซับมากสุดในกลุ่ม)
+    "no2":  0.018,   # NO₂ — จากการจราจร
+}
+
+# 2) ดักน้ำฝน/ลด runoff (m³/ต้น/ปี) — interception + ลดการไหลบ่า (i-Tree Hydro)
+#    ต้นเมืองโตเต็มที่ดัก ~2–4 m³/ปี · ใช้ค่ากลางเชิงอนุรักษ์
+STORMWATER_M3_PER_TREE = 2.5
+
+# 3) การตีมูลค่าเป็นเงิน (บาท) — externality/damage & avoided-cost
+#    หมายเหตุ: เป็น "ค่ากลางเชิงนโยบาย" ไม่ใช่ราคาตลาดตายตัว — เลือกค่าเชิงอนุรักษ์
+#    CO₂: อยู่ระหว่างราคาตลาด T-VER ไทย (~฿100–300/t) กับ social cost of carbon
+#         (~$50–185/t) → ใช้ ~$43/t · PM2.5 ค่าความเสียหายสุขภาพสูงสุดต่อ kg
+CARBON_VALUE_THB_PER_TONNE = 1500.0
+VALUATION_THB = {
+    "pm25_per_kg":       3600.0,   # PM2.5 — damage cost สุขภาพ (เชิงอนุรักษ์)
+    "o3_per_kg":         220.0,    # O₃
+    "no2_per_kg":        180.0,    # NO₂
+    "stormwater_per_m3": 20.0,     # ต้นทุนบำบัด/จัดการน้ำที่หลีกเลี่ยงได้
+}
+
 CITATIONS = [
     "IPCC 2019 Refinement to 2006 Guidelines, Vol.4 Ch.4 (tropical biomass)",
     "Bowler D.E. et al. 2010, Landscape & Urban Planning (urban cooling meta-analysis)",
     "Chave J. et al. 2014, Global Change Biology (pan-tropical allometry)",
     "U.S. EPA 2023 (passenger vehicle CO₂ baseline)",
+    "US Forest Service i-Tree Eco (ecosystem-service valuation framework)",
+    "Nowak D.J. et al. 2014, Environmental Pollution (air-pollution removal by urban trees)",
 ]
 
 
@@ -122,6 +158,40 @@ def estimate_impact(plantable_area_m2: float, species_list: list[dict]) -> dict:
     co2_low = annual_co2_tonnes * SURVIVAL_LOW * (1 - SEQUESTRATION_VARIANCE)
     co2_high = annual_co2_tonnes * SURVIVAL_HIGH * (1 + SEQUESTRATION_VARIANCE)
 
+    # ── i-Tree ecosystem services (additive: air pollution + stormwater + ฿) ──
+    # คิดจาก trees_total (ศักยภาพเต็ม) ให้สอดคล้องกับ annual_co2_tonnes · มี
+    # *_expected ที่คูณอัตรารอดไว้คู่กันเช่นเดียวกับ CO₂
+    air_removal_kg = {p: trees_total * kg
+                      for p, kg in AIR_POLLUTANT_KG_PER_TREE.items()}
+    air_total_kg = sum(air_removal_kg.values())
+    stormwater_m3 = trees_total * STORMWATER_M3_PER_TREE
+
+    value_co2 = annual_co2_tonnes * CARBON_VALUE_THB_PER_TONNE
+    value_pm25 = air_removal_kg["pm25"] * VALUATION_THB["pm25_per_kg"]
+    value_o3 = air_removal_kg["o3"] * VALUATION_THB["o3_per_kg"]
+    value_no2 = air_removal_kg["no2"] * VALUATION_THB["no2_per_kg"]
+    value_air = value_pm25 + value_o3 + value_no2
+    value_stormwater = stormwater_m3 * VALUATION_THB["stormwater_per_m3"]
+    value_total = value_co2 + value_air + value_stormwater
+
+    ecosystem_services = {
+        "air_pollution_removal_kg": {
+            "pm25":  round(air_removal_kg["pm25"], 1),
+            "o3":    round(air_removal_kg["o3"], 1),
+            "no2":   round(air_removal_kg["no2"], 1),
+            "total": round(air_total_kg, 1),
+        },
+        "stormwater_runoff_m3": round(stormwater_m3, 0),
+        "annual_value_thb": {
+            "co2":           round(value_co2, 0),
+            "air_pollution": round(value_air, 0),
+            "stormwater":    round(value_stormwater, 0),
+            "total":         round(value_total, 0),
+        },
+        # มูลค่ารวมที่คาดจริง (คูณอัตรารอด) — คู่กับ annual_co2_tonnes_expected
+        "annual_value_thb_expected": round(value_total * SURVIVAL_RATE, 0),
+    }
+
     return {
         "plantable_area_km2":       round(plantable_km2, 2),
         "plantable_area_ha":        round(plantable_ha, 1),
@@ -137,6 +207,8 @@ def estimate_impact(plantable_area_m2: float, species_list: list[dict]) -> dict:
         "survival_rate":              SURVIVAL_RATE,
         "expected_delta_lst_c":     IMPACT_DEFAULTS["delta_lst_c"],
         "maturity_years":           IMPACT_DEFAULTS["maturity_years"],
+        # ── i-Tree ecosystem services (FR-23/24/25) — additive ──
+        "ecosystem_services":       ecosystem_services,
         "species_breakdown":        species_breakdown,
         "methodology": {
             "priority_threshold": IMPACT_DEFAULTS["priority_threshold"],
@@ -144,6 +216,14 @@ def estimate_impact(plantable_area_m2: float, species_list: list[dict]) -> dict:
             "survival_rate":      SURVIVAL_RATE,
             "survival_range":     [SURVIVAL_LOW, SURVIVAL_HIGH],
             "sequestration_variance": SEQUESTRATION_VARIANCE,
+            "ecosystem_valuation": {
+                "air_pollutant_kg_per_tree": AIR_POLLUTANT_KG_PER_TREE,
+                "stormwater_m3_per_tree":    STORMWATER_M3_PER_TREE,
+                "carbon_value_thb_per_tonne": CARBON_VALUE_THB_PER_TONNE,
+                "valuation_thb":             VALUATION_THB,
+                "note": "ค่ากลางเชิงนโยบาย (order-of-magnitude) ตามระเบียบวิธี "
+                        "i-Tree Eco — ปรับได้ ไม่ใช่ราคาตลาดตายตัว",
+            },
             "sources":            CITATIONS,
         },
     }

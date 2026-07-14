@@ -330,6 +330,49 @@ class TestEstimateImpact:
             assert sp in TREE_CO2_PER_YEAR, f"missing coefficient: {sp}"
             assert TREE_CO2_PER_YEAR[sp] > 0
 
+    # ── i-Tree ecosystem services (FR-23/24/25) ─────────────────────────────
+    def test_ecosystem_services_scale_with_trees(self):
+        from impact import (AIR_POLLUTANT_KG_PER_TREE, STORMWATER_M3_PER_TREE)
+        # 1 ha → 4000 ต้น
+        out = estimate_impact(100_000, [{"scientific": "Samanea saman", "name_th": "จามจุรี"}])
+        eco = out["ecosystem_services"]
+        assert eco["air_pollution_removal_kg"]["pm25"] == round(
+            4000 * AIR_POLLUTANT_KG_PER_TREE["pm25"], 1)
+        assert eco["air_pollution_removal_kg"]["total"] == round(
+            4000 * sum(AIR_POLLUTANT_KG_PER_TREE.values()), 1)
+        assert eco["stormwater_runoff_m3"] == round(4000 * STORMWATER_M3_PER_TREE, 0)
+
+    def test_ecosystem_value_is_sum_of_components(self):
+        out = estimate_impact(100_000, [{"scientific": "Samanea saman", "name_th": "จามจุรี"}])
+        v = out["ecosystem_services"]["annual_value_thb"]
+        assert v["total"] == round(v["co2"] + v["air_pollution"] + v["stormwater"], 0)
+        assert v["co2"] > 0 and v["air_pollution"] > 0 and v["stormwater"] > 0
+
+    def test_ecosystem_expected_applies_survival(self):
+        from impact import SURVIVAL_RATE
+        out = estimate_impact(100_000, [{"scientific": "Samanea saman", "name_th": "จามจุรี"}])
+        eco = out["ecosystem_services"]
+        assert eco["annual_value_thb_expected"] == round(
+            eco["annual_value_thb"]["total"] * SURVIVAL_RATE, 0)
+        assert eco["annual_value_thb_expected"] < eco["annual_value_thb"]["total"]
+
+    def test_ecosystem_services_zero_area_all_zero(self):
+        out = estimate_impact(0, [])
+        eco = out["ecosystem_services"]
+        assert eco["air_pollution_removal_kg"]["total"] == 0
+        assert eco["stormwater_runoff_m3"] == 0
+        assert eco["annual_value_thb"]["total"] == 0
+        assert eco["annual_value_thb_expected"] == 0
+
+    def test_methodology_exposes_ecosystem_valuation(self):
+        out = estimate_impact(100_000, [])
+        ev = out["methodology"]["ecosystem_valuation"]
+        assert "air_pollutant_kg_per_tree" in ev
+        assert ev["stormwater_m3_per_tree"] > 0
+        assert ev["carbon_value_thb_per_tonne"] > 0
+        assert any("i-Tree" in s for s in out["methodology"]["sources"])
+        assert any("Nowak" in s for s in out["methodology"]["sources"])
+
 
 # ── validate_polygon_geometry (custom-area) ──────────────────────────────────
 class TestValidatePolygon:

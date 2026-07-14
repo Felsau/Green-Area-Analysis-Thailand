@@ -1,6 +1,17 @@
-// Projected impact of planting — trees / CO₂ / cooling, with per-species breakdown.
+// Projected impact of planting — trees / CO₂ / cooling / ecosystem services (i-Tree),
+// with per-species breakdown.
+
+// ฿ ย่อ: ≥1 ล้าน → "X.X ล้านบาท" · ต่ำกว่านั้นใส่ , ตามปกติ
+function fmtBaht(v) {
+  if (v == null) return '–';
+  if (v >= 1_000_000) return `${(v / 1_000_000).toLocaleString('th-TH', { maximumFractionDigits: 1 })} ล้านบาท`;
+  return `${Math.round(v).toLocaleString('th-TH')} บาท`;
+}
+
 export default function ImpactSection({ impact }) {
   if (!(impact && impact.trees_total > 0)) return null;
+
+  const eco = impact.ecosystem_services;
 
   return (
     <section className="section">
@@ -33,6 +44,30 @@ export default function ImpactSection({ impact }) {
           </div>
         </div>
       </div>
+
+      {eco && eco.annual_value_thb?.total > 0 && (
+        <div className="impact" style={{ marginTop: 8 }}>
+          <div className="impact__cell impact__cell--full">
+            <div className="impact__label">มูลค่าบริการระบบนิเวศรวม/ปี (i-Tree)</div>
+            <div className="impact__num">{fmtBaht(eco.annual_value_thb.total)}</div>
+            <div className="impact__hint">
+              คาดจริง (รวมอัตรารอด) ~{fmtBaht(eco.annual_value_thb_expected)} · คาร์บอน {fmtBaht(eco.annual_value_thb.co2)} · อากาศสะอาด {fmtBaht(eco.annual_value_thb.air_pollution)} · น้ำฝน {fmtBaht(eco.annual_value_thb.stormwater)}
+            </div>
+          </div>
+          <div className="impact__cell">
+            <div className="impact__label">ดูดซับมลพิษอากาศ/ปี</div>
+            <div className="impact__num">{eco.air_pollution_removal_kg.total.toLocaleString()} <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>kg</span></div>
+            <div className="impact__hint">
+              PM2.5 {eco.air_pollution_removal_kg.pm25.toLocaleString()} · O₃ {eco.air_pollution_removal_kg.o3.toLocaleString()} · NO₂ {eco.air_pollution_removal_kg.no2.toLocaleString()} kg
+            </div>
+          </div>
+          <div className="impact__cell">
+            <div className="impact__label">ดักน้ำฝน/ลดน้ำท่วม/ปี</div>
+            <div className="impact__num">{eco.stormwater_runoff_m3.toLocaleString()} <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>m³</span></div>
+            <div className="impact__hint">ลดการไหลบ่าของน้ำผิวดิน</div>
+          </div>
+        </div>
+      )}
 
       {impact.species_breakdown?.length > 0 && (
         <details>
