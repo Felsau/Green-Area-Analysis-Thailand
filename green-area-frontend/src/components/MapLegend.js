@@ -16,6 +16,29 @@ const LST_STOPS = [
 ];
 
 export default function MapLegend({ overlay = 'none', tileInfo = null, choropleth = 'ndvi' }) {
+  // Land use overlay is categorical (5 ประเภทหลักตามนิยาม LDD) — swatch rows per
+  // category instead of a gradient. Checked before the gradient branch because
+  // the landuse tile response also carries a palette.
+  if (overlay !== 'none' && tileInfo?.kind === 'landuse' && tileInfo?.categories?.length) {
+    return (
+      <div className="legend-card" aria-label="คำอธิบายประเภทการใช้ที่ดิน">
+        <div className="legend-card__title">การใช้ที่ดิน · 5 ประเภทหลัก</div>
+        {tileInfo.categories.map(c => (
+          <div className="legend-card__row" key={c.code}>
+            <span className="legend-card__swatch" style={{ background: `#${c.color}` }} />
+            <span className="legend-card__label">{c.name_th}</span>
+            <span className="legend-card__range">{c.code}</span>
+          </div>
+        ))}
+        <div className="legend-card__row">
+          <span className="legend-card__range">
+            จัดกลุ่มตามนิยาม LDD · {tileInfo.source_label || 'Dynamic World'} · {tileInfo.data_year}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   // When a raster overlay is active, show a continuous gradient scale instead
   // of the choropleth buckets.
   if (overlay !== 'none' && tileInfo?.palette?.length) {

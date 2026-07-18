@@ -12,6 +12,7 @@ from dependencies import WORLDPOP_YEAR, worldpop_unavailable_error
 from gee_utils import (clean_s2_collection, get_lst_col, worldpop_pop_collection,
                        dynamic_world_built)
 from impact import IMPACT_DEFAULTS
+from landuse import CATEGORY_BY_VALUE, landuse_image
 
 logger = logging.getLogger(__name__)
 
@@ -241,8 +242,14 @@ def compute_priority(geom: ee.Geometry, year: int,
     # กรองจุดที่ปลูกได้จริง · lazy ee.Image — ไม่ถูก evaluate จนกว่าจะถูกใช้
     plantable = plantable_mask(geom)
 
+    # ── 8. Land use tag (ไม่ใช่ปัจจัยคะแนน) ─────────────────────
+    # ประเภทการใช้ที่ดิน 1–5 (นิยาม LDD จาก Dynamic World — ดู landuse.py) sample
+    # ที่จุด top-locations เพื่ออธิบายว่าจุดแนะนำอยู่บนพื้นที่แบบไหน · unmask(0)
+    # (0 = ไม่ทราบ) กัน pixel ที่ DW ขาดทำจุด sample หลุดทั้งแถวจาก dropNulls
+    landuse = landuse_image(geom, year).unmask(0)
+
     return (priority, ndvi_deficit, lst_heat, pop_need, access_need, peri_need,
-            plantable)
+            plantable, landuse)
 
 
 # ── Top-locations sampling ───────────────────────────────────────────────────
@@ -306,12 +313,17 @@ def _space_out(candidates: list[dict], n: int, min_sep_m: float) -> list[dict]:
 def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
                       lst_heat: ee.Image, pop_need: ee.Image, access_need: ee.Image,
                       peri_need: ee.Image,
-                      geom: ee.Geometry, plantable: ee.Image, n: int = 10):
+                      geom: ee.Geometry, plantable: ee.Image, n: int = 10,
+                      landuse: ee.Image | None = None):
     """หา top-n pixels ที่มี priority สูงสุด — เฉพาะบนพื้นที่ที่ปลูกได้จริง.
 
     sample แบบ multi-band (priority + 5 องค์ประกอบ) ที่จุดเดียวกัน → คืน `factors`
     ของแต่ละจุด (ขาดต้นไม้/ร้อน/คนหนาแน่น/เข้าถึงสีเขียวยาก/ขอบเมืองลดร้อนคุ้ม) เพื่ออธิบายว่า "ทำไม" จุดนี้
     คะแนนสูง · updateMask(plantable) ก่อน sample → ไม่คืนจุดบนน้ำ/อาคาร/ป่าเดิม/ที่ชัน
+
+    landuse (optional): band ประเภทการใช้ที่ดิน 1–5 (unmask(0) มาแล้ว — ดู
+    compute_priority ขั้น 8) sample ที่จุดเดียวกัน → ติดป้าย `landuse` ต่อจุด
+    (code + ชื่อไทย) · เป็น descriptor ล้วน ไม่กระทบคะแนน/การเลือกจุด
 
     คัด priority เปอร์เซ็นไทล์สูง (TOP_SAMPLE_PERCENTILE) เฉพาะ plantable ก่อน sample
     เพื่อทุ่ม budget ลงโซน hotspot จริง — เดิมสุ่มทั่ว geom ทำให้จังหวัดใหญ่พลาด pixel
@@ -331,6 +343,8 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
     p_thresh = ee.Number(ee.Algorithms.If(p_thresh, p_thresh, 0))
 
     stack = priority.addBands([ndvi_deficit, lst_heat, pop_need, access_need, peri_need])
+    if landuse is not None:
+        stack = stack.addBands(landuse)
     # gte() สืบ mask ของ plantable_priority มาด้วย → updateMask ตัดทั้ง non-plantable
     # และ pixel ที่ต่ำกว่า threshold ในคราวเดียว เหลือเฉพาะโซน hotspot ที่ปลูกได้
     hotspots = stack.updateMask(plantable_priority.gte(p_thresh))
@@ -346,7 +360,7 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
     for feat in info.get('features', []):
         coords = feat['geometry']['coordinates']
         p = feat['properties']
-        candidates.append({
+        entry = {
             'lng': round(coords[0], 5),
             'lat': round(coords[1], 5),
             'score': round(float(p.get('priority', 0)), 3),
@@ -357,7 +371,12 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
                 'access_need': round(float(p.get('access_need', 0)), 2),
                 'peri_urban': round(float(p.get('peri_need', 0)), 2),
             },
-        })
+        }
+        # ประเภทการใช้ที่ดินที่จุดนี้ — 0 (ไม่ทราบ/DW ขาด) ไม่ใส่ป้าย
+        cat = CATEGORY_BY_VALUE.get(int(p.get('landuse') or 0))
+        if cat is not None:
+            entry['landuse'] = {'code': cat['code'], 'name_th': cat['name_th']}
+        candidates.append(entry)
     # candidates เรียงตาม priority มาแล้ว → คัดให้กระจาย ≥ TOP_MIN_SEPARATION_M
     return _space_out(candidates, n, TOP_MIN_SEPARATION_M)
 

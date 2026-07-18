@@ -6,6 +6,7 @@ import ExportBar from '../ui/ExportBar';
 import MonthlyChart from './stats/MonthlyChart';
 import GreenDeficitNote from './stats/GreenDeficitNote';
 import UhiRiskNote from './stats/UhiRiskNote';
+import LandusePanel from './stats/LandusePanel';
 
 export default function StatsTab({ data, handlers }) {
   const {
@@ -15,8 +16,9 @@ export default function StatsTab({ data, handlers }) {
     lstStats, lstMonthly, lstLoading,
     districtNdviStats, districtNdviMonthly, districtNdviLoading,
     districtLstStats, districtLstMonthly, districtLstLoading,
+    landuseData, landuseLoading, landuseYear,
   } = data;
-  const { onClearDistrict } = handlers;
+  const { onClearDistrict, onFetchLanduse, setLanduseYear } = handlers;
 
   return (
     <div id="export-stats" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -165,6 +167,17 @@ export default function StatsTab({ data, handlers }) {
 
       {/* Green Deficit */}
       <GreenDeficitNote ndviStats={ndviStats} />
+
+      {/* Land use composition — 5 ประเภทหลักตามนิยาม LDD (จาก Dynamic World) */}
+      <LandusePanel
+        scopeLabel={selectedDistrict ? `อำเภอ${selectedDistrict}`
+                    : selectedProvince ? `จังหวัด${selectedProvince}` : 'พื้นที่'}
+        landuseData={landuseData}
+        landuseLoading={landuseLoading}
+        landuseYear={landuseYear}
+        setLanduseYear={setLanduseYear}
+        onAnalyze={onFetchLanduse}
+      />
 
       {/* Province LST */}
       {(lstStats || lstLoading) && (

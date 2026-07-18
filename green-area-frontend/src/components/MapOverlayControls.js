@@ -53,6 +53,9 @@ export default function MapOverlayControls({
               onClick={() => enableOverlay('ndvi')}>NDVI</button>
             <button className="overlay-btn" data-active={!swipe.active && raster.overlay === 'lst'}
               onClick={() => enableOverlay('lst')}>LST</button>
+            <button className="overlay-btn" data-active={!swipe.active && raster.overlay === 'landuse'}
+              title="การใช้ที่ดิน 5 ประเภทหลัก (นิยามกรมพัฒนาที่ดิน)"
+              onClick={() => enableOverlay('landuse')}>ที่ดิน</button>
           </div>
 
           <button className="overlay-btn overlay-btn--full" data-active={swipe.active}

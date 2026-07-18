@@ -16,6 +16,7 @@ import { useRankingData }  from './hooks/useRankingData';
 import { useRecommendData } from './hooks/useRecommendData';
 import { useTimelapseData } from './hooks/useTimelapseData';
 import { useCoolingData } from './hooks/useCoolingData';
+import { useLanduseData } from './hooks/useLanduseData';
 import { useCoverageCompute } from './hooks/useCoverageCompute';
 import { useRasterOverlay } from './hooks/useRasterOverlay';
 import { useSwipeCompare } from './hooks/useSwipeCompare';
@@ -63,6 +64,7 @@ function App() {
   const recommend = useRecommendData();
   const timelapse = useTimelapseData();
   const cooling = useCoolingData();
+  const landuse = useLanduseData();
   const coverage = useCoverageCompute({ setNdviCache });
   const raster = useRasterOverlay();
   const swipe = useSwipeCompare();
@@ -179,6 +181,11 @@ function App() {
   // Intentional single dep: resetCooling is stable; depending on `cooling` re-fires each render.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { cooling.resetCooling(); }, [province.selectedProvinceEN]);
+
+  // land use composition is scope-bound (province OR district) — clear on either change
+  // so the card never shows the previous scope's proportions.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { landuse.resetLanduse(); }, [province.selectedProvinceEN, district.selectedDistrictEN]);
 
   // Raster overlay: (re)fetch NDVI/LST tiles when the overlay or scope changes.
   // fetchTiles is a stable useCallback; province/district/overlay drive the refetch.
@@ -335,6 +342,9 @@ function App() {
     coolingData:    cooling.coolingData,
     coolingLoading: cooling.coolingLoading,
     coolingYear:    cooling.coolingYear,
+    landuseData:    landuse.landuseData,
+    landuseLoading: landuse.landuseLoading,
+    landuseYear:    landuse.landuseYear,
     computing:        coverage.computing,
     computeProgress:  coverage.computeProgress,
   };
@@ -361,6 +371,9 @@ function App() {
     setRecommendWeights: recommend.setRecommendWeights,
     onFetchCooling:  cooling.fetchCooling,
     setCoolingYear:  cooling.setCoolingYear,
+    onFetchLanduse:  () => landuse.fetchLanduse(province.selectedProvinceEN,
+                       district.selectedDistrictEN || null, landuse.landuseYear),
+    setLanduseYear:  landuse.setLanduseYear,
     onComputeMissing: coverage.computeMissing,
     onCancelCompute:  coverage.cancelCompute,
   };

@@ -151,6 +151,13 @@ export default function RecommendTab({ data, handlers }) {
                   {p.factors && (
                     <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>{factorText(p.factors)}</div>
                   )}
+                  {/* ประเภทการใช้ที่ดินที่จุดนี้ (5 ประเภทหลักตามนิยาม LDD) — จุดจาก
+                      cache รุ่นก่อนยังไม่มี field นี้ จึงต้องเช็คก่อนแสดง */}
+                  {p.landuse && (
+                    <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+                      การใช้ที่ดิน: {p.landuse.name_th}
+                    </div>
+                  )}
                 </a>
               )) : (
                 <div className="helper">ไม่พบจุดที่เหมาะสม</div>

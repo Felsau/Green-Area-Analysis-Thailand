@@ -49,7 +49,10 @@ CURRENT_CACHE_VERSION = 2
 # v5 → v6: เพิ่มปัจจัย peri-urban (โอกาสลดร้อนสูงสุดที่ขอบเมืองกำลังขยาย, จาก Moukomla
 #          et al. 2026) เป็น slice คงที่ W_PERI ใน priority → heatmap/top_locations ที่
 #          cache ด้วย v5 ต่างไป (+ factors เพิ่ม peri_urban) → stale
-RECOMMEND_CACHE_VERSION = 6
+# v6 → v7: top_locations ติดป้าย landuse (ประเภทการใช้ที่ดิน 5 ประเภทตาม LDD จาก
+#          Dynamic World — ดู landuse.py) ต่อจุด · คะแนน/ตำแหน่งไม่เปลี่ยน แต่ row
+#          v6 ไม่มี field นี้ → recompute ให้ครบ
+RECOMMEND_CACHE_VERSION = 7
 MONTH_NAMES = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
                'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
 

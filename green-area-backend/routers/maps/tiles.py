@@ -1,4 +1,4 @@
-"""Interactive raster tile overlays — NDVI / LST XYZ tiles for the live map.
+"""Interactive raster tile overlays — NDVI / LST / land use XYZ tiles for the live map.
 
 ต่างจาก thumbs.py (PNG ภาพนิ่งสำหรับ PDF): ตรงนี้คืน XYZ tile URL (getMapId)
 ให้ deck.gl TileLayer วาง raster จริงระดับ pixel ทับ basemap แบบ interactive.
@@ -12,6 +12,8 @@ from fastapi import APIRouter, HTTPException
 from dependencies import (get_province_geom, get_district_geom,
                           CURRENT_YEAR, YearParam, internal_error)
 from gee_utils import clean_s2_collection, get_lst_col
+from landuse import (LANDUSE_CATEGORIES, LANDUSE_PALETTE,
+                     landuse_image_checked, landuse_meta)
 from ttl_cache import TTLCache
 
 router = APIRouter()
@@ -32,6 +34,11 @@ NDVI_DIFF_PALETTE = ['d73027', 'f46d43', 'fee08b', 'ffffbf', 'd9ef8b', '66bd63',
 LST_DIFF_PALETTE = ['2166ac', '4393c3', '92c5de', 'f7f7f7', 'f4a582', 'd6604d', 'b2182b']
 NDVI_DIFF_VIS = {'min': -0.3, 'max': 0.3, 'palette': NDVI_DIFF_PALETTE}
 LST_DIFF_VIS = {'min': -5, 'max': 5, 'palette': LST_DIFF_PALETTE}
+
+# Land use (categorical) — ค่า pixel 1–5 ตรงกับ LANDUSE_CATEGORIES · palette 5 สี
+# บนช่วง [1,5] ทำให้ค่า int แต่ละค่าตกสีของประเภทตัวเองพอดี (ไม่มีการไล่เฉดจริง
+# เพราะภาพมีแต่ค่า int)
+LANDUSE_VIS = {'min': 1, 'max': 5, 'palette': LANDUSE_PALETTE}
 
 # tile URL ผูก session GEE (~ชั่วโมง) → cache 30 นาทีปลอดภัย ลด getMapId ซ้ำตอน toggle
 # thread-safe ร่วม impl เดียวกับ recommend tile cache (ดู ttl_cache.py)
@@ -112,6 +119,23 @@ def lst_tiles(province_name: str, year: YearParam = CURRENT_YEAR,
     return _serve_tiles("lst", province_name, district_name, year,
                         _lst_image, LST_VIS, LST_PALETTE,
                         f"ไม่พบภาพ Landsat สำหรับปี {year}")
+
+
+@router.get("/maps/{province_name}/landuse-tiles")
+def landuse_tiles(province_name: str, year: YearParam = CURRENT_YEAR,
+                  district_name: str | None = None):
+    """XYZ tile URL การใช้ที่ดิน 5 ประเภทหลัก (นิยาม LDD, จาก Dynamic World รายปี).
+
+    URL shape เดียวกับ ndvi/lst-tiles ให้ frontend reuse ตัว fetch เดิมได้ ·
+    ต่างตรง response เป็น categorical: แนบ `categories` (ชื่อ+สีต่อประเภท) แทน
+    การตีความ min/max เป็นสเกลต่อเนื่อง + `source`/`data_year` บอกที่มาข้อมูล
+    """
+    resp = _serve_tiles("landuse", province_name, district_name, year,
+                        landuse_image_checked, LANDUSE_VIS, LANDUSE_PALETTE,
+                        f"ไม่พบข้อมูล Dynamic World สำหรับปี {year}")
+    return {**resp, **landuse_meta(year),
+            "categories": [{"code": c["code"], "name_th": c["name_th"],
+                            "color": c["color"]} for c in LANDUSE_CATEGORIES]}
 
 
 def _serve_diff(kind: str, province_name: str, district_name: str | None,

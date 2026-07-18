@@ -96,10 +96,10 @@ def _compute_recommendation_payload(geom: ee.Geometry, year: int,
     """
     assert_imagery_available(geom, year)
     (priority, ndvi_deficit, lst_heat, pop_need, access_need, peri_need,
-     plantable) = compute_priority(geom, year, *weights)
+     plantable, landuse) = compute_priority(geom, year, *weights)
     tile_url = get_heatmap_url(priority)
     top = get_top_locations(priority, ndvi_deficit, lst_heat, pop_need, access_need,
-                            peri_need, geom, plantable, n=10)
+                            peri_need, geom, plantable, n=10, landuse=landuse)
     plantable_m2 = compute_plantable_area_m2(priority, plantable, geom)
     impact = estimate_impact(plantable_m2, species)
     return tile_url, top, impact
@@ -174,7 +174,7 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
             if tile_url is None or impact is None:
                 try:
                     geom = ee.Geometry(raw_geom)
-                    priority, _, _, _, _, _, plantable = compute_priority(
+                    priority, _, _, _, _, _, plantable, _ = compute_priority(
                         geom, year, w_ndvi, w_lst, w_pop, w_access)
                     if tile_url is None:
                         tile_url = get_heatmap_url(priority)
