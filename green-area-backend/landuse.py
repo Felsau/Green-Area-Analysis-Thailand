@@ -35,6 +35,11 @@ LANDUSE_CATEGORIES = [
 LANDUSE_PALETTE = [c["color"] for c in LANDUSE_CATEGORIES]
 CATEGORY_BY_VALUE = {c["value"]: c for c in LANDUSE_CATEGORIES}
 
+# แหล่งข้อมูลที่ endpoint การใช้ที่ดินรองรับ (ผลลัพธ์ schema เดียวกัน ต่างแค่ที่มา):
+#   dynamic_world = provider นี้ (DW รายปี ทั้งประเทศ) · ldd = provider LDD (ดู ldd.py)
+# เก็บชื่อไว้ที่ schema กลางให้ทั้ง summary + tiles endpoint import ที่เดียว
+LANDUSE_SOURCES = ("dynamic_world", "ldd")
+
 # ── แนวทางการปลูกต่อประเภทที่ดิน ─────────────────────────────────────────────
 # ประเภทที่ดินกำหนด "วิธีปลูก" ไม่ใช่แค่ "ปลูกที่ไหน" — ใช้ติดจุด top-locations
 # (scoring.get_top_locations) ให้แต่ละจุดบอกแนวทางที่ทำได้จริงบนที่ดินแบบนั้น ·
