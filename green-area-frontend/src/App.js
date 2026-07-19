@@ -345,6 +345,7 @@ function App() {
     landuseData:    landuse.landuseData,
     landuseLoading: landuse.landuseLoading,
     landuseYear:    landuse.landuseYear,
+    landuseSource:  landuse.landuseSource,
     computing:        coverage.computing,
     computeProgress:  coverage.computeProgress,
   };
@@ -372,8 +373,10 @@ function App() {
     onFetchCooling:  cooling.fetchCooling,
     setCoolingYear:  cooling.setCoolingYear,
     onFetchLanduse:  () => landuse.fetchLanduse(province.selectedProvinceEN,
-                       district.selectedDistrictEN || null, landuse.landuseYear),
+                       district.selectedDistrictEN || null, landuse.landuseYear,
+                       landuse.landuseSource),
     setLanduseYear:  landuse.setLanduseYear,
+    setLanduseSource: landuse.setLanduseSource,
     onComputeMissing: coverage.computeMissing,
     onCancelCompute:  coverage.cancelCompute,
   };

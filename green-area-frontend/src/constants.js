@@ -55,6 +55,17 @@ export const INITIAL_VIEW_STATE = {
 export const CURRENT_YEAR = new Date().getFullYear();
 export const AVAILABLE_YEARS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - 5 + i);
 
+// แหล่งข้อมูลการใช้ที่ดิน — ตรงกับ LANDUSE_SOURCES ฝั่ง backend (schema ผลลัพธ์เดียวกัน)
+//   dynamic_world = ดาวเทียมจำแนกอัตโนมัติ รายปี ทั้งประเทศ
+//   ldd           = ข้อมูลราชการ LDD 1:25,000 สำรวจภาคสนาม (มีรายละเอียด 96 ประเภท)
+export const LANDUSE_SOURCES = [
+  { id: 'dynamic_world', label: 'Dynamic World', hint: 'ดาวเทียม 10m · รายปี · ทั้งประเทศ' },
+  { id: 'ldd', label: 'LDD ราชการ', hint: 'กรมพัฒนาที่ดิน 1:25,000 · ปี 2566' },
+];
+// จังหวัด (ชื่อ EN) ที่มีข้อมูล LDD ในระบบ — ตรงกับ LDD_COVERAGE_PROVINCES ฝั่ง backend
+// ยังไม่ครอบคลุมจังหวัดนี้ → UI ไม่โชว์ตัวเลือก LDD (คงไว้ที่ Dynamic World)
+export const LDD_PROVINCES = ['Bangkok Metropolis'];
+
 // WHO urban green-space standard (m² per person) — single source of truth for
 // deficit math + report copy. Mirrors WHO_STANDARD_M2 in the backend.
 export const WHO_STANDARD_M2 = 9;
