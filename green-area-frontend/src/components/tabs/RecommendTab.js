@@ -152,10 +152,14 @@ export default function RecommendTab({ data, handlers }) {
                     <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>{factorText(p.factors)}</div>
                   )}
                   {/* ประเภทการใช้ที่ดินที่จุดนี้ (5 ประเภทหลักตามนิยาม LDD) — จุดจาก
-                      cache รุ่นก่อนยังไม่มี field นี้ จึงต้องเช็คก่อนแสดง */}
+                      cache รุ่นก่อนยังไม่มี field นี้ จึงต้องเช็คก่อนแสดง ·
+                      guidance (แนวทางการปลูกตามประเภทที่ดิน) มาตั้งแต่ cache v8 */}
                   {p.landuse && (
                     <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>
                       การใช้ที่ดิน: {p.landuse.name_th}
+                      {p.landuse.guidance && (
+                        <span style={{ color: 'var(--ink-4)' }}> — {p.landuse.guidance}</span>
+                      )}
                     </div>
                   )}
                 </a>

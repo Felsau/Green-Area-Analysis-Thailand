@@ -8,7 +8,10 @@ migration 006) ผ่าน `_region_for()` ที่ cache ผลไว้ · `
 ทั้ง seed ของตารางนั้นและ fallback กรณี DB ยังไม่มีข้อมูล/เชื่อมไม่ได้
 """
 import logging
+from collections import Counter
 from functools import lru_cache
+
+from landuse import LANDUSE_CATEGORIES
 
 logger = logging.getLogger(__name__)
 
@@ -221,8 +224,51 @@ _HARDY_KEYWORDS = ("ทนแล้ง", "โตเร็ว", "ตรึงไ�
 _BIODIV_KEYWORDS = ("พื้นถิ่น", "อายุยืน", "ผลกินได้", "ผลใช้ประโยชน์", "นกชอบ",
                     "ใกล้สูญพันธุ์", "เฉพาะถิ่น")
 
+# ── Land-use fit (การใช้ที่ดินเด่นของจุดแนะนำ → บริบทการปลูก) ────────────────
+# ที่ดินแต่ละประเภทต้องการพันธุ์ต่างกัน: ชุมชนต้องทนมลพิษ เกษตรควรได้ไม้ผล/วนเกษตร
+# ที่เบ็ดเตล็ด (ที่ว่าง/ทุ่งหญ้า) เหมาะไม้บุกเบิกฟื้นฟู · code ตาม schema 5 ประเภท
+# LDD (landuse.LANDUSE_CATEGORIES) · additive ต่อสัญญาณ LST/NDVI เดิม — ไม่แทนที่
+LANDUSE_KEYWORDS = {
+    "U": (("ทนมลพิษ", "ริมถนน", "ดักฝุ่น", "ในเมือง", "ชุมชน", "PM2.5", "เทศบาล"),
+          "เหมาะกับเขตชุมชน — การใช้ที่ดินเด่นของจุดแนะนำ"),
+    "A": (("ผลไม้", "ผลกินได้", "ผลใช้ประโยชน์", "ผลผลิต", "เศรษฐกิจ",
+           "ตรึงไนโตรเจน", "รายได้"),
+          "เหมาะปลูกแซมพื้นที่เกษตร (วนเกษตร)"),
+    "F": (("พื้นถิ่น", "ฟื้นฟูป่า", "อายุยืน", "หลากหลาย"),
+          "เหมาะปลูกเสริมป่าเดิม"),
+    "W": (("ทนน้ำท่วม", "ริมน้ำ", "ริมแหล่งน้ำ", "ที่ลุ่ม"),
+          "เหมาะพื้นที่ริมน้ำ/ทนน้ำท่วม"),
+    "M": (("ฟื้นฟู", "โตเร็ว", "ดินเสื่อม", "ดินไม่ดี", "ทนแล้ง"),
+          "เหมาะฟื้นฟูพื้นที่ว่าง/ที่ดินเบ็ดเตล็ด"),
+}
+LANDUSE_FIT_SCORE = 2
 
-def _site_fit(sp: dict, *, hot: bool, degraded: bool, green: bool) -> tuple[int, str | None]:
+# เกณฑ์ "การใช้ที่ดินเด่น" ของชุดจุดแนะนำ — ประเภทที่พบมากสุดต้องมีอย่างน้อย
+# DOMINANT_MIN_COUNT จุด และครอบคลุม ≥ DOMINANT_MIN_SHARE ของจุดที่มีป้าย
+# ไม่ผ่านเกณฑ์ = สัญญาณไม่ชัด → ไม่ boost (คืนลำดับตาม LST/NDVI เดิม)
+DOMINANT_MIN_SHARE = 0.4
+DOMINANT_MIN_COUNT = 2
+
+
+def dominant_spot_landuse(top_locations: list | None) -> str | None:
+    """code การใช้ที่ดินเด่น (U/A/F/W/M) ของจุด top-locations — None ถ้าสัญญาณไม่ชัด.
+
+    อ่านจากป้าย `landuse` ที่ scoring ติดมาต่อจุด · จุดจาก cache รุ่นเก่า (ก่อน v7)
+    ไม่มีป้าย → ถูกข้าม · pure function ทดสอบได้โดยไม่แตะ GEE
+    """
+    codes = [loc["landuse"].get("code") for loc in (top_locations or [])
+             if isinstance(loc, dict) and isinstance(loc.get("landuse"), dict)]
+    codes = [c for c in codes if c]
+    if not codes:
+        return None
+    code, count = Counter(codes).most_common(1)[0]
+    if count >= DOMINANT_MIN_COUNT and count / len(codes) >= DOMINANT_MIN_SHARE:
+        return code
+    return None
+
+
+def _site_fit(sp: dict, *, hot: bool, degraded: bool, green: bool,
+              landuse_code: str | None = None) -> tuple[int, str | None]:
     """คืน (score, reason) ของพันธุ์ 1 ชนิดเทียบสภาพพื้นที่ — match keyword ใน traits/purpose/reason"""
     text = " ".join(sp.get("traits", [])) + " " + sp.get("purpose", "") + " " + sp.get("reason", "")
     score, reasons = 0, []
@@ -235,27 +281,53 @@ def _site_fit(sp: dict, *, hot: bool, degraded: bool, green: bool) -> tuple[int,
     if green and any(k in text for k in _BIODIV_KEYWORDS):
         score += 1
         reasons.append("เสริมความหลากหลายพันธุ์พื้นถิ่น")
+    if landuse_code in LANDUSE_KEYWORDS:
+        keywords, why = LANDUSE_KEYWORDS[landuse_code]
+        if any(k in text for k in keywords):
+            score += LANDUSE_FIT_SCORE
+            reasons.append(why)
     return score, (" · ".join(reasons) if reasons else None)
 
 
-def rank_species_by_site(species: list, lst_mean=None, ndvi_mean=None) -> list:
+def rank_species_by_site(species: list, lst_mean=None, ndvi_mean=None,
+                         landuse_code: str | None = None) -> list:
     """จัดอันดับพันธุ์ตามสภาพพื้นที่ — คืน list ใหม่ของ dict ที่เติม key 'site_fit'
-    (เหตุผล หรือ None) · ไม่มี signal (lst_mean/ndvi_mean None ทั้งคู่) → คืนลำดับเดิม.
+    (เหตุผล หรือ None) · ไม่มี signal เลย (ทั้ง lst/ndvi/landuse) → คืนลำดับเดิม.
 
     ไม่กลายพันธุ์ (mutate) species เดิม · sort เสถียร คะแนนเท่ากันคงลำดับภาคไว้
     """
-    if lst_mean is None and ndvi_mean is None:
+    if lst_mean is None and ndvi_mean is None and landuse_code is None:
         return species
     hot = lst_mean is not None and lst_mean >= HOT_LST_C
     degraded = ndvi_mean is not None and ndvi_mean < LOW_NDVI
     green = ndvi_mean is not None and ndvi_mean >= HIGH_NDVI
     scored = []
     for sp in species:
-        score, reason = _site_fit(sp, hot=hot, degraded=degraded, green=green)
+        score, reason = _site_fit(sp, hot=hot, degraded=degraded, green=green,
+                                  landuse_code=landuse_code)
         scored.append((score, {**sp, "site_fit": reason}))
     # key=score เท่านั้น (ไม่เทียบ dict) · reverse=True ยัง stable → ตีเสมอคงลำดับภาค
     scored.sort(key=lambda t: t[0], reverse=True)
     return [sp for _, sp in scored]
+
+
+def rerank_species_for_spots(species_info: dict, top_locations: list | None,
+                             lst_mean=None, ndvi_mean=None) -> dict:
+    """Re-rank พันธุ์ตามการใช้ที่ดินเด่นของจุดแนะนำ — additive ต่อ ranking LST/NDVI.
+
+    เรียกหลังได้ top_locations (คำนวณสดหรือจาก cache) · สัญญาณไม่ชัด/ไม่มีป้าย →
+    คืน species_info เดิมไม่แตะ · เมื่อ boost แล้วเติม `landuse_context` {code, name_th}
+    ให้ UI บอกได้ว่าจัดอันดับโดยคำนึงถึงที่ดินแบบไหน · ไม่ mutate ของเดิม
+    """
+    code = dominant_spot_landuse(top_locations)
+    if code is None or not species_info.get("species"):
+        return species_info
+    ranked = rank_species_by_site(species_info["species"], lst_mean, ndvi_mean,
+                                  landuse_code=code)
+    cat = next((c for c in LANDUSE_CATEGORIES if c["code"] == code), None)
+    return {**species_info, "species": ranked,
+            "landuse_context": {"code": code,
+                                "name_th": cat["name_th"] if cat else code}}
 
 
 def get_recommended_species(province_name: str, lst_mean=None, ndvi_mean=None):

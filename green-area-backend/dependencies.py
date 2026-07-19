@@ -52,7 +52,11 @@ CURRENT_CACHE_VERSION = 2
 # v6 → v7: top_locations ติดป้าย landuse (ประเภทการใช้ที่ดิน 5 ประเภทตาม LDD จาก
 #          Dynamic World — ดู landuse.py) ต่อจุด · คะแนน/ตำแหน่งไม่เปลี่ยน แต่ row
 #          v6 ไม่มี field นี้ → recompute ให้ครบ
-RECOMMEND_CACHE_VERSION = 7
+# v7 → v8: ระบบปลูกใช้ land use จริง — ป้าย landuse ต่อจุดเพิ่ม `guidance` (แนวทาง
+#          การปลูกตามประเภทที่ดิน) และ impact เพิ่ม `plantable_landuse` (breakdown
+#          พื้นที่ควรปลูกตามประเภทที่ดิน) · คะแนน/ตำแหน่งไม่เปลี่ยน แต่ row v7
+#          ไม่มีสอง field นี้ → recompute ให้ครบ
+RECOMMEND_CACHE_VERSION = 8
 MONTH_NAMES = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
                'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
 

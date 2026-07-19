@@ -12,6 +12,11 @@ export default function ImpactSection({ impact }) {
   if (!(impact && impact.trees_total > 0)) return null;
 
   const eco = impact.ecosystem_services;
+  // Breakdown พื้นที่ควรปลูกตามประเภทการใช้ที่ดิน (LDD 5 ประเภท) — impact จาก
+  // cache รุ่นก่อน v8 ยังไม่มี field นี้ · โชว์เฉพาะประเภทที่มีพื้นที่จริง
+  const landuseClasses = (impact.plantable_landuse?.classes || [])
+    .filter((c) => c.share_pct > 0)
+    .sort((a, b) => b.share_pct - a.share_pct);
 
   return (
     <section className="section">
@@ -44,6 +49,23 @@ export default function ImpactSection({ impact }) {
           </div>
         </div>
       </div>
+
+      {landuseClasses.length > 0 && (
+        <div className="impact" style={{ marginTop: 8 }}>
+          <div className="impact__cell impact__cell--full">
+            <div className="impact__label">พื้นที่ควรปลูก แยกตามการใช้ที่ดิน</div>
+            <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', margin: '6px 0 4px' }}>
+              {landuseClasses.map((c) => (
+                <div key={c.code} title={`${c.name_th} ${c.share_pct}%`}
+                  style={{ flex: `0 0 ${c.share_pct}%`, background: `#${c.color}` }} />
+              ))}
+            </div>
+            <div className="impact__hint">
+              {landuseClasses.map((c) => `${c.name_th} ${c.share_pct}%`).join(' · ')}
+            </div>
+          </div>
+        </div>
+      )}
 
       {eco && eco.annual_value_thb?.total > 0 && (
         <div className="impact" style={{ marginTop: 8 }}>

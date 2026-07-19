@@ -23,13 +23,14 @@ from dependencies import (supa_call, internal_error, RECOMMEND_CACHE_VERSION,
                           CURRENT_YEAR, YEAR_MIN, YEAR_MAX, YearParam, WeightParam,
                           WORLDPOP_YEAR)
 from impact import estimate_impact
+from landuse import build_summary
 from polygon_utils import validate_drawn_polygon
 
 from .scoring import (W_NDVI, W_LST, W_POP, W_ACCESS,
                       normalize_weights, assert_imagery_available,
                       compute_priority, get_top_locations,
-                      compute_plantable_area_m2, get_heatmap_url)
-from .species import get_recommended_species
+                      compute_plantable_area, get_heatmap_url)
+from .species import get_recommended_species, rerank_species_for_spots
 from .tile_cache import get_cached_tile_url, store_tile_url
 from keyed_lock import COMPUTE_LOCK
 
@@ -86,13 +87,17 @@ def _imagery_unavailable_error(year: int, district_name: str | None) -> HTTPExce
 
 def _compute_recommendation_payload(geom: ee.Geometry, year: int,
                                     weights: tuple[float, float, float, float],
-                                    species: list):
+                                    species_info: dict,
+                                    lst_mean=None, ndvi_mean=None):
     """Shared compute: assert imagery → priority heatmap URL + top-10 + plantable impact.
 
-    คืน (tile_url, top_locations, impact) · เรียก *ภายใน* try ของ caller เพราะ
-    province/district (cache) กับ custom-area แปลง ee.EEException เป็น 422 ด้วยข้อความ
-    scope ต่างกัน — helper จึงไม่ดักเอง · รวม flow ที่เดิมเขียนซ้ำสองชุด (เดิมต่างกันแค่
-    geometry/response) ให้แก้ที่เดียวเวลา compute logic เปลี่ยน
+    คืน (tile_url, top_locations, impact, species_info) · species_info ขาออกถูก
+    re-rank ตามการใช้ที่ดินเด่นของ top locations แล้ว (rerank_species_for_spots) —
+    impact คิดจากลำดับสุดท้ายนี้ ให้ species_breakdown สอดคล้องกับที่แสดง ·
+    impact แนบ `plantable_landuse` (breakdown พื้นที่ควรปลูกตามประเภทที่ดิน —
+    เก็บใน impact เพื่อได้ cache jsonb เดิมฟรี ไม่ต้อง migrate) · เรียก *ภายใน* try
+    ของ caller เพราะ province/district (cache) กับ custom-area แปลง ee.EEException
+    เป็น 422 ด้วยข้อความ scope ต่างกัน — helper จึงไม่ดักเอง
     """
     assert_imagery_available(geom, year)
     (priority, ndvi_deficit, lst_heat, pop_need, access_need, peri_need,
@@ -100,9 +105,12 @@ def _compute_recommendation_payload(geom: ee.Geometry, year: int,
     tile_url = get_heatmap_url(priority)
     top = get_top_locations(priority, ndvi_deficit, lst_heat, pop_need, access_need,
                             peri_need, geom, plantable, n=10, landuse=landuse)
-    plantable_m2 = compute_plantable_area_m2(priority, plantable, geom)
-    impact = estimate_impact(plantable_m2, species)
-    return tile_url, top, impact
+    species_info = rerank_species_for_spots(species_info, top, lst_mean, ndvi_mean)
+    plantable_m2, plantable_by_lu = compute_plantable_area(priority, plantable,
+                                                           landuse, geom)
+    impact = estimate_impact(plantable_m2, species_info.get("species", []))
+    impact["plantable_landuse"] = build_summary(plantable_by_lu)
+    return tile_url, top, impact, species_info
 
 
 def _run_recommendation(province_name: str, district_name: str | None,
@@ -168,20 +176,26 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
                       .delete().eq("id", row["id"]).execute())
             row = None
         if row:
+            # Re-rank พันธุ์ตามการใช้ที่ดินเด่นของจุดใน cache — ทำก่อน back-fill
+            # ด้านล่าง เพื่อให้ impact ที่คำนวณใหม่ใช้ลำดับพันธุ์สุดท้ายเดียวกับที่แสดง
+            species_info = rerank_species_for_spots(
+                species_info, row.get("top_locations") or [], lst_mean, ndvi_mean)
             tile_url = get_cached_tile_url(province_name, district_name, year)
             impact = row.get("impact")
             # tile URL หมดอายุพร้อม GEE session / impact อาจยังไม่เคย back-fill
             if tile_url is None or impact is None:
                 try:
                     geom = ee.Geometry(raw_geom)
-                    priority, _, _, _, _, _, plantable, _ = compute_priority(
+                    priority, _, _, _, _, _, plantable, landuse_img = compute_priority(
                         geom, year, w_ndvi, w_lst, w_pop, w_access)
                     if tile_url is None:
                         tile_url = get_heatmap_url(priority)
                         store_tile_url(province_name, district_name, year, tile_url)
                     if impact is None:
-                        plantable_m2 = compute_plantable_area_m2(priority, plantable, geom)
+                        plantable_m2, plantable_by_lu = compute_plantable_area(
+                            priority, plantable, landuse_img, geom)
                         impact = estimate_impact(plantable_m2, species_info.get("species", []))
+                        impact["plantable_landuse"] = build_summary(plantable_by_lu)
                         # back-fill impact ลง cache row เพื่อรอบหลังไม่ต้อง recompute
                         try:
                             supa_call(lambda s: s.table("planting_recommendations")
@@ -203,8 +217,9 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
                 label, year, w_ndvi, w_lst, w_pop, w_access, "" if is_default else " custom")
     try:
         geom = ee.Geometry(raw_geom)
-        tile_url, top, impact = _compute_recommendation_payload(
-            geom, year, (w_ndvi, w_lst, w_pop, w_access), species_info.get("species", []))
+        tile_url, top, impact, species_info = _compute_recommendation_payload(
+            geom, year, (w_ndvi, w_lst, w_pop, w_access), species_info,
+            lst_mean, ndvi_mean)
 
         # Cache เฉพาะ default weights (ไม่งั้นจะปนกัน + DB บวมโดยเปล่าประโยชน์)
         if is_default:
@@ -293,8 +308,9 @@ def recommend_custom_area(req: CustomAreaRecommendRequest):
                 area_km2, req.year, w_ndvi, w_lst, w_pop, w_access)
     try:
         geom = ee.Geometry(req.geometry)
-        tile_url, top, impact = _compute_recommendation_payload(
-            geom, req.year, (w_ndvi, w_lst, w_pop, w_access), species_info.get("species", []))
+        tile_url, top, impact, species_info = _compute_recommendation_payload(
+            geom, req.year, (w_ndvi, w_lst, w_pop, w_access), species_info,
+            lst_mean, ndvi_mean)
         return {
             "year": req.year,
             "area_km2": round(area_km2, 2),

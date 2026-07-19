@@ -42,3 +42,27 @@ test('degrades gracefully for cached impact without ecosystem_services', () => {
   expect(screen.getByText(/CO₂ ดูดซับ\/ปี/)).toBeInTheDocument();
   expect(screen.queryByText(/มูลค่าบริการระบบนิเวศรวม/)).not.toBeInTheDocument();
 });
+
+test('shows plantable-area land use breakdown, skipping zero-share classes', () => {
+  const withLanduse = {
+    ...IMPACT,
+    plantable_landuse: {
+      total_km2: 1,
+      classes: [
+        { code: 'A', name_th: 'พื้นที่เกษตรกรรม', color: 'f2c94c', area_km2: 0.62, share_pct: 62 },
+        { code: 'M', name_th: 'พื้นที่เบ็ดเตล็ด', color: '9aa0a6', area_km2: 0.38, share_pct: 38 },
+        { code: 'W', name_th: 'พื้นที่น้ำ', color: '3d85c6', area_km2: 0, share_pct: 0 },
+      ],
+    },
+  };
+  render(<ImpactSection impact={withLanduse} />);
+  expect(screen.getByText(/พื้นที่ควรปลูก แยกตามการใช้ที่ดิน/)).toBeInTheDocument();
+  expect(screen.getByText(/พื้นที่เกษตรกรรม 62%/)).toBeInTheDocument();
+  // ประเภทที่พื้นที่เป็น 0 ต้องไม่ปรากฏ
+  expect(screen.queryByText(/พื้นที่น้ำ/)).not.toBeInTheDocument();
+});
+
+test('impact without plantable_landuse (cache before v8) renders no breakdown', () => {
+  render(<ImpactSection impact={IMPACT} />);
+  expect(screen.queryByText(/แยกตามการใช้ที่ดิน/)).not.toBeInTheDocument();
+});

@@ -12,7 +12,7 @@ from dependencies import WORLDPOP_YEAR, worldpop_unavailable_error
 from gee_utils import (clean_s2_collection, get_lst_col, worldpop_pop_collection,
                        dynamic_world_built)
 from impact import IMPACT_DEFAULTS
-from landuse import CATEGORY_BY_VALUE, landuse_image
+from landuse import CATEGORY_BY_VALUE, PLANTING_GUIDANCE, landuse_image
 
 logger = logging.getLogger(__name__)
 
@@ -372,26 +372,38 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
                 'peri_urban': round(float(p.get('peri_need', 0)), 2),
             },
         }
-        # ประเภทการใช้ที่ดินที่จุดนี้ — 0 (ไม่ทราบ/DW ขาด) ไม่ใส่ป้าย
+        # ประเภทการใช้ที่ดินที่จุดนี้ — 0 (ไม่ทราบ/DW ขาด) ไม่ใส่ป้าย ·
+        # guidance = แนวทางการปลูกที่ทำได้จริงบนที่ดินประเภทนั้น (ดู landuse.py)
         cat = CATEGORY_BY_VALUE.get(int(p.get('landuse') or 0))
         if cat is not None:
-            entry['landuse'] = {'code': cat['code'], 'name_th': cat['name_th']}
+            entry['landuse'] = {'code': cat['code'], 'name_th': cat['name_th'],
+                                'guidance': PLANTING_GUIDANCE.get(cat['value'])}
         candidates.append(entry)
     # candidates เรียงตาม priority มาแล้ว → คัดให้กระจาย ≥ TOP_MIN_SEPARATION_M
     return _space_out(candidates, n, TOP_MIN_SEPARATION_M)
 
 
-def compute_plantable_area_m2(priority: ee.Image, plantable: ee.Image,
-                              geom: ee.Geometry) -> float:
+def compute_plantable_area(priority: ee.Image, plantable: ee.Image,
+                           landuse: ee.Image,
+                           geom: ee.Geometry) -> tuple[float, dict[int, float]]:
     """รวม pixel area ที่ priority > threshold *และ* ปลูกได้จริง (plantable) =
     "ที่ควรปลูกจริง" สำหรับ impact projection — ตัดน้ำ/อาคาร/ป่าเดิมออกแล้ว.
+
+    คืน (total_m2, {landuse_value: m2}) — grouped reduce ครั้งเดียว (sum จัดกลุ่มตาม
+    band landuse 0–5) ได้ทั้งยอดรวมและ breakdown ตามประเภทการใช้ที่ดินโดยไม่เพิ่ม
+    roundtrip จากเดิมที่ sum เฉยๆ · total รวม pixel ที่จำแนกไม่ได้ (landuse 0 —
+    DW ขาด) ด้วย = ยอดเดียวกับ sum ตรงๆ แบบเดิม · breakdown ฝั่ง caller ใช้
+    landuse.build_summary ซึ่งนับเฉพาะค่า 1–5 ให้เอง
     ใช้ scale 100m balance ระหว่างความเร็วและความแม่น (priority ก็คำนวณที่ ~100m เช่นกัน)"""
     high_priority = priority.gt(IMPACT_DEFAULTS["priority_threshold"]).And(plantable)
-    area_m2 = (ee.Image.pixelArea().updateMask(high_priority)
-               .reduceRegion(reducer=ee.Reducer.sum(), geometry=geom,
-                             scale=100, maxPixels=1e10, bestEffort=True)
-               .get('area').getInfo())
-    return float(area_m2 or 0)
+    groups = (ee.Image.pixelArea().updateMask(high_priority)
+              .addBands(landuse)
+              .reduceRegion(
+                  reducer=ee.Reducer.sum().group(groupField=1, groupName='landuse'),
+                  geometry=geom, scale=100, maxPixels=1e10, bestEffort=True)
+              .get('groups').getInfo()) or []
+    by_value = {int(g['landuse']): float(g['sum']) for g in groups}
+    return sum(by_value.values()), by_value
 
 
 def get_heatmap_url(priority: ee.Image) -> str:

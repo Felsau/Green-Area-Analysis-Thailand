@@ -7,7 +7,14 @@ export default function SpeciesSection({ recommendedSpecies }) {
       <div className="section__head">
         <span className="section__title">พันธุ์ไม้แนะนำ</span>
         {recommendedSpecies.region && (
-          <span className="section__meta">ภาค{recommendedSpecies.region}</span>
+          <span className="section__meta">
+            ภาค{recommendedSpecies.region}
+            {/* จัดอันดับโดยคำนึงถึงการใช้ที่ดินเด่นของจุดแนะนำ (backend ส่งมา
+                เมื่อสัญญาณชัดพอ — ดู rerank_species_for_spots) */}
+            {recommendedSpecies.landuse_context && (
+              <> · ที่ดินเด่น: {recommendedSpecies.landuse_context.name_th}</>
+            )}
+          </span>
         )}
       </div>
       <div>
@@ -33,7 +40,10 @@ export default function SpeciesSection({ recommendedSpecies }) {
           </div>
         ))}
       </div>
-      <div className="helper">คัดเลือกจากพันธุ์ที่เหมาะกับภูมิอากาศและดินของแต่ละภาค</div>
+      <div className="helper">
+        คัดเลือกจากพันธุ์ที่เหมาะกับภูมิอากาศและดินของแต่ละภาค
+        {recommendedSpecies.landuse_context && ' · จัดอันดับตามการใช้ที่ดินเด่นของจุดแนะนำ'}
+      </div>
     </section>
   );
 }
