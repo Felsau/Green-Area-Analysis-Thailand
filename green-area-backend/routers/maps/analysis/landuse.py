@@ -12,7 +12,10 @@ from fastapi import APIRouter, HTTPException
 from dependencies import (get_province_geom, get_district_geom,
                           CURRENT_YEAR, YearParam, internal_error)
 from keyed_lock import COMPUTE_LOCK
-from landuse import landuse_image_checked, landuse_meta, build_summary
+from landuse import (landuse_image_checked, landuse_meta, build_summary,
+                     LANDUSE_SOURCES)
+from ldd import (ldd_available, ldd_covers, ldd_summary_areas, ldd_meta,
+                 build_detail, LDD_COVERAGE_PROVINCES)
 from ttl_cache import TTLCache
 
 router = APIRouter()
@@ -50,15 +53,47 @@ def _compute_summary(geom: ee.Geometry, province_name: str,
             **landuse_meta(year), **build_summary(area_by_value)}
 
 
+def _compute_summary_ldd(geom: ee.Geometry, province_name: str,
+                         district_name: str | None, scope: str) -> dict:
+    """สัดส่วนจาก polygon LDD จริง → response dict (มี detail รหัสละเอียด).
+
+    edition คงที่ (ไม่ผูกปี) · พื้นที่คิดจาก Shape_Area ทางการ ไม่ใช่ประมาณจาก pixel ·
+    raise 404 เมื่อ asset ไม่ครอบคลุมจังหวัดนี้ หรือไม่พบ polygon ในพื้นที่
+    """
+    if not ldd_covers(province_name):
+        raise HTTPException(status_code=404, detail=(
+            f"ข้อมูล LDD มีเฉพาะ {', '.join(LDD_COVERAGE_PROVINCES)} — "
+            f"ยังไม่มี {province_name} ในระบบ"))
+
+    area_by_value, area_by_code = ldd_summary_areas(geom)
+    if not area_by_value:
+        raise HTTPException(status_code=404,
+            detail=f"ไม่พบ polygon การใช้ที่ดิน LDD ในพื้นที่ {scope}")
+
+    return {"province": province_name, "district": district_name,
+            **ldd_meta(), **build_summary(area_by_value),
+            "detail": build_detail(area_by_code)}
+
+
 @router.get("/analysis/landuse/{province_name}")
 def get_landuse_summary(province_name: str, year: YearParam = CURRENT_YEAR,
-                        district_name: str | None = None):
+                        district_name: str | None = None,
+                        source: str = "dynamic_world"):
     """สัดส่วนการใช้ที่ดิน 5 ประเภทหลัก (ตามนิยามกรมพัฒนาที่ดิน) ของจังหวัด/อำเภอ.
 
-    แหล่งข้อมูล: Dynamic World 10m composite รายปี (mode) จัดกลุ่มเข้า schema
-    LDD — response แนบ source/data_year ให้ผู้ใช้รู้ที่มาเสมอ (เฟส B จะเพิ่ม
-    provider ข้อมูล LDD 1:25,000 โดย response shape เดิม)
+    source เลือกแหล่งข้อมูล (schema ผลลัพธ์เดียวกัน — ดู LANDUSE_SOURCES):
+      dynamic_world (ค่าเริ่มต้น) : ดาวเทียม 10m composite รายปี (mode) ทั้งประเทศ
+      ldd                         : ข้อมูลราชการ LDD 1:25,000 รายจังหวัด (พื้นที่ทางการ
+                                     จาก polygon จริง + แนบ `detail` รหัสละเอียด)
+    response แนบ source/data_year ให้ผู้ใช้รู้ที่มาเสมอ
     """
+    if source not in LANDUSE_SOURCES:
+        raise HTTPException(status_code=400,
+            detail=f"source ไม่ถูกต้อง — รองรับ {', '.join(LANDUSE_SOURCES)}")
+    if source == "ldd" and not ldd_available():
+        raise HTTPException(status_code=404,
+            detail="ยังไม่ได้ตั้งค่าข้อมูล LDD (LDD_LANDUSE_ASSET) ในระบบ")
+
     if district_name:
         raw_geom = get_district_geom(province_name, district_name)
         scope = f"{province_name}/{district_name}"
@@ -66,7 +101,7 @@ def get_landuse_summary(province_name: str, year: YearParam = CURRENT_YEAR,
         raw_geom = get_province_geom(province_name)
         scope = province_name
 
-    key = ("landuse", province_name, district_name, year)
+    key = ("landuse", source, province_name, district_name, year)
     cached = _summary_cache.get(key)
     if cached is not None:
         return cached
@@ -76,10 +111,14 @@ def get_landuse_summary(province_name: str, year: YearParam = CURRENT_YEAR,
         cached = _summary_cache.get(key)
         if cached is not None:
             return cached
-        logger.info("⏳ Computing land use summary: %s/%d", scope, year)
+        logger.info("⏳ Computing land use summary: %s/%d [%s]", scope, year, source)
         try:
-            result = _compute_summary(ee.Geometry(raw_geom), province_name,
-                                      district_name, year, scope)
+            if source == "ldd":
+                result = _compute_summary_ldd(ee.Geometry(raw_geom),
+                                              province_name, district_name, scope)
+            else:
+                result = _compute_summary(ee.Geometry(raw_geom), province_name,
+                                          district_name, year, scope)
             _summary_cache.set(key, result)
             return result
         except HTTPException:

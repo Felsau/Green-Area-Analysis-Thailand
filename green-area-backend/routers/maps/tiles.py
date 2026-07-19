@@ -12,8 +12,10 @@ from fastapi import APIRouter, HTTPException
 from dependencies import (get_province_geom, get_district_geom,
                           CURRENT_YEAR, YearParam, internal_error)
 from gee_utils import clean_s2_collection, get_lst_col
-from landuse import (LANDUSE_CATEGORIES, LANDUSE_PALETTE,
+from landuse import (LANDUSE_CATEGORIES, LANDUSE_PALETTE, LANDUSE_SOURCES,
                      landuse_image_checked, landuse_meta)
+from ldd import (ldd_available, ldd_covers, ldd_landuse_image_checked,
+                 ldd_meta, LDD_COVERAGE_PROVINCES)
 from ttl_cache import TTLCache
 
 router = APIRouter()
@@ -72,9 +74,12 @@ def _lst_image(geom: ee.Geometry, year: int):
 
 
 def _serve_tiles(kind: str, province_name: str, district_name: str | None,
-                 year: int, image_fn, vis: dict, palette: list, missing: str):
+                 year: int, image_fn, vis: dict, palette: list, missing: str,
+                 variant: str = ""):
     raw_geom = _resolve_geom(province_name, district_name)
-    key = (kind, province_name, district_name, year)
+    # variant แยก cache ของ layer ชนิดเดียวกันแต่คนละแหล่งข้อมูล (เช่น landuse DW vs
+    # LDD ที่ kind เดียวกัน) — response ยังใช้ kind เดิมให้ frontend รู้จัก layer
+    key = (kind, variant, province_name, district_name, year)
     url = _tile_cache.get(key)
     if url is None:
         logger.info("⏳ %s tiles: %s/%s/%d", kind.upper(), province_name,
@@ -123,17 +128,39 @@ def lst_tiles(province_name: str, year: YearParam = CURRENT_YEAR,
 
 @router.get("/maps/{province_name}/landuse-tiles")
 def landuse_tiles(province_name: str, year: YearParam = CURRENT_YEAR,
-                  district_name: str | None = None):
-    """XYZ tile URL การใช้ที่ดิน 5 ประเภทหลัก (นิยาม LDD, จาก Dynamic World รายปี).
+                  district_name: str | None = None,
+                  source: str = "dynamic_world"):
+    """XYZ tile URL การใช้ที่ดิน 5 ประเภทหลัก (นิยาม LDD) — raster ทับ basemap.
 
     URL shape เดียวกับ ndvi/lst-tiles ให้ frontend reuse ตัว fetch เดิมได้ ·
-    ต่างตรง response เป็น categorical: แนบ `categories` (ชื่อ+สีต่อประเภท) แทน
-    การตีความ min/max เป็นสเกลต่อเนื่อง + `source`/`data_year` บอกที่มาข้อมูล
+    response เป็น categorical: แนบ `categories` (ชื่อ+สีต่อประเภท) + `source`/
+    `data_year` · source เลือกแหล่งข้อมูล (ดู LANDUSE_SOURCES): dynamic_world
+    (ค่าเริ่มต้น, ดาวเทียมรายปี) หรือ ldd (polygon ราชการ rasterize — รายจังหวัด)
     """
-    resp = _serve_tiles("landuse", province_name, district_name, year,
-                        landuse_image_checked, LANDUSE_VIS, LANDUSE_PALETTE,
-                        f"ไม่พบข้อมูล Dynamic World สำหรับปี {year}")
-    return {**resp, **landuse_meta(year),
+    if source not in LANDUSE_SOURCES:
+        raise HTTPException(status_code=400,
+            detail=f"source ไม่ถูกต้อง — รองรับ {', '.join(LANDUSE_SOURCES)}")
+
+    if source == "ldd":
+        if not ldd_available():
+            raise HTTPException(status_code=404,
+                detail="ยังไม่ได้ตั้งค่าข้อมูล LDD (LDD_LANDUSE_ASSET) ในระบบ")
+        if not ldd_covers(province_name):
+            raise HTTPException(status_code=404, detail=(
+                f"ข้อมูล LDD มีเฉพาะ {', '.join(LDD_COVERAGE_PROVINCES)} — "
+                f"ยังไม่มี {province_name} ในระบบ"))
+        resp = _serve_tiles("landuse", province_name, district_name, year,
+                            ldd_landuse_image_checked, LANDUSE_VIS, LANDUSE_PALETTE,
+                            f"ไม่พบ polygon การใช้ที่ดิน LDD ใน {province_name}",
+                            variant="ldd")
+        meta = ldd_meta()
+    else:
+        resp = _serve_tiles("landuse", province_name, district_name, year,
+                            landuse_image_checked, LANDUSE_VIS, LANDUSE_PALETTE,
+                            f"ไม่พบข้อมูล Dynamic World สำหรับปี {year}")
+        meta = landuse_meta(year)
+
+    return {**resp, **meta,
             "categories": [{"code": c["code"], "name_th": c["name_th"],
                             "color": c["color"]} for c in LANDUSE_CATEGORIES]}
 
