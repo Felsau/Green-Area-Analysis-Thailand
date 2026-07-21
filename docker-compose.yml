@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./green-area-backend
+    env_file:
+      - ./green-area-backend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./green-area-backend:/app
+      # ต้องรัน `earthengine authenticate` บน host มาก่อน 1 ครั้ง แล้ว mount credentials
+      # เข้า container (ee.Initialize() อ่านจากไฟล์นี้ — ไม่รองรับ interactive auth ใน container)
+      - ${HOME}/.config/earthengine:/root/.config/earthengine:ro
+      # thailand.json / thailand_districts.json — dependencies.py หาไฟล์ตาม legacy
+      # monorepo path "../green-area-frontend/public" ซึ่งใน container ต้อง mount แยก
+      # เพราะ build context ของ backend ไม่รวมโฟลเดอร์ frontend
+      - ./green-area-frontend/public:/green-area-frontend/public:ro
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./green-area-frontend
+      target: dev
+    environment:
+      # ฝั่ง browser (นอก container) ต้องยิงไปที่ backend ผ่าน published port บน host
+      - VITE_API_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./green-area-frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend

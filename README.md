@@ -82,6 +82,31 @@ npm run dev        # Vite dev server
 
 ---
 
+## รันด้วย Docker
+
+ต้องทำ [Supabase setup](#1-supabase-setup) และ `earthengine authenticate` บนเครื่อง (host) มาก่อน 1 ครั้ง — GEE credentials จะถูก mount เข้า container จาก `~/.config/earthengine`
+
+```bash
+cd green-area-backend
+copy .env.example .env    # Mac/Linux: cp .env.example .env
+# แก้ค่า SUPABASE_URL, SUPABASE_KEY, GEE_PROJECT, ADMIN_TOKEN
+cd ..
+
+docker compose up --build
+# Backend  → http://localhost:8000/docs
+# Frontend → http://localhost:3000
+```
+
+`docker-compose.yml` รัน backend ด้วย `uvicorn --reload` และ frontend ด้วย Vite dev server (mount source เข้า container ทั้งคู่ → แก้โค้ดแล้ว hot-reload ได้เหมือน local dev)
+
+Production image ของ frontend (`green-area-frontend/Dockerfile`, target `production`) build เป็น static bundle เสิร์ฟด้วย nginx:
+
+```bash
+docker build --target production --build-arg VITE_API_URL=https://your-backend.example.com -t green-area-frontend ./green-area-frontend
+```
+
+---
+
 ## Environment variables (backend `.env`)
 
 | Variable | จำเป็น | อธิบาย |
