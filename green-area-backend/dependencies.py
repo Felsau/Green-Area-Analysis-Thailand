@@ -6,6 +6,8 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 from datetime import datetime
 import httpx
+import jwt
+from jwt import PyJWKClient
 import json
 import logging
 import os
@@ -85,6 +87,87 @@ def require_admin(x_admin_token: str | None = Header(default=None)):
     # ใช้ compare_digest กัน timing attack ที่เทียบ string ทีละ byte
     if not x_admin_token or not secrets.compare_digest(x_admin_token, ADMIN_TOKEN):
         raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+def _unauthenticated() -> HTTPException:
+    return HTTPException(status_code=401, detail="กรุณาเข้าสู่ระบบใหม่อีกครั้ง")
+
+
+@lru_cache(maxsize=1)
+def _jwks_client() -> PyJWKClient:
+    jwks_url = f"{SUPABASE_URL.rstrip('/')}/auth/v1/.well-known/jwks.json"
+    return PyJWKClient(jwks_url, cache_keys=True, lifespan=3600)
+
+
+def _verify_jwt_locally(token: str) -> dict | None:
+    """ตรวจ Supabase access token ในเครื่องด้วย public key จาก Supabase JWKS —
+    ไม่ยิง network ไป Supabase Auth ทุก request (ต่างจาก auth.get_user() เดิม)
+
+    ใช้ได้เฉพาะโปรเจกต์ที่เปิด asymmetric signing keys (ES256/RS256) เพราะ JWKS
+    ไม่ publish shared secret ของโปรเจกต์ legacy ที่เซ็นด้วย HS256 · คืน payload
+    (dict) ถ้าตรวจผ่าน · None ถ้าตรวจไม่ได้เลย (ให้ caller fallback ไป network) ·
+    raise _unauthenticated() ถ้า JWKS ยืนยันแล้วว่า token หมดอายุ/ปลอม — ไม่ต้อง
+    fallback ไป network ซ้ำเพราะผลตรงกันแน่นอน
+    """
+    try:
+        signing_key = _jwks_client().get_signing_key_from_jwt(token)
+    except Exception:
+        # ไม่มี key ที่ตรง kid (โปรเจกต์ legacy HS256) หรือดึง JWKS ไม่สำเร็จ → fallback
+        return None
+    try:
+        return jwt.decode(token, signing_key.key, algorithms=["ES256", "RS256"],
+                          audience="authenticated")
+    except jwt.InvalidTokenError:
+        raise _unauthenticated()
+
+
+def require_user(authorization: str | None = Header(default=None)) -> dict:
+    """ตรวจ Supabase access token (Authorization: Bearer <jwt>) จาก session ฝั่ง
+    frontend (supabase-js) → คืน {"id", "email"} ของผู้ใช้ที่ล็อกอินอยู่.
+
+    ลอง verify ในเครื่องก่อน (_verify_jwt_locally, เร็ว — ไม่มี network round-trip)
+    ถ้าใช้ไม่ได้ (โปรเจกต์ legacy HS256) → fallback ไป get_supabase().auth.get_user(jwt)
+    ซึ่งส่ง jwt ของผู้ใช้ตรงไปแทนที่ client's own key สำหรับ call นี้ครั้งเดียว — ไม่ได้ยกระดับสิทธิ์
+    """
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise _unauthenticated()
+    token = authorization.split(" ", 1)[1].strip()
+    if not token:
+        raise _unauthenticated()
+
+    if SUPABASE_URL:
+        payload = _verify_jwt_locally(token)
+        if payload is not None:
+            user_id = payload.get("sub")
+            if not user_id:
+                raise _unauthenticated()
+            return {"id": user_id, "email": payload.get("email")}
+
+    try:
+        resp = get_supabase().auth.get_user(token)
+    except Exception:
+        raise _unauthenticated()
+    user = getattr(resp, "user", None)
+    if not user:
+        raise _unauthenticated()
+    return {"id": user.id, "email": user.email}
+
+
+def require_admin_or_user(x_admin_token: str | None = Header(default=None),
+                          authorization: str | None = Header(default=None)) -> None:
+    """อนุญาตถ้า (1) X-Admin-Token ตรง ADMIN_TOKEN (script/CI) หรือ (2) ผู้ใช้
+    ล็อกอินที่มี profiles.role = 'admin' (ใช้งานผ่านหน้าเว็บด้วยบัญชีตัวเอง โดย
+    ไม่ต้องพก ADMIN_TOKEN แยก) — ใช้กับ endpoint admin ที่ควรกดได้จากในแอปด้วย
+    """
+    if x_admin_token and ADMIN_TOKEN and secrets.compare_digest(x_admin_token, ADMIN_TOKEN):
+        return
+    if authorization:
+        user = require_user(authorization)
+        result = supa_call(lambda s: s.table("profiles").select("role")
+                           .eq("id", user["id"]).limit(1).execute())
+        if result.data and result.data[0].get("role") == "admin":
+            return
+    raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 @lru_cache(maxsize=1)

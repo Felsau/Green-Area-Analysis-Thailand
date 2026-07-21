@@ -18,10 +18,18 @@ def _fake_response(data, count=None):
 
 @pytest.fixture
 def client(monkeypatch):
-    """TestClient ที่ patch ADMIN_TOKEN + supa_call ให้ไม่แตะ external"""
+    """TestClient ที่ patch ADMIN_TOKEN + supa_call ให้ไม่แตะ external
+
+    override require_user ให้คืน fake user เสมอ (ไม่ต้องปลอม JWT/แตะ Supabase
+    Auth จริงในเทสต์เหล่านี้ — เทสต์ endpoint ชุดนี้เช็ค business logic ไม่ใช่ auth
+    เอง) · ทดสอบพฤติกรรม require_user/require_admin_or_user เองแยกใน
+    test_auth_dependencies.py"""
     import main
+    from dependencies import require_user
     monkeypatch.setattr("dependencies.ADMIN_TOKEN", "test-token")
-    return TestClient(main.app), main
+    main.app.dependency_overrides[require_user] = lambda: {"id": "test-user-id", "email": "test@example.com"}
+    yield TestClient(main.app), main
+    main.app.dependency_overrides.pop(require_user, None)
 
 
 # ── GET / ────────────────────────────────────────────────────────────────────
@@ -543,18 +551,19 @@ class TestSavedAreas:
         assert rows[0]["mine"] is True
         assert rows[1]["mine"] is False
 
-    def test_list_without_owner_token_returns_empty(self, client, monkeypatch):
-        # privacy default: ไม่มี owner token + ไม่ขอ shared → คืนว่าง โดยไม่แตะ DB
+    def test_list_without_owner_token_returns_own_saved_areas(self, client, monkeypatch):
+        # ไม่มี X-Owner-Token (ไม่มี legacy row ให้ fallback) → ยังคืนพื้นที่ของ
+        # บัญชีที่ล็อกอินอยู่ตามปกติ (กรองด้วย user_id เสมอ เพราะ router บังคับ login แล้ว)
         c, _ = client
-        called = {"hit": False}
-        def _boom(fn, **kw):
-            called["hit"] = True
-            return _fake_response([{"id": 1, "owner_token": "someone", "geometry": {}}])
-        monkeypatch.setattr("routers.saved.supa_call", _boom)
+        monkeypatch.setattr("routers.saved.supa_call",
+            lambda fn, **kw: _fake_response([
+                {"id": 1, "owner_token": None, "user_id": "test-user-id", "geometry": {}},
+            ]))
         r = c.get("/saved-areas")
         assert r.status_code == 200
-        assert r.json()["data"] == []
-        assert called["hit"] is False        # ไม่ query DB เลย
+        rows = r.json()["data"]
+        assert len(rows) == 1
+        assert rows[0]["mine"] is True
 
     def test_list_shared_returns_all_without_token(self, client, monkeypatch):
         # ?shared=true → public gallery: คืนของทุกคนแม้ไม่มี owner token
@@ -599,4 +608,46 @@ class TestSavedAreas:
             lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "someone-else"}]))
         r = c.delete("/saved-areas/1",
                      headers={"X-Owner-Token": "tok", "X-Admin-Token": "test-token"})
+        assert r.status_code == 200
+
+
+# ── Auth gating ───────────────────────────────────────────────────────────────
+# Business-logic tests ข้างบนใช้ fixture `client` ที่ override require_user ไว้ —
+# ชุดนี้ใช้ TestClient แยกต่างหาก (ไม่ผ่าน override) เพื่อยืนยันว่า endpoint ที่
+# ควรถูกล็อกจริง ๆ ปฏิเสธ request ที่ไม่มี token, และที่ตั้งใจเปิดสาธารณะไว้ยังเข้าได้
+class TestAuthGating:
+    def test_recommend_rejects_anonymous(self):
+        import main
+        from dependencies import PROVINCE_GEOMETRIES
+        sample = next(iter(PROVINCE_GEOMETRIES))
+        r = TestClient(main.app).get(f"/recommend/{sample}")
+        assert r.status_code == 401
+
+    def test_ndvi_rejects_anonymous(self):
+        import main
+        from dependencies import PROVINCE_GEOMETRIES
+        sample = next(iter(PROVINCE_GEOMETRIES))
+        r = TestClient(main.app).get(f"/ndvi/{sample}")
+        assert r.status_code == 401
+
+    def test_compare_rejects_anonymous(self):
+        import main
+        r = TestClient(main.app).get("/compare?provinces=Bangkok")
+        assert r.status_code == 401
+
+    def test_saved_areas_rejects_anonymous(self):
+        import main
+        r = TestClient(main.app).get("/saved-areas")
+        assert r.status_code == 401
+
+    def test_ranking_stays_public(self, monkeypatch):
+        # Landing.js (หน้าก่อนล็อกอิน) พึ่ง endpoint นี้เป็น teaser — ต้องไม่ถูกล็อก
+        import main
+        monkeypatch.setattr(main, "supa_call", lambda fn, **kw: _fake_response([]))
+        r = TestClient(main.app).get("/analysis/ranking")
+        assert r.status_code == 200
+
+    def test_health_stays_public(self):
+        import main
+        r = TestClient(main.app).get("/health")
         assert r.status_code == 200

@@ -24,10 +24,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-from dependencies import (supa_call, require_admin, ensure_province,
+from dependencies import (supa_call, require_admin_or_user, require_user, ensure_province,
                           PROVINCE_GEOMETRIES, CURRENT_YEAR,
                           YearParam, WHO_STANDARD_M2)
-from routers import ndvi, lst, recommend, maps, saved
+from routers import ndvi, lst, recommend, maps, saved, account
 from schemas import RankingResponse, TimelapseResponse
 
 GEE_PROJECT = os.getenv("GEE_PROJECT")
@@ -60,11 +60,12 @@ app = FastAPI()
 # CORS — จำกัดเฉพาะ method/header ที่ API ใช้จริง (least privilege)
 # ไม่เปิด allow_credentials เพราะ API ใช้ token header ไม่ใช่ cookie
 # POST ใช้สำหรับ /analysis/custom-area (ส่ง GeoJSON polygon ใน body)
+# PATCH ใช้สำหรับ /account/me (แก้ display_name) · Authorization = Supabase access token
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-    allow_headers=["X-Admin-Token", "X-Owner-Token", "Content-Type"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["X-Admin-Token", "X-Owner-Token", "Authorization", "Content-Type"],
 )
 
 # Rate limit แบบ global ต่อ IP — กันใช้ผิดประเภท + GEE quota หมด
@@ -105,11 +106,17 @@ else:
     except Exception as e:
         logger.error("❌ GEE เชื่อมต่อไม่สำเร็จ: %s", e)
 
-app.include_router(ndvi.router)
-app.include_router(lst.router)
-app.include_router(recommend.router)
-app.include_router(maps.router)
-app.include_router(saved.router)
+# ล็อกอินก่อนถึงเรียก endpoint เหล่านี้ได้ — สอดคล้องกับ frontend ที่กันทั้ง
+# dashboard ไว้หลัง AuthGate อยู่แล้ว (ดู App.js) ตรงนี้ปิดช่องที่ยิง API ตรง
+# ข้าม UI ได้ (กัน GEE quota โดนใช้ฟรีโดยไม่ผ่านล็อกอิน) · saved.router รวมด้วย
+# ตั้งแต่ saved areas ผูกกับ user_id ของบัญชี (migration 012) — X-Owner-Token
+# เหลือไว้แค่ fallback หา legacy row เก่าที่ยังไม่มี user_id เท่านั้น
+app.include_router(ndvi.router, dependencies=[Depends(require_user)])
+app.include_router(lst.router, dependencies=[Depends(require_user)])
+app.include_router(recommend.router, dependencies=[Depends(require_user)])
+app.include_router(maps.router, dependencies=[Depends(require_user)])
+app.include_router(saved.router, dependencies=[Depends(require_user)])
+app.include_router(account.router)
 
 
 @app.get("/health")
@@ -136,7 +143,7 @@ def read_root():
 MAX_COMPARE_PROVINCES = 50
 
 
-@app.get("/compare")
+@app.get("/compare", dependencies=[Depends(require_user)])
 def compare_provinces(provinces: str, year: YearParam = CURRENT_YEAR):
     province_list = [p.strip() for p in provinces.split(",") if p.strip()]
     if not province_list:
@@ -162,14 +169,14 @@ def compare_provinces(provinces: str, year: YearParam = CURRENT_YEAR):
     return {"year": year, "data": data}
 
 
-@app.get("/cache")
+@app.get("/cache", dependencies=[Depends(require_user)])
 def get_cache():
     annual  = supa_call(lambda s: s.table("ndvi_annual").select("province,year,ndvi_mean,green_area_pct,who_status,created_at").execute())
     monthly = supa_call(lambda s: s.table("ndvi_monthly").select("province,year,created_at").execute())
     return {"annual": annual.data, "monthly": monthly.data}
 
 
-@app.get("/cache/districts")
+@app.get("/cache/districts", dependencies=[Depends(require_user)])
 def get_district_cache(province: str | None = None):
     def _query(s):
         q = s.table("district_ndvi_annual").select(
@@ -191,7 +198,7 @@ CACHE_TABLES = (
 )
 
 
-@app.delete("/cache", dependencies=[Depends(require_admin)])
+@app.delete("/cache", dependencies=[Depends(require_admin_or_user)])
 def clear_cache(request: Request):
     client = request.client.host if request.client else "unknown"
     logger.warning("🗑️  ADMIN cache clear (ALL %d tables) จาก %s", len(CACHE_TABLES), client)
@@ -200,7 +207,7 @@ def clear_cache(request: Request):
     return {"message": "✅ Cache cleared", "tables": list(CACHE_TABLES)}
 
 
-@app.delete("/cache/{province_name}", dependencies=[Depends(require_admin)])
+@app.delete("/cache/{province_name}", dependencies=[Depends(require_admin_or_user)])
 def clear_province_cache(province_name: str, request: Request):
     # Whitelist check — กัน admin พิมพ์ผิดแล้วลบ 0 row เงียบๆ
     ensure_province(province_name)
@@ -242,14 +249,16 @@ def _timelapse_provinces(table: str, value_col: str,
     }
 
 
-@app.get("/timelapse/ndvi/provinces", response_model=TimelapseResponse)
+@app.get("/timelapse/ndvi/provinces", response_model=TimelapseResponse,
+        dependencies=[Depends(require_user)])
 def get_timelapse_ndvi(start_year: YearParam = 2015,
                        end_year: YearParam = CURRENT_YEAR):
     """รวม NDVI annual ของทุกจังหวัดใน range — สำหรับ time-lapse animation"""
     return _timelapse_provinces("ndvi_annual", "ndvi_mean", start_year, end_year)
 
 
-@app.get("/timelapse/lst/provinces", response_model=TimelapseResponse)
+@app.get("/timelapse/lst/provinces", response_model=TimelapseResponse,
+        dependencies=[Depends(require_user)])
 def get_timelapse_lst(start_year: YearParam = 2015,
                       end_year: YearParam = CURRENT_YEAR):
     """รวม LST annual (°C) ของทุกจังหวัด — time-lapse ความร้อนพื้นผิวคู่กับ NDVI"""
@@ -257,6 +266,9 @@ def get_timelapse_lst(start_year: YearParam = 2015,
                                 start_year, end_year)
 
 
+# จงใจไม่ใส่ require_user — Landing.js (หน้าก่อนล็อกอิน) เรียก endpoint นี้เป็น
+# teaser (index จังหวัดวิกฤต/ดีที่สุด) ให้ผู้เยี่ยมชมเห็นก่อนสมัคร · หน้า dashboard
+# (useRankingData) ก็เรียกซ้ำ endpoint เดียวกันหลังล็อกอินแล้วเช่นกัน
 @app.get("/analysis/ranking", response_model=RankingResponse)
 def get_ranking(year: YearParam = CURRENT_YEAR):
     result = supa_call(lambda s: s.table("ndvi_annual")
