@@ -589,6 +589,81 @@ class TestSiteFit:
         assert "ทนทาน เหมาะพื้นที่เสื่อมโทรม" in reason
         assert " · " in reason   # หลายเหตุผลเชื่อมด้วย separator
 
+    def test_landuse_code_matches_urban_keywords(self):
+        urban = {"traits": ["ทนมลพิษเมือง", "ดักฝุ่นดี"], "purpose": "ริมถนน", "reason": ""}
+        score, reason = species_mod._site_fit(
+            urban, hot=False, degraded=False, green=False, landuse_code="U")
+        assert score == species_mod.LANDUSE_FIT_SCORE
+        assert "ชุมชน" in reason
+
+    def test_unknown_landuse_code_ignored(self):
+        urban = {"traits": ["ทนมลพิษเมือง"], "purpose": "", "reason": ""}
+        score, reason = species_mod._site_fit(
+            urban, hot=False, degraded=False, green=False, landuse_code="X")
+        assert score == 0 and reason is None
+
+
+# ── dominant_spot_landuse (การใช้ที่ดินเด่นของจุด top-locations) ──────────────
+class TestDominantSpotLanduse:
+    @staticmethod
+    def _spot(code):
+        return {"lat": 0, "lng": 0, "landuse": {"code": code, "name_th": "x"}}
+
+    def test_clear_majority_returns_code(self):
+        spots = [self._spot("A")] * 6 + [self._spot("U")] * 2
+        assert species_mod.dominant_spot_landuse(spots) == "A"
+
+    def test_no_tags_returns_none(self):
+        # จุดจาก cache รุ่นเก่า (ไม่มีป้าย landuse) → ไม่มีสัญญาณ
+        assert species_mod.dominant_spot_landuse([{"lat": 0, "lng": 0}]) is None
+        assert species_mod.dominant_spot_landuse([]) is None
+        assert species_mod.dominant_spot_landuse(None) is None
+
+    def test_below_share_threshold_returns_none(self):
+        # กระจาย 3 ประเภทเท่าๆ กัน (33% < 40%) → สัญญาณไม่ชัด
+        spots = [self._spot(c) for c in ("U", "A", "M")] * 2
+        assert species_mod.dominant_spot_landuse(spots) is None
+
+    def test_single_tag_below_min_count_returns_none(self):
+        # เจอประเภทเดียวแต่แค่ 1 จุด → ต่ำกว่า DOMINANT_MIN_COUNT
+        assert species_mod.dominant_spot_landuse([self._spot("U")]) is None
+
+
+# ── rerank_species_for_spots (re-rank พันธุ์ตามการใช้ที่ดินเด่น) ──────────────
+class TestRerankSpeciesForSpots:
+    SPECIES_INFO = {"region": "กลาง", "species": [
+        {"name_th": "พื้นถิ่น", "scientific": "Cc", "purpose": "อนุรักษ์",
+         "traits": ["พันธุ์พื้นถิ่น", "อายุยืน"], "reason": "หายาก"},
+        {"name_th": "เมือง", "scientific": "Uu", "purpose": "ริมถนน",
+         "traits": ["ทนมลพิษเมือง", "ดักฝุ่นดี"], "reason": "เหมาะเขตเทศบาล"},
+    ]}
+    URBAN_SPOTS = [{"lat": 0, "lng": 0, "landuse": {"code": "U", "name_th": "ชุมชนและสิ่งปลูกสร้าง"}}] * 5
+
+    def test_urban_spots_promote_urban_species_and_set_context(self):
+        out = species_mod.rerank_species_for_spots(self.SPECIES_INFO, self.URBAN_SPOTS)
+        assert out["species"][0]["scientific"] == "Uu"
+        assert out["landuse_context"] == {"code": "U", "name_th": "ชุมชนและสิ่งปลูกสร้าง"}
+        # ไม่ mutate ของเดิม
+        assert self.SPECIES_INFO["species"][0]["scientific"] == "Cc"
+        assert "landuse_context" not in self.SPECIES_INFO
+
+    def test_no_dominant_landuse_returns_info_unchanged(self):
+        out = species_mod.rerank_species_for_spots(self.SPECIES_INFO, [])
+        assert out is self.SPECIES_INFO
+
+    def test_empty_species_returns_info_unchanged(self):
+        info = {"region": None, "species": []}
+        assert species_mod.rerank_species_for_spots(info, self.URBAN_SPOTS) is info
+
+    def test_combines_with_site_metrics(self):
+        # landuse U + อากาศร้อน — พันธุ์เมือง (ทนมลพิษ) ยังนำเพราะ landuse boost
+        # แต่ site_fit ต้องสะสมเหตุผลจากทั้งสองสัญญาณได้โดยไม่ชนกัน
+        out = species_mod.rerank_species_for_spots(
+            self.SPECIES_INFO, self.URBAN_SPOTS, lst_mean=38.0, ndvi_mean=0.6)
+        top = out["species"][0]
+        assert top["scientific"] == "Uu"
+        assert "ชุมชน" in top["site_fit"]
+
 
 # ── get_population — fallback ต้องบอก "ปีจริง" ของประชากรที่ใช้ ─────────────────
 class _PopResp:

@@ -38,24 +38,38 @@ export const buildRecommendReport = async (data) => {
   sections.push({ label: 'Method', html: h });
 
   if (recommendData.top_locations?.length > 0) {
-    sections.push({
-      label: 'Top จุดปลูก',
-      html: sectionTitle(`Top ${recommendData.top_locations.length} จุดที่ควรปลูกต้นไม้`) +
-        table(
-          ['อันดับ', 'Latitude', 'Longitude', 'Score', 'ความเร่งด่วน'],
-          recommendData.top_locations.map((p, i) => [
-            String(i + 1),
-            p.lat.toFixed(5), p.lng.toFixed(5),
-            p.score.toFixed(3),
-            p.score >= 0.7 ? 'เร่งด่วนสูง' : p.score >= 0.5 ? 'เร่งด่วน' : 'ปานกลาง',
-          ])
-        ),
-    });
+    // จุดจาก cache รุ่นเก่าอาจไม่มีป้าย landuse — โชว์คอลัมน์เมื่อมีอย่างน้อยหนึ่งจุด
+    const hasLanduse = recommendData.top_locations.some((p) => p.landuse);
+    let th = sectionTitle(`Top ${recommendData.top_locations.length} จุดที่ควรปลูกต้นไม้`) +
+      table(
+        ['อันดับ', 'Latitude', 'Longitude', 'Score', 'ความเร่งด่วน',
+          ...(hasLanduse ? ['การใช้ที่ดิน'] : [])],
+        recommendData.top_locations.map((p, i) => [
+          String(i + 1),
+          p.lat.toFixed(5), p.lng.toFixed(5),
+          p.score.toFixed(3),
+          p.score >= 0.7 ? 'เร่งด่วนสูง' : p.score >= 0.5 ? 'เร่งด่วน' : 'ปานกลาง',
+          ...(hasLanduse ? [p.landuse?.name_th || '–'] : []),
+        ])
+      );
+    // แนวทางการปลูกตามประเภทที่ดินที่พบในจุดแนะนำ (unique ต่อประเภท)
+    const guides = [...new Map(recommendData.top_locations
+      .filter((p) => p.landuse?.guidance)
+      .map((p) => [p.landuse.code, p.landuse])).values()];
+    if (guides.length > 0) {
+      th += paragraph(guides
+        .map((lu) => `<b>${esc(lu.name_th)}:</b> ${esc(lu.guidance)}`)
+        .join('<br/>'));
+    }
+    sections.push({ label: 'Top จุดปลูก', html: th });
   }
 
   const sp = recommendData.recommended_species;
   if (sp?.species?.length > 0) {
-    let sh = sectionTitle(`พันธุ์ไม้แนะนำ${sp.region ? ` (ภาค${sp.region})` : ''}`, { color: COLOR.green });
+    const spMeta = sp.region
+      ? ` (ภาค${sp.region}${sp.landuse_context ? ` · ที่ดินเด่น: ${sp.landuse_context.name_th}` : ''})`
+      : '';
+    let sh = sectionTitle(`พันธุ์ไม้แนะนำ${spMeta}`, { color: COLOR.green });
     sh += sp.species.map(s => `
       <div style="margin:6px 40px 10px;padding:12px 16px;background:#f8f9fa;border-radius:6px;border-left:3px solid ${COLOR.green};">
         <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
@@ -79,6 +93,11 @@ export const buildRecommendReport = async (data) => {
       ['ต้นไม้รวม (400 ต้น/เฮกตาร์)', `${im.trees_total.toLocaleString()} ต้น`],
       ['CO₂ ดูดซับ/ปี (ศักยภาพเต็ม)', `${im.annual_co2_tonnes.toLocaleString()} ตัน`],
     ];
+    // breakdown พื้นที่ควรปลูกตามการใช้ที่ดิน — impact จาก cache ก่อน v8 ไม่มี field นี้
+    const luClasses = (im.plantable_landuse?.classes || []).filter((c) => c.share_pct > 0);
+    if (luClasses.length > 0)
+      rows.push(['พื้นที่ควรปลูก แยกตามการใช้ที่ดิน',
+        luClasses.map((c) => `${c.name_th} ${c.share_pct}%`).join(' · ')]);
     if (im.annual_co2_tonnes_low != null)
       rows.push(['CO₂ ช่วงจริง (รวมอัตรารอด)', `${im.annual_co2_tonnes_low.toLocaleString()}–${im.annual_co2_tonnes_high.toLocaleString()} ตัน`]);
     rows.push(['อุณหภูมิที่คาดว่าจะลดลง', `${im.expected_delta_lst_c}°C (canopy เต็มที่ ~${im.maturity_years} ปี)`]);
