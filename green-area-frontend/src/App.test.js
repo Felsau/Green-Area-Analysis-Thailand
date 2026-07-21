@@ -34,17 +34,16 @@ test('shows the landing page first', async () => {
   expect(await screen.findByRole('button', { name: /เข้าสู่แดชบอร์ด/ })).toBeInTheDocument();
 });
 
-test('enters the dashboard from the landing CTA', async () => {
+test('enters the sign-in screen from the landing CTA', async () => {
   render(<App />);
   fireEvent.click(await screen.findByRole('button', { name: /เข้าสู่แดชบอร์ด/ }));
-  expect(await screen.findByText('Green Area Analysis')).toBeInTheDocument();
-  // overview panel shows when nothing selected
-  expect(await screen.findByText('โหลดอันดับรายปี')).toBeInTheDocument();
+  // dashboard now requires sign-in — landing CTA leads to the auth gate, not the map
+  expect(await screen.findByRole('heading', { name: 'เข้าสู่ระบบ' })).toBeInTheDocument();
 });
 
-test('deep-link params skip the landing page', async () => {
+test('deep-link params skip the landing page but still require sign-in', async () => {
   window.history.replaceState(null, '', '/?tab=stats');
   render(<App />);
-  expect(await screen.findByText('โหลดอันดับรายปี')).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'เข้าสู่ระบบ' })).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /เข้าสู่แดชบอร์ด/ })).not.toBeInTheDocument();
 });

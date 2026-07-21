@@ -1,6 +1,7 @@
 // ดึงรูป (mini-map + NDVI/LST thumb) + context + district summary + timeseries + urban subset แบบขนาน.
 import { API_BASE } from '../../../constants';
 import { fetchImageDataUrl } from '../helpers';
+import { apiFetch } from '../../apiClient';
 
 export const fetchStatsData = async ({ selectedProvinceEN, selectedDistrict, districtEN, year }) => {
   // ดึง district summary เฉพาะตอนรายงานระดับจังหวัด (ไม่ได้ลึกถึงอำเภอแล้ว)
@@ -20,12 +21,12 @@ export const fetchStatsData = async ({ selectedProvinceEN, selectedDistrict, dis
     fetchImageDataUrl(`${API_BASE}/maps/thailand-thumb?province=${encodeURIComponent(selectedProvinceEN)}`),
     fetchImageDataUrl(`${API_BASE}/maps/${encodeURIComponent(selectedProvinceEN)}/ndvi-thumb?year=${year}${districtEN ? `&district_name=${encodeURIComponent(districtEN)}` : ''}`),
     fetchImageDataUrl(`${API_BASE}/maps/${encodeURIComponent(selectedProvinceEN)}/lst-thumb?year=${year}${districtEN ? `&district_name=${encodeURIComponent(districtEN)}` : ''}`),
-    fetch(`${API_BASE}/analysis/context/${encodeURIComponent(selectedProvinceEN)}?year=${year}`).then(r => r.ok ? r.json() : null).catch(() => null),
+    apiFetch(`${API_BASE}/analysis/context/${encodeURIComponent(selectedProvinceEN)}?year=${year}`).then(r => r.ok ? r.json() : null).catch(() => null),
     districtSummaryUrl
-      ? fetch(districtSummaryUrl).then(r => r.ok ? r.json() : null).catch(() => null)
+      ? apiFetch(districtSummaryUrl).then(r => r.ok ? r.json() : null).catch(() => null)
       : Promise.resolve(null),
-    fetch(tsUrl).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch(urbanUrl).then(r => r.ok ? r.json() : null).catch(() => null),
+    apiFetch(tsUrl).then(r => r.ok ? r.json() : null).catch(() => null),
+    apiFetch(urbanUrl).then(r => r.ok ? r.json() : null).catch(() => null),
   ]);
 
   return { miniMap, ndviThumb, lstThumb, contextResp, districtSummary, timeseriesResp, urbanResp };

@@ -45,8 +45,22 @@ src/
 
 ## Environment
 
+ดู `.env.example` — คัดลอกเป็น `.env.local` แล้วใส่ค่าจริง
+
 - `VITE_API_URL` (optional) — backend URL · default `http://localhost:8000`
   · ตั้งใน .env / .env.production หรือ env ของ Netlify/Vercel (Vite อ่าน prefix `VITE_`)
+- `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` — ระบบล็อกอิน (Supabase Auth)
+  · ต้องรัน `green-area-backend/migrations/009_create_profiles.sql` และตั้งค่า
+  Email templates ใน Supabase Dashboard ก่อนใช้งานได้จริง — ดูรายละเอียดใน `.env.example`
+
+## Auth
+
+- Sign in / sign up / verify email (OTP) / forgot·reset password ผ่าน Supabase Auth
+  โดยตรง (`src/lib/supabaseClient.js`, `src/hooks/useAuth.js`) — ไม่ผ่าน backend
+- โปรไฟล์ (ชื่อที่แสดง, role) และการลบบัญชี ผ่าน backend (`/account/*`) ซึ่งถือ
+  service-role key — ดู `green-area-backend/routers/account.py`
+- เข้าสู่ระบบเป็นเงื่อนไขบังคับก่อนเข้าแดชบอร์ด (`src/components/auth/AuthGate.js`) —
+  หน้า Landing ยังเป็นหน้าการตลาดก่อนล็อกอินเหมือนเดิม
 
 ## Error handling
 

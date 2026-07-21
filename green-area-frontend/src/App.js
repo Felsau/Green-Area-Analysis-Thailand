@@ -22,6 +22,7 @@ import { useRasterOverlay } from './hooks/useRasterOverlay';
 import { useSwipeCompare } from './hooks/useSwipeCompare';
 import { useAreaTools }   from './hooks/useAreaTools';
 import { useTheme }          from './hooks/useTheme';
+import { useAuth }           from './hooks/useAuth';
 import { useLandingGate }    from './hooks/useLandingGate';
 import { useCanvasViewport } from './hooks/useCanvasViewport';
 import { useMapLayers }      from './hooks/useMapLayers';
@@ -36,6 +37,8 @@ import AboutModal from './components/AboutModal';
 import Landing from './components/Landing';
 import DrawControl from './components/DrawControl';
 import SavedAreasPanel from './components/SavedAreasPanel';
+import AuthGate from './components/auth/AuthGate';
+import AccountModal from './components/AccountModal';
 import { pushError } from './utils/toast';
 
 // Sidebar tab ids — whitelist for the ?tab= deep-link param (mirrors Sidebar TABS)
@@ -49,13 +52,17 @@ function App() {
   const [sidebarTab, setSidebarTab]     = useState('stats');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showAbout, setShowAbout]       = useState(false);
+  const [showAccount, setShowAccount]   = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const auth = useAuth();
 
   // Landing gate — shown once per browser session. Shared deep-links
   // (?p= ?d= ?tab= ?year=) must keep opening the dashboard directly.
+  // Signing in is required for the dashboard itself (see the auth.user check
+  // below), so a returning signed-in visitor skips the marketing page too.
   const { showLanding, enterDashboard, goToLanding } = useLandingGate();
 
-  const { ndviCache, setNdviCache } = useNdviCache();
+  const { ndviCache, setNdviCache } = useNdviCache(!!auth.user);
   const province = useProvinceData({ setNdviCache });
   const district = useDistrictData();
   const trend    = useTrendData();
@@ -121,14 +128,16 @@ function App() {
 
   // Deep-link: restore province (?p=), district (?d=), sidebar tab (?tab=) and
   // ranking year (?year=) from the URL once the map data is ready, then keep
-  // the URL in sync for shareable links.
+  // the URL in sync for shareable links. Gated on auth.user — selectProvince()
+  // fetches NDVI/LST/district data, which now requires a session, so restoring
+  // before login just 401s in the background behind AuthGate.
   const didInitFromUrl = useRef(false);
   const [urlReady, setUrlReady] = useState(false);
   // district restore ต้องรอ thailand_districts.json โหลดเสร็จ (async หลัง
   // selectProvince) — พักไว้ใน ref แล้วให้ effect ด้านล่างเลือกเมื่อข้อมูลมา
   const pendingDistrictRef = useRef(null);
   useEffect(() => {
-    if (didInitFromUrl.current || !thailandData) return;
+    if (didInitFromUrl.current || !thailandData || !auth.user) return;
     didInitFromUrl.current = true;
     const params = new URLSearchParams(window.location.search);
     const year = Number(params.get('year'));
@@ -143,7 +152,7 @@ function App() {
     }
     setUrlReady(true);  // only now may the writer below touch the URL
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [thailandData]);
+  }, [thailandData, auth.user]);
 
   // Complete the ?d= restore once district boundaries are in — mirrors the
   // district-layer click handler, minus the tab switch (keep the ?tab= choice).
@@ -381,9 +390,24 @@ function App() {
     onCancelCompute:  coverage.cancelCompute,
   };
 
+  // Still resolving any existing Supabase session — brief, avoids a landing/
+  // auth-gate flash for a returning signed-in visitor.
+  if (auth.initializing) {
+    return (
+      <div className="auth-gate">
+        <div className="auth-gate__glow" aria-hidden="true" />
+        <div className="auth-brand">
+          <span className="auth-brand__mark" aria-hidden="true" />
+          <span className="auth-brand__name">GreenLens</span>
+        </div>
+      </div>
+    );
+  }
+
   // Landing view — the dashboard (map, sidebar) isn't mounted yet, but the
   // hooks above already prefetch /thailand.json so entry feels instant.
-  if (showLanding) {
+  // Skipped entirely for an already-signed-in visitor (auth.user).
+  if (showLanding && !auth.user) {
     return (
       <>
         <Landing
@@ -391,6 +415,19 @@ function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
         />
+        <Toast />
+      </>
+    );
+  }
+
+  // Auth gate — signing in is required to reach the dashboard. A recovery
+  // session (from clicking the reset-password email link) also sets
+  // auth.user, so it must be checked here too or AuthGate never mounts and
+  // the visitor lands straight in the dashboard instead of ตั้งรหัสผ่านใหม่.
+  if (!auth.user || auth.isRecovery) {
+    return (
+      <>
+        <AuthGate auth={auth} theme={theme} onToggleTheme={toggleTheme} />
         <Toast />
       </>
     );
@@ -406,6 +443,11 @@ function App() {
         onToggleTheme={toggleTheme}
         onShowAbout={() => setShowAbout(true)}
         onGoHome={goToLanding}
+        user={auth.user}
+        profile={auth.profile}
+        onShowAccount={() => setShowAccount(true)}
+        onSavedAreas={toggleSavedPanel}
+        onSignOut={auth.signOut}
       />
 
       <aside className="side">
@@ -482,6 +524,7 @@ function App() {
 
       <Toast />
       <AboutModal open={showAbout} onClose={() => setShowAbout(false)} />
+      <AccountModal open={showAccount} onClose={() => setShowAccount(false)} auth={auth} />
     </div>
   );
 }

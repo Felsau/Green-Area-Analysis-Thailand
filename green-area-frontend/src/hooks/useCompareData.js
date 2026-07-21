@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { API_BASE, CURRENT_YEAR } from '../constants';
 import { pushError } from '../utils/toast';
+import { apiFetch } from '../utils/apiClient';
 
 export function useCompareData() {
   const [compareList, setCompareList]       = useState([]);
@@ -13,7 +14,7 @@ export function useCompareData() {
     if (provinces.length < 2) return;
     setCompareLoading(true);
     try {
-      const res  = await fetch(`${API_BASE}/compare?provinces=${provinces.join(',')}&year=${year}`);
+      const res  = await apiFetch(`${API_BASE}/compare?provinces=${provinces.join(',')}&year=${year}`);
       const json = await res.json();
       setCompareData(json.data.filter(d => d.available));
     } catch (err) {

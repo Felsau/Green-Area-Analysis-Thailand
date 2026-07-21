@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { API_BASE, CURRENT_YEAR } from '../constants';
 import { pushError } from '../utils/toast';
+import { apiFetch } from '../utils/apiClient';
 
 export function useTrendData() {
   const [trendYears, setTrendYears]     = useState([CURRENT_YEAR - 2, CURRENT_YEAR - 1, CURRENT_YEAR]);
@@ -25,7 +26,7 @@ export function useTrendData() {
       const year = sorted[i];
       setTrendProgress(`กำลังโหลดปี ${year} (${i + 1}/${sorted.length})...`);
       try {
-        const res  = await fetch(`${API_BASE}/ndvi/${encodeURIComponent(provinceName)}?year=${year}`);
+        const res  = await apiFetch(`${API_BASE}/ndvi/${encodeURIComponent(provinceName)}?year=${year}`);
         const json = await res.json();
         if (json.ndvi_mean != null) {
           results.push({ year, ndvi_mean: json.ndvi_mean, green_area_pct: json.green_area_pct });
@@ -46,7 +47,7 @@ export function useTrendData() {
     if (results.length >= 3) {
       try {
         setTrendProgress('กำลังคำนวณคาดการณ์...');
-        const r = await fetch(
+        const r = await apiFetch(
           `${API_BASE}/analysis/timeseries/${encodeURIComponent(provinceName)}` +
           `?start_year=${sorted[0]}&end_year=${sorted[sorted.length - 1]}`);
         if (r.ok) {

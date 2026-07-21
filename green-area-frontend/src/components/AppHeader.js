@@ -1,4 +1,9 @@
-export default function AppHeader({ loading, sidebarCollapsed, onToggleSidebar, theme, onToggleTheme, onShowAbout, onGoHome }) {
+import UserMenu from './UserMenu';
+
+export default function AppHeader({
+  loading, sidebarCollapsed, onToggleSidebar, theme, onToggleTheme, onShowAbout, onGoHome,
+  user, profile, onShowAccount, onSavedAreas, onSignOut,
+}) {
   const isDark = theme === 'dark';
   return (
     <header className="topbar">
@@ -34,6 +39,16 @@ export default function AppHeader({ loading, sidebarCollapsed, onToggleSidebar, 
       >
         {sidebarCollapsed ? 'แสดงแผง ›' : '‹ ซ่อนแผง'}
       </button>
+      {user && (
+        <UserMenu
+          displayName={profile?.display_name}
+          email={user.email}
+          isAdmin={profile?.role === 'admin'}
+          onAccount={onShowAccount}
+          onSavedAreas={onSavedAreas}
+          onSignOut={onSignOut}
+        />
+      )}
       {loading && <div className="loading-bar" />}
     </header>
   );

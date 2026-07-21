@@ -7,6 +7,8 @@
 // ไม่ retry:
 //   - 4xx (request ผิด — retry ก็ไม่เปลี่ยน)
 
+import { apiFetch } from './apiClient';
+
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 export async function fetchWithRetry(url, options = {}, { retries = 2, baseDelayMs = 1000 } = {}) {
@@ -15,7 +17,7 @@ export async function fetchWithRetry(url, options = {}, { retries = 2, baseDelay
   for (let attempt = 0; attempt <= retries; attempt++) {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     try {
-      const res = await fetch(url, options);
+      const res = await apiFetch(url, options);
       if (res.ok || (res.status >= 400 && res.status < 500)) {
         return res;
       }

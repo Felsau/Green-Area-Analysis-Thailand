@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { API_BASE } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
+import { apiFetch } from '../utils/apiClient';
 
 export function useDistrictData() {
   const [districtsData, setDistrictsData]               = useState(null);
@@ -39,7 +40,7 @@ export function useDistrictData() {
   const loadDistrictCache = async (provinceName) => {
     if (!provinceName || loadedCacheProvinces.has(provinceName)) return;
     try {
-      const r = await fetch(`${API_BASE}/cache/districts?province=${encodeURIComponent(provinceName)}`);
+      const r = await apiFetch(`${API_BASE}/cache/districts?province=${encodeURIComponent(provinceName)}`);
       if (!r.ok) return;
       const { annual = [] } = await r.json();
       const latestByKey = {};

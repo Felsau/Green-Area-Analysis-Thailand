@@ -117,6 +117,84 @@
   .topbar__sidebar-toggle { display: none; }
 }
 
+/* User menu — avatar trigger + dropdown panel, sits at the far right of the topbar */
+.usermenu { position: relative; height: 100%; }
+
+.usermenu__trigger {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-4);
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--rule);
+  cursor: pointer;
+}
+.usermenu__trigger:hover { background: var(--ink-8); }
+
+.usermenu__avatar {
+  width: 22px; height: 22px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: var(--rad);
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.usermenu__name { font-size: var(--t-sm); color: var(--ink-1); font-weight: 500; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.usermenu__chevron { font-size: 10px; color: var(--ink-3); }
+
+.usermenu__scrim { position: fixed; inset: 0; z-index: 40; border: none; padding: 0; background: transparent; cursor: default; }
+
+.usermenu__panel {
+  position: absolute;
+  top: 44px;
+  right: 8px;
+  z-index: 50;
+  width: 248px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--rad);
+  box-shadow: 0 16px 32px -18px rgba(11, 13, 12, 0.30);
+  overflow: hidden;
+  text-align: left;
+}
+
+.usermenu__panel-head { padding: var(--s-3) 14px; border-bottom: 1px solid var(--rule); }
+.usermenu__panel-name { font-size: var(--t-sm); font-weight: 600; color: var(--ink-0); }
+.usermenu__panel-email { font-size: var(--t-xs); color: var(--ink-3); font-family: var(--mono); margin-top: 2px; }
+.usermenu__panel-role { margin-top: var(--s-2); display: flex; align-items: center; gap: var(--s-2); }
+.usermenu__role-label { font-size: var(--t-xs); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+
+.usermenu__panel-items { display: flex; flex-direction: column; padding: 6px 0; }
+.usermenu__panel-signout { border-top: 1px solid var(--rule); padding: 6px 0; }
+
+.usermenu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-2) 14px;
+  background: transparent;
+  border: none;
+  font-size: var(--t-sm);
+  font-family: inherit;
+  color: var(--ink-1);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.usermenu__item:hover { background: var(--ink-8); color: var(--ink-0); }
+.usermenu__item--active { background: var(--ink-8); }
+.usermenu__item span:last-child { color: var(--ink-3); }
+
+@media (max-width: 900px) {
+  .usermenu__name { display: none; }
+}
+
 /* Loading line under topbar */
 .loading-bar {
   position: absolute;
