@@ -1,5 +1,5 @@
--- Migration 009: profiles -- โปรไฟล์ผู้ใช้คู่กับ Supabase Auth (auth.users)
--- รันบน Supabase SQL Editor หลัง 008
+-- Migration 010: profiles -- โปรไฟล์ผู้ใช้คู่กับ Supabase Auth (auth.users)
+-- รันบน Supabase SQL Editor หลัง 009
 --
 -- Auth เองใช้ Supabase Auth (GoTrue) ตรง ๆ — ตารางนี้เก็บเฉพาะ field ที่แอปต้องใช้
 -- เพิ่มจาก auth.users (ชื่อที่แสดง + role) โดย 1 แถวต่อ 1 user (id = auth.users.id)

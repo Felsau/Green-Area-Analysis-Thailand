@@ -1,5 +1,5 @@
--- Migration 012: saved_areas — ผูกกับบัญชีผู้ใช้ (user_id) แทน/เสริม owner_token
--- รันบน Supabase SQL Editor หลัง 011
+-- Migration 013: saved_areas — ผูกกับบัญชีผู้ใช้ (user_id) แทน/เสริม owner_token
+-- รันบน Supabase SQL Editor หลัง 012
 --
 -- ทั้งแอปบังคับล็อกอินก่อนเข้าถึง dashboard อยู่แล้ว (ดู App.js AuthGate) แต่
 -- saved_areas เดิมผูก ownership กับ X-Owner-Token (localStorage ต่อเครื่อง) เท่านั้น

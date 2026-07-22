@@ -50,7 +50,7 @@ src/
 - `VITE_API_URL` (optional) — backend URL · default `http://localhost:8000`
   · ตั้งใน .env / .env.production หรือ env ของ Netlify/Vercel (Vite อ่าน prefix `VITE_`)
 - `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` — ระบบล็อกอิน (Supabase Auth)
-  · ต้องรัน `green-area-backend/migrations/009_create_profiles.sql` และตั้งค่า
+  · ต้องรัน `green-area-backend/migrations/010_create_profiles.sql` และตั้งค่า
   Email templates ใน Supabase Dashboard ก่อนใช้งานได้จริง — ดูรายละเอียดใน `.env.example`
 
 ## Auth

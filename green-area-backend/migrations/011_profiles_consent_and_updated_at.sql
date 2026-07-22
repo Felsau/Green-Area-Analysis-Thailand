@@ -1,5 +1,5 @@
--- Migration 010: profiles — accepted_terms_at (หลักฐานยินยอมข้อกำหนด/PDPA) + updated_at
--- รันบน Supabase SQL Editor หลัง 009
+-- Migration 011: profiles — accepted_terms_at (หลักฐานยินยอมข้อกำหนด/PDPA) + updated_at
+-- รันบน Supabase SQL Editor หลัง 010
 --
 -- accepted_terms_at: ตั้งค่าโดย trigger ตอนสร้างแถว (handle_new_user) เท่านั้น — ไม่รับ
 -- ค่าจาก client เพื่อกัน client ปลอมเวลายินยอม · หน้า signup (frontend) บังคับติ๊ก

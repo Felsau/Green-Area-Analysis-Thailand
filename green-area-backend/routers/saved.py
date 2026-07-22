@@ -5,9 +5,9 @@
 Ownership ผูกกับบัญชีผู้ใช้ (require_user ที่ include_router ใน main.py):
   - POST /saved-areas ตั้ง user_id = ผู้ใช้ที่ล็อกอินเสมอ (ผูกกับบัญชี ไม่ใช่เครื่อง —
     ล็อกอินบัญชีเดิมจากเครื่องไหนก็เห็นพื้นที่เดิม) · ลบบัญชี → พื้นที่ถูกลบตาม
-    (ON DELETE CASCADE ใน migration 012)
+    (ON DELETE CASCADE ใน migration 013)
   - X-Owner-Token (localStorage รายเครื่อง จากยุคก่อนมี login) ยังรับไว้เป็น fallback
-    เพื่อให้แถวเก่าที่ยังไม่มี user_id (บันทึกไว้ก่อน migration 012) เข้าถึง/ลบได้ต่อ
+    เพื่อให้แถวเก่าที่ยังไม่มี user_id (บันทึกไว้ก่อน migration 013) เข้าถึง/ลบได้ต่อ
   - GET /saved-areas (list) default คืน *เฉพาะของเจ้าของ* (privacy) — polygon ที่ผู้ใช้
     วาด อาจเป็นที่ดิน/บ้านตัวเอง ไม่ควรให้คนอื่นเห็นพิกัดโดย default
   - ?shared=true → คืนรวมของทุกคน (public gallery) พร้อม flag `mine` ที่ตัดสินฝั่ง server
@@ -47,7 +47,7 @@ def _public(row: dict, token: str | None, user_id: str) -> dict:
     """ตัด owner_token/user_id ออกจาก response + เติม flag `mine`
 
     `mine` จริงถ้าเป็นเจ้าของผ่านบัญชี (user_id ตรง) หรือผ่าน legacy owner token
-    (แถวเก่าก่อน migration 012 ที่ยังไม่มี user_id)"""
+    (แถวเก่าก่อน migration 013 ที่ยังไม่มี user_id)"""
     out = {k: v for k, v in row.items() if k not in ("owner_token", "user_id")}
     owner = row.get("owner_token")
     mine_by_account = row.get("user_id") == user_id
@@ -94,7 +94,7 @@ def list_saved_areas(province: str | None = None,
     แต่ไม่คืน analysis/recommendation ที่หนัก (ดึงเต็มที่ GET /saved-areas/{id}).
 
     Privacy: default คืนเฉพาะพื้นที่ของบัญชีนี้ (user_id) · ถ้ามี X-Owner-Token
-    ด้วย จะรวม legacy row เก่า (ก่อน migration 012, user_id ยังว่าง) ที่ตรง token
+    ด้วย จะรวม legacy row เก่า (ก่อน migration 013, user_id ยังว่าง) ที่ตรง token
     เข้ามาด้วย กันของเก่าหายไปตอนอัปเกรด · ?shared=true → คืนรวมทุกคน"""
     def _by_user(s):
         q = (s.table("saved_areas").select(_SAVED_AREA_LIST_COLUMNS)

@@ -42,7 +42,7 @@ def _fetch_profile(user: dict) -> ProfileOut:
                        .eq("id", user["id"]).limit(1).execute())
     if not result.data:
         # แถวควรถูกสร้างอัตโนมัติโดย trigger on_auth_user_created ตอนสมัคร —
-        # ถ้าไม่เจอ (เช่น สมัครก่อนรัน migration 009) แสดง error ชัดเจนแทนการ 500 เงียบๆ
+        # ถ้าไม่เจอ (เช่น สมัครก่อนรัน migration 010) แสดง error ชัดเจนแทนการ 500 เงียบๆ
         raise HTTPException(status_code=404,
             detail="ไม่พบโปรไฟล์ผู้ใช้ — ติดต่อผู้ดูแลระบบถ้าปัญหานี้เกิดซ้ำ")
     row = result.data[0]
@@ -68,7 +68,7 @@ def update_me(body: ProfileUpdate, user: dict = Depends(require_user)):
 @router.delete("/me")
 def delete_me(user: dict = Depends(require_user)):
     """ลบบัญชีถาวร — auth.users ถูกลบ (profiles + saved_areas ที่ผูก user_id
-    ตามไปด้วยจาก ON DELETE CASCADE — ดู migrations 009, 012)"""
+    ตามไปด้วยจาก ON DELETE CASCADE — ดู migrations 010, 013)"""
     try:
         get_supabase().auth.admin.delete_user(user["id"])
     except Exception:

@@ -1,5 +1,5 @@
--- Migration 011: profiles — organization (หน่วยงาน, ไม่บังคับกรอก)
--- รันบน Supabase SQL Editor หลัง 010
+-- Migration 012: profiles — organization (หน่วยงาน, ไม่บังคับกรอก)
+-- รันบน Supabase SQL Editor หลัง 011
 --
 -- Optional field เดียว ไม่มี validation พิเศษระดับ DB (length บังคับที่ Pydantic
 -- ฝั่ง backend แทน — ดู routers/account.py MAX_NAME_LEN) เพราะเป็นแค่ metadata
