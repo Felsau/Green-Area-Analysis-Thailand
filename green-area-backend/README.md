@@ -73,11 +73,21 @@ API docs interactive: `http://localhost:8000/docs`
 4 ตารางอำเภอทำ composite FK `(province, district)` → `districts(province, name_en)` ·
 ไม่ต้องแก้ logic เดิม (FK ระดับ DB) — `district` ยังเป็น text เหมือนเดิม
 
+`ndvi_annual` / `district_ndvi_annual` มีคอลัมน์ `data_quality` (jsonb, migration 014)
+เก็บคุณภาพของ median composite ที่ใช้คำนวณ NDVI ปีนั้น — จำนวนภาพ, observation
+ปลอดเมฆเฉลี่ย/ต่ำสุดต่อ pixel, σ ของ NDVI ในปี, ความไม่แน่นอนของค่ากลาง
+(standard error ของ median = 1.2533·σ/√n · σ มีพื้นขั้นต่ำ 0.06 NDVI จาก RMSE
+การ validate Sentinel-2 กับเซนเซอร์ภาคพื้นดิน), เดือน/ฤดูที่มี-ไม่มีภาพ และระดับ
+`goal`/`threshold`/`below` ตามเกณฑ์ **GCOS-245** (FAPAR: 2σ ≤ 5% Goal · ≤ 10%
+Threshold) — ฤดูใช้นิยามกรมอุตุนิยมวิทยา · ส่งกลับพร้อมค่า NDVI ทุก endpoint
+(ดู `schemas.py::NDVIDataQuality` · ที่มาของทุกเกณฑ์อยู่ใน `REQUIREMENTS.md` `[R33]`–`[R35]`)
+
 ## ออกแบบ cache (สรุป)
 
 - ทุก endpoint ที่ trigger GEE compute ราคาแพง → check cache ก่อน
 - Cache key = `(province, district?, year)` — district nullable
 - Stale check ใน `routers/ndvi/compute.py::_is_stale` — invalidate row ที่คำนวณก่อนยุค water mask
+  และ row ที่ยังไม่มี `data_quality` (ก่อน migration 014) → recompute เองเมื่อมีคนเปิดจังหวัด/อำเภอนั้น
 - AI Recommend + raster overlay tile URL หมดอายุพร้อม GEE session — มี in-process TTL
   cache 30 นาที (thread-safe `ttl_cache.py::TTLCache` ใช้ร่วมกันทั้ง
   `routers/recommend/tile_cache.py` และ `routers/maps/tiles.py`) ลดต้นทุน cache hit จาก ~30s → <50ms
@@ -92,6 +102,7 @@ API docs interactive: `http://localhost:8000/docs`
 | `tests/test_stats_utils.py` | `linregress` (slope/r) + Mann-Kendall trend significance + `forecast_linear` (OLS projection + 95% prediction interval) |
 | `tests/test_pure_helpers.py` | `_is_stale` (cache invalidation), WHO status (9 m²/คน), normalize weights, validate geojson path, estimate impact (จำนวนต้นไม้ / cooling / CO₂ / รถยนต์ + สัมประสิทธิ์พันธุ์ไม้ไทย), validate polygon + geodesic area (custom-area) |
 | `tests/test_recommend_metrics.py` | recommend compute payload — อ่านตารางถูกระดับ (province vs district + district filter) + คืน `None` เมื่อ cache ว่าง/DB error |
+| `tests/test_ndvi_quality.py` | คุณภาพ/ความไม่แน่นอนของ NDVI composite — สรุปช่วงวัน/เดือน/ฤดู (นิยาม TMD) จาก `system:time_start`, standard error ของ median + พื้น σ ของเซนเซอร์ (กันเคส n=1 ดูแม่นสมบูรณ์), จัดระดับตามเกณฑ์ GCOS-245, ข้อความเตือนเมื่อใช้เกณฑ์เมฆสำรอง |
 | `tests/test_landuse.py` · `test_ldd.py` | mapping Dynamic World 9 คลาส → 5 ประเภท LDD + ตาราง 96 ประเภท LDD 1:25,000 + guidance ต่อประเภท |
 | `tests/test_auth_dependencies.py` | `require_user` (verify JWT local/fallback, token หมดอายุ/ปลอม) + `require_admin_or_user` (admin token / role=admin) |
 | `tests/test_keyed_lock.py` | per-key compute lock — กัน GEE cache stampede (ล็อกต่อ key ไม่บล็อกทั้งระบบ) |

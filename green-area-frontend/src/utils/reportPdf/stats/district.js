@@ -2,6 +2,7 @@
 import { fmt, fmtInt } from '../helpers';
 import { COLOR, sectionTitle, table } from '../components';
 import { monthlyBarChart } from '../charts';
+import { dataQualityRows, dataQualityCallout } from './dataQuality';
 
 export const districtSections = (ctx) => {
   const {
@@ -23,6 +24,17 @@ export const districtSections = (ctx) => {
       ],
       { firstColWidth: 200 }
     );
+    // ความไม่แน่นอนของ composite ระดับอำเภอ (NFR-07) — ตัดคอลัมน์ "หมายเหตุ" ออก
+    // ให้เข้ากับตาราง 2 คอลัมน์ของ section นี้ · คำอธิบายเต็มอยู่ใน callout ด้านล่าง
+    const qualityRows = dataQualityRows(districtNdviStats.data_quality);
+    if (qualityRows.length) {
+      dHtml += table(
+        ['คุณภาพข้อมูล NDVI · อำเภอ', 'ค่า'],
+        qualityRows.map(([k, v]) => [k, v]),
+        { firstColWidth: 200, keepTogether: true }
+      );
+      dHtml += dataQualityCallout(districtNdviStats.data_quality);
+    }
   }
   if (districtLstStats) {
     dHtml += table(

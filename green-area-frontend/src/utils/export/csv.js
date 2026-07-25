@@ -2,6 +2,25 @@
 import { PROVINCE_TH } from '../../constants';
 import { ts, downloadCsv } from './shared';
 
+// คุณภาพ composite ที่ backend ส่งมากับค่า NDVI (NFR-07) — แนบท้ายบล็อก NDVI ทุกครั้ง
+// เพื่อให้ไฟล์ที่เอาไปวิเคราะห์ต่อมีความไม่แน่นอนติดไปด้วย ไม่ใช่แค่ค่ากลาง
+const dataQualityRows = (dq) => {
+  if (!dq) return [];
+  return [
+    ['ภาพที่ใช้ทำ composite', dq.image_count],
+    ['เกณฑ์เมฆของภาพ (%)', dq.cloud_filter_pct],
+    ['ภาพปลอดเมฆต่อ pixel (เฉลี่ย)', dq.clear_obs_mean],
+    ['ภาพปลอดเมฆต่อ pixel (ต่ำสุด)', dq.clear_obs_min],
+    ['NDVI σ ในปี', dq.ndvi_sd_mean],
+    ['ความไม่แน่นอน u (1σ, NDVI)', dq.uncertainty],
+    ['ความไม่แน่นอน 2σ (% ของค่า)', dq.uncertainty_2sigma_pct],
+    ['เดือนที่มีภาพ', `${dq.months_covered}/12`],
+    ['ฤดูที่ไม่มีภาพ (นิยาม TMD)', (dq.seasons_missing || []).join(' / ') || 'ครบทั้ง 3 ฤดู'],
+    ['ช่วงวันที่ของภาพ', dq.first_date && dq.last_date ? `${dq.first_date} – ${dq.last_date}` : ''],
+    ['ระดับเทียบเกณฑ์ GCOS-245', dq.label || dq.level || ''],
+  ];
+};
+
 export const exportStatsCsv = (data) => {
   const {
     selectedProvince, selectedProvinceEN, selectedDistrict,
@@ -29,6 +48,7 @@ export const exportStatsCsv = (data) => {
       rows.push(['Green Area m²/คน', ndviStats.green_area_m2_per_person]);
     if (ndviStats.population) rows.push(['ประชากร', ndviStats.population]);
     if (ndviStats.who_status) rows.push(['สถานะ WHO', ndviStats.who_status]);
+    dataQualityRows(ndviStats.data_quality).forEach(r => rows.push(r));
     rows.push([]);
   }
 
@@ -61,6 +81,7 @@ export const exportStatsCsv = (data) => {
     rows.push(['NDVI Max', districtNdviStats.ndvi_max]);
     rows.push(['Green Area (%)', districtNdviStats.green_area_pct]);
     rows.push(['Green Area (km²)', districtNdviStats.green_area_km2]);
+    dataQualityRows(districtNdviStats.data_quality).forEach(r => rows.push(r));
     rows.push([]);
   }
 

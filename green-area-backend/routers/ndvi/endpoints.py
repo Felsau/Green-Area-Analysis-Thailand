@@ -70,6 +70,7 @@ def get_district_ndvi(province_name: str, district_name: str, year: YearParam = 
                 "green_area_pct": row["green_area_pct"],
                 "green_area_km2": row.get("green_area_km2"),
                 "total_area_km2": row.get("total_area_km2"),
+                "data_quality": row.get("data_quality"),
                 "from_cache": True, "cached_at": row["created_at"],
             }
         logger.info("♻️ Stale cache (district): %s/%s/%d — recomputing", province_name, district_name, year)
@@ -184,6 +185,7 @@ def get_ndvi(province_name: str, year: YearParam = CURRENT_YEAR):
                 "population": row.get("population"),
                 "population_year": row.get("population_year"),
                 "who_status": row.get("who_status"),
+                "data_quality": row.get("data_quality"),
                 "from_cache": True, "cached_at": row["created_at"],
             }
 

@@ -4,6 +4,7 @@ import { fmtArea } from '../../utils/formatArea';
 import { Figure, KVRow, KV, Note } from '../ui/Metric';
 import ImpactSection from '../tabs/recommend/ImpactSection';
 import SpeciesSection from '../tabs/recommend/SpeciesSection';
+import DataQualityNote from '../tabs/stats/DataQualityNote';
 
 // การ์ดผลลัพธ์หลังวิเคราะห์ — สถิติพื้นที่ + AI Recommend (ออปชัน) + บันทึก
 // คืน fragment (parent ห่อด้วย .draw-panel ให้แล้ว)
@@ -60,6 +61,9 @@ export default function DrawResultCard({
           <KV label="ช่วง" value={`${result.lst_min}–${result.lst_max}°C`} hint="Landsat 8/9" />
         </KVRow>
       )}
+
+      {/* พื้นที่วาดเองมักเล็ก → จำนวนภาพปลอดเมฆแปรผันมาก ยิ่งต้องบอกความไม่แน่นอน */}
+      <DataQualityNote dataQuality={result.data_quality} compact />
 
       <Note>
         ค่าจาก Sentinel-2 / Landsat ผ่าน Google Earth Engine · ประชากรประมาณจาก

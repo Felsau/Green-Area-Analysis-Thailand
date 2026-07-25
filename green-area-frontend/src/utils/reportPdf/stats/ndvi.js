@@ -2,6 +2,7 @@
 import { fmt, fmtInt } from '../helpers';
 import { COLOR, sectionTitle, table, calloutBox, note, imageBox } from '../components';
 import { monthlyBarChart } from '../charts';
+import { dataQualityRows, dataQualityCallout, dataQualityMethodNote } from './dataQuality';
 
 export const ndviSections = (ctx) => {
   const {
@@ -54,6 +55,18 @@ export const ndviSections = (ctx) => {
     ndviRows,
     { firstColWidth: 180 }
   );
+
+  // คุณภาพ/ความไม่แน่นอนของ composite (NFR-07) — แยกตารางเพื่อไม่ปนกับค่าที่วัดได้
+  const qualityRows = dataQualityRows(ndviStats.data_quality);
+  if (qualityRows.length) {
+    ndviHtml += table(
+      ['คุณภาพข้อมูล NDVI', 'ค่า', 'หมายเหตุ'],
+      qualityRows,
+      { firstColWidth: 180, keepTogether: true }
+    );
+    ndviHtml += dataQualityCallout(ndviStats.data_quality);
+    ndviHtml += dataQualityMethodNote();
+  }
 
   // Note about WHO standard caveat — central interpretive issue
   ndviHtml += calloutBox(

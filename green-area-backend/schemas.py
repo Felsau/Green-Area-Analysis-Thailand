@@ -12,6 +12,32 @@ class MonthlyNDVIPoint(BaseModel):
     image_count: Optional[int] = 0
 
 
+class NDVIDataQuality(BaseModel):
+    """คุณภาพ/ความไม่แน่นอนของ median composite ที่ใช้คำนวณ NDVI (NFR-07).
+
+    สร้างใน routers/ndvi/compute.py::build_data_quality · เก็บลง cache เป็น jsonb
+    เกณฑ์ตัดระดับ = GCOS-245 (FAPAR: 2σ ≤ 5% Goal / ≤ 10% Threshold) ·
+    ฤดูกาลตามนิยามกรมอุตุนิยมวิทยา
+    """
+    image_count: int                      # จำนวนภาพ Sentinel-2 ที่เข้า composite
+    cloud_filter_pct: int                 # เกณฑ์เมฆที่ใช้ (20 ปกติ · 80 = fallback)
+    clear_obs_mean: float                 # observation ปลอดเมฆเฉลี่ยต่อ pixel
+    clear_obs_min: int                    # pixel ที่แย่ที่สุดในพื้นที่
+    ndvi_sd_mean: float = 0               # σ ของ NDVI รายภาพตลอดปี (เฉลี่ยทั้งพื้นที่)
+    uncertainty: Optional[float] = None   # u (1σ) ของค่ากลางรายปี หน่วย NDVI
+    uncertainty_2sigma_pct: Optional[float] = None   # 2σ คิดเป็น % ของค่า NDVI
+    first_date: Optional[str] = None      # วันที่ภาพแรก (YYYY-MM-DD)
+    last_date: Optional[str] = None
+    months_covered: int = 0               # จำนวนเดือนที่มีภาพ
+    months_missing: list[int] = []        # เลขเดือนที่ไม่มีภาพเลย
+    seasons_covered: list[str] = []       # ฤดู (TMD) ที่มีภาพ
+    seasons_missing: list[str] = []
+    seasonally_representative: bool = False   # มีภาพครบทั้ง 3 ฤดูหรือไม่
+    level: str                            # goal | threshold | below | none
+    label: str                            # ป้ายภาษาไทยของ level
+    note: str                             # ข้อความอธิบายพร้อมแสดง/ลงรายงาน
+
+
 class NDVIResponse(BaseModel):
     province: str
     year: int
@@ -27,6 +53,7 @@ class NDVIResponse(BaseModel):
     population: Optional[int] = None
     population_year: Optional[int] = None   # ปีของข้อมูลประชากร — อาจต่างจาก year ถ้า fallback
     who_status: Optional[str] = None
+    data_quality: Optional[NDVIDataQuality] = None
     from_cache: bool
 
 
@@ -104,6 +131,7 @@ class CustomAreaResponse(BaseModel):
     lst_mean: Optional[float] = None
     lst_min: Optional[float] = None
     lst_max: Optional[float] = None
+    data_quality: Optional[NDVIDataQuality] = None
     worldpop_year: int
 
 

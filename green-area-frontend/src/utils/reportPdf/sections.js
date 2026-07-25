@@ -16,7 +16,10 @@ export const methodologySection = (year) => `
   ${table(
     ['ตัวชี้วัด', 'แหล่งข้อมูล', 'ความละเอียด', 'การกรอง'],
     [
-      ['NDVI', `Sentinel-2 SR Harmonized (${_yearRangeLabel(year)})`, '10 m', 'CLOUDY_PIXEL_PERCENTAGE < 80% + QA60 cloud/cirrus mask'],
+      // เกณฑ์ต้องตรงกับ routers/ndvi/compute.py — ภาพ < 20% (ผ่อนเป็น < 80% เฉพาะปี/พื้นที่
+      // ที่ไม่มีภาพผ่านเลย) แล้ว mask รายพิกเซลด้วย Cloud Score+ ไม่ใช่ QA60 (ESA หยุดเติม
+      // QA60 ช่วง ม.ค.2565–ก.พ.2567 → mask กลายเป็น no-op)
+      ['NDVI', `Sentinel-2 SR Harmonized (${_yearRangeLabel(year)})`, '10 m', 'CLOUDY_PIXEL_PERCENTAGE < 20% (สำรอง < 80%) + Cloud Score+ cs ≥ 0.6 รายพิกเซล'],
       ['LST',  `Landsat 8/9 Collection 2 Level 2 (${_yearRangeLabel(year)})`, '30 m', 'CLOUD_COVER < 40% + QA_PIXEL cloud mask'],
       ['ประชากร', 'WorldPop 100m (ผ่าน Supabase cache)', '100 m', '—'],
       ['ขอบเขตจังหวัด/อำเภอ', 'GADM v4.1 (Database of Global Administrative Areas)', '—', '—'],
@@ -24,7 +27,7 @@ export const methodologySection = (year) => `
     { firstColWidth: 110, keepTogether: true }
   )}
   ${paragraph(
-    'NDVI คำนวณจาก <b>(B8 − B4) / (B8 + B4)</b> ของภาพ median composite ทั้งปี · พิกเซลน้ำ (NDVI < −0.1) ถูก mask ก่อนคำนวณ min/mean เพื่อหลีกเลี่ยงค่าผิดปกติจากแหล่งน้ำและเงาเมฆ',
+    'NDVI คำนวณจาก <b>(B8 − B4) / (B8 + B4)</b> ของภาพ median composite ทั้งปี · พิกเซลน้ำ (NDVI < −0.1) ถูก mask ก่อนคำนวณ min/mean เพื่อหลีกเลี่ยงค่าผิดปกติจากแหล่งน้ำและเงาเมฆ · จำนวนภาพที่เข้า composite และเดือนที่ครอบคลุมจริงของพื้นที่นี้ ดูตาราง <b>"คุณภาพข้อมูล NDVI"</b> ในหัวข้อ NDVI',
     { size: '9.5pt', muted: true }
   )}
   ${paragraph(

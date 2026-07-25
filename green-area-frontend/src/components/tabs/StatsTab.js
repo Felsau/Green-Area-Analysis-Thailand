@@ -6,6 +6,7 @@ import ExportBar from '../ui/ExportBar';
 import MonthlyChart from './stats/MonthlyChart';
 import GreenDeficitNote from './stats/GreenDeficitNote';
 import UhiRiskNote from './stats/UhiRiskNote';
+import DataQualityNote from './stats/DataQualityNote';
 import LandusePanel from './stats/LandusePanel';
 
 export default function StatsTab({ data, handlers }) {
@@ -74,6 +75,7 @@ export default function StatsTab({ data, handlers }) {
                     hint={districtNdviStats?.green_area_km2 != null ? `${districtNdviStats.green_area_km2.toLocaleString()} km²` : null}
                   />
                 </KVRow>
+                <DataQualityNote dataQuality={districtNdviStats?.data_quality} />
                 {districtNdviMonthly.length > 0 && (
                   <div>
                     <div className="label">รายเดือน</div>
@@ -152,6 +154,7 @@ export default function StatsTab({ data, handlers }) {
                 * “ต่อหัวประชากร” คำนวณจากประชากรปี {ndviStats.population_year} (ปี {ndviStats.year} ยังไม่มีข้อมูลประชากร)
               </div>
             )}
+            <DataQualityNote dataQuality={ndviStats?.data_quality} />
             {!selectedDistrict && ndviMonthly.length > 0 && (
               <div>
                 <div className="label">NDVI รายเดือน</div>

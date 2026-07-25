@@ -40,6 +40,9 @@
 | Chave et al. 2014 allometry + EPA 2023 vehicle baseline | kg CO₂/ต้น/ปี, equivalent cars | `[R25] [R26]` |
 | NDVI formula (Rouse et al. — normalized difference NIR/Red) | สูตรคำนวณ NDVI | `[R23] [R24]` |
 | Google Cloud Score+ — per-pixel cloud masking (Sentinel-2) | วิธีวิทยา cloud-free compositing | `[R12]` |
+| GCOS-245 — required measurement uncertainty ของ ECV ด้านพืชพรรณ (FAPAR: Goal 5% · Threshold 10% ที่ 2σ) | เกณฑ์ตัดระดับคุณภาพ NDVI | `[R33]` |
+| QA4EO (CEOS/GEO) — ผลิตภัณฑ์ EO ต้องแนบ Quality Indicator ที่สาวกลับหามาตรฐานได้ | หลักการของการรายงานคุณภาพข้อมูล | `[R34]` |
+| กรมอุตุนิยมวิทยา — นิยาม 3 ฤดูของประเทศไทย | ตรวจความเป็นตัวแทนฤดูกาลของ composite | `[R35]` |
 | ESA WorldCover v200 — built-up & validation | urban subset, accuracy | `[R13]` |
 | Landsat Collection 2 Level-2 ST product (single-channel algorithm) | คำนวณ LST จาก `ST_B10` | `[R14] [R15]` |
 | Mann-Kendall trend test | นัยสำคัญแนวโน้ม NDVI/LST รายปี | `[R16] [R17]` |
@@ -133,7 +136,7 @@
 
 | ID | หมวด | Requirement | อ้างอิง |
 |---|---|---|---|
-| NFR-07 | Data Quality | รายงาน **ความไม่แน่นอน/คุณภาพ NDVI** ต่ออำเภอ (จำนวนภาพ cloud-free, ช่วงฤดูที่ใช้ composite) | `[R12]` |
+| NFR-07 | Data Quality | รายงาน **ความไม่แน่นอน/คุณภาพ NDVI** ต่ออำเภอ (จำนวนภาพ cloud-free, ช่วงฤดูที่ใช้ composite) พร้อมค่าความไม่แน่นอนเชิงปริมาณเทียบเกณฑ์ GCOS **(มีแล้ว)** | `[R12] [R33] [R34] [R35]` |
 | NFR-08 | Accuracy / Validation | **ตรวจสอบความถูกต้อง** ของ green area เทียบ ESA WorldCover และรายงานค่าความคลาดเคลื่อน (เป้า ±10%) | `[R13]` |
 
 ---
@@ -164,7 +167,8 @@
 | FR-02 | `[R14] [R15]` LST algorithm | `gee_utils.py` (มีแล้ว) |
 | FR-09 | `[R10] [R11] [R19] [R22] [R25] [R26]` | `impact.py` `estimate_impact` (มีแล้ว) |
 | FR-11 | `[R16] [R17]` Mann-Kendall | `stats_utils.py` (มีแล้ว) |
-| NFR-07, NFR-08 | `[R12] [R13]` | gee_utils + validation report |
+| NFR-07 | `[R12] [R33] [R34] [R35]` | `routers/ndvi/compute.py` `build_data_quality` (+ `summarize_acquisitions`, `composite_uncertainty`, `grade_uncertainty`, `season_of`) → เก็บใน `ndvi_annual.data_quality` / `district_ndvi_annual.data_quality` (migration 014) แสดงบน StatsTab + ตาราง "คุณภาพข้อมูล NDVI" ในรายงาน PDF/CSV **(มีแล้ว)** |
+| NFR-08 | `[R13]` | validation report เทียบ ESA WorldCover (ยังไม่ทำ) |
 
 ---
 
@@ -239,6 +243,19 @@ https://www.who.int/europe/publications/i/item/9789289052498
 **[R32]** Moukomla, S., Meeprom, P., & Intarat, K. (2026). *Impact of Impervious Surface Expansion on Urban Thermal Environment Across Tropical Southeast Asian Megacities: Reliable Assessment Through Foundation Model Embeddings.* **Earth**, 7(3), 76. https://doi.org/10.3390/earth7030076 — **นำมาใช้แล้ว:** เป็นฐานของปัจจัยที่ 5 "peri-urban cooling opportunity" ใน Priority Score · ข้อค้นพบที่นำมาใช้: การเพิ่มพื้นที่สีเขียวน่าจะลดความร้อนได้คุ้มสุดที่ "ขอบเมืองกำลังขยาย" (pervious→mixed) และอิ่มตัวที่ใจกลางเมือง — สนับสนุนด้วย stratified Pearson r = 0.65/0.51 (โล่ง/ผสม) vs −0.14 (ทึบเต็ม) ส่วน 5.5 (Discussion) · implement ใน `routers/recommend/scoring.py` (`peri_urban_need_image` — trapezoid บน Dynamic World built-probability ผ่าน `gee_utils.dynamic_world_built`) ถ่วงน้ำหนักคงที่ 15% แบบ additive (ไม่ลดปัจจัยเดิม 4 ตัว) · ใช้กรอบนิยาม SUHI urban ISA≥50% / rural ≤10% ตาม Imhoff et al. (2010).
 > _หมายเหตุ: งานวิจัยรายงาน "ความสัมพันธ์เชิงสถิติ" (correlation) ระหว่าง ISA fraction กับ LST ไม่ได้ทดลองปลูกจริง และเตือนเองว่า correlation ไม่พิสูจน์ causation — น้ำหนัก 15% และปัจจัยเดิม 4 ตัวเป็นการออกแบบของโครงการ ไม่ได้มาจากงานวิจัย (งานวิจัยให้เพียงแนวคิดว่าขอบเมืองสำคัญ)_
 
+### มาตรฐานคุณภาพข้อมูล (Data Quality Standards)
+
+**[R33]** Global Climate Observing System (2022). *The 2022 GCOS ECVs Requirements* (GCOS-245). Geneva: WMO. https://library.wmo.int/records/item/58111-the-2022-gcos-ecvs-requirements — ตาราง requirement ของ ECV แต่ละตัว · ใช้ค่าของ **FAPAR** (ECV ด้านพืชพรรณที่ใกล้ NDVI ที่สุด และ NDVI ถูกใช้เป็น proxy อย่างแพร่หลาย): required measurement uncertainty **Goal 5%** ของค่า · **Threshold 10%** (ที่ 2σ, สำหรับค่า ≥ 0.05) โดย GCOS นิยาม Goal = ระดับที่ดีจนไม่ต้องพัฒนาต่อ, Threshold = ขั้นต่ำที่ข้อมูลยังมีประโยชน์ · ระบบใช้เป็นเกณฑ์ตัดระดับใน `routers/ndvi/compute.py::grade_uncertainty`
+> _ข้อจำกัดที่ต้องระบุในเล่ม: NDVI ไม่ได้เป็น ECV ในตัวเอง การใช้เกณฑ์ของ FAPAR จึงเป็นการ **เทียบเคียง** และเป็นเกณฑ์ระดับ climate record ซึ่งเข้มกว่าที่งานจัดอันดับพื้นที่สีเขียวเชิงนโยบายต้องการ_
+
+**[R34]** Group on Earth Observations / Committee on Earth Observation Satellites. *A Quality Assurance Framework for Earth Observation (QA4EO) — Principles* (v4.0) · guideline QA4EO-QAEO-GEN-DQK-001. https://qa4eo.org/ — หลักการ: ข้อมูลและผลิตภัณฑ์ที่ได้จากข้อมูล EO ทุกชิ้นต้องแนบ **Quality Indicator** ที่มาจากการประเมินเชิงปริมาณและสาวกลับไปหามาตรฐานที่ตกลงร่วมกันได้ · เป็นเหตุผลเชิงมาตรฐานของการมี NFR-07 และของการเปิดเผยสูตร/ค่าคงที่ทั้งหมดที่ใช้ตัดระดับ
+
+**[R35]** กรมอุตุนิยมวิทยา. *ฤดูกาลของประเทศไทย.* https://www.tmd.go.th/ — แบ่งเป็น 3 ฤดู: ฤดูร้อน (กลาง ก.พ.–กลาง พ.ค.) · ฤดูฝน (กลาง พ.ค.–กลาง ต.ค.) · ฤดูหนาว (กลาง ต.ค.–กลาง ก.พ.) · ใช้ตรวจว่า composite รายปีมีภาพครบทุกฤดูหรือไม่ (แทนการนับจำนวนเดือนแบบตั้งเกณฑ์เอง) — TMD ประกาศวันเริ่มฤดูจริงเป็นรายปี ระบบใช้ "กลางเดือน = วันที่ 16" เป็นค่าประมาณคงที่ (`TMD_SEASONS`)
+
 ---
 
-_อัปเดตล่าสุด: 2026-07-07 · เลื่อน `[RW1]` → `[R32]` (Moukomla et al. 2026, Earth 7(3):76) เป็น "ใช้แล้ว" หลัง implement ปัจจัย peri-urban ใน `scoring.py` — รวมอ้างอิงที่ใช้จริงเป็น 32 รายการ · ก่อนหน้า (2026-07-06) เพิ่ม `[R27]`–`[R31]` (แหล่งข้อมูล/แพลตฟอร์ม) · ใช้คู่กับ Proposal (presentation/generate_proposal_pdf.py) ข้อ 7.4.3–7.4.4_
+_อัปเดตล่าสุด: 2026-07-25 · NFR-07 (คุณภาพ/ความไม่แน่นอนของ NDVI composite) implement แล้ว —
+ทุกค่า NDVI มีจำนวนภาพ, observation ปลอดเมฆต่อ pixel, ค่าความไม่แน่นอน (standard error ของ
+ค่ามัธยฐาน) และความครบของฤดูกาลกำกับ ทั้งบนหน้าจอ รายงาน PDF และ CSV · เพิ่ม `[R33]`–`[R35]`
+(GCOS-245, QA4EO, กรมอุตุนิยมวิทยา) เป็นเกณฑ์ตัดระดับแทนค่าที่ตั้งเอง — รวมอ้างอิง 35 รายการ ·
+ก่อนหน้า (2026-07-07) เลื่อน `[RW1]` → `[R32]` (Moukomla et al. 2026, Earth 7(3):76) เป็น "ใช้แล้ว" หลัง implement ปัจจัย peri-urban ใน `scoring.py` — รวมอ้างอิงที่ใช้จริงเป็น 32 รายการ · ก่อนหน้า (2026-07-06) เพิ่ม `[R27]`–`[R31]` (แหล่งข้อมูล/แพลตฟอร์ม) · ใช้คู่กับ Proposal (presentation/generate_proposal_pdf.py) ข้อ 7.4.3–7.4.4_
