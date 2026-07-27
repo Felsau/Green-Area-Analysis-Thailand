@@ -51,12 +51,15 @@ src/
   · ตั้งใน .env / .env.production หรือ env ของ Netlify/Vercel (Vite อ่าน prefix `VITE_`)
 - `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` — ระบบล็อกอิน (Supabase Auth)
   · ต้องรัน `green-area-backend/migrations/010_create_profiles.sql` และตั้งค่า
-  Email templates ใน Supabase Dashboard ก่อนใช้งานได้จริง — ดูรายละเอียดใน `.env.example`
+  Auth ใน Supabase Dashboard ก่อนใช้งานได้จริง (สำคัญ: **ปิด** "Confirm email")
+  — ดูรายละเอียดใน `.env.example`
 
 ## Auth
 
-- Sign in / sign up / verify email (OTP) / forgot·reset password ผ่าน Supabase Auth
-  โดยตรง (`src/lib/supabaseClient.js`, `src/hooks/useAuth.js`) — ไม่ผ่าน backend
+- Sign in / sign up / forgot·reset password ผ่าน Supabase Auth โดยตรง
+  (`src/lib/supabaseClient.js`, `src/hooks/useAuth.js`) — ไม่ผ่าน backend ·
+  **ไม่มีขั้นตอนยืนยันอีเมล** สมัครเสร็จเข้าแดชบอร์ดทันที (ต้องปิด "Confirm email"
+  ใน Supabase Dashboard ด้วย) — อีเมลฉบับเดียวที่ส่งคือลิงก์รีเซ็ตรหัสผ่าน
 - โปรไฟล์ (ชื่อที่แสดง, role) และการลบบัญชี ผ่าน backend (`/account/*`) ซึ่งถือ
   service-role key — ดู `green-area-backend/routers/account.py`
 - เข้าสู่ระบบเป็นเงื่อนไขบังคับก่อนเข้าแดชบอร์ด (`src/components/auth/AuthGate.js`) —
