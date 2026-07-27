@@ -51,6 +51,10 @@
 | WorldPop (ประชากร 100 m) | ปัจจัย `pop_need` ใน Priority Score | `[R29]` |
 | GADM v4.1 (ขอบเขตการปกครอง) | clip จังหวัด/อำเภอ 77/928 | `[R30]` |
 | Landsat C2 L2 Product Guide (`ST_B10`) | ระเบียบวิธีข้อมูล LST | `[R31]` |
+| Dynamic World V1 (land cover 10 m รายวัน, deep learning) | ชั้นการใช้ที่ดิน provider แรก + `isa_frac` ของปัจจัย peri-urban | `[R36]` |
+| SRTM 30 m (ความสูง/ความชัน) | ตัดพื้นที่ลาดชัน > 30° ออกจาก plantable mask | `[R37]` |
+| LDD 1:25,000 — สภาพการใช้ที่ดินกรมพัฒนาที่ดิน | schema กลาง U/A/F/W/M + provider ที่สองของชั้นการใช้ที่ดิน | `[R38]` |
+| FAO GAUL 2015 level-2 | แหล่งขอบเขตอำเภอสำรอง (`generate_districts.py`) | `[R39]` |
 
 ---
 
@@ -169,6 +173,9 @@
 | FR-11 | `[R16] [R17]` Mann-Kendall | `stats_utils.py` (มีแล้ว) |
 | NFR-07 | `[R12] [R33] [R34] [R35]` | `routers/ndvi/compute.py` `build_data_quality` (+ `summarize_acquisitions`, `composite_uncertainty`, `grade_uncertainty`, `season_of`) → เก็บใน `ndvi_annual.data_quality` / `district_ndvi_annual.data_quality` (migration 014) แสดงบน StatsTab + ตาราง "คุณภาพข้อมูล NDVI" ในรายงาน PDF/CSV **(มีแล้ว)** |
 | NFR-08 | `[R13]` | validation report เทียบ ESA WorldCover (ยังไม่ทำ) |
+| FR-07 (พื้นที่ปลูกได้จริง) | `[R13] [R37]` WorldCover + ความชัน SRTM | `routers/recommend/scoring.py` `plantable_mask` (ตัดชัน > 30°) (มีแล้ว) |
+| ชั้น "การใช้ที่ดิน" (ยังไม่มีรหัส FR) | `[R36] [R38]` Dynamic World + LDD 1:25,000 | `landuse.py` (provider DW) · `ldd.py` (provider LDD, เปิดด้วย env `LDD_LANDUSE_ASSET`) · `routers/maps/analysis/landuse.py`, `routers/maps/tiles.py` (มีแล้ว) |
+| ข้อมูลขอบเขตอำเภอ | `[R30] [R39]` GADM v4.1 + FAO GAUL 2015 | `generate_districts.py` (มีแล้ว) |
 
 ---
 
@@ -177,7 +184,7 @@
 **[R1]** World Health Organization, Regional Office for Europe. *Urban green spaces and health — a review of evidence* (และ *Urban green spaces: a brief for action*). Copenhagen: WHO Europe, 2016–2017. — มาตรฐานที่อ้างถึงบ่อยว่าควรมีพื้นที่สีเขียวขั้นต่ำ ~9 ม²/คน.
 https://www.who.int/europe/publications/i/item/9789289052498
 
-**[R2]** Konijnendijk, C. C. (2023). *Evidence-based guidelines for greener, healthier, more resilient neighbourhoods: Introducing the 3–30–300 rule.* **Journal of Forestry Research**, 34, 821–830. https://doi.org/10.1007/s11676-022-01523-z · PubMed: 36042873
+**[R2]** Konijnendijk, C. C. (2023). *Evidence-based guidelines for greener, healthier, more resilient neighbourhoods: Introducing the 3–30–300 rule.* **Journal of Forestry Research**, 34, 821–830. https://doi.org/10.1007/s11676-022-01523-z · PubMed: 36042873 · **ลงบรรณานุกรมบทที่ 1 แล้ว** (ขอบเขตข้อ 3.1)
 
 **[R3]** *A multi-objective decision support framework to prioritize tree planting locations in urban areas.* **Landscape and Urban Planning** (2021). https://www.sciencedirect.com/science/article/abs/pii/S0169204621001353
 
@@ -210,11 +217,11 @@ https://www.who.int/europe/publications/i/item/9789289052498
 
 **[R17]** Mann, H. B. (1945). *Nonparametric Tests Against Trend.* **Econometrica**, 13(3), 245–259. https://www.jstor.org/stable/1907187 · Kendall, M. G. (1975). *Rank Correlation Methods* (4th ed.). London: Griffin. — ที่มาทางสถิติดั้งเดิมของ Mann-Kendall trend test.
 
-**[R18]** *An Application of the Grid-Based Two-Step Floating Catchment Area Method to Assess the Spatial Accessibility of Green Spaces in Seoul, South Korea.* **ISPRS International Journal of Geo-Information**, 15(2), 71 (2026). https://doi.org/10.3390/ijgi15020071 — เสนอ grid-based G2SFCA ปรับปรุงจาก 2SFCA มาตรฐาน สำหรับวัด accessibility ของพื้นที่สีเขียว อัปเดตต่อจาก `[R9]`.
+**[R18]** Shin, J., & Park, J. (2026). *An Application of the Grid-Based Two-Step Floating Catchment Area Method to Assess the Spatial Accessibility of Green Spaces in Seoul, South Korea.* **ISPRS International Journal of Geo-Information**, 15(2), 71. https://doi.org/10.3390/ijgi15020071 — เสนอ grid-based G2SFCA ปรับปรุงจาก 2SFCA มาตรฐาน สำหรับวัด accessibility ของพื้นที่สีเขียว อัปเดตต่อจาก `[R9]` · **ลงบรรณานุกรมบทที่ 1 แล้ว** (ขอบเขตข้อ 3.2). _(ชื่อผู้แต่งยืนยันจากหน้า DOI ของ MDPI เมื่อ 2026-07-27)_
 
 **[R19]** *The cooling effect of urban green spaces as nature-based solutions for mitigating urban heat: insights from a decade-long systematic review.* **Climate Risk Management** (2025), e00731 (เปิดอ่านผ่าน DOAJ/ScienceDirect pii S2212096325000452). — สังเคราะห์งานวิจัย 84 ฉบับ (2014–2024) รายงานช่วง cooling effect 1–7°C อัปเดตหลักฐานเชิงปริมาณต่อจาก Bowler et al. 2010 `[R10]`. _(รายชื่อผู้แต่งเต็มยังไม่ยืนยันอัตโนมัติ — ตรวจสอบก่อนลงบรรณานุกรมฉบับสมบูรณ์)_
 
-**[R20]** American Forests (2024). *Tree Equity Score Methodology.* https://www.treeequityscore.org/methodology — เอกสารระเบียบวิธีฉบับล่าสุด คำนวณ TES = 100(1 − GapScore × E) จาก 7 ตัวแปร (อายุ, การจ้างงาน, สุขภาพ, ความร้อน/สภาพภูมิอากาศ, รายได้, ภาษา, เชื้อชาติ) แทนที่เวอร์ชันเดิมใน `[R6]`.
+**[R20]** American Forests (2024). *Tree Equity Score Methodology.* https://www.treeequityscore.org/methodology — เอกสารระเบียบวิธีฉบับล่าสุด คำนวณ TES = 100(1 − GapScore × E) จาก 7 ตัวแปร (อายุ, การจ้างงาน, สุขภาพ, ความร้อน/สภาพภูมิอากาศ, รายได้, ภาษา, เชื้อชาติ) แทนที่เวอร์ชันเดิมใน `[R6]` · **ลงบรรณานุกรมบทที่ 1 แล้ว** (ขอบเขตข้อ 3.3).
 
 **[R21]** Fulton, A. J., Ries, P. D., & Riley, G. E. (2025). *Where Are the Benefits of Trees Needed Most? A Comparison of Equity-Based Mapping Tools in Austin, Texas.* **Arboriculture & Urban Forestry**, 52(4). https://doi.org/10.48044/jauf.2025.020 — เปรียบเทียบ Tree Equity Score กับเครื่องมือ equity-mapping อื่น กรณีศึกษาจริง.
 
@@ -243,6 +250,14 @@ https://www.who.int/europe/publications/i/item/9789289052498
 **[R32]** Moukomla, S., Meeprom, P., & Intarat, K. (2026). *Impact of Impervious Surface Expansion on Urban Thermal Environment Across Tropical Southeast Asian Megacities: Reliable Assessment Through Foundation Model Embeddings.* **Earth**, 7(3), 76. https://doi.org/10.3390/earth7030076 — **นำมาใช้แล้ว:** เป็นฐานของปัจจัยที่ 5 "peri-urban cooling opportunity" ใน Priority Score · ข้อค้นพบที่นำมาใช้: การเพิ่มพื้นที่สีเขียวน่าจะลดความร้อนได้คุ้มสุดที่ "ขอบเมืองกำลังขยาย" (pervious→mixed) และอิ่มตัวที่ใจกลางเมือง — สนับสนุนด้วย stratified Pearson r = 0.65/0.51 (โล่ง/ผสม) vs −0.14 (ทึบเต็ม) ส่วน 5.5 (Discussion) · implement ใน `routers/recommend/scoring.py` (`peri_urban_need_image` — trapezoid บน Dynamic World built-probability ผ่าน `gee_utils.dynamic_world_built`) ถ่วงน้ำหนักคงที่ 15% แบบ additive (ไม่ลดปัจจัยเดิม 4 ตัว) · ใช้กรอบนิยาม SUHI urban ISA≥50% / rural ≤10% ตาม Imhoff et al. (2010).
 > _หมายเหตุ: งานวิจัยรายงาน "ความสัมพันธ์เชิงสถิติ" (correlation) ระหว่าง ISA fraction กับ LST ไม่ได้ทดลองปลูกจริง และเตือนเองว่า correlation ไม่พิสูจน์ causation — น้ำหนัก 15% และปัจจัยเดิม 4 ตัวเป็นการออกแบบของโครงการ ไม่ได้มาจากงานวิจัย (งานวิจัยให้เพียงแนวคิดว่าขอบเมืองสำคัญ)_
 
+**[R36]** Brown, C. F., Brumby, S. P., Guzder-Williams, B., Birch, T., Hyde, S. B., Mazzariello, J., et al. (2022). *Dynamic World, Near real-time global 10 m land use land cover mapping.* **Scientific Data**, 9, 251. https://doi.org/10.1038/s41597-022-01307-4 — ชุดข้อมูล land cover 10 m จากโมเดล deep learning บน Sentinel-2 (`GOOGLE/DYNAMICWORLD/V1`) ที่ระบบใช้ 2 ทาง: (1) band `built` เฉลี่ยรายปีเป็น ISA proxy ของปัจจัย peri-urban ตาม `[R32]` (`gee_utils.dynamic_world_built` → `isa_frac`) · (2) provider แรกของชั้น "การใช้ที่ดิน" โดย map 9 คลาสของ DW เข้า 5 ประเภทหลักของ LDD `[R38]` (`landuse.py` `DW_TO_LDD`).
+
+**[R37]** Farr, T. G., Rosen, P. A., Caro, E., Crippen, R., Duren, R., Hensley, S., et al. (2007). *The Shuttle Radar Topography Mission.* **Reviews of Geophysics**, 45(2), RG2004. https://doi.org/10.1029/2005RG000183 · ชุดข้อมูล: NASA JPL (2013). *NASA Shuttle Radar Topography Mission Global 1 arc second* (SRTMGL1 v003). https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003 — แบบจำลองความสูง 30 m (`USGS/SRTMGL1_003`) ที่ `routers/recommend/scoring.py` `plantable_mask` แปลงเป็นความชันด้วย `ee.Terrain.slope` แล้วตัดพื้นที่ชันเกิน `MAX_SLOPE_DEG` = 30° (≈58% grade) ออกจากพื้นที่ที่แนะนำให้ปลูก.
+
+**[R38]** กรมพัฒนาที่ดิน กระทรวงเกษตรและสหกรณ์. *ข้อมูลสภาพการใช้ที่ดิน มาตราส่วน 1:25,000 — กรุงเทพมหานคร พ.ศ. 2566* (shapefile `LU_BKK_2566`, 11,073 polygon). https://www.ldd.go.th/ — ข้อมูลราชการ land *use* จากการสำรวจภาคสนาม ที่ระบบใช้ 2 ทาง: (1) **schema กลาง** ของชั้นการใช้ที่ดินทั้งระบบ — 5 ประเภทหลัก U ชุมชน · A เกษตรกรรม · F ป่าไม้ · W แหล่งน้ำ · M เบ็ดเตล็ด (`landuse.LANDUSE_CATEGORIES`) พร้อมรหัสละเอียด 96 ประเภท (`ldd_codes.py`) · (2) **provider ที่สอง** ของชั้นนั้น (`ldd.py`) อ่านจาก GEE FeatureCollection asset ผ่าน env `LDD_LANDUSE_ASSET` — สรุปพื้นที่จาก `Shape_Area` ของ polygon จริงจึงตรงกับเอกสาร LDD ไม่ใช่ประมาณจาก pixel · edition ปัจจุบันครอบคลุมเฉพาะกรุงเทพฯ ปี 2566 (ดู `data/ldd/README.md`).
+
+**[R39]** Food and Agriculture Organization of the United Nations (2015). *Global Administrative Unit Layers (GAUL) 2015.* Rome: FAO. — ชั้นขอบเขตการปกครองระดับ 2 (`FAO/GAUL/2015/level2`) ที่ `generate_districts.py` ใช้เป็นเส้นทางดึงขอบเขตอำเภอผ่าน GEE (ใช้คู่/สำรองกับ GADM `[R30]` ซึ่งเป็นแหล่งหลัก) — ชื่ออำเภอที่ได้เป็นภาษาอังกฤษ จึง patch ชื่อไทยทับภายหลังในสคริปต์เดียวกัน.
+
 ### มาตรฐานคุณภาพข้อมูล (Data Quality Standards)
 
 **[R33]** Global Climate Observing System (2022). *The 2022 GCOS ECVs Requirements* (GCOS-245). Geneva: WMO. https://library.wmo.int/records/item/58111-the-2022-gcos-ecvs-requirements — ตาราง requirement ของ ECV แต่ละตัว · ใช้ค่าของ **FAPAR** (ECV ด้านพืชพรรณที่ใกล้ NDVI ที่สุด และ NDVI ถูกใช้เป็น proxy อย่างแพร่หลาย): required measurement uncertainty **Goal 5%** ของค่า · **Threshold 10%** (ที่ 2σ, สำหรับค่า ≥ 0.05) โดย GCOS นิยาม Goal = ระดับที่ดีจนไม่ต้องพัฒนาต่อ, Threshold = ขั้นต่ำที่ข้อมูลยังมีประโยชน์ · ระบบใช้เป็นเกณฑ์ตัดระดับใน `routers/ndvi/compute.py::grade_uncertainty`
@@ -254,7 +269,13 @@ https://www.who.int/europe/publications/i/item/9789289052498
 
 ---
 
-_อัปเดตล่าสุด: 2026-07-25 · NFR-07 (คุณภาพ/ความไม่แน่นอนของ NDVI composite) implement แล้ว —
+_อัปเดตล่าสุด: 2026-07-27 · ยืนยันชื่อผู้แต่งของ `[R18]` (Shin, J., & Park, J.) จากหน้า DOI ของ MDPI
+— รายการนี้เคยกำกับไว้ว่ายังไม่ทราบชื่อผู้แต่ง · กำกับ `[R2]` `[R18]` `[R20]` ว่า "ลงบรรณานุกรมบทที่ 1 แล้ว"
+หลังเติมการอ้างอิงให้มาตรฐาน 3-30-300 / 2SFCA / Tree Equity Score ในขอบเขตข้อ 3.1–3.3 ของรูปเล่ม ·
+ก่อนหน้า (2026-07-26) เพิ่ม `[R36]`–`[R39]` (Dynamic World, SRTM, LDD 1:25,000, FAO GAUL 2015)
+— ชุดข้อมูลที่ระบบเรียกใช้จริงในโค้ดอยู่แล้วแต่ยังไม่เคยขึ้นบรรณานุกรม จัดไว้ในหมวด
+"แหล่งข้อมูล/แพลตฟอร์ม" (เลขต่อท้าย R35 แต่จัดกลุ่มตามหมวด) — **รวมอ้างอิง 39 รายการ** ·
+ก่อนหน้า (2026-07-25) NFR-07 (คุณภาพ/ความไม่แน่นอนของ NDVI composite) implement แล้ว —
 ทุกค่า NDVI มีจำนวนภาพ, observation ปลอดเมฆต่อ pixel, ค่าความไม่แน่นอน (standard error ของ
 ค่ามัธยฐาน) และความครบของฤดูกาลกำกับ ทั้งบนหน้าจอ รายงาน PDF และ CSV · เพิ่ม `[R33]`–`[R35]`
 (GCOS-245, QA4EO, กรมอุตุนิยมวิทยา) เป็นเกณฑ์ตัดระดับแทนค่าที่ตั้งเอง — รวมอ้างอิง 35 รายการ ·

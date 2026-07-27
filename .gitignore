@@ -61,3 +61,7 @@ Landuse_Bangkok_2566*.zip
 *.shx
 *.sbn
 *.sbx
+
+# รูปเล่มวิทยานิพนธ์ (.docx/.pdf + ไฟล์ BACKUP อัตโนมัติ) — binary ที่ diff ไม่ได้
+# เก็บต้นฉบับไว้นอก repo / ใช้ version history ของ Word แทน
+รูปเล่ม/
