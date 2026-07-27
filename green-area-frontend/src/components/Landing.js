@@ -81,7 +81,7 @@ function IndexRow({ r, i, onEnter }) {
   );
 }
 
-export default function Landing({ onEnter, theme, onToggleTheme }) {
+export default function Landing({ onEnter, theme, onToggleTheme, onCookieSettings, onOpenPolicy }) {
   const isDark = theme === 'dark';
   const rootRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
@@ -389,6 +389,14 @@ export default function Landing({ onEnter, theme, onToggleTheme }) {
             </div>
             <div className="c__footer-bottom">
               <span>วิทยานิพนธ์ระดับปริญญาตรี โดย Felsau · MIT License</span>
+              {/* ช่องทางถอน/แก้ความยินยอมคุกกี้ — ต้องหาเจอได้ตลอด ไม่ใช่เฉพาะตอน
+                  แบนเนอร์ยังค้างอยู่ (PDPA ม.19 วรรคห้า: ถอนต้องง่ายเท่าตอนให้) */}
+              <span className="c__footer-legal">
+                <button className="consent-link" onClick={onCookieSettings}>ตั้งค่าคุกกี้</button>
+                <button className="consent-link" onClick={() => onOpenPolicy('cookies')}>นโยบายคุกกี้</button>
+                <button className="consent-link" onClick={() => onOpenPolicy('privacy')}>ความเป็นส่วนตัว</button>
+                <button className="consent-link" onClick={() => onOpenPolicy('terms')}>ข้อกำหนด</button>
+              </span>
               <span>ข้อมูลล่าสุด {CURRENT_YEAR}</span>
             </div>
           </div>

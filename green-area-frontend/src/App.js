@@ -39,6 +39,8 @@ import DrawControl from './components/DrawControl';
 import SavedAreasPanel from './components/SavedAreasPanel';
 import AuthGate from './components/auth/AuthGate';
 import AccountModal from './components/AccountModal';
+import CookieConsent from './components/CookieConsent';
+import LegalModal from './components/auth/LegalModal';
 import { pushError } from './utils/toast';
 
 // Sidebar tab ids — whitelist for the ?tab= deep-link param (mirrors Sidebar TABS)
@@ -53,6 +55,8 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showAbout, setShowAbout]       = useState(false);
   const [showAccount, setShowAccount]   = useState(false);
+  const [cookieSettings, setCookieSettings] = useState(false);
+  const [legalDoc, setLegalDoc]         = useState(null);
   const { theme, toggleTheme } = useTheme();
   const auth = useAuth();
 
@@ -404,6 +408,20 @@ function App() {
     );
   }
 
+  // แถบขอความยินยอมคุกกี้ + นโยบายคุกกี้ — ต้อง render ทุก branch (หน้าแรก / หน้า
+  // ล็อกอิน / แดชบอร์ด) เพราะต้องได้รับความยินยอมก่อนบันทึกอะไรลงเบราว์เซอร์
+  // ตั้งแต่หน้าจอแรกที่ผู้ใช้เห็น ไม่ใช่หลังล็อกอิน
+  const consentLayer = (
+    <>
+      <CookieConsent
+        settingsOpen={cookieSettings}
+        onSettingsOpenChange={setCookieSettings}
+        onOpenPolicy={() => setLegalDoc('cookies')}
+      />
+      <LegalModal open={!!legalDoc} doc={legalDoc} onClose={() => setLegalDoc(null)} />
+    </>
+  );
+
   // Landing view — the dashboard (map, sidebar) isn't mounted yet, but the
   // hooks above already prefetch /thailand.json so entry feels instant.
   // Skipped entirely for an already-signed-in visitor (auth.user).
@@ -414,8 +432,11 @@ function App() {
           onEnter={enterDashboard}
           theme={theme}
           onToggleTheme={toggleTheme}
+          onCookieSettings={() => setCookieSettings(true)}
+          onOpenPolicy={setLegalDoc}
         />
         <Toast />
+        {consentLayer}
       </>
     );
   }
@@ -429,6 +450,7 @@ function App() {
       <>
         <AuthGate auth={auth} theme={theme} onToggleTheme={toggleTheme} />
         <Toast />
+        {consentLayer}
       </>
     );
   }
@@ -523,8 +545,11 @@ function App() {
       </div>
 
       <Toast />
-      <AboutModal open={showAbout} onClose={() => setShowAbout(false)} />
+      <AboutModal open={showAbout} onClose={() => setShowAbout(false)}
+        onCookieSettings={() => { setShowAbout(false); setCookieSettings(true); }}
+        onOpenPolicy={(doc) => { setShowAbout(false); setLegalDoc(doc); }} />
       <AccountModal open={showAccount} onClose={() => setShowAccount(false)} auth={auth} />
+      {consentLayer}
     </div>
   );
 }

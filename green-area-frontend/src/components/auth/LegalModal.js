@@ -1,9 +1,14 @@
 import { useEffect } from 'react';
-import { TERMS_SECTIONS, TERMS_LAST_UPDATED, PRIVACY_SECTIONS, PRIVACY_LAST_UPDATED } from './legalContent';
+import {
+  TERMS_SECTIONS, TERMS_LAST_UPDATED,
+  PRIVACY_SECTIONS, PRIVACY_LAST_UPDATED,
+  COOKIE_SECTIONS, COOKIE_LAST_UPDATED,
+} from './legalContent';
 
 const DOCS = {
   terms: { title: 'ข้อกำหนดการใช้งาน', sections: TERMS_SECTIONS, updated: TERMS_LAST_UPDATED },
   privacy: { title: 'นโยบายความเป็นส่วนตัว', sections: PRIVACY_SECTIONS, updated: PRIVACY_LAST_UPDATED },
+  cookies: { title: 'นโยบายคุกกี้', sections: COOKIE_SECTIONS, updated: COOKIE_LAST_UPDATED },
 };
 
 // Read-only viewer for the Terms of Service / Privacy Policy, opened from the

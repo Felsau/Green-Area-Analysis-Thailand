@@ -1,0 +1,151 @@
+/* แถบขอความยินยอมคุกกี้ + หน้าตั้งค่ารายหมวด (PDPA) — ดู components/CookieConsent.js
+   วางเป็นแถบล่างเต็มความกว้าง ไม่ใช่ modal บังหน้าจอ: ผู้ใช้ยังดูแผนที่/อ่านนโยบายได้
+   ระหว่างตัดสินใจ ซึ่งเป็นเงื่อนไขของ "ความยินยอมโดยอิสระ" */
+.consent-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 95;                 /* เหนือ toast (80) ต่ำกว่า modal (100) */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  padding: var(--s-4) var(--s-5);
+  background: var(--surface);
+  border-top: 1px solid var(--rule-2);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12);
+}
+
+.consent-bar__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 260px;
+  flex: 1 1 420px;
+  font-size: var(--t-sm);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.consent-bar__text > b { font-size: var(--t-base); color: var(--ink-0); }
+
+/* ปุ่มเรียงแนวนอน ไม่ห่อบรรทัดจนกลายเป็นรายการยาว — ยอมรับ/ปฏิเสธน้ำหนักเท่ากัน
+   (ดูเหตุผลด้าน dark pattern ใน CookieConsent.js) */
+.consent-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .consent-bar { flex-direction: column; align-items: stretch; }
+  .consent-bar__actions > .btn { flex: 1 1 0; justify-content: center; }
+}
+
+/* ── หน้าตั้งค่ารายหมวด ─────────────────────────────────────────────────── */
+/* กว้างกว่า modal ปกติเพราะแต่ละรายการมี 4 บรรทัดข้อมูล (ชื่อ · คีย์ · วัตถุประสงค์ ·
+   ระยะเวลา) ที่ต้องอ่านรวดเดียวได้ตามที่ สคส. ต้องการให้แจ้ง */
+.modal--consent { width: min(720px, 100%); }
+
+.consent-cat {
+  padding: var(--s-4) 0;
+  border-top: 1px solid var(--rule);
+}
+.consent-cat:first-of-type { border-top: 0; }
+
+.consent-cat__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+.consent-cat__head .modal__h3 { margin: 0; }
+
+.consent-cat__summary {
+  margin: 2px 0 0;
+  font-size: var(--t-sm);
+  color: var(--ink-3);
+}
+
+.consent-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex: 0 0 auto;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.consent-switch input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+.consent-switch input:disabled { cursor: default; }
+.consent-switch:has(input:disabled) { cursor: default; color: var(--ink-4); }
+.consent-switch:has(input:checked:not(:disabled)) { color: var(--accent); }
+
+/* รายการที่เก็บจริง — grid 1 คอลัมน์ ให้ทุกบรรทัดของรายการเดียวกันชิดกันเป็นก้อน */
+.consent-cat__items {
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--s-2);
+}
+.consent-cat__items li {
+  display: grid;
+  gap: 1px;
+  padding: var(--s-2) var(--s-3);
+  background: var(--paper-2);
+  border-radius: var(--rad-sm);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.consent-cat__items b { color: var(--ink-0); }
+
+.consent-cat__key {
+  font-family: var(--mono);
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+  word-break: break-all;
+}
+.consent-cat__keep { font-size: var(--t-xs); color: var(--ink-3); }
+
+.consent-panel__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--rule);
+}
+.consent-panel__foot-actions { display: flex; gap: var(--s-2); }
+
+/* ── ลิงก์ "ตั้งค่าคุกกี้" ที่ท้ายหน้าแรก/หน้าต่างข้อมูล ────────────────── */
+/* ต้องมีอยู่ถาวรเพื่อให้ถอนความยินยอมได้ง่ายเท่าตอนให้ (มาตรา 19 วรรคห้า) */
+.consent-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--rule-2);
+}
+.consent-link:hover { text-decoration-color: currentColor; }
+
+/* กลุ่มลิงก์กฎหมาย (ท้ายหน้าแรก / ในหน้าต่างข้อมูล) — คั่นด้วยเส้นตั้งแนวนอน
+   แทนการไล่ขึ้นบรรทัดใหม่ทีละอัน */
+.c__footer-legal,
+.consent-links { display: flex; flex-wrap: wrap; gap: var(--s-2) 0; }
+.c__footer-legal .consent-link + .consent-link,
+.consent-links .consent-link + .consent-link {
+  margin-left: var(--s-2);
+  padding-left: var(--s-2);
+  border-left: 1px solid var(--rule-2);
+}

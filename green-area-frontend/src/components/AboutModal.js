@@ -19,7 +19,7 @@ const CITATIONS = [
   'U.S. EPA 2023 — passenger-vehicle CO₂ baseline',
 ];
 
-export default function AboutModal({ open, onClose }) {
+export default function AboutModal({ open, onClose, onCookieSettings, onOpenPolicy }) {
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -74,6 +74,17 @@ export default function AboutModal({ open, onClose }) {
           <p className="modal__note">
             โค้ด: MIT · ข้อมูล/dataset แต่ละชุดเป็นไปตาม license ของเจ้าของ
             (Copernicus, USGS public-domain, CC BY 4.0, GADM academic, OSM ODbL)
+          </p>
+
+          {/* ช่องทางถอน/แก้ความยินยอมคุกกี้สำหรับผู้ใช้ที่ล็อกอินแล้ว — หน้าแรกที่มี
+              ลิงก์ชุดเดียวกันถูกข้ามไปเมื่อมี session อยู่ ถ้าไม่มีตรงนี้ผู้ใช้ประจำ
+              จะไม่มีทางถอนความยินยอมได้เลย */}
+          <h3 className="modal__h3">ข้อมูลส่วนบุคคลและคุกกี้</h3>
+          <p className="modal__note consent-links">
+            <button className="consent-link" onClick={onCookieSettings}>ตั้งค่าคุกกี้</button>
+            <button className="consent-link" onClick={() => onOpenPolicy('cookies')}>นโยบายคุกกี้</button>
+            <button className="consent-link" onClick={() => onOpenPolicy('privacy')}>นโยบายความเป็นส่วนตัว</button>
+            <button className="consent-link" onClick={() => onOpenPolicy('terms')}>ข้อกำหนดการใช้งาน</button>
           </p>
         </div>
       </div>
