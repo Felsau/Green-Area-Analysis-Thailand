@@ -23,13 +23,32 @@ export const districtSummarySections = (ctx) => {
     fmt(d.ndvi_mean, 3),
     d.green_area_pct != null ? `${fmt(d.green_area_pct, 1)}%` : '—',
     d.green_area_km2 != null ? fmtInt(d.green_area_km2) : '—',
+    // FR-17 · เกณฑ์ 3-30-300 เป็นเกณฑ์ระดับย่าน ตารางรายอำเภอจึงเป็นที่ที่อ่านมีความหมาย
+    // ที่สุด — ติด ✓/✗ ไว้ให้กวาดตาหาอำเภอที่ไม่ผ่านได้ทันทีโดยไม่ต้องเทียบเลขเอง
+    d.canopy_pct != null
+      ? `${fmt(d.canopy_pct, 1)}% ${d.canopy_meets_target ? '✓' : '✗'}`
+      : '—',
     d.lst_mean != null ? `${fmt(d.lst_mean, 1)}°C` : '—',
   ]);
   dsHtml += table(
-    ['#', 'อำเภอ', 'NDVI Mean', 'Green %', 'Green km²', 'LST'],
+    ['#', 'อำเภอ', 'NDVI Mean', 'Green %', 'Green km²', 'Canopy % (≥30)', 'LST'],
     rows,
     { firstColWidth: 36 }
   );
+
+  // สรุปเกณฑ์ 30% ระดับจังหวัด — ตัวหารคืออำเภอที่มีค่า canopy จริง ไม่ใช่อำเภอทั้งหมด
+  const cs = districtSummary.canopy_summary;
+  if (cs?.districts_with_canopy > 0) {
+    const failing = cs.districts_with_canopy - cs.districts_meeting_target;
+    dsHtml += calloutBox(
+      `🌳 <b>เกณฑ์เรือนยอด 30% (3-30-300):</b> ผ่าน ${cs.districts_meeting_target} ` +
+      `จาก ${cs.districts_with_canopy} อำเภอที่มีข้อมูล` +
+      (failing > 0 ? ` — อีก ${failing} อำเภอยังต่ำกว่าเกณฑ์` : ' — ผ่านครบทุกอำเภอ') +
+      `<br/>ค่าเฉลี่ยเรือนยอดของอำเภอที่มีข้อมูล: <b>${fmt(cs.canopy_pct_avg, 1)}%</b> ` +
+      '· ค่าเรือนยอดมาจาก ESA WorldCover (ข้อมูลปี 2564) จึงไม่เปลี่ยนตามปีที่เลือก',
+      failing > 0 ? COLOR.orange : COLOR.green
+    );
+  }
 
   // insight: top/bottom 3 + spread
   const ranked = districtSummary.data.filter(d => d.ndvi_mean != null);

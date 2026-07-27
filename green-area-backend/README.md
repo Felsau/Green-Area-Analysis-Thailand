@@ -82,12 +82,30 @@ API docs interactive: `http://localhost:8000/docs`
 Threshold) — ฤดูใช้นิยามกรมอุตุนิยมวิทยา · ส่งกลับพร้อมค่า NDVI ทุก endpoint
 (ดู `schemas.py::NDVIDataQuality` · ที่มาของทุกเกณฑ์อยู่ใน `REQUIREMENTS.md` `[R33]`–`[R35]`)
 
+`ndvi_annual` / `district_ndvi_annual` มีคอลัมน์ `canopy` (jsonb, migration 015) เก็บ
+ตัวชี้วัดเรือนยอดไม้เทียบเกณฑ์ **30% ของกฎ 3-30-300** (FR-17 · `[R2]`) — สร้างใน
+`canopy.py::build_canopy` โดย `canopy_area_bands` เกาะ `reduceRegion` ก้อนเดียวกับ NDVI
+จึงไม่เพิ่ม round-trip ไป GEE · **ต่างจาก `green_area_pct`**: ตัวนั้นคือ NDVI > 0.3 =
+พืชพรรณทุกชนิด (ตอบ WHO m²/คน) ส่วนตัวนี้นับเฉพาะคลาสต้นไม้จากการจำแนก land cover
+
+- **ค่าระดับ** มาจาก ESA WorldCover v200 ซึ่งมี epoch เดียว (2021) → *ไม่เปลี่ยนตามปีที่
+  เลือก* จึงต้องแสดง `epoch_year` คู่กับตัวเลขเสมอ
+- **แนวโน้ม** (`canopy.trend`) มาจาก Dynamic World เทียบปีฐาน 2021 — DW ตรวจไม่เจอเรือนยอด
+  ในเขตเมือง (วัดจริง: ปทุมวัน 1.7% vs WorldCover 14.6%) จึงอ่านได้เฉพาะ *ทิศทาง*
+  ไม่ใช่ระดับ · ตารางเทียบเต็มอยู่ใน docstring ของ `canopy.py` และ `REQUIREMENTS.md` §5
+- `_fractional_area` รวมสัดส่วนเรือนยอดที่ 10 ม. ด้วย `reduceResolution` ก่อนย่อลง scale
+  ที่ reduce — ไม่งั้น pyramid แบบ MODE จะกลืนเรือนยอดกระจัดกระจายในเมืองหายไปทั้งหมด
+
+(ดู `schemas.py::CanopyCover` / `CanopyTrend`)
+
 ## ออกแบบ cache (สรุป)
 
 - ทุก endpoint ที่ trigger GEE compute ราคาแพง → check cache ก่อน
 - Cache key = `(province, district?, year)` — district nullable
 - Stale check ใน `routers/ndvi/compute.py::_is_stale` — invalidate row ที่คำนวณก่อนยุค water mask
-  และ row ที่ยังไม่มี `data_quality` (ก่อน migration 014) → recompute เองเมื่อมีคนเปิดจังหวัด/อำเภอนั้น
+  และ row ที่ยังไม่มี `data_quality` (ก่อน migration 014) หรือ `canopy` (ก่อน migration 015)
+  → recompute เองเมื่อมีคนเปิดจังหวัด/อำเภอนั้น · **ต้องรัน migration ก่อน deploy**
+  ไม่งั้น row เดิมจะถูกลบทิ้งแล้ว insert ใหม่ไม่ผ่านเพราะยังไม่มีคอลัมน์
 - AI Recommend + raster overlay tile URL หมดอายุพร้อม GEE session — มี in-process TTL
   cache 30 นาที (thread-safe `ttl_cache.py::TTLCache` ใช้ร่วมกันทั้ง
   `routers/recommend/tile_cache.py` และ `routers/maps/tiles.py`) ลดต้นทุน cache hit จาก ~30s → <50ms

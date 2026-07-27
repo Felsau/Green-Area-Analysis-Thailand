@@ -27,6 +27,7 @@ def _cached_row(**overrides):
     (ใส่ cache_version ปัจจุบันเสมอ ไม่ให้ถูก version short-circuit ไปก่อน)"""
     return {"green_area_pct": 35.2, "total_area_km2": 1234, "ndvi_min": 0.05,
             "data_quality": {"image_count": 120, "level": "threshold"},
+            "canopy": {"available": True, "canopy_pct": 12.4},
             "cache_version": CURRENT_CACHE_VERSION, **overrides}
 
 
@@ -70,6 +71,18 @@ class TestIsStale:
         row = _cached_row()
         del row["data_quality"]
         assert _is_stale(row) is True
+
+    def test_missing_canopy_is_stale(self):
+        # row ก่อน FR-17 — recompute เพื่อให้ทุกพื้นที่มีตัวชี้วัดเรือนยอด 30% กำกับ
+        row = _cached_row()
+        del row["canopy"]
+        assert _is_stale(row) is True
+
+    def test_unavailable_canopy_is_not_stale(self):
+        # ปีที่ Dynamic World ไม่มีข้อมูลได้ dict available=false ไม่ใช่ None —
+        # ต้องไม่ถูกมองว่า stale ไม่งั้นจะวนคำนวณใหม่ทุกครั้งที่เปิด
+        row = _cached_row(canopy={"available": False, "canopy_pct": None})
+        assert _is_stale(row) is False
 
 
 # ── compute_who_status ────────────────────────────────────────────────────────

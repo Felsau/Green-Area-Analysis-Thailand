@@ -3,6 +3,7 @@ import { fmt, fmtInt } from '../helpers';
 import { COLOR, sectionTitle, table } from '../components';
 import { monthlyBarChart } from '../charts';
 import { dataQualityRows, dataQualityCallout } from './dataQuality';
+import { canopyRows, canopyCallout } from './canopy';
 
 export const districtSections = (ctx) => {
   const {
@@ -24,6 +25,18 @@ export const districtSections = (ctx) => {
       ],
       { firstColWidth: 200 }
     );
+    // เรือนยอดเทียบเกณฑ์ 30% ระดับอำเภอ (FR-17) — เป็นระดับที่กฎ 3-30-300 ตั้งใจให้ใช้
+    // (เกณฑ์ระดับย่าน · ค่าเฉลี่ยทั้งจังหวัดกลบพื้นที่เมืองที่ขาดจริง)
+    const cRows = canopyRows(districtNdviStats.canopy);
+    if (cRows.length) {
+      dHtml += table(
+        ['เรือนยอดไม้ (3-30-300) · อำเภอ', 'ค่า'],
+        cRows.map(([k, v]) => [k, v]),
+        { firstColWidth: 200, keepTogether: true }
+      );
+      dHtml += canopyCallout(districtNdviStats.canopy,
+                             { areaKm2: districtNdviStats.total_area_km2 });
+    }
     // ความไม่แน่นอนของ composite ระดับอำเภอ (NFR-07) — ตัดคอลัมน์ "หมายเหตุ" ออก
     // ให้เข้ากับตาราง 2 คอลัมน์ของ section นี้ · คำอธิบายเต็มอยู่ใน callout ด้านล่าง
     const qualityRows = dataQualityRows(districtNdviStats.data_quality);

@@ -8,6 +8,7 @@ import math
 import ee
 from fastapi import HTTPException
 
+from canopy import ESA_TREE_COVER_CLASS, WORLDCOVER_ASSET
 from dependencies import WORLDPOP_YEAR, worldpop_unavailable_error
 from gee_utils import (clean_s2_collection, get_lst_col, worldpop_pop_collection,
                        dynamic_world_built)
@@ -89,7 +90,7 @@ MAX_SLOPE_DEG = 30
 # คนที่อยู่ไกลจากต้นไม้/พื้นที่สีเขียว = เข้าถึงพื้นที่สีเขียวยาก → ควรได้รับความสำคัญ
 # ก่อน (ตรงกับภารกิจ m²/คน ตามมาตรฐาน WHO ของทั้งระบบ) · ใช้ ESA WorldCover class 10
 # (Tree cover) เป็น "พื้นที่สีเขียวเดิม" แล้ววัดระยะถึง pixel ต้นไม้ใกล้สุด
-ESA_TREE_COVER_CLASS = 10
+# (นิยาม class/asset อยู่ใน canopy.py ที่เดียว — ใช้ร่วมกับตัวชี้วัด 30% ของ FR-17)
 # Scale คงที่ที่ใช้คำนวณ distance transform (เมตร/pixel) — ดู docstring ว่าทำไมต้องปักหมุด
 ACCESS_DT_SCALE_M = 100.0
 # ไกลจากต้นไม้เกินระยะนี้ = ขาดแคลนพื้นที่สีเขียวเต็มที่ (access_need = 1) · 1 กม. ≈
@@ -112,7 +113,7 @@ def access_need_image(geom: ee.Geometry) -> ee.Image:
     (ที่ sample 200 m จะ ~0 แทบทั้งภาพ) · จึง reproject mask ไปกริดคงที่ ACCESS_DT_SCALE_M
     ก่อน → pixel = 100 m เสมอ → คูณ 100 ได้เมตรจริง · pixel บนต้นไม้ = ระยะ 0 = need 0
     """
-    wc = ee.ImageCollection("ESA/WorldCover/v200").first().clip(geom)
+    wc = ee.ImageCollection(WORLDCOVER_ASSET).first().clip(geom)
     # ปักหมุดกริดที่ ACCESS_DT_SCALE_M ให้ fastDistanceTransform คิดเป็น pixel 100 m คงที่
     # (deterministic ทุก zoom/scale) · NOTE: reproject sample แบบ nearest อาจพลาดต้นไม้
     # หย่อมเล็ก < 100 m → ประเมิน "ไกลจากสีเขียว" สูงไปเล็กน้อย (conservative)
@@ -131,7 +132,7 @@ def plantable_mask(geom: ee.Geometry) -> ee.Image:
     ชุ่มน้ำ หรือพื้นที่ลาดชันเกิน · ไม่ใช้ mask นี้กับ priority heatmap (heatmap ยังโชว์
     "ความต้องการ" ทั่วพื้นที่) · WorldCover/SRTM เป็น global ครอบคลุมทั้งไทย
     """
-    wc = ee.ImageCollection("ESA/WorldCover/v200").first().clip(geom)
+    wc = ee.ImageCollection(WORLDCOVER_ASSET).first().clip(geom)
     non_plantable = ee.Image.constant(0)
     for code in ESA_NON_PLANTABLE_CLASSES:
         non_plantable = non_plantable.Or(wc.eq(code))

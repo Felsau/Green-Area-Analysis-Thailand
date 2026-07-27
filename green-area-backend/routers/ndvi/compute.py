@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 
 import ee
 
+from canopy import build_canopy, canopy_area_bands
 from dependencies import CURRENT_CACHE_VERSION, WHO_STANDARD_M2, MONTH_NAMES
 from gee_utils import clean_s2_collection
 
@@ -32,6 +33,11 @@ def _is_stale(row: dict) -> bool:
     # ที่แสดง/ลงรายงานมีตัวเลขความไม่แน่นอนกำกับเสมอ (ไม่ bump CURRENT_CACHE_VERSION
     # เพราะ version นั้นใช้ร่วมกับ cache ของ LST/urban ที่ไม่ได้เปลี่ยน schema)
     if row.get("data_quality") is None:
+        return True
+    # row ที่คำนวณก่อน FR-17 ไม่มีตัวชี้วัดเรือนยอด — เหตุผลเดียวกับ data_quality
+    # (ปีก่อน 2015 ที่ DW ไม่มีข้อมูลก็ยังได้ dict {"available": false} ไม่ใช่ None
+    # จึงไม่วนคำนวณซ้ำทุกครั้ง)
+    if row.get("canopy") is None:
         return True
     nm = row.get("ndvi_min")
     if nm is not None and nm < -0.05:
@@ -289,12 +295,14 @@ def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int):
     green_mask = ndvi_raw.gt(0.3)
     dense_mask = ndvi_raw.gt(0.5)
 
-    # total/green/dense area รวมเป็น 3 band แล้ว reduceRegion รอบเดียว — ลด GEE
-    # round-trip จาก 3 ครั้งเหลือ 1 (pattern เดียวกับ urban.py)
+    # total/green/dense area + band เรือนยอดของ FR-17 รวมเป็นก้อนเดียวแล้ว reduceRegion
+    # รอบเดียว — ลด GEE round-trip เหลือ 1 (pattern เดียวกับ urban.py) · canopy จึงแทบ
+    # ไม่มีต้นทุนเพิ่มเพราะเกาะ reduce ก้อนที่ต้องยิงอยู่แล้ว
     pixel_area = ee.Image.pixelArea().clip(geom)
     area_stack = (pixel_area.rename('total_area')
                   .addBands(pixel_area.updateMask(green_mask).rename('green_area'))
-                  .addBands(pixel_area.updateMask(dense_mask).rename('dense_area')))
+                  .addBands(pixel_area.updateMask(dense_mask).rename('dense_area'))
+                  .addBands(canopy_area_bands(geom, year)))
     area_sums = area_stack.reduceRegion(
         reducer=ee.Reducer.sum(), geometry=geom,
         scale=scale, maxPixels=1e10, bestEffort=True, tileScale=4).getInfo()
@@ -308,12 +316,19 @@ def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int):
     green_area_pct = round(((green_area_m2 or 0) / total_area_m2) * 100, 1) if total_area_m2 else 0
     dense_area_pct = round(((dense_area_m2 or 0) / total_area_m2) * 100, 1) if total_area_m2 else 0
 
+    # FR-17: เรือนยอด (คลาสต้นไม้) เทียบเกณฑ์ 30% ของ 3-30-300 — คนละนิยามกับ
+    # green_area_pct ข้างบนที่เป็น "พืชพรรณทุกชนิด" จาก NDVI (ดู canopy.py)
+    canopy = build_canopy(area_sums.get('canopy_area'), area_sums.get('dw_area'),
+                          area_sums.get('dw_valid_area'), area_sums.get('dw_base_area'),
+                          total_area_m2, year)
+
     return {
         "ndvi_mean": ndvi_mean, "ndvi_min": ndvi_min, "ndvi_max": ndvi_max,
         "green_area_pct": green_area_pct, "green_area_km2": green_area_km2,
         "dense_area_pct": dense_area_pct, "dense_area_km2": dense_area_km2,
         "total_area_km2": total_area_km2,
         "data_quality": data_quality,
+        "canopy": canopy,
         "green_area_m2_raw": green_area_m2,
     }
 

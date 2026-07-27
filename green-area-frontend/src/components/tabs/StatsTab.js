@@ -7,6 +7,7 @@ import MonthlyChart from './stats/MonthlyChart';
 import GreenDeficitNote from './stats/GreenDeficitNote';
 import UhiRiskNote from './stats/UhiRiskNote';
 import DataQualityNote from './stats/DataQualityNote';
+import CanopyNote from './stats/CanopyNote';
 import LandusePanel from './stats/LandusePanel';
 
 export default function StatsTab({ data, handlers }) {
@@ -75,6 +76,10 @@ export default function StatsTab({ data, handlers }) {
                     hint={districtNdviStats?.green_area_km2 != null ? `${districtNdviStats.green_area_km2.toLocaleString()} km²` : null}
                   />
                 </KVRow>
+                {/* FR-17 อยู่ระดับอำเภอเป็นหลัก — เกณฑ์ 30% ของ 3-30-300 เป็นเกณฑ์
+                    ระดับย่าน ค่าเฉลี่ยทั้งจังหวัดจึงกลบพื้นที่เมืองที่ขาดจริง */}
+                <CanopyNote canopy={districtNdviStats?.canopy}
+                            areaKm2={districtNdviStats?.total_area_km2} />
                 <DataQualityNote dataQuality={districtNdviStats?.data_quality} />
                 {districtNdviMonthly.length > 0 && (
                   <div>
@@ -168,8 +173,12 @@ export default function StatsTab({ data, handlers }) {
         )}
       </Accordion>
 
-      {/* Green Deficit */}
+      {/* เกณฑ์พื้นที่สีเขียว 2 มาตรฐานที่ตอบคนละคำถาม — WHO วัด "พอต่อหัวประชากรไหม"
+          ส่วน 3-30-300 วัด "ร่มไม้ปกคลุมพอไหม" · อ่านคู่กันจึงเห็นภาพครบ */}
       <GreenDeficitNote ndviStats={ndviStats} />
+      {!selectedDistrict && (
+        <CanopyNote canopy={ndviStats?.canopy} areaKm2={ndviStats?.total_area_km2} />
+      )}
 
       {/* Land use composition — 5 ประเภทหลักตามนิยาม LDD (Dynamic World หรือ LDD ราชการ) */}
       <LandusePanel

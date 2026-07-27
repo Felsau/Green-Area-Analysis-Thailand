@@ -21,6 +21,28 @@ const dataQualityRows = (dq) => {
   ];
 };
 
+// เรือนยอดเทียบเกณฑ์ 30% ของ 3-30-300 (FR-17) — คนละนิยามกับ Green Area ที่มาจาก
+// NDVI จึงติดป้ายชุดข้อมูล/ปีไว้ในไฟล์ด้วย ไม่ให้เอาสองค่าไปเทียบกันตรง ๆ
+const canopyRows = (c) => {
+  if (!c?.available) return [];
+  const rows = [
+    ['Canopy Cover (%)', c.canopy_pct],
+    ['Canopy Cover (km²)', c.canopy_km2],
+    ['เกณฑ์ 3-30-300 (%)', c.target_pct],
+    ['ผ่านเกณฑ์ 30%', c.meets_target ? 'ผ่าน' : 'ไม่ผ่าน'],
+    ['ยังขาดอีก (จุด%)', c.gap_pct],
+    ['ชุดข้อมูลเรือนยอด', c.source],
+    ['ปีของข้อมูลเรือนยอด', c.epoch_year],
+    ['ห่างจากปีที่เลือก (ปี)', c.epoch_offset_years],
+  ];
+  if (c.trend) {
+    rows.push(['แนวโน้มเรือนยอด (จุด% เทียบปีฐาน)', c.trend.change_pp]);
+    rows.push(['ปีฐานของแนวโน้ม', c.trend.baseline_year]);
+    rows.push(['ชุดข้อมูลแนวโน้ม', `${c.trend.source} (ระดับต่ำกว่าจริงในเมือง — ใช้อ่านทิศทาง)`]);
+  }
+  return rows;
+};
+
 export const exportStatsCsv = (data) => {
   const {
     selectedProvince, selectedProvinceEN, selectedDistrict,
@@ -48,6 +70,7 @@ export const exportStatsCsv = (data) => {
       rows.push(['Green Area m²/คน', ndviStats.green_area_m2_per_person]);
     if (ndviStats.population) rows.push(['ประชากร', ndviStats.population]);
     if (ndviStats.who_status) rows.push(['สถานะ WHO', ndviStats.who_status]);
+    canopyRows(ndviStats.canopy).forEach(r => rows.push(r));
     dataQualityRows(ndviStats.data_quality).forEach(r => rows.push(r));
     rows.push([]);
   }
@@ -81,6 +104,7 @@ export const exportStatsCsv = (data) => {
     rows.push(['NDVI Max', districtNdviStats.ndvi_max]);
     rows.push(['Green Area (%)', districtNdviStats.green_area_pct]);
     rows.push(['Green Area (km²)', districtNdviStats.green_area_km2]);
+    canopyRows(districtNdviStats.canopy).forEach(r => rows.push(r));
     dataQualityRows(districtNdviStats.data_quality).forEach(r => rows.push(r));
     rows.push([]);
   }

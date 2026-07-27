@@ -3,6 +3,7 @@ import { fmt, fmtInt } from '../helpers';
 import { COLOR, sectionTitle, table, calloutBox, note, imageBox } from '../components';
 import { monthlyBarChart } from '../charts';
 import { dataQualityRows, dataQualityCallout, dataQualityMethodNote } from './dataQuality';
+import { canopyRows, canopyCallout, canopyMethodNote } from './canopy';
 
 export const ndviSections = (ctx) => {
   const {
@@ -55,6 +56,20 @@ export const ndviSections = (ctx) => {
     ndviRows,
     { firstColWidth: 180 }
   );
+
+  // เรือนยอดเทียบเกณฑ์ 30% (FR-17) — แยกตารางเพราะเป็นคนละนิยามของพื้นที่สีเขียว
+  // จาก NDVI ข้างบน (ดู canopy.js) และมาจากคนละชุดข้อมูล/คนละปี
+  const canopy = ndviStats.canopy;
+  const cRows = canopyRows(canopy);
+  if (cRows.length) {
+    ndviHtml += table(
+      ['เรือนยอดไม้ (3-30-300)', 'ค่า', 'หมายเหตุ'],
+      cRows,
+      { firstColWidth: 180, keepTogether: true }
+    );
+    ndviHtml += canopyCallout(canopy, { areaKm2: ndviStats.total_area_km2 });
+    ndviHtml += canopyMethodNote(canopy);
+  }
 
   // คุณภาพ/ความไม่แน่นอนของ composite (NFR-07) — แยกตารางเพื่อไม่ปนกับค่าที่วัดได้
   const qualityRows = dataQualityRows(ndviStats.data_quality);
