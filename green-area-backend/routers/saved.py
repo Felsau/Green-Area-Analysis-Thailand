@@ -11,7 +11,11 @@ Ownership ผูกกับบัญชีผู้ใช้ (require_user ท�
   - GET /saved-areas (list) default คืน *เฉพาะของเจ้าของ* (privacy) — polygon ที่ผู้ใช้
     วาด อาจเป็นที่ดิน/บ้านตัวเอง ไม่ควรให้คนอื่นเห็นพิกัดโดย default
   - ?shared=true → คืนรวมของทุกคน (public gallery) พร้อม flag `mine` ที่ตัดสินฝั่ง server
-  - GET /saved-areas/{id} ยังเปิดให้ดึงรายตัวได้ → ใช้เป็นช่องทาง "แชร์ด้วยลิงก์/ไอดี"
+    (list เท่านั้น — เห็นแค่ metadata ที่ _SAVED_AREA_LIST_COLUMNS เลือกไว้ ไม่รวม
+    analysis/recommendation)
+  - GET /saved-areas/{id} (แบบเต็ม รวม analysis + recommendation) จำกัดเฉพาะเจ้าของ
+    (user_id หรือ owner token ตรง) หรือ admin เท่านั้น — id เป็น BIGSERIAL เดาเลข
+    ถัดไปได้ง่าย เปิดสาธารณะไม่ได้
   - DELETE ทำได้เฉพาะเจ้าของ (user_id หรือ owner token ตรง) หรือ admin (X-Admin-Token ตรง)
   - response ไม่เคย leak owner_token/user_id ออกไป
 """
@@ -135,13 +139,32 @@ def list_saved_areas(province: str | None = None,
 
 @router.get("/saved-areas/{area_id}")
 def get_saved_area(area_id: int, x_owner_token: str | None = Header(default=None),
+                   x_admin_token: str | None = Header(default=None),
                    user: dict = Depends(require_user)):
-    """ดึงพื้นที่ที่บันทึกแบบเต็ม (รวม analysis + recommendation)"""
+    """ดึงพื้นที่ที่บันทึกแบบเต็ม (รวม analysis + recommendation) — เฉพาะเจ้าของ
+    (user_id หรือ legacy owner token ตรง) หรือ admin เท่านั้น
+
+    id เป็น BIGSERIAL เรียงลำดับ เดาเลขถัดไปได้ง่าย — ถ้าเปิดให้ผู้ใช้ที่ล็อกอินคนไหน
+    ก็ดึงได้ (ตามที่ตั้งใจไว้เดิมว่าจะใช้เป็นลิงก์แชร์) จะเห็น polygon/พิกัดของคนอื่น
+    ได้ทั้งหมด ขัดกับ privacy stance ของ list (ดู docstring บนสุดของไฟล์) · frontend
+    ก็ไม่มีฟีเจอร์แชร์ด้วยลิงก์อยู่จริง (useSavedAreas.getOne เรียกเฉพาะรายการของ
+    ตัวเอง) — ถ้าต้องการแชร์ในอนาคตควรใช้ share token สุ่มแยกต่างหาก ไม่ใช่ id ตรงๆ
+    """
     res = supa_call(lambda s: s.table("saved_areas").select("*")
                     .eq("id", area_id).execute())
     if not res.data:
         raise HTTPException(status_code=404, detail="ไม่พบพื้นที่ที่บันทึกไว้")
-    return _public(res.data[0], x_owner_token, user["id"])
+    row = res.data[0]
+    owner = row.get("owner_token")
+    is_owner = bool(row.get("user_id") == user["id"]
+                    or (x_owner_token and owner
+                        and secrets.compare_digest(str(owner), str(x_owner_token))))
+    admin = dependencies.ADMIN_TOKEN
+    is_admin = bool(admin and x_admin_token
+                    and secrets.compare_digest(str(x_admin_token), str(admin)))
+    if not (is_owner or is_admin):
+        raise HTTPException(status_code=403, detail="ดูได้เฉพาะพื้นที่ที่คุณบันทึกเอง")
+    return _public(row, x_owner_token, user["id"])
 
 
 @router.delete("/saved-areas/{area_id}")

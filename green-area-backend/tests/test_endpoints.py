@@ -579,6 +579,51 @@ class TestSavedAreas:
         assert len(rows) == 2
         assert all(row["mine"] is False for row in rows)   # ไม่มี token → ไม่มีของฉัน
 
+    # ── get-one authorization ──
+    def test_get_one_not_found_returns_404(self, client, monkeypatch):
+        c, _ = client
+        monkeypatch.setattr("routers.saved.supa_call", lambda fn, **kw: _fake_response([]))
+        r = c.get("/saved-areas/999", headers={"X-Owner-Token": "tok"})
+        assert r.status_code == 404
+
+    def test_get_one_wrong_owner_returns_403(self, client, monkeypatch):
+        # id เป็น BIGSERIAL เดาเลขถัดไปได้ง่าย — ผู้ใช้ที่ล็อกอินอยู่แต่ไม่ใช่เจ้าของ
+        # ห้ามอ่าน polygon/analysis ของคนอื่นได้แค่เพราะเดา id ถูก
+        c, _ = client
+        monkeypatch.setattr("routers.saved.supa_call",
+            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "someone-else",
+                                              "user_id": "other-user-id", "geometry": {}}]))
+        r = c.get("/saved-areas/1", headers={"X-Owner-Token": "tok"})
+        assert r.status_code == 403
+
+    def test_get_one_owner_by_token_succeeds(self, client, monkeypatch):
+        c, _ = client
+        monkeypatch.setattr("routers.saved.supa_call",
+            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "tok",
+                                              "user_id": None, "geometry": {}}]))
+        r = c.get("/saved-areas/1", headers={"X-Owner-Token": "tok"})
+        assert r.status_code == 200
+        assert r.json()["id"] == 1
+
+    def test_get_one_owner_by_account_succeeds(self, client, monkeypatch):
+        # fixture ล็อกอินเป็น user id "test-user-id" — แถวที่ user_id ตรงกันต้องอ่านได้
+        # แม้ไม่มี/ไม่ตรง owner token (บัญชีที่ล็อกอินคือแหล่งความจริงหลัก)
+        c, _ = client
+        monkeypatch.setattr("routers.saved.supa_call",
+            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": None,
+                                              "user_id": "test-user-id", "geometry": {}}]))
+        r = c.get("/saved-areas/1")
+        assert r.status_code == 200
+
+    def test_get_one_admin_override_succeeds(self, client, monkeypatch):
+        c, _ = client
+        monkeypatch.setattr("routers.saved.supa_call",
+            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "someone-else",
+                                              "user_id": "other-user-id", "geometry": {}}]))
+        r = c.get("/saved-areas/1",
+                  headers={"X-Owner-Token": "tok", "X-Admin-Token": "test-token"})
+        assert r.status_code == 200
+
     # ── delete authorization ──
     def test_delete_not_found_returns_404(self, client, monkeypatch):
         c, _ = client
