@@ -9,6 +9,11 @@
 fastapi==0.136.3
 uvicorn[standard]==0.49.0
 supabase==2.31.0
+# dependencies.require_user() import `jwt` + PyJWKClient ตรงๆ เพื่อ verify Supabase
+# access token ในเครื่อง (ES256/RS256 ต้องมี extra [crypto]) — เดิมติดมาโดยบังเอิญ
+# ผ่าน supabase-auth เท่านั้น ถ้าวันหลัง supabase เปลี่ยน lib ภายใน auth จะพังทั้งระบบ
+# จึงประกาศเป็น direct dependency ให้ตรงกับที่โค้ดใช้จริง
+pyjwt[crypto]==2.13.0
 python-dotenv==1.2.2
 earthengine-api==1.7.30
 httpx==0.28.1
