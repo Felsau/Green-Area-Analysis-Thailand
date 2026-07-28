@@ -56,3 +56,9 @@ jobs:
         run: npm test
       - name: Build (vite)
         run: npm run build
+      # --omit=dev = production deps only (currently clean) — devDependencies
+      # (vite/vitest/esbuild toolchain) carry known advisories that need a
+      # breaking major-version bump to clear, so they're excluded here rather
+      # than making the whole job informational like backend's pip-audit.
+      - name: Audit dependencies (npm audit)
+        run: npm audit --omit=dev
