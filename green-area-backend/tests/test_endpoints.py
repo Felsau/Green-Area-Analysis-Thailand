@@ -541,10 +541,10 @@ class TestSavedAreas:
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
             lambda fn, **kw: _fake_response([
-                {"id": 1, "label": "A", "owner_token": "mine", "geometry": {}},
-                {"id": 2, "label": "B", "owner_token": "other", "geometry": {}},
+                {"id": 1, "label": "A", "owner_token": "mine", "user_id": "test-user-id", "geometry": {}},
+                {"id": 2, "label": "B", "owner_token": "other", "user_id": "someone-else", "geometry": {}},
             ]))
-        r = c.get("/saved-areas?shared=true", headers={"X-Owner-Token": "mine"})
+        r = c.get("/saved-areas", headers={"X-Owner-Token": "mine"})
         assert r.status_code == 200
         rows = r.json()["data"]
         assert all("owner_token" not in row for row in rows)
@@ -565,19 +565,19 @@ class TestSavedAreas:
         assert len(rows) == 1
         assert rows[0]["mine"] is True
 
-    def test_list_shared_returns_all_without_token(self, client, monkeypatch):
-        # ?shared=true → public gallery: คืนของทุกคนแม้ไม่มี owner token
+    def test_list_has_no_shared_gallery(self, client, monkeypatch):
+        # ไม่มี public gallery แล้ว — ?shared=true ไม่ใช่ query param ที่มีผลใดๆ
+        # (FastAPI เพิกเฉยต่อ query param ที่ไม่รู้จัก) ยังคงคืนเฉพาะของเจ้าของ
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
             lambda fn, **kw: _fake_response([
-                {"id": 1, "label": "A", "owner_token": "a", "geometry": {}},
-                {"id": 2, "label": "B", "owner_token": "b", "geometry": {}},
+                {"id": 1, "label": "A", "owner_token": "a", "user_id": "test-user-id", "geometry": {}},
             ]))
         r = c.get("/saved-areas?shared=true")
         assert r.status_code == 200
         rows = r.json()["data"]
-        assert len(rows) == 2
-        assert all(row["mine"] is False for row in rows)   # ไม่มี token → ไม่มีของฉัน
+        assert len(rows) == 1
+        assert rows[0]["mine"] is True
 
     # ── get-one authorization ──
     def test_get_one_not_found_returns_404(self, client, monkeypatch):

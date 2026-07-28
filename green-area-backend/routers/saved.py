@@ -8,11 +8,9 @@ Ownership ผูกกับบัญชีผู้ใช้ (require_user ท�
     (ON DELETE CASCADE ใน migration 013)
   - X-Owner-Token (localStorage รายเครื่อง จากยุคก่อนมี login) ยังรับไว้เป็น fallback
     เพื่อให้แถวเก่าที่ยังไม่มี user_id (บันทึกไว้ก่อน migration 013) เข้าถึง/ลบได้ต่อ
-  - GET /saved-areas (list) default คืน *เฉพาะของเจ้าของ* (privacy) — polygon ที่ผู้ใช้
-    วาด อาจเป็นที่ดิน/บ้านตัวเอง ไม่ควรให้คนอื่นเห็นพิกัดโดย default
-  - ?shared=true → คืนรวมของทุกคน (public gallery) พร้อม flag `mine` ที่ตัดสินฝั่ง server
-    (list เท่านั้น — เห็นแค่ metadata ที่ _SAVED_AREA_LIST_COLUMNS เลือกไว้ ไม่รวม
-    analysis/recommendation)
+  - GET /saved-areas (list) คืน *เฉพาะของเจ้าของ* เสมอ (privacy) — polygon ที่ผู้ใช้
+    วาด อาจเป็นที่ดิน/บ้านตัวเอง ไม่ควรให้คนอื่นเห็นพิกัด (ไม่มี public gallery —
+    frontend ไม่มีฟีเจอร์นี้ด้วย ดู useSavedAreas.js)
   - GET /saved-areas/{id} (แบบเต็ม รวม analysis + recommendation) จำกัดเฉพาะเจ้าของ
     (user_id หรือ owner token ตรง) หรือ admin เท่านั้น — id เป็น BIGSERIAL เดาเลข
     ถัดไปได้ง่าย เปิดสาธารณะไม่ได้
@@ -91,25 +89,17 @@ def create_saved_area(req: SavedAreaCreate,
 
 @router.get("/saved-areas")
 def list_saved_areas(province: str | None = None,
-                     shared: bool = False,
                      x_owner_token: str | None = Header(default=None),
                      user: dict = Depends(require_user)):
     """รายการพื้นที่ที่บันทึก (ใหม่สุดก่อน) — คืน geometry ด้วยเพื่อโหลดกลับบนแผนที่
     แต่ไม่คืน analysis/recommendation ที่หนัก (ดึงเต็มที่ GET /saved-areas/{id}).
 
-    Privacy: default คืนเฉพาะพื้นที่ของบัญชีนี้ (user_id) · ถ้ามี X-Owner-Token
-    ด้วย จะรวม legacy row เก่า (ก่อน migration 013, user_id ยังว่าง) ที่ตรง token
-    เข้ามาด้วย กันของเก่าหายไปตอนอัปเกรด · ?shared=true → คืนรวมทุกคน"""
+    Privacy: คืนเฉพาะพื้นที่ของบัญชีนี้ (user_id) เสมอ · ถ้ามี X-Owner-Token ด้วย
+    จะรวม legacy row เก่า (ก่อน migration 013, user_id ยังว่าง) ที่ตรง token
+    เข้ามาด้วย กันของเก่าหายไปตอนอัปเกรด"""
     def _by_user(s):
         q = (s.table("saved_areas").select(_SAVED_AREA_LIST_COLUMNS)
              .eq("user_id", user["id"]).order("created_at", desc=True).limit(200))
-        if province:
-            q = q.eq("province", province)
-        return q.execute()
-
-    def _shared(s):
-        q = (s.table("saved_areas").select(_SAVED_AREA_LIST_COLUMNS)
-             .order("created_at", desc=True).limit(200))
         if province:
             q = q.eq("province", province)
         return q.execute()
@@ -122,15 +112,12 @@ def list_saved_areas(province: str | None = None,
                 .order("created_at", desc=True).limit(200).execute())
 
     try:
-        if shared:
-            rows = supa_call(_shared).data
-        else:
-            rows = supa_call(_by_user).data
-            if x_owner_token:
-                legacy = supa_call(_legacy_by_token).data
-                seen = {r["id"] for r in rows}
-                rows += [r for r in legacy if r["id"] not in seen]
-                rows.sort(key=lambda r: r.get("created_at") or "", reverse=True)
+        rows = supa_call(_by_user).data
+        if x_owner_token:
+            legacy = supa_call(_legacy_by_token).data
+            seen = {r["id"] for r in rows}
+            rows += [r for r in legacy if r["id"] not in seen]
+            rows.sort(key=lambda r: r.get("created_at") or "", reverse=True)
         return {"data": [_public(r, x_owner_token, user["id"]) for r in rows]}
     except Exception:
         logger.error("❌ List saved areas error", exc_info=True)
