@@ -188,7 +188,9 @@ green-area-backend/
   stats_utils.py           # linregress, Mann-Kendall, forecast (95% PI)
   polygon_utils.py         # validate polygon + geodesic area (custom-area)
   ttl_cache.py · keyed_lock.py  # in-process TTL cache (tile URL) + per-key compute lock
+  validation.py            # NFR-08 — เทียบ green_area_pct (NDVI) กับ ESA WorldCover
   generate_districts.py    # one-time: สร้าง thailand_districts.json (+ add_district_th_names.py)
+  validate_green_area.py   # NFR-08 — validation report ทุกจังหวัด (`python validate_green_area.py`)
   migrations/              # SQL schema สำหรับ Supabase (000–013)
   routers/
     account.py             # /account/me — โปรไฟล์ (GET/PATCH) + ลบบัญชี (DELETE)

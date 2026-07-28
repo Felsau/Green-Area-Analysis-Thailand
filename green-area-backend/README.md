@@ -126,6 +126,29 @@ Threshold) — ฤดูใช้นิยามกรมอุตุนิย�
 | `tests/test_keyed_lock.py` | per-key compute lock — กัน GEE cache stampede (ล็อกต่อ key ไม่บล็อกทั้งระบบ) |
 | `tests/test_endpoints.py` | API endpoints (`/`, `/compare`, `/cache`, `/analysis/ranking`, `/timelapse` ทั้ง NDVI/LST, `/analysis/cooling`, POST `/analysis/custom-area` + `/recommend/custom-area` validation, `/saved-areas` CRUD + ownership/admin auth) + auth gate (endpoint ที่ต้องล็อกอิน reject anonymous · `/ranking` + `/health` ยัง public) ผ่าน FastAPI `TestClient` + mock `supa_call` |
 | `tests/test_ttl_cache.py` | `TTLCache` (shared tile-URL cache) — hit/miss, TTL expiry, size-bounded eviction, thread-safe concurrent `set()` |
+| `tests/test_validation.py` | NFR-08 — ความคลาดเคลื่อนของ `green_area_pct` เทียบ ESA WorldCover, เกณฑ์ ±10 จุด%, การแยกสาเหตุรายคลาส และ **การกระทบยอด** `error_pp = net_pp + reference_scale_delta_pp` |
 
 Pure helpers ทดสอบได้โดยไม่ต้องมี credential · endpoint tests mock ทุก call ไป
 Supabase/GEE จึงไม่แตะ external service จริง
+
+## Validation (NFR-08)
+
+ตรวจความถูกต้องของ `green_area_pct` (NDVI > 0.3) เทียบ ESA WorldCover ทุกจังหวัด
+แล้วรายงานค่าความคลาดเคลื่อนเทียบเป้า ±10 จุด% พร้อม **แยกสาเหตุรายคลาส**
+
+```bash
+python validate_green_area.py            # ปี 2021 (WorldCover epoch), 77 จังหวัด
+python validate_green_area.py --limit 3  # ทดสอบเร็ว
+```
+
+- ต้องมี `GEE_PROJECT` ใน `.env` · คำนวณสดจาก GEE ไม่แตะ Supabase (ไม่อ่าน/ไม่เขียน cache)
+  จึงรันซ้ำได้โดยไม่มีผลข้างเคียง
+- ผลลงที่ `reports/nfr08_validation_<ปี>.csv` (ไฟล์อยู่ใน `.gitignore` — regenerate ได้)
+- ตัวชี้วัดคำนวณจาก **`green_mask` ตัวเดียวกับที่ระบบใช้จริง** (เสียบผ่าน `extra_sums_fn`
+  ของ `_compute_ndvi_annual`) ถ้าวันหลังแก้ threshold 0.3 หรือวิธี mask เมฆ ตัวเลข
+  validation จะขยับตามเอง ไม่เกิด drift เงียบ ๆ ระหว่างสิ่งที่วัดกับสิ่งที่ระบบให้
+- ⚠️ `canopy._fractional_area` (reproject 10 ม.) **ใช้กับ mask ที่พึ่ง S2 composite ไม่ได้** —
+  GEE ตอบ `User memory limit exceeded` ทุกจังหวัด แม้ band เดียว/`tileScale=16` · จึงวัด
+  สองโดเมน (fractional สำหรับฝั่ง WorldCover ล้วน · plain สำหรับพจน์ที่ตัดกับ `green_mask`)
+  แล้วรายงานส่วนต่างเป็น `reference_scale_delta_pp` ให้ตรวจย้อนได้ครบ:
+  `error_pp = net_pp + reference_scale_delta_pp` (ดู `validation.py`)

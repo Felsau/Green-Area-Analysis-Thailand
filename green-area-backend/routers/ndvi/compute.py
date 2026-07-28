@@ -13,7 +13,7 @@ from dependencies import CURRENT_CACHE_VERSION, WHO_STANDARD_M2, MONTH_NAMES
 from gee_utils import clean_s2_collection
 
 
-def _is_stale(row: dict) -> bool:
+def _is_stale(row: dict, require_validation: bool = False) -> bool:
     """Cache row ที่ควร invalidate และคำนวณใหม่.
 
     เกณฑ์ (เรียงตาม priority):
@@ -23,6 +23,11 @@ def _is_stale(row: dict) -> bool:
 
     เกณฑ์ #3 ถูกแทนที่ด้วย cache_version ในอนาคต — เก็บไว้ backward-compat
     กับ row ที่สร้างก่อน migration 002
+
+    require_validation: เช็ค `validation` (NFR-08, migration 016) ด้วยหรือไม่ ·
+    **ต้องเป็น True เฉพาะ path จังหวัด** เพราะ NFR-08 ทำระดับจังหวัดอย่างเดียว —
+    ฟังก์ชันนี้ใช้ร่วมกับ path อำเภอที่ไม่ได้คำนวณ field นี้ ถ้าเช็คตรง ๆ โดยไม่มี
+    flag row ของอำเภอจะ stale ตลอดกาล = recompute ทุกครั้งที่เปิด (GEE quota ไหม้)
     """
     # ใช้ .get default = 1 สำหรับ row จาก legacy schema ที่ยังไม่มี column
     if row.get("cache_version", 1) < CURRENT_CACHE_VERSION:
@@ -38,6 +43,11 @@ def _is_stale(row: dict) -> bool:
     # (ปีก่อน 2015 ที่ DW ไม่มีข้อมูลก็ยังได้ dict {"available": false} ไม่ใช่ None
     # จึงไม่วนคำนวณซ้ำทุกครั้ง)
     if row.get("canopy") is None:
+        return True
+    # row ก่อน NFR-08 ไม่มีผลตรวจสอบเทียบ WorldCover — เหตุผลเดียวกับ canopy
+    # (จังหวัดที่ยังไม่ได้ backfill ค่าอ้างอิงจะได้ dict available=false ไม่ใช่ None
+    # จึงไม่วนคำนวณซ้ำทุกครั้งที่เปิด)
+    if require_validation and row.get("validation") is None:
         return True
     nm = row.get("ndvi_min")
     if nm is not None and nm < -0.05:
@@ -232,11 +242,23 @@ def build_data_quality(times_ms: list, clear_obs_mean, clear_obs_min, ndvi_sd_me
 
 
 # ── Shared compute helpers ───────────────────────────────────────────────────
-def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int):
+def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int,
+                         extra_sums_fn=None):
     """คำนวณ NDVI + พื้นที่สีเขียว ประจำปี — คืน None ถ้าไม่มีภาพ.
 
     คืน dict ที่ใส่ insert ลง cache + ส่งกลับ client ได้เลย ยกเว้น
     `green_area_m2_raw` ซึ่งเป็นค่าดิบไว้ให้ caller ใช้คำนวณ m²/คน แล้ว pop ทิ้ง.
+
+    extra_sums_fn (optional): callable(green_mask, geom, scale) -> dict ที่คำนวณ
+    ผลรวมพื้นที่เพิ่มเติมเอง (reduce ของตัวเอง) แล้วส่งกลับใน key `extra_area_sums`
+    · ใช้โดย validate_green_area.py (NFR-08) เพื่อให้ตัวชี้วัด validation คำนวณจาก
+    **green_mask ตัวเดียวกับที่ระบบใช้จริง** ไม่ใช่ mask ที่สร้างขึ้นใหม่ — ถ้าวันหลัง
+    แก้ threshold 0.3 หรือวิธี mask เมฆ validation จะขยับตามเองอัตโนมัติ ไม่เกิด
+    drift เงียบ ๆ ระหว่างสิ่งที่วัดกับสิ่งที่ระบบให้
+    · แยก reduce ของตัวเองแทนที่จะ fold เข้าก้อนนี้ เพราะ band ของ validation หนัก
+    (fractional area รายคลาส) พอรวมกับ NDVI/canopy แล้ว GEE ตอบ 'User memory
+    limit exceeded' — ให้ฝั่งนั้นตั้ง tileScale ของตัวเองได้
+    · None (default) = production path เดิม ไม่มีต้นทุน compute เพิ่ม
     """
     def s2_col(cloud_pct):
         return clean_s2_collection(
@@ -322,7 +344,7 @@ def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int):
                           area_sums.get('dw_valid_area'), area_sums.get('dw_base_area'),
                           total_area_m2, year)
 
-    return {
+    result = {
         "ndvi_mean": ndvi_mean, "ndvi_min": ndvi_min, "ndvi_max": ndvi_max,
         "green_area_pct": green_area_pct, "green_area_km2": green_area_km2,
         "dense_area_pct": dense_area_pct, "dense_area_km2": dense_area_km2,
@@ -331,6 +353,10 @@ def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int):
         "canopy": canopy,
         "green_area_m2_raw": green_area_m2,
     }
+    if extra_sums_fn is not None:
+        result["extra_area_sums"] = extra_sums_fn(green_mask, geom, scale)
+        result["total_area_m2_raw"] = total_area_m2
+    return result
 
 
 def _compute_ndvi_monthly(geom: ee.Geometry, year: int, scale: int):

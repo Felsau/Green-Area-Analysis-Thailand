@@ -84,6 +84,25 @@ class TestIsStale:
         row = _cached_row(canopy={"available": False, "canopy_pct": None})
         assert _is_stale(row) is False
 
+    # ── NFR-08 validation (ระดับจังหวัดเท่านั้น) ─────────────────────────────
+    def test_missing_validation_is_stale_only_when_required(self):
+        """กับดักสำคัญ: `_is_stale` ใช้ร่วมกันทั้ง path จังหวัดและอำเภอ แต่ NFR-08
+        ทำระดับจังหวัดอย่างเดียว · ถ้าเช็ค validation โดยไม่มี flag row ของอำเภอ
+        (ซึ่งไม่มีวันมี field นี้) จะ stale ตลอดกาล = recompute ทุกครั้งที่เปิด"""
+        row = _cached_row()
+        assert _is_stale(row) is False                            # path อำเภอ
+        assert _is_stale(row, require_validation=True) is True    # path จังหวัด
+
+    def test_present_validation_not_stale_at_province_level(self):
+        row = _cached_row(validation={"available": True, "error_pp": -14.1})
+        assert _is_stale(row, require_validation=True) is False
+
+    def test_unavailable_validation_is_not_stale(self):
+        # จังหวัดที่ยังไม่ backfill ค่าอ้างอิงได้ dict available=false ไม่ใช่ None —
+        # เหตุผลเดียวกับ canopy ด้านบน
+        row = _cached_row(validation={"available": False, "error_pp": None})
+        assert _is_stale(row, require_validation=True) is False
+
 
 # ── compute_who_status ────────────────────────────────────────────────────────
 class TestComputeWhoStatus:
