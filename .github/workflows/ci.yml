@@ -25,9 +25,6 @@ jobs:
         run: |
           pip install ruff
           ruff check .
-      - name: Lint presentation utility scripts (ruff)
-        working-directory: .
-        run: ruff check presentation/capture_screenshots.py presentation/generate_proposal_pdf.py presentation/generate_user_flow_diagram.py
       - name: Run tests
         run: pytest tests/ -v
       # Dependency vulnerability scan — informational for now (continue-on-error).
