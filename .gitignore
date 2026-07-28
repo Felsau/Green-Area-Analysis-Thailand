@@ -51,6 +51,7 @@ Thumbs.db
 # Local utility scripts + generated summaries (ไม่ใช่ส่วนของโปรเจกต์)
 generate_summary_pdf.py
 Chat_Summary_*.pdf
+System_Capability_Report.docx
 
 # ข้อมูล geodata ดิบ (shapefile/zip) — ก้อนใหญ่ ปลายทางคือ GEE asset ไม่ commit เข้า repo
 # เก็บต้นฉบับไว้นอก repo (เช่น Desktop/GreenArea_Data/) · โค้ดใช้ผ่าน LDD_LANDUSE_ASSET
