@@ -7,6 +7,7 @@ from dependencies import (supa_call, internal_error,
                           CURRENT_YEAR, MONTH_NAMES, YearParam,
                           CURRENT_CACHE_VERSION)
 from gee_utils import get_lst_col, reduce_lst, scale_lst
+from keyed_lock import COMPUTE_LOCK
 from schemas import LSTResponse, LSTMonthlyResponse
 
 router = APIRouter()
@@ -65,25 +66,37 @@ def _compute_lst_monthly(geom: ee.Geometry, year: int, scale: int):
 def get_district_lst_monthly(province_name: str, district_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_district_geom(province_name, district_name)
 
-    cached = supa_call(lambda s: s.table("district_lst_monthly")
-                       .select("*").eq("province", province_name)
-                       .eq("district", district_name).eq("year", year).execute())
-    if cached.data:
-        return {"province": province_name, "district": district_name, "year": year,
-                "monthly": cached.data[0]["monthly_data"], "from_cache": True}
+    def _read_cache():
+        cached = supa_call(lambda s: s.table("district_lst_monthly")
+                           .select("*").eq("province", province_name)
+                           .eq("district", district_name).eq("year", year).execute())
+        if cached.data:
+            return {"province": province_name, "district": district_name, "year": year,
+                    "monthly": cached.data[0]["monthly_data"], "from_cache": True}
+        return None
 
-    logger.info("⏳ Computing district LST monthly: %s/%s/%d", province_name, district_name, year)
-    try:
-        results = _compute_lst_monthly(ee.Geometry(raw_geom), year, scale=100)
-        supa_call(lambda s: s.table("district_lst_monthly").insert({
-            "province": province_name, "district": district_name,
-            "year": year, "monthly_data": results,
-            "cache_version": CURRENT_CACHE_VERSION}).execute())
-        return {"province": province_name, "district": district_name,
-                "year": year, "monthly": results, "from_cache": False}
-    except Exception:
-        logger.error("❌ District LST monthly error", exc_info=True)
-        raise internal_error()
+    hit = _read_cache()
+    if hit is not None:
+        return hit
+
+    # cache miss — ล็อกต่อ key กัน request ซ้ำยิง GEE compute พร้อมกัน (ไม่งั้นชน
+    # UNIQUE(province,district,year) ตอน insert พร้อมกัน → 500) แล้ว re-check
+    with COMPUTE_LOCK.hold(("lst-district-monthly", province_name, district_name, year)):
+        hit = _read_cache()
+        if hit is not None:
+            return hit
+        logger.info("⏳ Computing district LST monthly: %s/%s/%d", province_name, district_name, year)
+        try:
+            results = _compute_lst_monthly(ee.Geometry(raw_geom), year, scale=100)
+            supa_call(lambda s: s.table("district_lst_monthly").insert({
+                "province": province_name, "district": district_name,
+                "year": year, "monthly_data": results,
+                "cache_version": CURRENT_CACHE_VERSION}).execute())
+            return {"province": province_name, "district": district_name,
+                    "year": year, "monthly": results, "from_cache": False}
+        except Exception:
+            logger.error("❌ District LST monthly error", exc_info=True)
+            raise internal_error()
 
 
 # ── District LST annual ──────────────────────────────────── (before catch-all)
@@ -91,36 +104,46 @@ def get_district_lst_monthly(province_name: str, district_name: str, year: YearP
 def get_district_lst(province_name: str, district_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_district_geom(province_name, district_name)
 
-    cached = supa_call(lambda s: s.table("district_lst_annual")
-                       .select("*").eq("province", province_name)
-                       .eq("district", district_name).eq("year", year).execute())
-    if cached.data:
-        row = cached.data[0]
-        return {"province": province_name, "district": district_name, "year": year,
-                "lst_mean": row["lst_mean"], "lst_min": row["lst_min"],
-                "lst_max": row["lst_max"], "from_cache": True}
+    def _read_cache():
+        cached = supa_call(lambda s: s.table("district_lst_annual")
+                           .select("*").eq("province", province_name)
+                           .eq("district", district_name).eq("year", year).execute())
+        if cached.data:
+            row = cached.data[0]
+            return {"province": province_name, "district": district_name, "year": year,
+                    "lst_mean": row["lst_mean"], "lst_min": row["lst_min"],
+                    "lst_max": row["lst_max"], "from_cache": True}
+        return None
 
-    logger.info("⏳ Computing district LST: %s/%s/%d", province_name, district_name, year)
-    try:
-        geom = ee.Geometry(raw_geom)
-        col = get_lst_col(geom, year)
-        if col.size().getInfo() == 0:
-            raise HTTPException(status_code=404,
-                detail=f"ไม่พบข้อมูล Landsat สำหรับ {district_name} ปี {year}")
-        lst_mean, lst_min, lst_max = reduce_lst(col, geom, scale=100)
+    hit = _read_cache()
+    if hit is not None:
+        return hit
 
-        supa_call(lambda s: s.table("district_lst_annual").insert({
-            "province": province_name, "district": district_name, "year": year,
-            "lst_mean": lst_mean, "lst_min": lst_min, "lst_max": lst_max,
-            "cache_version": CURRENT_CACHE_VERSION}).execute())
-        return {"province": province_name, "district": district_name, "year": year,
+    with COMPUTE_LOCK.hold(("lst-district-annual", province_name, district_name, year)):
+        hit = _read_cache()
+        if hit is not None:
+            return hit
+        logger.info("⏳ Computing district LST: %s/%s/%d", province_name, district_name, year)
+        try:
+            geom = ee.Geometry(raw_geom)
+            col = get_lst_col(geom, year)
+            if col.size().getInfo() == 0:
+                raise HTTPException(status_code=404,
+                    detail=f"ไม่พบข้อมูล Landsat สำหรับ {district_name} ปี {year}")
+            lst_mean, lst_min, lst_max = reduce_lst(col, geom, scale=100)
+
+            supa_call(lambda s: s.table("district_lst_annual").insert({
+                "province": province_name, "district": district_name, "year": year,
                 "lst_mean": lst_mean, "lst_min": lst_min, "lst_max": lst_max,
-                "from_cache": False}
-    except HTTPException:
-        raise
-    except Exception:
-        logger.error("❌ District LST error", exc_info=True)
-        raise internal_error()
+                "cache_version": CURRENT_CACHE_VERSION}).execute())
+            return {"province": province_name, "district": district_name, "year": year,
+                    "lst_mean": lst_mean, "lst_min": lst_min, "lst_max": lst_max,
+                    "from_cache": False}
+        except HTTPException:
+            raise
+        except Exception:
+            logger.error("❌ District LST error", exc_info=True)
+            raise internal_error()
 
 
 # ── Province LST monthly ─────────────────────────────────────────────────────
@@ -128,24 +151,34 @@ def get_district_lst(province_name: str, district_name: str, year: YearParam = C
 def get_lst_monthly(province_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_province_geom(province_name)
 
-    cached = supa_call(lambda s: s.table("province_lst_monthly")
-                       .select("*").eq("province", province_name).eq("year", year).execute())
-    if cached.data:
-        logger.info("✅ LST cache hit: %s/%d/monthly", province_name, year)
-        return {"province": province_name, "year": year,
-                "monthly": cached.data[0]["monthly_data"], "from_cache": True}
+    def _read_cache():
+        cached = supa_call(lambda s: s.table("province_lst_monthly")
+                           .select("*").eq("province", province_name).eq("year", year).execute())
+        if cached.data:
+            logger.info("✅ LST cache hit: %s/%d/monthly", province_name, year)
+            return {"province": province_name, "year": year,
+                    "monthly": cached.data[0]["monthly_data"], "from_cache": True}
+        return None
 
-    logger.info("⏳ Computing LST monthly: %s/%d", province_name, year)
-    try:
-        results = _compute_lst_monthly(ee.Geometry(raw_geom), year, scale=500)
-        supa_call(lambda s: s.table("province_lst_monthly").insert(
-            {"province": province_name, "year": year, "monthly_data": results,
-             "cache_version": CURRENT_CACHE_VERSION}).execute())
-        return {"province": province_name, "year": year,
-                "monthly": results, "from_cache": False}
-    except Exception:
-        logger.error("❌ LST monthly error", exc_info=True)
-        raise internal_error()
+    hit = _read_cache()
+    if hit is not None:
+        return hit
+
+    with COMPUTE_LOCK.hold(("lst-monthly", province_name, year)):
+        hit = _read_cache()
+        if hit is not None:
+            return hit
+        logger.info("⏳ Computing LST monthly: %s/%d", province_name, year)
+        try:
+            results = _compute_lst_monthly(ee.Geometry(raw_geom), year, scale=500)
+            supa_call(lambda s: s.table("province_lst_monthly").insert(
+                {"province": province_name, "year": year, "monthly_data": results,
+                 "cache_version": CURRENT_CACHE_VERSION}).execute())
+            return {"province": province_name, "year": year,
+                    "monthly": results, "from_cache": False}
+        except Exception:
+            logger.error("❌ LST monthly error", exc_info=True)
+            raise internal_error()
 
 
 # ── Province LST annual ──────────────────────────────────────────────────────
@@ -153,33 +186,43 @@ def get_lst_monthly(province_name: str, year: YearParam = CURRENT_YEAR):
 def get_lst(province_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_province_geom(province_name)
 
-    cached = supa_call(lambda s: s.table("province_lst_annual")
-                       .select("*").eq("province", province_name).eq("year", year).execute())
-    if cached.data:
-        row = cached.data[0]
-        logger.info("✅ LST cache hit: %s/%d", province_name, year)
-        return {"province": province_name, "year": year,
-                "lst_mean": row["lst_mean"], "lst_min": row["lst_min"],
-                "lst_max": row["lst_max"], "from_cache": True}
+    def _read_cache():
+        cached = supa_call(lambda s: s.table("province_lst_annual")
+                           .select("*").eq("province", province_name).eq("year", year).execute())
+        if cached.data:
+            row = cached.data[0]
+            logger.info("✅ LST cache hit: %s/%d", province_name, year)
+            return {"province": province_name, "year": year,
+                    "lst_mean": row["lst_mean"], "lst_min": row["lst_min"],
+                    "lst_max": row["lst_max"], "from_cache": True}
+        return None
 
-    logger.info("⏳ Computing LST annual: %s/%d", province_name, year)
-    try:
-        geom = ee.Geometry(raw_geom)
-        col = get_lst_col(geom, year)
-        if col.size().getInfo() == 0:
-            raise HTTPException(status_code=404,
-                detail=f"ไม่พบข้อมูล Landsat สำหรับ {province_name} ปี {year}")
-        lst_mean, lst_min, lst_max = reduce_lst(col, geom, scale=500)
+    hit = _read_cache()
+    if hit is not None:
+        return hit
 
-        supa_call(lambda s: s.table("province_lst_annual").insert(
-            {"province": province_name, "year": year,
-             "lst_mean": lst_mean, "lst_min": lst_min, "lst_max": lst_max,
-             "cache_version": CURRENT_CACHE_VERSION}).execute())
-        return {"province": province_name, "year": year,
-                "lst_mean": lst_mean, "lst_min": lst_min, "lst_max": lst_max,
-                "from_cache": False}
-    except HTTPException:
-        raise
-    except Exception:
-        logger.error("❌ LST error [%s/%d]", province_name, year, exc_info=True)
-        raise internal_error()
+    with COMPUTE_LOCK.hold(("lst-annual", province_name, year)):
+        hit = _read_cache()
+        if hit is not None:
+            return hit
+        logger.info("⏳ Computing LST annual: %s/%d", province_name, year)
+        try:
+            geom = ee.Geometry(raw_geom)
+            col = get_lst_col(geom, year)
+            if col.size().getInfo() == 0:
+                raise HTTPException(status_code=404,
+                    detail=f"ไม่พบข้อมูล Landsat สำหรับ {province_name} ปี {year}")
+            lst_mean, lst_min, lst_max = reduce_lst(col, geom, scale=500)
+
+            supa_call(lambda s: s.table("province_lst_annual").insert(
+                {"province": province_name, "year": year,
+                 "lst_mean": lst_mean, "lst_min": lst_min, "lst_max": lst_max,
+                 "cache_version": CURRENT_CACHE_VERSION}).execute())
+            return {"province": province_name, "year": year,
+                    "lst_mean": lst_mean, "lst_min": lst_min, "lst_max": lst_max,
+                    "from_cache": False}
+        except HTTPException:
+            raise
+        except Exception:
+            logger.error("❌ LST error [%s/%d]", province_name, year, exc_info=True)
+            raise internal_error()

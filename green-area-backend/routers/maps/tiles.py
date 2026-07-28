@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException
 from dependencies import (get_province_geom, get_district_geom,
                           CURRENT_YEAR, YearParam, internal_error)
 from gee_utils import clean_s2_collection, get_lst_col
+from keyed_lock import COMPUTE_LOCK
 from landuse import (LANDUSE_CATEGORIES, LANDUSE_PALETTE, LANDUSE_SOURCES,
                      landuse_image_checked, landuse_meta)
 from ldd import (ldd_available, ldd_covers, ldd_landuse_image_checked,
@@ -82,28 +83,33 @@ def _serve_tiles(kind: str, province_name: str, district_name: str | None,
     key = (kind, variant, province_name, district_name, year)
     url = _tile_cache.get(key)
     if url is None:
-        logger.info("⏳ %s tiles: %s/%s/%d", kind.upper(), province_name,
-                    district_name or '-', year)
-        try:
-            img = image_fn(ee.Geometry(raw_geom), year)
-            if img is None:
-                raise HTTPException(status_code=404, detail=missing)
-            url = img.getMapId(vis)['tile_fetcher'].url_format
-            _tile_cache.set(key, url)
-        except HTTPException:
-            raise
-        except ee.EEException as ee_err:
-            # ภาพมีอยู่แต่ถูก mask หมด → getMapId พังด้วย 'input may not be null'
-            # → 422 + แนะนำเปลี่ยนปี (ให้ตรงกับ /recommend) แทน 500 generic
-            logger.warning("⚠️  %s tiles GEE compute failed [%s/%d]: %s",
-                           kind, province_name, year, ee_err)
-            raise HTTPException(status_code=422, detail=(
-                f"คำนวณ {kind.upper()} ปี {year} ไม่สำเร็จ — "
-                "ภาพถ่ายดาวเทียมอาจไม่ครอบคลุมพื้นที่/ช่วงเวลานี้ ลองเลือกปีก่อนหน้า"
-            ))
-        except Exception:
-            logger.error("❌ %s tiles error [%s/%d]", kind, province_name, year, exc_info=True)
-            raise internal_error()
+        # cache miss — ล็อกต่อ key กัน request ซ้ำ (เช่น สลับ overlay ไปมาเร็วๆ) ยิง
+        # getMapId (GEE compute) พร้อมกันซ้ำซ้อน แล้ว re-check หลังได้ lock
+        with COMPUTE_LOCK.hold(key):
+            url = _tile_cache.get(key)
+            if url is None:
+                logger.info("⏳ %s tiles: %s/%s/%d", kind.upper(), province_name,
+                            district_name or '-', year)
+                try:
+                    img = image_fn(ee.Geometry(raw_geom), year)
+                    if img is None:
+                        raise HTTPException(status_code=404, detail=missing)
+                    url = img.getMapId(vis)['tile_fetcher'].url_format
+                    _tile_cache.set(key, url)
+                except HTTPException:
+                    raise
+                except ee.EEException as ee_err:
+                    # ภาพมีอยู่แต่ถูก mask หมด → getMapId พังด้วย 'input may not be null'
+                    # → 422 + แนะนำเปลี่ยนปี (ให้ตรงกับ /recommend) แทน 500 generic
+                    logger.warning("⚠️  %s tiles GEE compute failed [%s/%d]: %s",
+                                   kind, province_name, year, ee_err)
+                    raise HTTPException(status_code=422, detail=(
+                        f"คำนวณ {kind.upper()} ปี {year} ไม่สำเร็จ — "
+                        "ภาพถ่ายดาวเทียมอาจไม่ครอบคลุมพื้นที่/ช่วงเวลานี้ ลองเลือกปีก่อนหน้า"
+                    ))
+                except Exception:
+                    logger.error("❌ %s tiles error [%s/%d]", kind, province_name, year, exc_info=True)
+                    raise internal_error()
     return {"tile_url": url, "kind": kind,
             "min": vis['min'], "max": vis['max'], "palette": palette}
 
@@ -173,29 +179,33 @@ def _serve_diff(kind: str, province_name: str, district_name: str | None,
     key = (f"{kind}-diff", province_name, district_name, year_a, year_b)
     url = _tile_cache.get(key)
     if url is None:
-        logger.info("⏳ %s diff tiles: %s/%s/%d→%d", kind.upper(), province_name,
-                    district_name or '-', year_a, year_b)
-        try:
-            geom = ee.Geometry(raw_geom)
-            img_a = image_fn(geom, year_a)
-            img_b = image_fn(geom, year_b)
-            if img_a is None or img_b is None:
-                raise HTTPException(status_code=404, detail=missing)
-            diff = img_b.subtract(img_a)
-            url = diff.getMapId(vis)['tile_fetcher'].url_format
-            _tile_cache.set(key, url)
-        except HTTPException:
-            raise
-        except ee.EEException as ee_err:
-            logger.warning("⚠️  %s diff GEE failed [%s/%d→%d]: %s",
-                           kind, province_name, year_a, year_b, ee_err)
-            raise HTTPException(status_code=422, detail=(
-                f"คำนวณผลต่าง {kind.upper()} ({year_a}→{year_b}) ไม่สำเร็จ — "
-                "ภาพถ่ายดาวเทียมอาจไม่ครอบคลุมบางปี ลองเปลี่ยนปี"
-            ))
-        except Exception:
-            logger.error("❌ %s diff error [%s/%d→%d]", kind, province_name, year_a, year_b, exc_info=True)
-            raise internal_error()
+        # cache miss — ล็อกต่อ key เหมือน _serve_tiles กัน getMapId ซ้ำซ้อนพร้อมกัน
+        with COMPUTE_LOCK.hold(key):
+            url = _tile_cache.get(key)
+            if url is None:
+                logger.info("⏳ %s diff tiles: %s/%s/%d→%d", kind.upper(), province_name,
+                            district_name or '-', year_a, year_b)
+                try:
+                    geom = ee.Geometry(raw_geom)
+                    img_a = image_fn(geom, year_a)
+                    img_b = image_fn(geom, year_b)
+                    if img_a is None or img_b is None:
+                        raise HTTPException(status_code=404, detail=missing)
+                    diff = img_b.subtract(img_a)
+                    url = diff.getMapId(vis)['tile_fetcher'].url_format
+                    _tile_cache.set(key, url)
+                except HTTPException:
+                    raise
+                except ee.EEException as ee_err:
+                    logger.warning("⚠️  %s diff GEE failed [%s/%d→%d]: %s",
+                                   kind, province_name, year_a, year_b, ee_err)
+                    raise HTTPException(status_code=422, detail=(
+                        f"คำนวณผลต่าง {kind.upper()} ({year_a}→{year_b}) ไม่สำเร็จ — "
+                        "ภาพถ่ายดาวเทียมอาจไม่ครอบคลุมบางปี ลองเปลี่ยนปี"
+                    ))
+                except Exception:
+                    logger.error("❌ %s diff error [%s/%d→%d]", kind, province_name, year_a, year_b, exc_info=True)
+                    raise internal_error()
     return {"tile_url": url, "kind": f"{kind}-diff", "diff": True,
             "year_a": year_a, "year_b": year_b,
             "min": vis['min'], "max": vis['max'], "palette": palette}
