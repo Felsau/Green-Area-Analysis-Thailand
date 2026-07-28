@@ -19,7 +19,8 @@ BASE_YEAR = WORLDCOVER_EPOCH_YEAR
 def _canopy(wc_km2=14.6, dw_km2=4.7, dw_base_km2=4.7, coverage=1.0,
             total_m2=TOTAL, year=BASE_YEAR + 3):
     """เรียก build_canopy ด้วยหน่วย km² ที่อ่านง่ายกว่า m² ดิบจาก reduceRegion"""
-    km2 = lambda v: None if v is None else v * KM2
+    def km2(v):
+        return None if v is None else v * KM2
     return build_canopy(km2(wc_km2), km2(dw_km2), total_m2 * coverage,
                         km2(dw_base_km2), total_m2, year)
 

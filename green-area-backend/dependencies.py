@@ -80,15 +80,6 @@ WeightParam = Annotated[float, Query(
 )]
 
 
-def require_admin(x_admin_token: str | None = Header(default=None)):
-    if not ADMIN_TOKEN:
-        raise HTTPException(status_code=503,
-                            detail="ADMIN_TOKEN ยังไม่ตั้งค่าใน .env — endpoint นี้ปิดใช้งาน")
-    # ใช้ compare_digest กัน timing attack ที่เทียบ string ทีละ byte
-    if not x_admin_token or not secrets.compare_digest(x_admin_token, ADMIN_TOKEN):
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-
 def _unauthenticated() -> HTTPException:
     return HTTPException(status_code=401, detail="กรุณาเข้าสู่ระบบใหม่อีกครั้ง")
 

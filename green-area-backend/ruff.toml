@@ -1,7 +1,13 @@
 # Backend lint config (ruff). Run locally with: ruff check .
 # CI runs the same on every push/PR (see ../.github/workflows/ci.yml).
-# Rule selection = ruff defaults (pyflakes F + a subset of pycodestyle E).
 extend-exclude = [".venv", "data"]
+
+[lint]
+# Pinned explicitly (not "ruff defaults") — ruff 0.16 changed its default rule
+# set (added I/UP/B/SIM/RUF/BLE/G), which broke CI without any config change
+# here. E4/E7/E9/F = the rule set this project actually lints against
+# (pyflakes F + the pycodestyle subset previously implied by "defaults").
+select = ["E4", "E7", "E9", "F"]
 
 [lint.per-file-ignores]
 # main.py configures logging *before* importing routers on purpose, so module
