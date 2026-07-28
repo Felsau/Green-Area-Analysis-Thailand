@@ -4,6 +4,7 @@ import { COLOR, sectionTitle, table, calloutBox, note, imageBox } from '../compo
 import { monthlyBarChart } from '../charts';
 import { dataQualityRows, dataQualityCallout, dataQualityMethodNote } from './dataQuality';
 import { canopyRows, canopyCallout, canopyMethodNote } from './canopy';
+import { validationRows, validationCallout, validationMethodNote } from './validation';
 
 export const ndviSections = (ctx) => {
   const {
@@ -81,6 +82,19 @@ export const ndviSections = (ctx) => {
     );
     ndviHtml += dataQualityCallout(ndviStats.data_quality);
     ndviHtml += dataQualityMethodNote();
+  }
+
+  // ความถูกต้องเทียบ ESA WorldCover (NFR-08) — ต่อจากคุณภาพข้อมูลเพราะเป็นข้อมูล
+  // ชนิดเดียวกัน (ความเชื่อมั่นของค่าที่รายงาน) แค่คนละแหล่งอ้างอิง · ระดับจังหวัด
+  const vRows = validationRows(ndviStats.validation);
+  if (vRows.length) {
+    ndviHtml += table(
+      ['ความถูกต้องเทียบ WorldCover', 'ค่า', 'หมายเหตุ'],
+      vRows,
+      { firstColWidth: 180, keepTogether: true }
+    );
+    ndviHtml += validationCallout(ndviStats.validation);
+    ndviHtml += validationMethodNote(ndviStats.validation);
   }
 
   // Note about WHO standard caveat — central interpretive issue

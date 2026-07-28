@@ -8,6 +8,7 @@ from dependencies import (get_population, supa_call, internal_error, ensure_prov
                           CURRENT_CACHE_VERSION)
 from keyed_lock import COMPUTE_LOCK
 from schemas import NDVIResponse, NDVIMonthlyResponse
+from validation import build_breakdown, build_validation, disagreement_sums
 from .compute import (_is_stale, compute_who_status,
                       _compute_ndvi_annual, _compute_ndvi_monthly)
 
@@ -196,6 +197,39 @@ def get_ndvi_compare(province_name: str,
     return {"province": province_name, "data": data}
 
 
+# ── NFR-08 validation (ระดับจังหวัด) ─────────────────────────────────────────
+def _worldcover_reference_pct(province_name: str) -> float | None:
+    """% พื้นที่สีเขียวตาม WorldCover ที่ backfill ไว้ — None ถ้ายังไม่ได้เติม.
+
+    None = ข้ามการ validate ไปเงียบ ๆ (ไม่ใช่ error) เพื่อให้ระบบยังใช้งานได้ปกติ
+    ก่อนรัน backfill_worldcover_reference.py · ดู migration 016
+    """
+    try:
+        result = supa_call(lambda s: s.table("provinces")
+                           .select("worldcover_green_pct")
+                           .eq("name_en", province_name).limit(1).execute())
+    except Exception:
+        logger.warning("อ่านค่าอ้างอิง WorldCover ไม่สำเร็จ (%s) — ข้าม NFR-08",
+                       province_name, exc_info=True)
+        return None
+    return result.data[0].get("worldcover_green_pct") if result.data else None
+
+
+def _build_validation(result: dict, wc_ref_pct: float | None, year: int) -> dict | None:
+    """สร้าง payload NFR-08 แล้ว **ถอน field ดิบออกจาก result** ก่อนถูก insert ลง DB.
+
+    `extra_area_sums` / `total_area_m2_raw` เป็นค่ากลางของการคำนวณ ไม่มีคอลัมน์รองรับ
+    ใน ndvi_annual — ถ้าหลุดติดไปกับ insert จะ error ทั้ง request
+    """
+    sums = result.pop("extra_area_sums", None)
+    total_area_m2 = result.pop("total_area_m2_raw", None)
+    if wc_ref_pct is None or sums is None or not total_area_m2:
+        return None
+    breakdown = build_breakdown(sums, total_area_m2, worldcover_green_pct=wc_ref_pct)
+    return build_validation(result.get("green_area_pct"), wc_ref_pct, year,
+                            breakdown=breakdown)
+
+
 # ── Province NDVI annual ─────────────────────────────────────────────────────
 @router.get("/ndvi/{province_name}", response_model=NDVIResponse)
 def get_ndvi(province_name: str, year: YearParam = CURRENT_YEAR):
@@ -206,7 +240,8 @@ def get_ndvi(province_name: str, year: YearParam = CURRENT_YEAR):
                            .select("*").eq("province", province_name).eq("year", year).execute())
         if cached.data:
             row = cached.data[0]
-            if _is_stale(row):
+            # require_validation=True เฉพาะระดับจังหวัด — NFR-08 ไม่ได้ทำระดับอำเภอ
+            if _is_stale(row, require_validation=True):
                 logger.info("♻️ Stale cache: %s/%d — recomputing", province_name, year)
                 supa_call(lambda s: s.table("ndvi_annual").delete().eq("id", row["id"]).execute())
             else:
@@ -224,6 +259,7 @@ def get_ndvi(province_name: str, year: YearParam = CURRENT_YEAR):
                     "who_status": row.get("who_status"),
                     "data_quality": row.get("data_quality"),
                     "canopy": row.get("canopy"),
+                    "validation": row.get("validation"),
                     "from_cache": True, "cached_at": row["created_at"],
                 }
         return None
@@ -238,7 +274,12 @@ def get_ndvi(province_name: str, year: YearParam = CURRENT_YEAR):
             return hit
         logger.info("⏳ Computing: %s/%d", province_name, year)
         try:
-            result = _compute_ndvi_annual(ee.Geometry(raw_geom), year, scale=500)
+            # NFR-08 — ค่าอ้างอิง WorldCover คงที่ต่อจังหวัด อ่านจากที่ backfill ไว้
+            # (ไม่คิดสด — ~17.5 วิ จะดัน compute ทะลุงบ 60 วิ ของ NFR-01)
+            wc_ref_pct = _worldcover_reference_pct(province_name)
+            result = _compute_ndvi_annual(
+                ee.Geometry(raw_geom), year, scale=500,
+                extra_sums_fn=disagreement_sums if wc_ref_pct is not None else None)
             if result is None:
                 raise HTTPException(status_code=404,
                     detail=f"ไม่พบข้อมูลภาพดาวเทียมสำหรับ {province_name} ในปี {year}")
@@ -246,11 +287,13 @@ def get_ndvi(province_name: str, year: YearParam = CURRENT_YEAR):
             green_area_m2 = result.pop('green_area_m2_raw', None)
             population, population_year = get_population(province_name, year)
             m2_per_person, who_status = compute_who_status(green_area_m2, population)
+            validation = _build_validation(result, wc_ref_pct, year)
 
             full = {**result,
                     "green_area_m2_per_person": m2_per_person,
                     "population": population, "population_year": population_year,
-                    "who_status": who_status}
+                    "who_status": who_status,
+                    "validation": validation}
 
             supa_call(lambda s: s.table("ndvi_annual").insert({
                 "province": province_name, "year": year, **full,

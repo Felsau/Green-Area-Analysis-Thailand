@@ -8,6 +8,7 @@ import GreenDeficitNote from './stats/GreenDeficitNote';
 import UhiRiskNote from './stats/UhiRiskNote';
 import DataQualityNote from './stats/DataQualityNote';
 import CanopyNote from './stats/CanopyNote';
+import ValidationNote from './stats/ValidationNote';
 import LandusePanel from './stats/LandusePanel';
 
 export default function StatsTab({ data, handlers }) {
@@ -160,6 +161,10 @@ export default function StatsTab({ data, handlers }) {
               </div>
             )}
             <DataQualityNote dataQuality={ndviStats?.data_quality} />
+            {/* NFR-08 — วางต่อจาก DataQualityNote เพราะเป็นข้อมูลชนิดเดียวกัน
+                (ความเชื่อมั่นของตัวเลขด้านบน) แค่คนละแหล่งอ้างอิง · ระดับจังหวัด
+                เท่านั้น จึงไม่มีในบล็อกอำเภอ */}
+            <ValidationNote validation={ndviStats?.validation} />
             {!selectedDistrict && ndviMonthly.length > 0 && (
               <div>
                 <div className="label">NDVI รายเดือน</div>

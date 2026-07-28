@@ -80,6 +80,49 @@ class CanopyCover(BaseModel):
     note: str
 
 
+class ValidationClassContribution(BaseModel):
+    """ส่วนร่วมของคลาส WorldCover หนึ่งคลาสต่อความต่างรวม (NFR-08)."""
+    code: int                             # รหัสคลาส ESA WorldCover (10, 40, 50, ...)
+    name: str
+    kind: str                             # false_negative | false_positive
+    pp: float                             # กี่จุด% ของพื้นที่ทั้งหมด
+
+
+class ValidationBreakdown(BaseModel):
+    """แยกความต่างออกตามคลาสที่เป็นต้นเหตุ — กระทบยอดกับ error_pp ได้ครบ.
+
+        error_pp = net_pp + reference_scale_delta_pp
+    """
+    false_negative_pp: float              # WorldCover ว่าเขียว แต่ NDVI ว่าไม่เขียว
+    false_positive_pp: float              # NDVI ว่าเขียว แต่ WorldCover ว่าไม่เขียว
+    net_pp: float                         # false_positive − false_negative
+    reference_scale_delta_pp: Optional[float] = None   # ผลของ pyramid MODE
+    by_class: list[ValidationClassContribution] = []
+    dominant: Optional[ValidationClassContribution] = None
+
+
+class GreenAreaValidation(BaseModel):
+    """ผลตรวจสอบความถูกต้องของ green_area_pct เทียบ ESA WorldCover (NFR-08).
+
+    สร้างใน validation.py::build_validation · เก็บลง cache เป็น jsonb (migration 016)
+    ระดับจังหวัดเท่านั้น · ค่าอ้างอิงมาจาก provinces.worldcover_green_pct ที่ backfill ไว้
+
+    ความต่างที่พบเป็นเรื่องของ *นิยาม* ไม่ใช่ความผิดพลาดของการวัด — NDVI วัดพืชพรรณ
+    ที่เขียวจริงในช่วงเวลานั้น ส่วน WorldCover วัดประเภทการใช้ที่ดิน (ดู §5.1 ของ
+    REQUIREMENTS.md สำหรับผลวัดจริงทั้ง 77 จังหวัด)
+    """
+    available: bool
+    ndvi_green_pct: Optional[float] = None
+    worldcover_green_pct: Optional[float] = None
+    error_pp: Optional[float] = None      # NDVI − WorldCover (จุด%)
+    target_pp: float                      # 10.0 ตาม NFR-08
+    within_target: Optional[bool] = None
+    year: int
+    worldcover_epoch_year: int            # 2021 — ค่าอ้างอิงไม่ขยับตามปีที่เลือก
+    breakdown: Optional[ValidationBreakdown] = None
+    note: str
+
+
 class NDVIResponse(BaseModel):
     province: str
     year: int
@@ -97,6 +140,7 @@ class NDVIResponse(BaseModel):
     who_status: Optional[str] = None
     data_quality: Optional[NDVIDataQuality] = None
     canopy: Optional[CanopyCover] = None
+    validation: Optional[GreenAreaValidation] = None
     from_cache: bool
 
 

@@ -43,6 +43,33 @@ const canopyRows = (c) => {
   return rows;
 };
 
+// ความถูกต้องเทียบ ESA WorldCover (NFR-08) — ระดับจังหวัดเท่านั้น
+// แยกสาเหตุรายคลาสลงไฟล์ด้วย เพื่อให้ pivot ต่อได้โดยไม่ต้องเปิดระบบ
+const validationRows = (v) => {
+  if (!v?.available) return [];
+  const rows = [
+    ['— ความถูกต้องเทียบ ESA WorldCover (NFR-08) —'],
+    ['พื้นที่สีเขียว NDVI (%)', v.ndvi_green_pct],
+    ['พื้นที่สีเขียวอ้างอิง WorldCover (%)', v.worldcover_green_pct],
+    ['ความต่าง (จุด%)', v.error_pp],
+    ['เกณฑ์ NFR-08 (± จุด%)', v.target_pp],
+    ['อยู่ในเกณฑ์', v.within_target ? 'อยู่ในเกณฑ์' : 'ต่างเกินเกณฑ์'],
+    ['ปีของข้อมูลอ้างอิง', v.worldcover_epoch_year],
+  ];
+  const b = v.breakdown;
+  if (b) {
+    rows.push(['WorldCover เขียว / NDVI ไม่เขียว (จุด%)', b.false_negative_pp]);
+    rows.push(['NDVI เขียว / WorldCover ไม่เขียว (จุด%)', b.false_positive_pp]);
+    if (b.dominant) rows.push(['ต้นเหตุหลัก', b.dominant.name, b.dominant.pp]);
+    (b.by_class || []).forEach(c => rows.push([
+      `  ${c.name}`,
+      c.kind === 'false_positive' ? c.pp : -c.pp,
+      c.kind === 'false_positive' ? 'NDVI เขียว/WC ไม่เขียว' : 'WC เขียว/NDVI ไม่เขียว',
+    ]));
+  }
+  return rows;
+};
+
 export const exportStatsCsv = (data) => {
   const {
     selectedProvince, selectedProvinceEN, selectedDistrict,
@@ -73,6 +100,8 @@ export const exportStatsCsv = (data) => {
     canopyRows(ndviStats.canopy).forEach(r => rows.push(r));
     dataQualityRows(ndviStats.data_quality).forEach(r => rows.push(r));
     rows.push([]);
+    validationRows(ndviStats.validation).forEach(r => rows.push(r));
+    if (ndviStats.validation?.available) rows.push([]);
   }
 
   if (lstStats) {

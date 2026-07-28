@@ -191,6 +191,41 @@ class TestBreakdownInNote:
         assert "ต้นเหตุหลัก" not in _validation(breakdown=None)["note"]
 
 
+class TestEndpointHelper:
+    """`_build_validation` ของ path จังหวัด — ต้องถอนค่ากลางออกจาก result ก่อน insert"""
+
+    def _result(self, **extra):
+        return {"green_area_pct": 82.8, "ndvi_mean": 0.5,
+                "extra_area_sums": _sums(fn_40=15.0, fp_50=1.2,
+                                         worldcover_green_area_plain=97.7),
+                "total_area_m2_raw": TOTAL, **extra}
+
+    def test_raw_fields_are_stripped_from_result(self):
+        """ndvi_annual ไม่มีคอลัมน์รองรับสองตัวนี้ — หลุดไปกับ insert = ทั้ง request พัง"""
+        from routers.ndvi.endpoints import _build_validation
+        result = self._result()
+        _build_validation(result, 96.9, 2021)
+        assert "extra_area_sums" not in result
+        assert "total_area_m2_raw" not in result
+
+    def test_builds_validation_matching_the_headline_error(self):
+        from routers.ndvi.endpoints import _build_validation
+        out = _build_validation(self._result(), 96.9, 2021)
+        assert out["error_pp"] == -14.1
+        assert out["breakdown"]["dominant"]["code"] == 40
+
+    def test_returns_none_when_reference_not_backfilled_yet(self):
+        """จังหวัดที่ยังไม่รัน backfill — ข้ามเงียบ ๆ ไม่ทำให้ endpoint พัง"""
+        from routers.ndvi.endpoints import _build_validation
+        result = self._result()
+        assert _build_validation(result, None, 2021) is None
+        assert "extra_area_sums" not in result   # ยังต้องถอนอยู่ดี
+
+    def test_returns_none_when_sums_missing(self):
+        from routers.ndvi.endpoints import _build_validation
+        assert _build_validation({"green_area_pct": 82.8}, 96.9, 2021) is None
+
+
 class TestPayloadShape:
     def test_keys_are_stable_between_available_and_not(self):
         assert set(_validation().keys()) == set(_validation(wc_km2=None).keys())
