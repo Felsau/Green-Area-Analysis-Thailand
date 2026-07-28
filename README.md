@@ -1,6 +1,6 @@
 # Green Area Analysis · Thailand
 
-[![CI](https://github.com/Felsau/Project/actions/workflows/ci.yml/badge.svg)](https://github.com/Felsau/Project/actions/workflows/ci.yml)
+[![CI](https://github.com/Felsau/Green-Area-Analysis-Thailand/actions/workflows/ci.yml/badge.svg)](https://github.com/Felsau/Green-Area-Analysis-Thailand/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 แดชบอร์ดวิเคราะห์พื้นที่สีเขียวของประเทศไทย ดึงข้อมูลจาก Google Earth Engine
