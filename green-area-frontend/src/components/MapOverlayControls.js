@@ -1,12 +1,14 @@
 import { useCallback } from 'react';
 import { AVAILABLE_YEARS } from '../constants';
 
-// Map-canvas overlay UI: the raster (NDVI/LST) + "compare 2 years" swipe toggle
-// panel and, when split-swipe is active, the draggable divider with year badges.
+// Map-canvas layer UI: one panel for everything that changes what the map shows —
+// แผนที่ฐาน (vector/ภาพถ่ายดาวเทียม) ที่เลือกได้เสมอ แล้วต่อด้วยชั้นข้อมูล raster
+// (NDVI/LST/ที่ดิน) + swipe เทียบ 2 ปี ซึ่งมีให้เลือกเมื่อเจาะจังหวัดแล้วเท่านั้น —
+// และเส้นแบ่ง swipe พร้อมป้ายปีตอนเปิดโหมดเทียบ
 // Purely presentational — all state lives in the raster/swipe hooks passed in.
 export default function MapOverlayControls({
   selectedProvinceEN, swipe, raster, enableOverlay, enableSwipe,
-  swipeTilesReady, canvasRef,
+  swipeTilesReady, canvasRef, basemap, setBasemap,
 }) {
   const { setSplit: setSwipeSplit } = swipe;
 
@@ -43,9 +45,22 @@ export default function MapOverlayControls({
 
   return (
     <>
-      {selectedProvinceEN && (
-        <div className="overlay-toggle" role="group" aria-label="ภาพถ่ายดาวเทียม (raster)">
-          <span className="overlay-toggle__label">ภาพดาวเทียม</span>
+      <div className="overlay-toggle" role="group" aria-label="ชั้นแผนที่">
+        {/* แผนที่ฐาน — เลือกได้ตลอด ไม่ต้องเจาะจังหวัดก่อน จึงอยู่บนสุดของแผง */}
+        <span className="overlay-toggle__label">แผนที่ฐาน</span>
+        <div className="overlay-toggle__btns">
+          <button className="overlay-btn" data-active={basemap === 'map'}
+            aria-pressed={basemap === 'map'}
+            title="แผนที่ลายเส้น อ่านตัวเลข/สีชั้นข้อมูลได้ชัดที่สุด"
+            onClick={() => setBasemap('map')}>แผนที่</button>
+          <button className="overlay-btn" data-active={basemap === 'satellite'}
+            aria-pressed={basemap === 'satellite'}
+            title="ภาพถ่ายดาวเทียมจริง (Esri World Imagery) — เห็นต้นไม้/สิ่งปลูกสร้างรายแปลง"
+            onClick={() => setBasemap('satellite')}>ดาวเทียม</button>
+        </div>
+
+        {selectedProvinceEN && (<>
+          <span className="overlay-toggle__label overlay-toggle__label--sep">ชั้นข้อมูล</span>
           <div className="overlay-toggle__btns">
             <button className="overlay-btn" data-active={!swipe.active && raster.overlay === 'none'}
               onClick={() => { swipe.reset(); raster.clearOverlay(); }}>ปิด</button>
@@ -97,8 +112,8 @@ export default function MapOverlayControls({
             || (swipe.active && swipe.mode === 'split' && swipe.tileA && swipe.tileB
                 && !(swipeTilesReady.a && swipeTilesReady.b)))
             && <span className="overlay-toggle__status">กำลังโหลดภาพ…</span>}
-        </div>
-      )}
+        </>)}
+      </div>
 
       {swipe.active && swipe.mode === 'split' && swipe.tileA && swipe.tileB && (
         <>

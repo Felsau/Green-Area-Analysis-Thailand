@@ -1,11 +1,12 @@
 # Security headers for the static frontend (Netlify).
 # CSP is ENFORCED. Directives match what the app actually loads:
-#   script-src 'self'            — no inline scripts (runtime externalised via
-#                                  INLINE_RUNTIME_CHUNK=false; theme-init.js is a file)
+#   script-src 'self'            — no inline scripts (Vite entry is <script type="module">,
+#                                  modulePreload.polyfill: false in vite.config.js; theme-init.js is a file)
 #   style-src ... fonts.googleapis.com — Google Fonts stylesheet (landing cover)
 #   font-src  ... fonts.gstatic.com    — Google Fonts woff2 files
 #   'unsafe-inline' style        — maplibre-gl / deck.gl inject inline styles
-#   img/connect https:           — basemap tiles (cartocdn) + GEE tiles + backend API
+#   img/connect https:           — basemap tiles (cartocdn + arcgisonline) + GEE tiles
+#                                  + backend API
 #   worker-src blob:             — maplibre-gl web workers
 # If you add a new external origin (CDN, analytics…), add it here or it WILL be blocked.
 [[headers]]

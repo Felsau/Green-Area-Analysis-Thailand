@@ -12,6 +12,7 @@ export const provinceLayers = (ctx) => {
   const {
     thailandData, ndviCache, selectedProvinceEN, showingDistricts,
     selectProvince, setTooltip, rasterActive, timelapseMetric, drawActive,
+    satelliteBase,
   } = ctx;
   if (!thailandData) return [];
 
@@ -21,11 +22,12 @@ export const provinceLayers = (ctx) => {
     new GeoJsonLayer({
       id: 'thailand-provinces',
       data: thailandData,
-      // flat when drilled into districts OR a raster overlay/swipe is shown
-      extruded: !showingDistricts && !rasterActive,
+      // flat when drilled into districts OR a raster overlay/swipe is shown —
+      // และตอนใช้ภาพถ่ายดาวเทียมด้วย เพราะแท่ง 3D จะบังภาพพื้นดินที่ตั้งใจจะดู
+      extruded: !showingDistricts && !rasterActive && !satelliteBase,
       wireframe: false,
       getElevation: (f) => {
-        if (showingDistricts || rasterActive) return 0;
+        if (showingDistricts || rasterActive || satelliteBase) return 0;
         const v = ndviCache[f.properties.name];
         if (v == null) return 0;
         return isLst ? lstElevation(v) : Math.max(0, v) * 30000;
@@ -38,11 +40,19 @@ export const provinceLayers = (ctx) => {
           return f.properties.name === selectedProvinceEN
             ? [26, 115, 232, 30] : [200, 230, 200, 20];
         }
-        if (f.properties.name === selectedProvinceEN) return [26, 115, 232, 230];
+        // บนภาพถ่ายดาวเทียม fill เป็นแค่ "สีย้อม" ให้ยังอ่านระดับ NDVI/LST ได้
+        // แต่ยังเห็นเรือนยอด/สิ่งปลูกสร้างจริงทะลุขึ้นมา
+        const alpha = satelliteBase ? 115 : 200;
+        if (f.properties.name === selectedProvinceEN) return [26, 115, 232, satelliteBase ? 130 : 230];
         const v = ndviCache[f.properties.name];
-        return isLst ? getLstRgba(v, 200) : getNdviRgba(v, 200);
+        return isLst ? getLstRgba(v, alpha) : getNdviRgba(v, alpha);
       },
       getLineColor: (f) => {
+        // เส้นเขียวเข้มจมหายไปกับภาพถ่าย → ใช้เส้นขาวแบบเดียวกับตอนมี raster ทับ
+        if (satelliteBase && !rasterActive) {
+          return f.properties.name === selectedProvinceEN
+            ? [26, 115, 232, 230] : [255, 255, 255, 150];
+        }
         if (rasterActive) {
           // subtle outline for context over the (light) raster basemap
           return f.properties.name === selectedProvinceEN
@@ -76,10 +86,10 @@ export const provinceLayers = (ctx) => {
         });
       },
       updateTriggers: {
-        extruded:     [showingDistricts, rasterActive],
-        getElevation: [ndviCache, showingDistricts, rasterActive, isLst],
-        getFillColor: [ndviCache, selectedProvinceEN, showingDistricts, rasterActive, isLst],
-        getLineColor: [selectedProvinceEN, showingDistricts, rasterActive],
+        extruded:     [showingDistricts, rasterActive, satelliteBase],
+        getElevation: [ndviCache, showingDistricts, rasterActive, isLst, satelliteBase],
+        getFillColor: [ndviCache, selectedProvinceEN, showingDistricts, rasterActive, isLst, satelliteBase],
+        getLineColor: [selectedProvinceEN, showingDistricts, rasterActive, satelliteBase],
       },
     }),
   ];

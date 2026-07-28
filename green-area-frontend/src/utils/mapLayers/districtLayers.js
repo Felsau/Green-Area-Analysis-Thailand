@@ -158,7 +158,7 @@ const NO_DATA_FILL = [225, 229, 226, 90];
 export const districtLayers = (ctx) => {
   const {
     showingDistricts, districtFeatures, districtCache,
-    selectedProvinceEN, selectedDistrictEN, rasterActive, drawActive,
+    selectedProvinceEN, selectedDistrictEN, rasterActive, drawActive, satelliteBase,
     setSelectedDistrict, setSelectedDistrictEN, setDistrictArea,
     setSidebarTab, fetchDistrictNDVI, setTooltip, zoom = 6,
   } = ctx;
@@ -184,15 +184,18 @@ export const districtLayers = (ctx) => {
       getFillColor: (f) => {
         // raster overlay/swipe on → transparent so the pixel data shows through
         if (rasterActive) return [0, 0, 0, 0];
-        if (f.properties.name === selectedDistrictEN) return [26, 115, 232, 230];
+        if (f.properties.name === selectedDistrictEN) return [26, 115, 232, satelliteBase ? 130 : 230];
         const ndvi = districtCache[cacheKey(f)];
+        // ภาพถ่ายดาวเทียม → ย้อมบาง ๆ พอให้เทียบระดับกันได้ · อำเภอที่ยังไม่มีค่า
+        // ปล่อยโปร่งไปเลย ให้ภาพจริงเป็นตัวบอกว่ายังไม่ได้คำนวณ (ตรงกับคีย์สีในตำนาน)
+        if (satelliteBase) return ndvi != null ? getNdviRgba(ndvi, 115) : [0, 0, 0, 0];
         return ndvi != null ? getNdviRgba(ndvi, 210) : NO_DATA_FILL;
       },
       getLineColor: (f) => {
         if (f.properties.name === selectedDistrictEN) return [26, 115, 232, 255];
         // crisp neutral boundary — visible on both green fills and the basemap;
-        // a touch lighter when a raster sits underneath
-        return rasterActive ? [255, 255, 255, 130] : [70, 92, 70, 200];
+        // a touch lighter when a raster or satellite imagery sits underneath
+        return (rasterActive || satelliteBase) ? [255, 255, 255, 150] : [70, 92, 70, 200];
       },
       getLineWidth: (f) => (f.properties.name === selectedDistrictEN ? 2.5 : 0.8),
       lineWidthUnits: 'pixels',
@@ -220,8 +223,8 @@ export const districtLayers = (ctx) => {
         } : null);
       },
       updateTriggers: {
-        getFillColor: [districtCache, selectedDistrictEN, rasterActive],
-        getLineColor: [selectedDistrictEN, rasterActive],
+        getFillColor: [districtCache, selectedDistrictEN, rasterActive, satelliteBase],
+        getLineColor: [selectedDistrictEN, rasterActive, satelliteBase],
         getLineWidth: selectedDistrictEN,
       },
     }),

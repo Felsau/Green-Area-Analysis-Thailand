@@ -10,6 +10,7 @@ export const DATASETS = [
   ['WorldPop (GP/100m)', 'ความหนาแน่นประชากร — คำนวณ m²/คน และ priority'],
   ['GADM 4.1', 'ขอบเขตจังหวัด / อำเภอ'],
   ['CARTO + OpenStreetMap', 'แผนที่ฐาน (basemap)'],
+  ['Esri World Imagery', 'แผนที่ฐานแบบภาพถ่ายดาวเทียม — Esri, Maxar, Earthstar Geographics'],
 ];
 
 const CITATIONS = [

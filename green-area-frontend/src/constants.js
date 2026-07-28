@@ -44,6 +44,37 @@ export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 export const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 export const MAP_STYLE_DARK = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
+// แผนที่ฐานแบบภาพถ่ายดาวเทียม (Esri World Imagery) — เป็น style ของ MapLibre ที่เขียนเอง
+// ทั้งก้อน เพราะ Esri ให้บริการเป็น XYZ raster ไม่ใช่ vector style เหมือน CARTO
+//   · ไม่ต้องใช้ API key และ CSP ปัจจุบันอนุญาต img/connect https: อยู่แล้ว
+//   · Esri เรียงไทล์เป็น /tile/{z}/{row}/{col} จึงต้องสลับเป็น {z}/{y}/{x}
+//   · ซ้อนชั้น reference (ขอบเขต+ชื่อสถานที่) ทับไว้ ไม่งั้นภาพถ่ายล้วนจะหาจังหวัด/อำเภอ
+//     ไม่เจอเลย — ชั้นนี้เป็น PNG โปร่งใส วางบนภาพถ่ายได้ตรง ๆ
+// ประกาศเป็นค่าคงที่ระดับโมดูล → identity คงที่ ไม่ทำให้ maplibre reload style ทุก render
+export const MAP_STYLE_SATELLITE = {
+  version: 8,
+  sources: {
+    'esri-imagery': {
+      type: 'raster',
+      tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: 'Imagery © Esri, Maxar, Earthstar Geographics, GIS User Community',
+    },
+    'esri-reference': {
+      type: 'raster',
+      tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: 'Esri, Garmin, GeoTechnologies, Inc.',
+    },
+  },
+  layers: [
+    { id: 'esri-imagery', type: 'raster', source: 'esri-imagery' },
+    { id: 'esri-reference', type: 'raster', source: 'esri-reference' },
+  ],
+};
+
 export const INITIAL_VIEW_STATE = {
   longitude: 101.0,
   latitude: 13.0,

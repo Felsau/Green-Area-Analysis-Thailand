@@ -15,7 +15,7 @@ export function useMapLayers({
   thailandData, effectiveNdviCache, timelapseMetric,
   province, district, trend, recommend, raster, swipe, draw,
   showingDistricts, viewState, setViewState, setTooltip, setSidebarTab,
-  selectProvince, viewportBounds, onSwipeTileLoad,
+  selectProvince, viewportBounds, onSwipeTileLoad, satelliteBase,
 }) {
   const baseLayers = useMemo(() => buildMapLayers({
     thailandData, ndviCache: effectiveNdviCache, timelapseMetric,
@@ -45,6 +45,8 @@ export function useMapLayers({
     swipeActive:      swipe.active,
     // draw mode → ปิด picking ของ province/district เพื่อให้คลิกปักหมุดแทนการเลือก
     drawActive:       draw.drawActive,
+    // แผนที่ฐานเป็นภาพถ่ายดาวเทียม → choropleth บางลง/แบนราบ (ดู utils/mapLayers/index.js)
+    satelliteBase,
     // Intentional partial deps — only re-layer on data/selection/zoom changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [
@@ -54,7 +56,7 @@ export function useMapLayers({
     showingDistricts,
     viewState.zoom,
     recommend.recommendData, recommend.recommendVisible,
-    raster.tileInfo, swipe.active, draw.drawActive,
+    raster.tileInfo, swipe.active, draw.drawActive, satelliteBase,
   ]);
 
   // Swipe layers built separately so panning (which changes viewportBounds) only

@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import './App.css';
 
 import * as turf from '@turf/turf';
-import { MAP_STYLE, MAP_STYLE_DARK, INITIAL_VIEW_STATE, PROVINCE_TH, CURRENT_YEAR } from './constants';
+import { MAP_STYLE, MAP_STYLE_DARK, MAP_STYLE_SATELLITE, INITIAL_VIEW_STATE, PROVINCE_TH, CURRENT_YEAR } from './constants';
 import { useNdviCache }    from './hooks/useNdviCache';
 import { useProvinceData } from './hooks/useProvinceData';
 import { useDistrictData } from './hooks/useDistrictData';
@@ -113,11 +113,19 @@ function App() {
     document.title = scope ? `${scope} — ${base}` : base;
   }, [province.selectedProvince, district.selectedDistrict]);
 
+  // ชนิดแผนที่ฐาน: 'map' (CARTO vector) | 'satellite' (ภาพถ่ายดาวเทียม Esri)
+  // เก็บไว้เฉพาะ session นี้ ไม่เขียน localStorage — การ *จำ* ค่าข้ามการเปิดเว็บเป็น
+  // รายการที่ต้องขอความยินยอมตาม PDPA (ดู CATEGORIES ใน utils/consent.js)
+  const [basemap, setBasemap] = useState('map');
+
   // Raster/swipe overlays read poorly over the dark basemap (the blue→red /
   // green palettes get muddied). Force the light, neutral basemap whenever an
   // overlay is shown so the data colours stay true — regardless of theme.
+  // ผู้ใช้เลือกภาพถ่ายดาวเทียมเองเมื่อไหร่ ให้ตัวเลือกนั้นชนะทั้งธีมและ overlay —
+  // เป็นการเลือกโดยตั้งใจ ไม่ควรถูกสลับกลับเงียบ ๆ
   const overlayShown = !!raster.tileInfo?.tile_url || swipe.active;
-  const mapStyle = overlayShown ? MAP_STYLE
+  const mapStyle = basemap === 'satellite' ? MAP_STYLE_SATELLITE
+                 : overlayShown ? MAP_STYLE
                  : theme === 'dark' ? MAP_STYLE_DARK : MAP_STYLE;
 
   useEffect(() => {
@@ -306,6 +314,7 @@ function App() {
     province, district, trend, recommend, raster, swipe, draw,
     showingDistricts, viewState, setViewState, setTooltip, setSidebarTab,
     selectProvince, viewportBounds, onSwipeTileLoad,
+    satelliteBase: basemap === 'satellite',
   });
 
   const sidebarData = {
@@ -505,6 +514,8 @@ function App() {
           enableSwipe={enableSwipe}
           swipeTilesReady={swipeTilesReady}
           canvasRef={canvasRef}
+          basemap={basemap}
+          setBasemap={setBasemap}
         />
 
         <div className="map-controls">
