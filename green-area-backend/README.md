@@ -112,7 +112,8 @@ Threshold) — ฤดูใช้นิยามกรมอุตุนิย�
 
 ## Tests
 
-รันด้วย `.venv/bin/pytest tests/ -v` (รันใน CI ทุก push/PR · ดู
+รันด้วย `.venv\Scripts\pytest tests/ -v` (Mac/Linux: `.venv/bin/pytest tests/ -v`)
+— รันใน CI ทุก push/PR · ดู
 `../.github/workflows/ci.yml`)
 
 | ไฟล์ | ครอบคลุม |

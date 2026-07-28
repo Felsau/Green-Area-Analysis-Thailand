@@ -84,8 +84,8 @@
 
 ```powershell
 cd green-area-backend
-python -m venv venv
-venv\Scripts\activate          # Mac/Linux: source venv/bin/activate
+python -m venv .venv
+.venv\Scripts\activate         # Mac/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 
 # สร้าง .env (ดูตัวอย่างใน .env.example)
