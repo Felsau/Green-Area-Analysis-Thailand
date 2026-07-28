@@ -150,11 +150,15 @@ def render_with_legend(geom_dict, gee_thumb_bytes, palette, vmin, vmax,
     Figure dimensions คำนวณจาก *geometry bounds* (ไม่ใช่ pixel ของ thumb)
     เพื่อให้ NDVI กับ LST ของพื้นที่เดียวกัน = ขนาดภาพเท่ากันเป๊ะ
     """
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    import matplotlib.colors as mcolors
+    # ใช้ OO API (Figure + FigureCanvasAgg) ไม่ใช่ pyplot — pyplot เก็บ "current
+    # figure" ไว้ใน global registry ที่ไม่ thread-safe และ plt.savefig() เซฟ *current*
+    # figure ไม่ใช่ตัวที่ถือใน fig · endpoint พวกนี้เป็น sync def → FastAPI รันใน
+    # threadpool ดังนั้นสอง request ที่ขอ thumb พร้อมกันจะแย่ง gcf() กัน แล้วได้ภาพ
+    # ของอีก request หนึ่งกลับไปเงียบๆ · Figure() เป็น local ล้วน ไม่มี global ให้ชน
     import matplotlib.cm as mcm
+    import matplotlib.colors as mcolors
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from matplotlib.figure import Figure
     from PIL import Image
 
     img = Image.open(io.BytesIO(gee_thumb_bytes))
@@ -172,7 +176,8 @@ def render_with_legend(geom_dict, gee_thumb_bytes, palette, vmin, vmax,
     fig_w = 6.5
     fig_h = fig_w * geo_aspect + 1.6
 
-    fig = plt.figure(figsize=(fig_w, fig_h), dpi=150)
+    fig = Figure(figsize=(fig_w, fig_h), dpi=150)
+    FigureCanvasAgg(fig)   # ผูก Agg canvas ตรงๆ — ไม่พึ่ง global backend ของ matplotlib
     # height_ratios ปรับให้ colorbar มี breathing room มากขึ้น (กัน label ทับ ticks)
     gs = fig.add_gridspec(2, 1, height_ratios=[18, 1.0], hspace=0.32)
     ax = fig.add_subplot(gs[0])
@@ -203,8 +208,8 @@ def render_with_legend(geom_dict, gee_thumb_bytes, palette, vmin, vmax,
     cb.outline.set_edgecolor('#9aa0a6')
 
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.12,
+    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.12,
                 facecolor='white')
-    plt.close(fig)
+    # ไม่ต้อง close() — Figure ไม่ได้ลงทะเบียนใน registry ของ pyplot, GC เก็บเอง
     buf.seek(0)
     return buf.read()

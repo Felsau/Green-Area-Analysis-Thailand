@@ -112,11 +112,12 @@ def thailand_thumb(province: str | None = None):
     """Mini-map ไทยทั้งประเทศ + highlight จังหวัด (ถ้าระบุ).
     ไม่ใช้ GEE — render ผ่าน matplotlib เพื่อความเร็ว"""
     try:
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-        from matplotlib.patches import Polygon as MplPolygon
+        # OO API ไม่ใช่ pyplot — เหตุผลเดียวกับ _cartography.render_with_legend
+        # (pyplot มี global "current figure" ที่ไม่ thread-safe ใน threadpool ของ FastAPI)
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
         from matplotlib.collections import PatchCollection
+        from matplotlib.figure import Figure
+        from matplotlib.patches import Polygon as MplPolygon
     except ImportError:
         raise HTTPException(status_code=500,
             detail="matplotlib ไม่ติดตั้ง — รัน: pip install matplotlib")
@@ -125,7 +126,9 @@ def thailand_thumb(province: str | None = None):
     if not geojson:
         raise HTTPException(status_code=500, detail="thailand.json ไม่พบ")
 
-    fig, ax = plt.subplots(figsize=(3.5, 4.5), dpi=150)
+    fig = Figure(figsize=(3.5, 4.5), dpi=150)
+    FigureCanvasAgg(fig)   # ผูก Agg canvas ตรงๆ — ไม่พึ่ง global backend ของ matplotlib
+    ax = fig.add_subplot(111)
     ax.set_facecolor('#f8f9fa')
 
     base_patches = []
@@ -168,8 +171,7 @@ def thailand_thumb(province: str | None = None):
         s.set_visible(False)
 
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.05,
+    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.05,
                 facecolor='white')
-    plt.close(fig)
     buf.seek(0)
     return Response(content=buf.read(), media_type='image/png')
