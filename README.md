@@ -205,7 +205,8 @@ green-area-backend/
 
 green-area-frontend/
   src/
-    App.js                 # entry + DeckGL + AuthGate + hook orchestration
+    App.js                 # shell — auth · theme · landing gate · consent (entry chunk)
+    Dashboard.js           # แผนที่ + sidebar + overlay ทั้งหมด · lazy chunk (โหลดหลังล็อกอิน)
     constants.js           # API_BASE, CURRENT_YEAR, PROVINCE_TH, map styles
     lib/supabaseClient.js  # supabase-js singleton (auth session)
     hooks/                 # useAuth, useProvinceData, useDistrictData, useLanduseData,
