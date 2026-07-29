@@ -169,11 +169,47 @@ def compare_provinces(provinces: str, year: YearParam = CURRENT_YEAR):
     return {"year": year, "data": data}
 
 
+# แผนที่ choropleth ต้องการแค่ "NDVI ปีล่าสุดต่อจังหวัด" = 77 ตัวเลข — เดิม frontend
+# ดึง /cache ทั้งก้อน (annual ทุกจังหวัด×ทุกปี 6 คอลัมน์ + monthly ทั้งตารางที่ไม่ได้ใช้เลย)
+# แล้วยุบเหลือค่าเดียวต่อจังหวัดในเบราว์เซอร์ · payload โตทุกปีที่ compute เพิ่ม ทั้งที่
+# ผลลัพธ์ที่ใช้จริงคงที่ 77 ค่า → endpoint นี้ยุบฝั่ง server แทน (ดู useNdviCache.js)
+@app.get("/cache/ndvi-latest", dependencies=[Depends(require_user)])
+def get_latest_ndvi_cache():
+    """NDVI ปีล่าสุดที่มีค่าของแต่ละจังหวัด — `{จังหวัด: ndvi_mean}` สำหรับระบายสีแผนที่.
+
+    order by year desc → แถวแรกที่เจอของแต่ละจังหวัดคือปีล่าสุด (ตรรกะเดียวกับที่
+    frontend เคยทำเอง) · กรอง ndvi_mean IS NULL ที่ฝั่ง DB เพื่อไม่ให้แถวที่ยัง
+    compute ไม่เสร็จมาบังปีเก่าที่มีค่าจริง
+    """
+    result = supa_call(lambda s: s.table("ndvi_annual")
+                       .select("province,year,ndvi_mean")
+                       .not_.is_("ndvi_mean", "null")
+                       .order("year", desc=True)
+                       .execute())
+    data: dict[str, float] = {}
+    for row in result.data:
+        data.setdefault(row["province"], row["ndvi_mean"])
+    return {"count": len(data), "data": data}
+
+
+# เพดานแถวของ endpoint ตรวจสอบ cache ด้านล่าง — ปัจจุบัน 77 จว. × ~11 ปี ต่อ
+# ตาราง ยังห่างเพดานมาก แต่ตั้งไว้ให้ "ถูกตัด" กลายเป็นสิ่งที่เห็นได้ (flag `truncated`)
+# แทนที่จะโดน max-rows ของ PostgREST ตัดเงียบๆ ถ้าวันหลังมีการตั้งค่านั้น
+CACHE_INSPECT_LIMIT = 2000
+
+
 @app.get("/cache", dependencies=[Depends(require_user)])
 def get_cache():
-    annual  = supa_call(lambda s: s.table("ndvi_annual").select("province,year,ndvi_mean,green_area_pct,who_status,created_at").execute())
-    monthly = supa_call(lambda s: s.table("ndvi_monthly").select("province,year,created_at").execute())
-    return {"annual": annual.data, "monthly": monthly.data}
+    """ดัมป์ cache ไว้ตรวจสอบ/ดีบัก (ไม่ได้อยู่บน hot path ของ UI แล้ว —
+    แผนที่ใช้ /cache/ndvi-latest ที่ยุบเหลือ 77 ค่าแทน)"""
+    annual  = supa_call(lambda s: s.table("ndvi_annual").select("province,year,ndvi_mean,green_area_pct,who_status,created_at").limit(CACHE_INSPECT_LIMIT).execute())
+    monthly = supa_call(lambda s: s.table("ndvi_monthly").select("province,year,created_at").limit(CACHE_INSPECT_LIMIT).execute())
+    return {
+        "annual": annual.data, "monthly": monthly.data,
+        "limit": CACHE_INSPECT_LIMIT,
+        "truncated": (len(annual.data) >= CACHE_INSPECT_LIMIT
+                      or len(monthly.data) >= CACHE_INSPECT_LIMIT),
+    }
 
 
 @app.get("/cache/districts", dependencies=[Depends(require_user)])

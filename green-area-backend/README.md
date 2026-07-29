@@ -47,7 +47,8 @@ admin (`DELETE /cache`) รับได้ทั้ง `X-Admin-Token` หรื
 | GET | `/account/me` | โปรไฟล์ผู้ใช้ปัจจุบัน (display_name, role, organization) |
 | PATCH | `/account/me` | แก้ display_name / organization |
 | DELETE | `/account/me` | ลบบัญชีถาวร (auth.users + profiles + saved_areas ที่ผูกไว้) |
-| GET | `/cache` · `/cache/districts` | ดูสถานะ cache |
+| GET | `/cache/ndvi-latest` | NDVI ปีล่าสุดต่อจังหวัด `{จังหวัด: ndvi_mean}` — ใช้ระบายสีแผนที่ (ยุบฝั่ง server ไม่ให้ browser ดึงทุกปีมาคัดเอง) |
+| GET | `/cache` · `/cache/districts` | ดูสถานะ cache (ตรวจสอบ/ดีบัก — ตัดที่ `CACHE_INSPECT_LIMIT` แถว พร้อม flag `truncated`) |
 | DELETE | `/cache` · `/cache/{province}` | ล้าง cache (`X-Admin-Token: $ADMIN_TOKEN` หรือ user role=admin) |
 | GET | `/health` | liveness probe (ไม่แตะ DB/GEE) — สำหรับ load-balancer |
 

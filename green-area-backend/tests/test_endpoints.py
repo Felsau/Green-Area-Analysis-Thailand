@@ -161,6 +161,43 @@ class TestCache:
         assert r.status_code == 200
         d = r.json()
         assert "annual" in d and "monthly" in d
+        assert d["truncated"] is False
+
+    def test_flags_truncation_at_the_row_cap(self, client, monkeypatch):
+        # ถูกตัดต้องเห็นได้จาก response ไม่ใช่หายเงียบ
+        c, main = client
+        rows = [{"province": f"P{i}", "year": 2024} for i in range(main.CACHE_INSPECT_LIMIT)]
+        monkeypatch.setattr(main, "supa_call", lambda fn, **kw: _fake_response(rows))
+
+        d = c.get("/cache").json()
+        assert d["truncated"] is True
+        assert d["limit"] == main.CACHE_INSPECT_LIMIT
+
+
+# ── GET /cache/ndvi-latest ───────────────────────────────────────────────────
+class TestLatestNdviCache:
+    def test_keeps_only_the_newest_year_per_province(self, client, monkeypatch):
+        # แถวมาแบบ year desc (ตาม .order ใน endpoint) → แถวแรกของแต่ละจังหวัดชนะ
+        c, main = client
+        monkeypatch.setattr(main, "supa_call", lambda fn, **kw: _fake_response([
+            {"province": "A", "year": 2025, "ndvi_mean": 0.55},
+            {"province": "B", "year": 2025, "ndvi_mean": 0.31},
+            {"province": "A", "year": 2024, "ndvi_mean": 0.42},
+            {"province": "B", "year": 2023, "ndvi_mean": 0.28},
+        ]))
+
+        r = c.get("/cache/ndvi-latest")
+        assert r.status_code == 200
+        d = r.json()
+        assert d["data"] == {"A": 0.55, "B": 0.31}
+        assert d["count"] == 2
+
+    def test_empty_cache_returns_empty_map(self, client, monkeypatch):
+        c, main = client
+        monkeypatch.setattr(main, "supa_call", lambda fn, **kw: _fake_response([]))
+
+        d = c.get("/cache/ndvi-latest").json()
+        assert d == {"count": 0, "data": {}}
 
 
 # ── GET /cache/districts ─────────────────────────────────────────────────────

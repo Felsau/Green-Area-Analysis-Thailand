@@ -10,11 +10,11 @@ if (typeof global.TextEncoder === 'undefined') global.TextEncoder = TextEncoder;
 if (typeof global.TextDecoder === 'undefined') global.TextDecoder = TextDecoder;
 
 // fetch mock — ตั้ง default ไว้ที่นี่เพื่อให้ครอบคลุมทุก test
-// payload เดียวรองรับทั้ง /cache และ /thailand.json
+// payload เดียวรองรับทั้ง /cache, /cache/ndvi-latest (data) และ /thailand.json
 const fetchOk = () => Promise.resolve({
   ok: true,
   json: () => Promise.resolve({
-    annual: [], monthly: [],
+    annual: [], monthly: [], count: 0, data: {},
     type: 'FeatureCollection', features: [],
   }),
 });

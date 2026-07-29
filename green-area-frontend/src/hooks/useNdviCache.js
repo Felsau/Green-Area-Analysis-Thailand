@@ -3,7 +3,7 @@ import { API_BASE } from '../constants';
 import { pushError } from '../utils/toast';
 import { apiFetch } from '../utils/apiClient';
 
-// Retry the /cache fetch a few times before surfacing an error. A freshly
+// Retry the fetch a few times before surfacing an error. A freshly
 // minted access token (right after login/refresh) can be briefly rejected by
 // the backend with 401 — its nbf/iat sits a second or two ahead of the server
 // clock (normal small skew), then verifies fine moments later. /account/me
@@ -16,7 +16,13 @@ const CACHE_RETRY_MS = 1500;
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 // enabled: defer the fetch until the caller is ready (e.g. signed in) —
-// /cache now requires auth, so firing this before login just 401s.
+// the endpoint requires auth, so firing this before login just 401s.
+//
+// /cache/ndvi-latest returns exactly what the choropleth needs — one NDVI value
+// per province, already reduced to the newest year server-side. It replaced a
+// /cache fetch that pulled every province × every year (plus a monthly array
+// nothing read) and did the same reduction in the browser: the payload grew
+// with each computed year while the useful output stayed 77 numbers.
 export function useNdviCache(enabled = true) {
   const [ndviCache, setNdviCache] = useState({});
 
@@ -27,19 +33,11 @@ export function useNdviCache(enabled = true) {
     const load = async () => {
       for (let attempt = 0; attempt <= CACHE_RETRIES; attempt++) {
         try {
-          const r = await apiFetch(`${API_BASE}/cache`);
+          const r = await apiFetch(`${API_BASE}/cache/ndvi-latest`);
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          const data = await r.json();
+          const json = await r.json();
           if (cancelled) return;
-          const cache = {};
-          const cacheYear = {};
-          data.annual?.forEach(row => {
-            if (row.ndvi_mean != null && (!cacheYear[row.province] || row.year > cacheYear[row.province])) {
-              cache[row.province] = row.ndvi_mean;
-              cacheYear[row.province] = row.year;
-            }
-          });
-          setNdviCache(cache);
+          setNdviCache(json.data || {});
           return;  // success
         } catch (err) {
           if (cancelled) return;
