@@ -111,15 +111,25 @@
 
 | ID | Requirement | เหตุผล/อ้างอิง |
 |---|---|---|
-| FR-23 | เพิ่มประมาณการ **ดูดซับมลพิษอากาศ** (PM2.5, O₃, NO₂) ต่อปี | i-Tree Eco ครอบคลุม air pollution removal `[R7]` |
-| FR-24 | เพิ่มประมาณการ **ลด stormwater runoff** (การดักน้ำฝน) | บริการนิเวศหลักใน i-Tree `[R7]` |
-| FR-25 | **ตีมูลค่าเป็นเงิน (บาท/ปี)** ของบริการนิเวศรวม | เสริมน้ำหนักเชิงนโยบาย/งบประมาณ `[R7]` |
+| FR-23 | เพิ่มประมาณการ **ดูดซับมลพิษอากาศ** (PM2.5, O₃, NO₂) ต่อปี **(มีแล้ว)** | i-Tree Eco ครอบคลุม air pollution removal `[R7]` |
+| FR-24 | เพิ่มประมาณการ **ลด stormwater runoff** (การดักน้ำฝน) **(มีแล้ว)** | บริการนิเวศหลักใน i-Tree `[R7]` |
+| FR-25 | **ตีมูลค่าเป็นเงิน (บาท/ปี)** ของบริการนิเวศรวม **(มีแล้ว)** | เสริมน้ำหนักเชิงนโยบาย/งบประมาณ `[R7]` |
+
+> ทั้งสามข้อคำนวณใน `impact.py` (`estimate_impact` → `ecosystem_services`) แสดงบนแท็บ
+> AI แนะนำ (`ImpactSection`) และลงรายงาน PDF — ดู §6
 
 **ธีม 5 — ความเป็นไปได้ในการปลูก (Feasibility)**
 
 | ID | Requirement | เหตุผล/อ้างอิง |
 |---|---|---|
-| FR-26 | **เพิ่ม** ปัจจัย *ease of implementation* (พื้นที่ปลูกได้จริง/ข้อจำกัดการใช้ที่ดิน) เข้า priority | 1 ใน 4 องค์ประกอบหลักของ prioritization `[R3] [R4]` |
+| FR-26 | **เพิ่ม** ปัจจัย *ease of implementation* (พื้นที่ปลูกได้จริง/ข้อจำกัดการใช้ที่ดิน) เข้า priority **(บางส่วน)** | 1 ใน 4 องค์ประกอบหลักของ prioritization `[R3] [R4]` |
+
+> **บางส่วน:** ความเป็นไปได้ในการปลูกถูกใช้เป็น *ตัวกรอง* แล้ว — `plantable_mask`
+> (ESA WorldCover + ความชัน SRTM > 30°) ตัดน้ำ/อาคาร/ป่าเดิม/พื้นที่ชันออกจาก
+> top-locations และพื้นที่ควรปลูก · ส่วนที่ยังไม่ทำคือการเป็น **ปัจจัยในสูตร
+> priority** ตามที่ข้อกำหนดระบุ (แบบ additive เช่นเดียวกับ `W_PERI` — ไม่ลด
+> น้ำหนักปัจจัยเดิม) ซึ่งจะทำให้คะแนนไล่ระดับตามความยากง่ายของการใช้ที่ดิน
+> ไม่ใช่ตัดทิ้งแบบ 0/1
 
 ---
 
@@ -232,7 +242,7 @@ composite ของ Sentinel-2 ไม่ได้ — GEE ตอบ `User memory
 | FR-11 | `[R16] [R17]` Mann-Kendall | `stats_utils.py` (มีแล้ว) |
 | NFR-07 | `[R12] [R33] [R34] [R35]` | `routers/ndvi/compute.py` `build_data_quality` (+ `summarize_acquisitions`, `composite_uncertainty`, `grade_uncertainty`, `season_of`) → เก็บใน `ndvi_annual.data_quality` / `district_ndvi_annual.data_quality` (migration 014) แสดงบน StatsTab + ตาราง "คุณภาพข้อมูล NDVI" ในรายงาน PDF/CSV **(มีแล้ว)** |
 | NFR-08 | `[R13]` | `validation.py` `build_validation` + `build_breakdown` (+ `validation_area_sums` เสียบเป็น `extra_sums_fn` ของ `_compute_ndvi_annual` → ใช้ `green_mask` ตัวเดียวกับที่ระบบใช้จริง ไม่เกิด drift) · สคริปต์ `validate_green_area.py` รันทุกจังหวัด → CSV ใน `reports/` · ผลสรุปอยู่ใน §5.1 **(มีแล้ว)** |
-| FR-07 (พื้นที่ปลูกได้จริง) | `[R13] [R37]` WorldCover + ความชัน SRTM | `routers/recommend/scoring.py` `plantable_mask` (ตัดชัน > 30°) (มีแล้ว) |
+| FR-07 (พื้นที่ปลูกได้จริง) · FR-26 **(บางส่วน)** | `[R13] [R37]` WorldCover + ความชัน SRTM | `routers/recommend/scoring.py` `plantable_mask` (ตัดชัน > 30°) — ใช้เป็น *ตัวกรอง* top-locations/พื้นที่ควรปลูกแล้ว · ยังไม่เป็น *ปัจจัยในสูตร priority* ตามที่ FR-26 ระบุ (ดูหมายเหตุใต้ตารางธีม 5 ใน §3.2) |
 | ชั้น "การใช้ที่ดิน" (ยังไม่มีรหัส FR) | `[R36] [R38]` Dynamic World + LDD 1:25,000 | `landuse.py` (provider DW) · `ldd.py` (provider LDD, เปิดด้วย env `LDD_LANDUSE_ASSET`) · `routers/maps/analysis/landuse.py`, `routers/maps/tiles.py` (มีแล้ว) |
 | ข้อมูลขอบเขตอำเภอ | `[R30] [R39]` GADM v4.1 + FAO GAUL 2015 | `generate_districts.py` (มีแล้ว) |
 
