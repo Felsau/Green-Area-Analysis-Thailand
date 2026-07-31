@@ -160,7 +160,7 @@ export const districtLayers = (ctx) => {
     showingDistricts, districtFeatures, districtCache,
     selectedProvinceEN, selectedDistrictEN, rasterActive, drawActive, satelliteBase,
     setSelectedDistrict, setSelectedDistrictEN, setDistrictArea,
-    setSidebarTab, fetchDistrictNDVI, setTooltip, zoom = 6,
+    setSidebarTab, fetchDistrictNDVI, setTooltip, zoom = 6, selectedYear,
   } = ctx;
   if (!showingDistricts) return [];
 
@@ -212,7 +212,7 @@ export const districtLayers = (ctx) => {
         setSelectedDistrictEN(districtEN);   // used for API calls
         setDistrictArea((turf.area(object) / 1_000_000).toFixed(2));
         setSidebarTab('stats');
-        fetchDistrictNDVI(selectedProvinceEN, districtEN);
+        fetchDistrictNDVI(selectedProvinceEN, districtEN, selectedYear);
       },
       onHover: ({ object, x, y }) => {
         setTooltip(object ? {

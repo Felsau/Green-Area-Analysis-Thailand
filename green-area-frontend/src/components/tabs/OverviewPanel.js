@@ -9,12 +9,12 @@ const TOTAL_PROVINCES = Object.keys(PROVINCE_TH).length;
 
 export default function OverviewPanel({ data, handlers }) {
   const {
-    rankingData = [], rankingStats = null, rankingLoading = false, rankingYear,
+    rankingData = [], rankingStats = null, rankingLoading = false, selectedYear,
     ndviCache, provinceList = [],
     computing = false, computeProgress = { done: 0, total: 0, failed: 0 },
   } = data;
   const {
-    onFetchRanking, setRankingYear, onComputeMissing, onCancelCompute,
+    onFetchRanking, setSelectedYear, onComputeMissing, onCancelCompute,
   } = handlers;
 
   const cacheCount = Object.keys(ndviCache || {}).length;
@@ -30,8 +30,8 @@ export default function OverviewPanel({ data, handlers }) {
     : 0;
 
   const runCompute = async () => {
-    await onComputeMissing(rankingYear, missing);
-    onFetchRanking(rankingYear);  // refresh ranking with the newly computed provinces
+    await onComputeMissing(selectedYear, missing);
+    onFetchRanking(selectedYear);  // refresh ranking with the newly computed provinces
   };
 
   return (
@@ -45,15 +45,15 @@ export default function OverviewPanel({ data, handlers }) {
           <select
             className="field"
             style={{ width: 100 }}
-            value={rankingYear}
-            onChange={e => setRankingYear(Number(e.target.value))}
+            value={selectedYear}
+            onChange={e => setSelectedYear(Number(e.target.value))}
           >
             {AVAILABLE_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
           <button
             className="btn btn--primary"
             style={{ flex: 1 }}
-            onClick={() => onFetchRanking(rankingYear)}
+            onClick={() => onFetchRanking(selectedYear)}
             disabled={rankingLoading}
           >
             {rankingLoading ? 'กำลังโหลด…' : 'โหลดอันดับ'}
@@ -68,7 +68,7 @@ export default function OverviewPanel({ data, handlers }) {
         <>
           <section className="section">
             <div className="section__head">
-              <span className="section__title">สรุปปี {rankingYear}</span>
+              <span className="section__title">สรุปปี {selectedYear}</span>
               <span className="section__meta">{rankingStats.total} / {TOTAL_PROVINCES} จังหวัด</span>
             </div>
             <div className="kv-row">
@@ -90,7 +90,7 @@ export default function OverviewPanel({ data, handlers }) {
             {(rankingStats.total < TOTAL_PROVINCES || computing) && (
               <div className="coverage">
                 <div className="coverage__head">
-                  <span className="helper">ความครอบคลุมข้อมูลปี {rankingYear}</span>
+                  <span className="helper">ความครอบคลุมข้อมูลปี {selectedYear}</span>
                   <span className="coverage__count">{rankingStats.total} / {TOTAL_PROVINCES}</span>
                 </div>
                 <div className="bar">
@@ -171,9 +171,9 @@ export default function OverviewPanel({ data, handlers }) {
       {rankingStats && (
         <ExportBar
           targetId="export-ranking"
-          baseName={`ranking_${rankingYear}`}
-          onCsv={() => exportRankingCsv({ rankingData, rankingYear, rankingStats })}
-          onPdf={() => import('../../utils/reportPdf').then(m => m.buildRankingReport({ rankingData, rankingYear, rankingStats }))}
+          baseName={`ranking_${selectedYear}`}
+          onCsv={() => exportRankingCsv({ rankingData, rankingYear: selectedYear, rankingStats })}
+          onPdf={() => import('../../utils/reportPdf').then(m => m.buildRankingReport({ rankingData, rankingYear: selectedYear, rankingStats }))}
         />
       )}
     </div>

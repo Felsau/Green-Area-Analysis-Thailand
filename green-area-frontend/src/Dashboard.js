@@ -55,6 +55,12 @@ export default function Dashboard({
   const [showAbout, setShowAbout]       = useState(false);
   const [showAccount, setShowAccount]   = useState(false);
 
+  // The year every scope-bound view reads: country ranking, province/district
+  // panels, the NDVI/LST raster overlay and the draw tool. The analysis tabs
+  // (trend, compare, cooling, land use, recommend) keep their own year — they
+  // answer questions *about* years, so pinning them here would break them.
+  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
+
   // This component only mounts once signed in (see App.js), so the data hooks
   // never need to defer on an auth check of their own.
   const { ndviCache, setNdviCache } = useNdviCache();
@@ -62,7 +68,7 @@ export default function Dashboard({
   const district = useDistrictData();
   const trend    = useTrendData();
   const compare  = useCompareData();
-  const ranking  = useRankingData();
+  const ranking  = useRankingData(selectedYear);
   const recommend = useRecommendData();
   const timelapse = useTimelapseData();
   const cooling = useCoolingData();
@@ -126,6 +132,10 @@ export default function Dashboard({
   // and district data that requires a session.
   const didInitFromUrl = useRef(false);
   const [urlReady, setUrlReady] = useState(false);
+  // Mirrors selectedYear so selectProvince can read the current year without
+  // taking it as a dep (it must stay stable — useMapLayers holds onto it), and
+  // so the refetch effect below can tell a real year change from first render.
+  const yearRef = useRef(selectedYear);
   // district restore ต้องรอ thailand_districts.json โหลดเสร็จ (async หลัง
   // selectProvince) — พักไว้ใน ref แล้วให้ effect ด้านล่างเลือกเมื่อข้อมูลมา
   const pendingDistrictRef = useRef(null);
@@ -134,7 +144,13 @@ export default function Dashboard({
     didInitFromUrl.current = true;
     const params = new URLSearchParams(window.location.search);
     const year = Number(params.get('year'));
-    if (year && !Number.isNaN(year)) ranking.setRankingYear(year);
+    // Set the ref up front: selectProvince() below reads it synchronously, and
+    // the refetch effect must not treat this restore as a user year change and
+    // fire a second fetch for the province we are about to load.
+    if (year && !Number.isNaN(year)) {
+      yearRef.current = year;
+      setSelectedYear(year);
+    }
     const tab = params.get('tab');
     if (tab && TAB_IDS.includes(tab)) setSidebarTab(tab);
     const p = params.get('p');
@@ -160,7 +176,7 @@ export default function Dashboard({
     district.setSelectedDistrict(feat.properties.name_th || feat.properties.name);
     district.setSelectedDistrictEN(feat.properties.name);
     district.setDistrictArea((turf.area(feat) / 1_000_000).toFixed(2));
-    district.fetchDistrictNDVI(pending.province, feat.properties.name);
+    district.fetchDistrictNDVI(pending.province, feat.properties.name, yearRef.current);
     // Intentional partial deps — district hook fns are stable setters/callbacks
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [district.districtsData]);
@@ -173,11 +189,27 @@ export default function Dashboard({
       if (district.selectedDistrictEN) params.set('d', district.selectedDistrictEN);
     }
     if (sidebarTab !== 'stats') params.set('tab', sidebarTab);
-    if (ranking.rankingYear !== CURRENT_YEAR) params.set('year', ranking.rankingYear);
+    if (selectedYear !== CURRENT_YEAR) params.set('year', selectedYear);
     const qs = params.toString();
     window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname);
   }, [urlReady, province.selectedProvinceEN, district.selectedDistrictEN,
-      sidebarTab, ranking.rankingYear]);
+      sidebarTab, selectedYear]);
+
+  // Year changed while something is selected → reload that scope at the new
+  // year. Guarded by yearRef so first render (and the ?year= restore, which
+  // primes the ref) doesn't duplicate the fetch selectProvince already made.
+  useEffect(() => {
+    if (yearRef.current === selectedYear) return;
+    yearRef.current = selectedYear;
+    const provinceEN = province.selectedProvinceEN;
+    if (!provinceEN) return;
+    province.fetchNDVI(provinceEN, selectedYear);
+    if (district.selectedDistrictEN) {
+      district.fetchDistrictNDVI(provinceEN, district.selectedDistrictEN, selectedYear);
+    }
+    // Intentional partial deps — hook fns are stable; the year is the trigger
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear]);
 
   // cooling analysis is province-scoped — clear it whenever the province changes.
   // Intentional single dep: resetCooling is stable; depending on `cooling` re-fires each render.
@@ -194,9 +226,9 @@ export default function Dashboard({
   useEffect(() => {
     if (raster.overlay === 'none' || !province.selectedProvinceEN) return;
     raster.fetchTiles(raster.overlay, province.selectedProvinceEN,
-                      district.selectedDistrictEN || null, CURRENT_YEAR);
+                      district.selectedDistrictEN || null, selectedYear);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [raster.overlay, province.selectedProvinceEN, district.selectedDistrictEN]);
+  }, [raster.overlay, province.selectedProvinceEN, district.selectedDistrictEN, selectedYear]);
 
   // Swipe compare: (re)fetch both years when active / scope / metric / years change.
   useEffect(() => {
@@ -272,7 +304,7 @@ export default function Dashboard({
     province.setProvinceArea((turf.area(feature) / 1_000_000).toFixed(2));
     district.resetDistrict();
     trend.resetTrend();
-    province.fetchNDVI(nameEN);
+    province.fetchNDVI(nameEN, yearRef.current);
     district.ensureDistrictsLoaded();
     district.loadDistrictCache(nameEN);
     const [minLng, minLat, maxLng, maxLat] = turf.bbox(feature);
@@ -296,6 +328,7 @@ export default function Dashboard({
     showingDistricts, viewState, setViewState, setTooltip, setSidebarTab,
     selectProvince, viewportBounds, onSwipeTileLoad,
     satelliteBase: basemap === 'satellite',
+    selectedYear,
   });
 
   const sidebarData = {
@@ -335,7 +368,7 @@ export default function Dashboard({
     rankingData:    ranking.rankingData,
     rankingStats:   ranking.rankingStats,
     rankingLoading: ranking.rankingLoading,
-    rankingYear:    ranking.rankingYear,
+    selectedYear,
     recommendData:    recommend.recommendData,
     recommendLoading: recommend.recommendLoading,
     recommendVisible: recommend.recommendVisible,
@@ -367,7 +400,7 @@ export default function Dashboard({
     setCompareYear:     compare.setCompareYear,
     onFetchCompare:     compare.fetchCompareData,
     onFetchRanking:     ranking.fetchRanking,
-    setRankingYear:     ranking.setRankingYear,
+    setSelectedYear,
     onFetchRecommend:    recommend.fetchRecommendation,
     onToggleRecommend:   () => recommend.setRecommendVisible(v => !v),
     onClearRecommend:    recommend.resetRecommend,
@@ -465,7 +498,7 @@ export default function Dashboard({
           >📁</button>
         </div>
 
-        <DrawControl draw={draw} year={CURRENT_YEAR}
+        <DrawControl draw={draw} year={selectedYear}
           resolveProvince={resolveProvince}
           onSave={handleSaveArea} saving={savedAreas.saving} />
 

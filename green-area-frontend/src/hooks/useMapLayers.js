@@ -15,7 +15,7 @@ export function useMapLayers({
   thailandData, effectiveNdviCache, timelapseMetric,
   province, district, trend, recommend, raster, swipe, draw,
   showingDistricts, viewState, setViewState, setTooltip, setSidebarTab,
-  selectProvince, viewportBounds, onSwipeTileLoad, satelliteBase,
+  selectProvince, viewportBounds, onSwipeTileLoad, satelliteBase, selectedYear,
 }) {
   const baseLayers = useMemo(() => buildMapLayers({
     thailandData, ndviCache: effectiveNdviCache, timelapseMetric,
@@ -31,6 +31,9 @@ export function useMapLayers({
     setSelectedDistrictEN: district.setSelectedDistrictEN,
     setDistrictArea:       district.setDistrictArea,
     fetchDistrictNDVI:     district.fetchDistrictNDVI,
+    // clicking a district on the map fetches at the selected year, same as the
+    // sidebar path — otherwise the map click would silently reset it to latest
+    selectedYear,
     selectProvince,
     ensureDistrictsLoaded: district.ensureDistrictsLoaded,
     loadDistrictCache:     district.loadDistrictCache,
@@ -56,7 +59,7 @@ export function useMapLayers({
     showingDistricts,
     viewState.zoom,
     recommend.recommendData, recommend.recommendVisible,
-    raster.tileInfo, swipe.active, draw.drawActive, satelliteBase,
+    raster.tileInfo, swipe.active, draw.drawActive, satelliteBase, selectedYear,
   ]);
 
   // Swipe layers built separately so panning (which changes viewportBounds) only

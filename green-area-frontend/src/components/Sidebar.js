@@ -6,6 +6,7 @@ import RecommendTab from './tabs/RecommendTab';
 import CoolingTab   from './tabs/CoolingTab';
 import ProvinceSearch from './ProvinceSearch';
 import ErrorBoundary from './ErrorBoundary';
+import { AVAILABLE_YEARS } from '../constants';
 
 const TABS = [
   { id: 'stats',     label: 'ข้อมูล' },
@@ -21,9 +22,9 @@ export default function Sidebar({ data, handlers }) {
     sidebarTab,
     ndviStats, districtNdviStats, ndviLoading, districtNdviLoading,
     districtsLoading,
-    provinceList, ndviCache,
+    provinceList, ndviCache, selectedYear,
   } = data;
-  const { onReset, setSidebarTab, onSelectProvince } = handlers;
+  const { onReset, setSidebarTab, onSelectProvince, setSelectedYear } = handlers;
 
   const hasProvince = !!selectedProvince;
   const dataReady   = !!(ndviStats || districtNdviStats);
@@ -72,6 +73,20 @@ export default function Sidebar({ data, handlers }) {
             <div className="context__status">
               <span className="status-dot" data-state={statusState}>{statusLabel}</span>
               {districtsLoading && <span className="helper">โหลดอำเภอ…</span>}
+              {/* The year lives here, not only on the country overview: every
+                  number below is computed for it, and without a control in this
+                  scope you'd have to leave the province to change year. */}
+              <label className="context__year">
+                ปีข้อมูล
+                <select
+                  className="field"
+                  value={selectedYear}
+                  onChange={e => setSelectedYear(Number(e.target.value))}
+                  aria-label="ปีของข้อมูลที่แสดง"
+                >
+                  {AVAILABLE_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </label>
             </div>
           </div>
 

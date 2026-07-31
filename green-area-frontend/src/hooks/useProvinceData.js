@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { API_BASE } from '../constants';
+import { API_BASE, CURRENT_YEAR } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
@@ -17,7 +17,11 @@ export function useProvinceData({ setNdviCache }) {
   // so a slow response for province A can't overwrite the panel after B is picked
   const abortRef = useRef(null);
 
-  const fetchNDVI = async (provinceName) => {
+  // year: the app-wide selected year (Dashboard owns it). Every one of these
+  // endpoints takes ?year= and falls back to the current year server-side —
+  // omitting it was why the panel always showed the newest year no matter what
+  // the year selector said.
+  const fetchNDVI = async (provinceName, year = CURRENT_YEAR) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -31,11 +35,12 @@ export function useProvinceData({ setNdviCache }) {
     setLstMonthly([]);
     try {
       const enc = encodeURIComponent;
+      const qs = `?year=${year}`;
       const [statsRes, monthlyRes, lstRes, lstMonthlyRes] = await Promise.all([
-        fetchWithRetry(`${API_BASE}/ndvi/${enc(provinceName)}`, { signal }),
-        fetchWithRetry(`${API_BASE}/ndvi/${enc(provinceName)}/monthly`, { signal }),
-        fetchWithRetry(`${API_BASE}/lst/${enc(provinceName)}`, { signal }),
-        fetchWithRetry(`${API_BASE}/lst/${enc(provinceName)}/monthly`, { signal }),
+        fetchWithRetry(`${API_BASE}/ndvi/${enc(provinceName)}${qs}`, { signal }),
+        fetchWithRetry(`${API_BASE}/ndvi/${enc(provinceName)}/monthly${qs}`, { signal }),
+        fetchWithRetry(`${API_BASE}/lst/${enc(provinceName)}${qs}`, { signal }),
+        fetchWithRetry(`${API_BASE}/lst/${enc(provinceName)}/monthly${qs}`, { signal }),
       ]);
       const [stats, monthly, lst, lstMonthlyJson] = await Promise.all([
         statsRes.json(), monthlyRes.json(), lstRes.json(), lstMonthlyRes.json(),
@@ -44,7 +49,12 @@ export function useProvinceData({ setNdviCache }) {
       setNdviMonthly(monthlyRes.ok ? (monthly.monthly?.filter(m => m.ndvi !== null) ?? []) : []);
       if (lstRes.ok) setLstStats(lst);
       setLstMonthly(lstMonthlyRes.ok ? (lstMonthlyJson.monthly?.filter(m => m.lst !== null) ?? []) : []);
-      if (statsRes.ok && stats.ndvi_mean != null) {
+      // ndviCache colours the country choropleth and holds ONE value per
+      // province, reduced to the newest year (/cache/ndvi-latest). Writing an
+      // older year's value into it would leave the map mixing years — one
+      // province drawn on 2021 while the rest sit on the latest. Only the
+      // current year may refresh it.
+      if (statsRes.ok && stats.ndvi_mean != null && year === CURRENT_YEAR) {
         setNdviCache(prev => ({ ...prev, [provinceName]: stats.ndvi_mean }));
       }
     } catch (err) {

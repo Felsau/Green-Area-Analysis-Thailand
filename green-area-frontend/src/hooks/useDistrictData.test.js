@@ -40,3 +40,35 @@ test('fetchDistrictNDVI: a newer district fetch supersedes an older one', async 
   expect(result.current.districtNdviLoading).toBe(false);
   expect(pushError).not.toHaveBeenCalled();  // abort is silent
 });
+
+test('fetchDistrictNDVI asks every endpoint for the year it was given', async () => {
+  fetchWithRetry.mockResolvedValue(okJson({ ndvi_mean: 0.28, monthly: [], lst_mean: 33 }));
+  const { result } = renderHook(() => useDistrictData());
+
+  await act(async () => {
+    await result.current.fetchDistrictNDVI('Bangkok Metropolis', 'Pathum Wan', 2021);
+  });
+
+  const urls = fetchWithRetry.mock.calls.map(([url]) => url);
+  expect(urls).toHaveLength(4);
+  urls.forEach(url => {
+    expect(url).toContain('/districts/Pathum%20Wan');
+    expect(url).toContain('year=2021');
+  });
+  expect(urls.some(u => u.endsWith('/districts/Pathum%20Wan/monthly?year=2021'))).toBe(true);
+});
+
+test('an older year never writes into the district colour cache', async () => {
+  // Same reasoning as the province choropleth: districtCache is newest-year only,
+  // so a 2021 lookup must not repaint one district on a different year.
+  fetchWithRetry.mockResolvedValue(okJson({ ndvi_mean: 0.28, monthly: [], lst_mean: 33 }));
+  const { result } = renderHook(() => useDistrictData());
+
+  await act(async () => {
+    await result.current.fetchDistrictNDVI('Bangkok Metropolis', 'Pathum Wan', 2021);
+  });
+
+  expect(result.current.districtNdviStats).toEqual(
+    expect.objectContaining({ ndvi_mean: 0.28 }));
+  expect(result.current.districtCache).toEqual({});
+});

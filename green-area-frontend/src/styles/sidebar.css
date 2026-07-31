@@ -82,6 +82,24 @@
   color: var(--ink-3);
 }
 
+/* Year picker in the province header — sits on the right of the status row.
+   Every figure in the panel below is computed for this year, so it reads as a
+   label + value pair rather than a form field. */
+.context__year {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-left: auto;
+  color: var(--ink-4);
+  white-space: nowrap;
+}
+
+.context__year .field {
+  width: auto;
+  padding: 3px var(--s-2);
+  color: var(--ink-1);
+}
+
 .status-dot {
   display: inline-flex;
   align-items: center;

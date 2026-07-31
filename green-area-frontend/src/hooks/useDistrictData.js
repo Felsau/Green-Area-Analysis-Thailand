@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { API_BASE } from '../constants';
+import { API_BASE, CURRENT_YEAR } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 import { apiFetch } from '../utils/apiClient';
@@ -65,7 +65,8 @@ export function useDistrictData() {
     }
   };
 
-  const fetchDistrictNDVI = async (provinceName, districtName) => {
+  // year: the app-wide selected year — see the same note in useProvinceData.
+  const fetchDistrictNDVI = async (provinceName, districtName, year = CURRENT_YEAR) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -79,11 +80,13 @@ export function useDistrictData() {
     setDistrictLstMonthly([]);
     try {
       const enc = encodeURIComponent;
+      const base = `${enc(provinceName)}/districts/${enc(districtName)}`;
+      const qs = `?year=${year}`;
       const [statsRes, monthlyRes, lstRes, lstMonthlyRes] = await Promise.all([
-        fetchWithRetry(`${API_BASE}/ndvi/${enc(provinceName)}/districts/${enc(districtName)}`, { signal }),
-        fetchWithRetry(`${API_BASE}/ndvi/${enc(provinceName)}/districts/${enc(districtName)}/monthly`, { signal }),
-        fetchWithRetry(`${API_BASE}/lst/${enc(provinceName)}/districts/${enc(districtName)}`, { signal }),
-        fetchWithRetry(`${API_BASE}/lst/${enc(provinceName)}/districts/${enc(districtName)}/monthly`, { signal }),
+        fetchWithRetry(`${API_BASE}/ndvi/${base}${qs}`, { signal }),
+        fetchWithRetry(`${API_BASE}/ndvi/${base}/monthly${qs}`, { signal }),
+        fetchWithRetry(`${API_BASE}/lst/${base}${qs}`, { signal }),
+        fetchWithRetry(`${API_BASE}/lst/${base}/monthly${qs}`, { signal }),
       ]);
       const [stats, monthly, lst, lstMonthlyJson] = await Promise.all([
         statsRes.json(), monthlyRes.json(), lstRes.json(), lstMonthlyRes.json(),
@@ -92,7 +95,10 @@ export function useDistrictData() {
       setDistrictNdviMonthly(monthlyRes.ok ? (monthly.monthly?.filter(m => m.ndvi !== null) ?? []) : []);
       if (lstRes.ok) setDistrictLstStats(lst);
       setDistrictLstMonthly(lstMonthlyRes.ok ? (lstMonthlyJson.monthly?.filter(m => m.lst !== null) ?? []) : []);
-      if (statsRes.ok && stats.ndvi_mean != null) {
+      // districtCache is the newest-year value per district (loadDistrictCache
+      // reduces /cache/districts the same way) and colours the district layer —
+      // keep older years out of it so the map never mixes years.
+      if (statsRes.ok && stats.ndvi_mean != null && year === CURRENT_YEAR) {
         const key = `${provinceName}::${districtName}`;
         setDistrictCache(prev => ({ ...prev, [key]: stats.ndvi_mean }));
       }
