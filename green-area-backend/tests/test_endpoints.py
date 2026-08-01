@@ -558,43 +558,43 @@ class TestSavedAreas:
         assert r.status_code == 400
 
     # ── create + list (mock DB) ──
-    def test_create_returns_row_without_owner_token(self, client, monkeypatch):
+    def test_create_returns_row_without_user_id(self, client, monkeypatch):
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
             lambda fn, **kw: _fake_response([{
                 "id": 7, "label": "พื้นที่ทดสอบ", "year": 2024, "area_km2": 120.0,
                 "province": None, "geometry": {"type": "Polygon", "coordinates": [self._SQUARE]},
-                "owner_token": "tok-abc", "created_at": "2024-01-01T00:00:00Z",
+                "user_id": "test-user-id", "created_at": "2024-01-01T00:00:00Z",
             }]))
-        r = c.post("/saved-areas", json=self._body(self._SQUARE, label="พื้นที่ทดสอบ"),
-                   headers={"X-Owner-Token": "tok-abc"})
+        r = c.post("/saved-areas", json=self._body(self._SQUARE, label="พื้นที่ทดสอบ"))
         assert r.status_code == 200
         d = r.json()
         assert d["id"] == 7
-        assert "owner_token" not in d        # ห้าม leak
-        assert d["mine"] is True             # token ตรง → ของฉัน
+        assert "user_id" not in d            # ห้าม leak
+        assert d["mine"] is True             # บัญชีตรง → ของฉัน
 
-    def test_list_marks_mine_and_hides_token(self, client, monkeypatch):
+    def test_list_marks_mine_and_hides_user_id(self, client, monkeypatch):
+        # แถวที่สองเป็นของบัญชีอื่น — จริง ๆ query กรอง user_id ไว้แล้วจึงไม่ควรหลุดมา
+        # แต่ยืนยันว่า _public คำนวณ `mine` จาก user_id ไม่ใช่แค่ตั้ง True ทื่อ ๆ
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
             lambda fn, **kw: _fake_response([
-                {"id": 1, "label": "A", "owner_token": "mine", "user_id": "test-user-id", "geometry": {}},
-                {"id": 2, "label": "B", "owner_token": "other", "user_id": "someone-else", "geometry": {}},
+                {"id": 1, "label": "A", "user_id": "test-user-id", "geometry": {}},
+                {"id": 2, "label": "B", "user_id": "someone-else", "geometry": {}},
             ]))
-        r = c.get("/saved-areas", headers={"X-Owner-Token": "mine"})
+        r = c.get("/saved-areas")
         assert r.status_code == 200
         rows = r.json()["data"]
-        assert all("owner_token" not in row for row in rows)
+        assert all("user_id" not in row for row in rows)
         assert rows[0]["mine"] is True
         assert rows[1]["mine"] is False
 
-    def test_list_without_owner_token_returns_own_saved_areas(self, client, monkeypatch):
-        # ไม่มี X-Owner-Token (ไม่มี legacy row ให้ fallback) → ยังคืนพื้นที่ของ
-        # บัญชีที่ล็อกอินอยู่ตามปกติ (กรองด้วย user_id เสมอ เพราะ router บังคับ login แล้ว)
+    def test_list_returns_own_saved_areas(self, client, monkeypatch):
+        # กรองด้วย user_id เสมอ เพราะ router บังคับ login แล้ว
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
             lambda fn, **kw: _fake_response([
-                {"id": 1, "owner_token": None, "user_id": "test-user-id", "geometry": {}},
+                {"id": 1, "user_id": "test-user-id", "geometry": {}},
             ]))
         r = c.get("/saved-areas")
         assert r.status_code == 200
@@ -608,7 +608,7 @@ class TestSavedAreas:
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
             lambda fn, **kw: _fake_response([
-                {"id": 1, "label": "A", "owner_token": "a", "user_id": "test-user-id", "geometry": {}},
+                {"id": 1, "label": "A", "user_id": "test-user-id", "geometry": {}},
             ]))
         r = c.get("/saved-areas?shared=true")
         assert r.status_code == 200
@@ -620,7 +620,7 @@ class TestSavedAreas:
     def test_get_one_not_found_returns_404(self, client, monkeypatch):
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call", lambda fn, **kw: _fake_response([]))
-        r = c.get("/saved-areas/999", headers={"X-Owner-Token": "tok"})
+        r = c.get("/saved-areas/999")
         assert r.status_code == 404
 
     def test_get_one_wrong_owner_returns_403(self, client, monkeypatch):
@@ -628,58 +628,61 @@ class TestSavedAreas:
         # ห้ามอ่าน polygon/analysis ของคนอื่นได้แค่เพราะเดา id ถูก
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
-            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "someone-else",
-                                              "user_id": "other-user-id", "geometry": {}}]))
-        r = c.get("/saved-areas/1", headers={"X-Owner-Token": "tok"})
+            lambda fn, **kw: _fake_response([{"id": 1, "user_id": "other-user-id",
+                                              "geometry": {}}]))
+        r = c.get("/saved-areas/1")
         assert r.status_code == 403
-
-    def test_get_one_owner_by_token_succeeds(self, client, monkeypatch):
-        c, _ = client
-        monkeypatch.setattr("routers.saved.supa_call",
-            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "tok",
-                                              "user_id": None, "geometry": {}}]))
-        r = c.get("/saved-areas/1", headers={"X-Owner-Token": "tok"})
-        assert r.status_code == 200
-        assert r.json()["id"] == 1
 
     def test_get_one_owner_by_account_succeeds(self, client, monkeypatch):
         # fixture ล็อกอินเป็น user id "test-user-id" — แถวที่ user_id ตรงกันต้องอ่านได้
-        # แม้ไม่มี/ไม่ตรง owner token (บัญชีที่ล็อกอินคือแหล่งความจริงหลัก)
+        # (บัญชีที่ล็อกอินเป็นทางเดียวที่ระบุเจ้าของ ตั้งแต่ migration 019)
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
-            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": None,
-                                              "user_id": "test-user-id", "geometry": {}}]))
+            lambda fn, **kw: _fake_response([{"id": 1, "user_id": "test-user-id",
+                                              "geometry": {}}]))
         r = c.get("/saved-areas/1")
         assert r.status_code == 200
+        assert r.json()["id"] == 1
 
     def test_get_one_admin_override_succeeds(self, client, monkeypatch):
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
-            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "someone-else",
-                                              "user_id": "other-user-id", "geometry": {}}]))
-        r = c.get("/saved-areas/1",
-                  headers={"X-Owner-Token": "tok", "X-Admin-Token": "test-token"})
+            lambda fn, **kw: _fake_response([{"id": 1, "user_id": "other-user-id",
+                                              "geometry": {}}]))
+        r = c.get("/saved-areas/1", headers={"X-Admin-Token": "test-token"})
         assert r.status_code == 200
+
+    def test_owner_token_header_no_longer_grants_access(self, client, monkeypatch):
+        # regression guard สำหรับ migration 019: X-Owner-Token เคยเป็นทางเข้าที่สอง
+        # ตอนนี้ต้องถูกเพิกเฉยสิ้นเชิง — ส่งมาตรงกับค่าอะไรก็ไม่ช่วยให้เห็นของคนอื่น
+        c, _ = client
+        monkeypatch.setattr("routers.saved.supa_call",
+            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "tok",
+                                              "user_id": "other-user-id", "geometry": {}}]))
+        r = c.get("/saved-areas/1", headers={"X-Owner-Token": "tok"})
+        assert r.status_code == 403
+        r = c.delete("/saved-areas/1", headers={"X-Owner-Token": "tok"})
+        assert r.status_code == 403
 
     # ── delete authorization ──
     def test_delete_not_found_returns_404(self, client, monkeypatch):
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call", lambda fn, **kw: _fake_response([]))
-        r = c.delete("/saved-areas/999", headers={"X-Owner-Token": "tok"})
+        r = c.delete("/saved-areas/999")
         assert r.status_code == 404
 
     def test_delete_wrong_owner_returns_403(self, client, monkeypatch):
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
-            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "someone-else"}]))
-        r = c.delete("/saved-areas/1", headers={"X-Owner-Token": "tok"})
+            lambda fn, **kw: _fake_response([{"id": 1, "user_id": "other-user-id"}]))
+        r = c.delete("/saved-areas/1")
         assert r.status_code == 403
 
     def test_delete_owner_match_succeeds(self, client, monkeypatch):
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
-            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "tok"}]))
-        r = c.delete("/saved-areas/1", headers={"X-Owner-Token": "tok"})
+            lambda fn, **kw: _fake_response([{"id": 1, "user_id": "test-user-id"}]))
+        r = c.delete("/saved-areas/1")
         assert r.status_code == 200
         assert r.json()["id"] == 1
 
@@ -687,9 +690,8 @@ class TestSavedAreas:
         # owner ไม่ตรง แต่ admin token ตรง (fixture ตั้ง ADMIN_TOKEN=test-token) → ลบได้
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
-            lambda fn, **kw: _fake_response([{"id": 1, "owner_token": "someone-else"}]))
-        r = c.delete("/saved-areas/1",
-                     headers={"X-Owner-Token": "tok", "X-Admin-Token": "test-token"})
+            lambda fn, **kw: _fake_response([{"id": 1, "user_id": "other-user-id"}]))
+        r = c.delete("/saved-areas/1", headers={"X-Admin-Token": "test-token"})
         assert r.status_code == 200
 
 

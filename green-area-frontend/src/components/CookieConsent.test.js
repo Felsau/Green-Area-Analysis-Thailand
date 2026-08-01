@@ -81,9 +81,8 @@ test('หมวดจำเป็นอย่างยิ่งปิดไม�
 test('แสดงชื่อคีย์ วัตถุประสงค์ และระยะเวลาของทุกรายการที่เก็บ', () => {
   setup({ settingsOpen: true });
   expect(screen.getByText('theme')).toBeInTheDocument();
-  expect(screen.getByText('green-area-owner')).toBeInTheDocument();
   expect(screen.getByText(/จำว่าผู้ใช้ล็อกอินอยู่/)).toBeInTheDocument();
-  expect(screen.getAllByText(/เก็บไว้:/).length).toBeGreaterThanOrEqual(4);
+  expect(screen.getAllByText(/เก็บไว้:/).length).toBeGreaterThanOrEqual(3);
 });
 
 test('เปิดสวิตช์แล้วกดบันทึกจึงมีผล', async () => {

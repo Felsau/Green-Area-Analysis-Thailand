@@ -65,7 +65,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["X-Admin-Token", "X-Owner-Token", "Authorization", "Content-Type"],
+    allow_headers=["X-Admin-Token", "Authorization", "Content-Type"],
 )
 
 # Rate limit แบบ global ต่อ IP — กันใช้ผิดประเภท + GEE quota หมด
@@ -109,8 +109,8 @@ else:
 # ล็อกอินก่อนถึงเรียก endpoint เหล่านี้ได้ — สอดคล้องกับ frontend ที่กันทั้ง
 # dashboard ไว้หลัง AuthGate อยู่แล้ว (ดู App.js) ตรงนี้ปิดช่องที่ยิง API ตรง
 # ข้าม UI ได้ (กัน GEE quota โดนใช้ฟรีโดยไม่ผ่านล็อกอิน) · saved.router รวมด้วย
-# ตั้งแต่ saved areas ผูกกับ user_id ของบัญชี (migration 013) — X-Owner-Token
-# เหลือไว้แค่ fallback หา legacy row เก่าที่ยังไม่มี user_id เท่านั้น
+# ตั้งแต่ saved areas ผูกกับ user_id ของบัญชี (migration 013) และตัด X-Owner-Token
+# ทิ้งไปแล้วใน migration 019 — user_id เป็นทางเดียวที่ระบุเจ้าของ
 app.include_router(ndvi.router, dependencies=[Depends(require_user)])
 app.include_router(lst.router, dependencies=[Depends(require_user)])
 app.include_router(recommend.router, dependencies=[Depends(require_user)])

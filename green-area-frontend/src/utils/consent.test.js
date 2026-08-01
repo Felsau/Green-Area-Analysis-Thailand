@@ -53,10 +53,8 @@ describe('บันทึกตัวเลือก', () => {
 describe('ถอนความยินยอมต้องลบของที่เก็บไว้จริง', () => {
   test('ปฏิเสธแล้วคีย์ในหมวดนั้นถูกลบทันที ไม่ใช่แค่หยุดเขียนเพิ่ม', () => {
     localStorage.setItem('theme', 'dark');
-    localStorage.setItem('green-area-owner', 'abc-123');
     rejectOptional();
     expect(localStorage.getItem('theme')).toBeNull();
-    expect(localStorage.getItem('green-area-owner')).toBeNull();
   });
 
   test('ถอนหลังเคยยอมรับก็ลบเช่นกัน', () => {
@@ -145,9 +143,14 @@ describe('รายการที่ประกาศไว้ตรงกั�
     }
   });
 
-  test('คีย์ที่ useTheme และ ownerToken เขียนจริง ถูกประกาศไว้ในหมวดที่เลือกได้', () => {
+  test('คีย์ที่ useTheme เขียนจริง ถูกประกาศไว้ในหมวดที่เลือกได้', () => {
     const functionalKeys = CATEGORIES.find(c => c.id === 'functional').items.map(i => i.key);
     expect(functionalKeys).toContain('theme');
-    expect(functionalKeys).toContain('green-area-owner');
+  });
+
+  test('ไม่ประกาศ green-area-owner แล้ว — ตัดทิ้งพร้อม migration 019', () => {
+    // เอกสารความยินยอมต้องตรงกับของที่เก็บจริง · ประกาศของที่ไม่ได้เก็บแล้ว = แจ้งเกินจริง
+    const allKeys = CATEGORIES.flatMap(c => c.items.map(i => i.key));
+    expect(allKeys).not.toContain('green-area-owner');
   });
 });
