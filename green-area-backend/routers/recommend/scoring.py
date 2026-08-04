@@ -213,7 +213,7 @@ def compute_priority(geom: ee.Geometry, year: int,
     pop = worldpop_pop_collection(WORLDPOP_YEAR).first()
     pop_img = ee.Image(pop).select('population').unmask(0)
     # Normalize ด้วย log base 1000 — สูตรคือ ln(pop+1) / ln(1000)
-    # ผลลัพธ์: pop=1 → 0, pop=1000 → 1, ตัดที่ [0,1]
+    # ผลลัพธ์: pop=0 → 0, pop=999 → 1, ตัดที่ [0,1] (pop=1 ได้ ~0.10)
     # เลือก log แทน linear เพราะ population ทั่วไทยเหลื่อมหลาย order of magnitude
     pop_need = (pop_img.add(1).log().divide(ee.Number(1000).log())
                 .clamp(0, 1).rename('pop_need'))
