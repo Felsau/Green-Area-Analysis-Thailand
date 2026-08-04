@@ -149,10 +149,15 @@ def summarize_acquisitions(times_ms: list) -> dict:
         return {"first_date": None, "last_date": None,
                 "months_covered": 0, "months_missing": list(range(1, 13)),
                 "seasons_covered": [], "seasons_missing": all_seasons,
-                "seasonally_representative": False}
+                "seasonally_representative": False, "year_complete": True}
     dates = sorted(datetime.fromtimestamp(t / 1000, tz=timezone.utc) for t in times_ms)
     months = {d.month for d in dates}
     seasons = {season_of(d.month, d.day) for d in dates}
+    # ปีที่ข้อมูลยังไม่จบ (ปีปัจจุบันที่ยังไม่ถึง 31 ธ.ค.) — "seasonally_representative"
+    # เช็คแค่ว่ามีภาพตกในหน้าต่างแต่ละฤดูบ้างหรือไม่ ไม่ได้เช็คว่าฤดูนั้นจบแล้ว จึง True
+    # ได้ตั้งแต่กลางปีทั้งที่ฤดูฝน/หนาวยังไม่ผ่านพ้น — ต้องแยกสถานะนี้ไว้ต่างหาก ไม่ให้
+    # ปนกับ "ครบทั้ง 3 ฤดู" จนดูเหมือนข้อมูลทั้งปีสมบูรณ์แล้ว
+    year_complete = dates[-1].year < datetime.now(timezone.utc).year
     return {
         "first_date": dates[0].strftime("%Y-%m-%d"),
         "last_date": dates[-1].strftime("%Y-%m-%d"),
@@ -161,6 +166,7 @@ def summarize_acquisitions(times_ms: list) -> dict:
         "seasons_covered": [s for s in all_seasons if s in seasons],
         "seasons_missing": [s for s in all_seasons if s not in seasons],
         "seasonally_representative": len(seasons) == len(all_seasons),
+        "year_complete": year_complete,
     }
 
 
@@ -223,6 +229,11 @@ def build_data_quality(times_ms: list, clear_obs_mean, clear_obs_min, ndvi_sd_me
                      " (ค่ารายปีจึงเอนไปทางฤดูที่มีภาพ)")
     else:
         parts.append("มีภาพครบทั้ง 3 ฤดูตามนิยามกรมอุตุนิยมวิทยา")
+    if not span["year_complete"]:
+        # "ครบทั้ง 3 ฤดู" ข้างบนหมายถึงมีภาพตกในหน้าต่างแต่ละฤดูบ้าง ไม่ใช่ฤดูนั้นจบแล้ว —
+        # ปีที่ยังไม่ถึง 31 ธ.ค. ต้องกำกับไว้ชัดๆ กันเข้าใจผิดว่าข้อมูลทั้งปีสมบูรณ์แล้ว
+        parts.append(f"ปีนี้ยังไม่จบ (ข้อมูลถึง {span['last_date']}) — ตัวเลขจะขยับ"
+                     "เมื่อมีภาพเพิ่มในช่วงที่เหลือของปี โดยเฉพาะฤดูที่ยังไม่ผ่านพ้น")
     if cloud_filter_pct != S2_CLOUD_FILTER_PCT:
         parts.append(f"ปีนี้ไม่มีภาพผ่านเกณฑ์เมฆ < {S2_CLOUD_FILTER_PCT}% "
                      f"จึงผ่อนเกณฑ์เป็น < {cloud_filter_pct}%")

@@ -6,7 +6,7 @@
 รัน: cd green-area-backend && pytest tests/test_ndvi_quality.py -v
 """
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from routers.ndvi.compute import (
     S2_CLOUD_FILTER_PCT, S2_CLOUD_FILTER_FALLBACK_PCT,
@@ -75,6 +75,23 @@ class TestSummarizeAcquisitions:
         out = summarize_acquisitions(times)
         assert out["first_date"] == "2024-02-03"
         assert out["last_date"] == "2024-11-28"
+
+    def test_past_year_is_year_complete(self):
+        out = summarize_acquisitions([_ms(2024, m) for m in range(1, 13)])
+        assert out["year_complete"] is True
+
+    def test_current_year_is_not_year_complete(self):
+        # ปีปัจจุบัน (ยังไม่ถึง 31 ธ.ค.) ต้องไม่ถูกนับว่า "จบปีแล้ว" แม้ภาพจะตกครบ
+        # ทั้ง 3 หน้าต่างฤดู — เข้าใจผิดว่าข้อมูลทั้งปีสมบูรณ์ได้ถ้าไม่แยกสถานะนี้ไว้
+        now = datetime.now(timezone.utc)
+        recent_ms = int((now - timedelta(days=1)).timestamp() * 1000)
+        out = summarize_acquisitions([recent_ms])
+        assert out["year_complete"] is False
+
+    def test_empty_collection_is_year_complete(self):
+        # ไม่มีภาพเลย = ไม่มีปีให้บอกว่า "ยังไม่จบ" — ค่า default ต้องไม่ไป trigger
+        # คำเตือน "ปีนี้ยังไม่จบ" ซ้ำกับข้อความ "ไม่มีภาพ" ที่ชัดเจนกว่าอยู่แล้ว
+        assert summarize_acquisitions([])["year_complete"] is True
 
 
 # ── ความไม่แน่นอน (standard error ของ median) ────────────────────────────────
@@ -183,3 +200,19 @@ class TestBuildDataQuality:
         assert dq["image_count"] == 0
         assert dq["first_date"] is None
         assert dq["uncertainty"] is None
+
+    def test_in_progress_year_note_warns_numbers_will_shift(self):
+        # ครบ 3 ฤดูตามนิยาม (มีภาพตกในหน้าต่างแต่ละฤดูบ้าง) แต่ปียังไม่จบจริง —
+        # note ต้องเตือนแยกจาก "มีภาพครบทั้ง 3 ฤดู" ไม่ให้อ่านว่าข้อมูลทั้งปีสมบูรณ์
+        now = datetime.now(timezone.utc)
+        recent_ms = int((now - timedelta(days=1)).timestamp() * 1000)
+        times = [_ms(now.year, 2), _ms(now.year, 6)] + [recent_ms]
+        dq = build_data_quality(times, 20, 5, 0.05, 0.5, S2_CLOUD_FILTER_PCT)
+        assert dq["year_complete"] is False
+        assert "ยังไม่จบ" in dq["note"]
+
+    def test_past_full_year_note_has_no_in_progress_warning(self):
+        dq = build_data_quality([_ms(2024, m) for m in range(1, 13)], 48.0, 12,
+                                0.09, 0.58, S2_CLOUD_FILTER_PCT)
+        assert dq["year_complete"] is True
+        assert "ยังไม่จบ" not in dq["note"]
