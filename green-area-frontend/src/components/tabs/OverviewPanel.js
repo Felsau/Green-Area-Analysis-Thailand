@@ -86,6 +86,11 @@ export default function OverviewPanel({ data, handlers }) {
             <div className="bar" style={{ marginTop: 4 }}>
               <div className="bar__fill" style={{ width: `${passPct}%` }} />
             </div>
+            <div className="helper" style={{ marginTop: 6 }}>
+              คำนวณจากพื้นที่สีเขียวทั้งจังหวัด (รวมป่า/เกษตร) ต่อประชากรทั้งจังหวัด —
+              ไม่ใช่พื้นที่สีเขียวที่เข้าถึงได้ในเขตเมืองตามเจตนาเดิมของเกณฑ์ WHO
+              จึง &ldquo;ผ่าน&rdquo; เกือบทุกจังหวัด ดูตัวเลขเทียบเขตเมืองได้ที่แท็บสถิติ → Urban Subset
+            </div>
 
             {(rankingStats.total < TOTAL_PROVINCES || computing) && (
               <div className="coverage">
@@ -128,7 +133,7 @@ export default function OverviewPanel({ data, handlers }) {
           {rankingData.length > 0 && (
             <section className="section">
               <div className="section__head">
-                <span className="section__title">ห้าจังหวัดที่ขาดแคลนพื้นที่สีเขียวที่สุด</span>
+                <span className="section__title">ห้าจังหวัดที่มีพื้นที่สีเขียวต่อคนน้อยที่สุด</span>
               </div>
               <div className="rank-table">
                 {rankingData.slice(0, 5).map(r => (

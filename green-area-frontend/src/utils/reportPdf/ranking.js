@@ -1,8 +1,8 @@
 // buildRankingReport — nation-wide ranking of provinces by green-area-per-capita.
 import { PROVINCE_TH, API_BASE } from '../../constants';
 import { ts, fmt, fetchImageDataUrl } from './helpers';
-import { COLOR, cover, sectionTitle, table } from './components';
-import { methodologySection } from './sections';
+import { COLOR, cover, sectionTitle, table, calloutBox } from './components';
+import { methodologySection, limitationsSection, referencesSection } from './sections';
 import { renderSegmentsToPdf } from './layout';
 
 export const buildRankingReport = async (data) => {
@@ -37,13 +37,25 @@ export const buildRankingReport = async (data) => {
       ],
       { firstColWidth: 240 }
     );
+    // ตัวเลขนี้คือพื้นที่สีเขียวทั้งจังหวัด (รวมป่า/เกษตร) หารด้วยประชากรทั้งจังหวัด — ไม่ใช่
+    // "พื้นที่สีเขียวที่เข้าถึงได้ในเมือง" ที่เกณฑ์ WHO 9 m²/คน ตั้งใจวัด (ดูรายละเอียดใน Limitations)
+    // จึงเกือบทุกจังหวัด "ผ่าน" แม้แต่กรุงเทพฯ ที่มีพื้นที่สีเขียวในเมืองต่ำมาก
+    h += calloutBox(
+      'หมายเหตุ: ตัวเลข m²/คน นี้คำนวณจากพื้นที่สีเขียวทั้งจังหวัด (รวมป่าและพื้นที่เกษตรนอกเมือง) ' +
+      'หารด้วยประชากรทั้งจังหวัด — ไม่ใช่พื้นที่สีเขียวที่ประชาชนเข้าถึงได้ในเขตเมืองตามเจตนาเดิมของเกณฑ์ WHO ' +
+      'จึง "ผ่านเกณฑ์" เกือบทุกจังหวัดรวมถึงกรุงเทพฯ ที่มีพื้นที่สีเขียวในเมืองต่ำมาก · ' +
+      'สำหรับตัวเลขที่เทียบเคียงเขตเมืองได้ตรงกว่า ดู Urban Subset ในรายงานรายจังหวัด (Stats)',
+      COLOR.orange
+    );
     sections.push({ label: 'Summary', html: h });
   }
 
   if (rankingData?.length > 0) {
     sections.push({
-      label: 'จังหวัดวิกฤต',
-      html: sectionTitle('จังหวัดวิกฤต — ต้องการพื้นที่สีเขียวมากที่สุด', { color: COLOR.red }) +
+      label: 'ต่ำที่สุด',
+      // "วิกฤต" เกินจริงเมื่อดูเป็นตัวเลขล้วน — จังหวัดต่ำสุดในตารางนี้ (เช่นกรุงเทพฯ) ยังคำนวณ
+      // ผ่านเกณฑ์ WHO เพราะตัวส่วนคือพื้นที่สีเขียวทั้งจังหวัด ไม่ใช่เฉพาะเขตเมือง (ดู Summary ด้านบน)
+      html: sectionTitle('จังหวัดพื้นที่สีเขียวต่อคนต่ำที่สุด (เทียบกันเอง)', { color: COLOR.red }) +
         table(
           ['อันดับ', 'จังหวัด', 'm²/คน', 'NDVI Mean', 'Green Area %'],
           rankingData.slice(0, 10).map(r => [
@@ -87,6 +99,8 @@ export const buildRankingReport = async (data) => {
   }
 
   sections.push({ label: 'Methodology', html: methodologySection(rankingYear) });
+  sections.push({ label: 'Limitations', html: limitationsSection() });
+  sections.push({ label: 'References', html: referencesSection() });
 
   await renderSegmentsToPdf(sections, `ranking_report_${rankingYear}_${ts()}.pdf`, { docTitle });
 };
