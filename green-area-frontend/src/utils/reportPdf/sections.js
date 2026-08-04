@@ -21,7 +21,11 @@ export const methodologySection = (year) => `
       // QA60 ช่วง ม.ค.2565–ก.พ.2567 → mask กลายเป็น no-op)
       ['NDVI', `Sentinel-2 SR Harmonized (${_yearRangeLabel(year)})`, '10 m', 'CLOUDY_PIXEL_PERCENTAGE < 20% (สำรอง < 80%) + Cloud Score+ cs ≥ 0.6 รายพิกเซล'],
       ['LST',  `Landsat 8/9 Collection 2 Level 2 (${_yearRangeLabel(year)})`, '30 m', 'CLOUD_COVER < 40% + QA_PIXEL cloud mask'],
-      ['ประชากร', 'WorldPop 100m (ผ่าน Supabase cache)', '100 m', '—'],
+      // province_population เป็นตาราง seed จาก census/ทะเบียนราษฎร์ (ปีล่าสุดที่มี) —
+      // คนละแหล่งกับ WorldPop raster ที่ใช้เฉพาะ Urban Subset (population_urban) · ปีที่ใช้จริง
+      // ของแต่ละแหล่งแสดงกำกับที่ตัวเลข (population_year / ปีใน endpoint นั้นๆ) ไม่ตายตัวในตารางนี้
+      ['ประชากร (ระดับจังหวัด)', 'ทะเบียนราษฎร์/census รายจังหวัด (seed table)', '—', '—'],
+      ['ประชากรในเขตเมือง (Urban Subset)', 'WorldPop (ผ่าน Supabase cache)', '100 m', '—'],
       ['ขอบเขตจังหวัด/อำเภอ', 'GADM v4.1 (Database of Global Administrative Areas)', '—', '—'],
     ],
     { firstColWidth: 110, keepTogether: true }
@@ -112,7 +116,8 @@ export const limitationsSection = () => {
         ${li(`<b>การวิเคราะห์เป็นรายปีเดียว</b> และอาจเป็นปีบางส่วน (เช่น ม.ค.–พ.ค. 2569) — ค่ารายปียังไม่สมบูรณ์เมื่อยังไม่ครบทุกฤดูกาล ทำให้แนวโน้มฤดูแล้ง/ฝนสะท้อนไม่ครบ`)}
         ${li(`<b>เมฆและช่องว่างของ revisit</b> — Sentinel-2 (5 วัน) และ Landsat (8 วันรวมทั้ง 8 และ 9) อาจไม่มีภาพที่ผ่านเกณฑ์เมฆในบางเดือน โดยเฉพาะในฤดูฝน — เดือนที่แสดง N/A ในกราฟคือเดือนเหล่านี้`)}
         ${li(`<b>ค่าเฉลี่ยรายปี vs รายเดือน</b> — ค่าเฉลี่ยรายปีคำนวณจาก single median composite ของทั้งปี ส่วนค่ารายเดือนคำนวณ median ของแต่ละเดือนแยกกัน ทั้งสองค่าจึงมักไม่เท่ากันเล็กน้อย เพราะวิธี aggregate ต่างกัน`)}
-        ${li(`<b>WorldPop</b> เป็น gridded population estimate ความละเอียด 100 m ที่ disaggregate มาจาก census ผ่าน covariates (สิ่งปลูกสร้าง, แสงไฟกลางคืน) — ไม่ใช่การสำรวจประชากรในตำแหน่งจริง การคำนวณ "พื้นที่ต่อคน" จึงมี uncertainty ระดับชุมชน`)}
+        ${li(`<b>ประชากรระดับจังหวัด</b> (ตัวหารของ m²/คน ในรายงานนี้และหน้าจัดอันดับ) มาจากทะเบียนราษฎร์/census ปีล่าสุดที่มีในระบบ — เป็นค่าคงที่ต่อจังหวัดต่อปี ไม่ได้ปรับตามฤดูกาล/การย้ายถิ่นระหว่างปี`)}
+        ${li(`<b>WorldPop</b> (ใช้เฉพาะ Urban Subset — population_urban) เป็น gridded population estimate ความละเอียด 100 m ที่ disaggregate มาจาก census ผ่าน covariates (สิ่งปลูกสร้าง, แสงไฟกลางคืน) — ไม่ใช่การสำรวจประชากรในตำแหน่งจริง การคำนวณ "พื้นที่ต่อคน" ในเขตเมืองจึงมี uncertainty ระดับชุมชน`)}
         ${li(`<b>NDVI Min</b> หลังการ mask water (NDVI &lt; 0) ที่ยังต่ำผิดปกติบ่งชี้ว่ามี cloud-shadow บาง pixel ที่หลุดเงื่อนไข — โปรดตีความ Min ด้วยความระมัดระวัง`)}
       </ol>
     </div>

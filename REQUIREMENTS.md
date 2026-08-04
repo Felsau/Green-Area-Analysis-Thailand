@@ -159,7 +159,12 @@
 
 - **Cloud cover** ภาคใต้/พื้นที่ฝนชุก ภาพ Sentinel-2 ที่ผ่าน filter น้อย ค่า NDVI บางเดือน
   ความไม่แน่นอนสูง — ระบบ fallback ใช้ภาพ cloud cover ≤ 80% `[R12]`
-- **WorldPop** ข้อมูลประชากรถึงปี 2021 — เทียบ WHO ปีปัจจุบันอาจคลาดเคลื่อนจาก demographic change
+- **ประชากรระดับจังหวัด** (`province_population`, ตัวหารของ m²/คน ในการจัดอันดับและ Stats) มาจาก
+  ทะเบียนราษฎร์/census — seed table ปีเดียว (ไม่ใช่ WorldPop) เทียบ WHO ปีปัจจุบันอาจคลาดเคลื่อนจาก
+  demographic change ที่เกิดหลังปีสำรวจ
+- **WorldPop** ใช้เฉพาะ Urban Subset (`population_urban`, FR-12) — ปี WorldPop ที่ระบบใช้กำหนดผ่าน env
+  `WORLDPOP_YEAR` (ค่าเริ่มต้น 2020, ช่วงที่มีจริงใน GEE catalog คือ 2000–2020) คนละแหล่งและคนละปีกับ
+  ประชากรระดับจังหวัดข้างต้น
 - **Priority Score เป็น proxy** อิง remote sensing ไม่ใช่ ground truth — ไม่ครอบคลุมสิทธิ์ที่ดิน/
   วิศวกรรม การปลูกจริงต้องสำรวจหน้างาน (จึงเป็นที่มาของ FR-26) `[R4]`
 - **Cooling effect** ค่า ΔLST ใช้ค่าเฉลี่ยจาก meta-analysis ของ Bowler et al. 2010 `[R10]`
