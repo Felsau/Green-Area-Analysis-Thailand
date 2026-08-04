@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { API_BASE, CURRENT_YEAR } from '../constants';
+import { API_BASE, CURRENT_YEAR, DATA_START_YEAR } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
-const DEFAULT_START = 2015;
+// ปีแรกที่มีภาพ Sentinel-2 — ย้ายไป constants แล้วเพื่อให้หน้าแรก (ตัวเลข
+// "ชุดข้อมูลรายปี") กับ time-lapse อ้างปีเดียวกัน ไม่ hardcode แยกจนเพี้ยนกัน
+const DEFAULT_START = DATA_START_YEAR;
 
 // Time-lapse animation บนแผนที่ — เล่น NDVI/LST annual จาก cache (ไม่ trigger GEE)
 // timelapseCache ทำงานเป็น drop-in replacement ของ ndviCache: { province: value }

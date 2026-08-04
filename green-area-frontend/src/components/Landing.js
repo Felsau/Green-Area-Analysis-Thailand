@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { API_BASE, CURRENT_YEAR, PROVINCE_TH } from '../constants';
+import { API_BASE, CURRENT_YEAR, PROVINCE_TH, TOTAL_DISTRICTS, DATA_YEAR_SPAN } from '../constants';
 
 // Public-facing intro page shown before the dashboard ("Atlas Index" direction):
 // an editorial, magazine-grade cover for the dataset. Pure presentation plus a
@@ -160,11 +160,15 @@ export default function Landing({ onEnter, theme, onToggleTheme, onCookieSetting
     return () => io.disconnect();
   }, [topRows.length]);
 
+  // `total` = จำนวนจังหวัดใน ranking — เคยถูกนำมาแสดงเป็นจำนวน "อำเภอที่มีข้อมูล"
+  // ทำให้หน้าแรกขึ้น "77 อำเภอ · เขต (มีข้อมูล)" ทั้งที่ทั้งประเทศมี 928 อำเภอ และ
+  // อำเภอที่มีข้อมูลจริงใน cache มีหลักสิบ · ranking เป็น endpoint ระดับจังหวัด
+  // ไม่มีตัวเลขอำเภอให้เลย จึงแสดงจำนวนอำเภอทั้งประเทศตรง ๆ ไม่อ้างว่ามีข้อมูลครบ
   const stats = [
     ['77', 'จังหวัด', 'Provinces'],
-    [total ? String(total) : '928', total ? 'อำเภอ · เขต (มีข้อมูล)' : 'อำเภอ · เขต', 'Districts'],
+    [String(TOTAL_DISTRICTS), 'อำเภอ · เขต', 'Districts'],
     ['10', 'ความละเอียด NDVI', 'Resolution', 'ม.'],
-    ['9', 'ชุดข้อมูลรายปี', 'Annual series', 'ปี'],
+    [String(DATA_YEAR_SPAN), 'ชุดข้อมูลรายปี', 'Annual series', 'ปี'],
   ];
 
   return (

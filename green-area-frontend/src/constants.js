@@ -86,6 +86,15 @@ export const INITIAL_VIEW_STATE = {
 export const CURRENT_YEAR = new Date().getFullYear();
 export const AVAILABLE_YEARS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - 5 + i);
 
+// ปีแรกที่มีภาพ Sentinel-2 ใช้ได้ — จุดเริ่มของ time-lapse (FR-10) และฐานของ
+// "ชุดข้อมูลรายปี" ที่โฆษณาบนหน้าแรก · ตัวเลขเดียวกันสองที่ ต้องไม่ hardcode แยก
+export const DATA_START_YEAR = 2015;
+export const DATA_YEAR_SPAN = CURRENT_YEAR - DATA_START_YEAR + 1;
+
+// จำนวนอำเภอ/เขตทั้งประเทศ — ตรงกับ thailand_districts.json ที่ backend โหลด
+// (dependencies._load_district_geometries · log "โหลดขอบเขต 928 อำเภอ")
+export const TOTAL_DISTRICTS = 928;
+
 // แหล่งข้อมูลการใช้ที่ดิน — ตรงกับ LANDUSE_SOURCES ฝั่ง backend (schema ผลลัพธ์เดียวกัน)
 //   dynamic_world = ดาวเทียมจำแนกอัตโนมัติ รายปี ทั้งประเทศ
 //   ldd           = ข้อมูลราชการ LDD 1:25,000 สำรวจภาคสนาม (มีรายละเอียด 96 ประเภท)
