@@ -419,6 +419,61 @@ class TestCooling:
         assert r.status_code == 200
         assert r.json()["n_districts"] == 2
 
+    def test_small_n_does_not_claim_strength(self, client, monkeypatch):
+        """n=2 ฟิตเส้นตรงได้ R²=1.0 เสมอโดยนิยาม (2 จุดพอดีกับ 2 พารามิเตอร์) —
+        ต้องไม่ติดป้ายระดับ "(ชัดเจน," / "(ปานกลาง," / "(อ่อน," ที่แปลว่ามีนัยสำคัญทางสถิติ
+        (เช็คแบบมีวงเล็บ+คอมมาให้ตรงรูปแบบจริงใน _interpret — คำว่า "ชัดเจน" เฉยๆ ยังใช้ได้
+        ในความหมายทั่วไป เช่น "สรุปได้ชัดเจน", ไม่ใช่ป้ายระดับ)"""
+        c, _ = client
+        from dependencies import PROVINCE_GEOMETRIES
+        sample = next(iter(PROVINCE_GEOMETRIES))
+        state = {"n": 0}
+
+        def fake_supa(fn, **kw):
+            state["n"] += 1
+            if state["n"] == 1:
+                return _fake_response([
+                    {"district": "A", "ndvi_mean": 0.6},
+                    {"district": "B", "ndvi_mean": 0.2},
+                ])
+            return _fake_response([
+                {"district": "A", "lst_mean": 28.0},
+                {"district": "B", "lst_mean": 34.0},
+            ])
+        monkeypatch.setattr("routers.maps.analysis.cooling.supa_call", fake_supa)
+
+        r = c.get(f"/analysis/cooling/{sample}")
+        assert r.status_code == 200
+        d = r.json()
+        assert d["regression"]["r2"] == 1.0          # ฟิต 2 จุดสมบูรณ์แบบเสมอ
+        assert "ยังน้อยเกินกว่าจะสรุปได้ชัดเจน" in d["interpretation"]
+        for label in ("(ชัดเจน,", "(ปานกลาง,", "(อ่อน,"):
+            assert label not in d["interpretation"]
+
+    def test_enough_districts_claims_strength(self, client, monkeypatch):
+        c, _ = client
+        from dependencies import PROVINCE_GEOMETRIES
+        sample = next(iter(PROVINCE_GEOMETRIES))
+        state = {"n": 0}
+        districts = ["A", "B", "C", "D", "E"]
+        ndvi = [0.2, 0.3, 0.4, 0.5, 0.6]
+        lst = [34.0, 33.0, 32.0, 31.0, 30.0]
+
+        def fake_supa(fn, **kw):
+            state["n"] += 1
+            if state["n"] == 1:
+                return _fake_response([{"district": d, "ndvi_mean": v}
+                                       for d, v in zip(districts, ndvi)])
+            return _fake_response([{"district": d, "lst_mean": v}
+                                   for d, v in zip(districts, lst)])
+        monkeypatch.setattr("routers.maps.analysis.cooling.supa_call", fake_supa)
+
+        r = c.get(f"/analysis/cooling/{sample}")
+        assert r.status_code == 200
+        d = r.json()
+        assert d["n_districts"] == 5
+        assert "ชัดเจน" in d["interpretation"]
+
     def test_insufficient_data_returns_null_regression(self, client, monkeypatch):
         c, _ = client
         from dependencies import PROVINCE_GEOMETRIES

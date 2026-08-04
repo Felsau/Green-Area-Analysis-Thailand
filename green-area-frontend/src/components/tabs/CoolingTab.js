@@ -107,7 +107,11 @@ export default function CoolingTab({ data, handlers }) {
               <div className="kv">
                 <div className="kv__label">R²</div>
                 <div className="kv__value">{reg.r2.toFixed(2)}</div>
-                <div className="kv__hint">ความกระชับของเส้น</div>
+                <div className="kv__hint">
+                  {coolingData.n_districts < 5
+                    ? `n=${coolingData.n_districts} — ยังน้อยเกินสรุปนัยสำคัญ`
+                    : 'ความกระชับของเส้น'}
+                </div>
               </div>
             </div>
             <div className="note">{coolingData.interpretation}</div>
