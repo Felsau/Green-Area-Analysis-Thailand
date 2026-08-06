@@ -23,4 +23,4 @@ requests==2.34.2
 slowapi==0.1.9
 
 # Dev/test only
-pytest==9.0.3
+pytest==9.1.1
