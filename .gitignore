@@ -70,3 +70,9 @@ Landuse_Bangkok_2566*.zip
 # ผลลัพธ์จาก validate_green_area.py (NFR-08) — regenerate ได้ทุกครั้งที่รัน
 # สรุปตัวเลขจริงถูกคัดลงใน REQUIREMENTS.md §5 แล้ว ไม่ต้อง commit ไฟล์ดิบ
 green-area-backend/reports/
+
+# รูป .png ที่ scripts/ ในโฟลเดอร์เดียวกันวาดออกมา — regenerate ได้ด้วย
+#   green-area-backend/.venv/bin/python "ภาพร่างไดอะแกรมใหม่/scripts/gen_class.py"
+# (ต้องมี Pillow + ~/Library/Fonts/THSarabunNew.ttf) · ตัวสคริปต์ track ไว้แล้ว
+# ฉบับที่ใช้จริงฝังอยู่ใน .docx ซึ่งเก็บนอก repo ตามนโยบายด้านบน
+ภาพร่างไดอะแกรมใหม่/*.png
