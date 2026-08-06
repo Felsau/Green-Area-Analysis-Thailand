@@ -1,4 +1,5 @@
 import { PROVINCE_TH, AVAILABLE_YEARS } from '../../constants';
+import { WHO_CAVEAT_SHORT } from '../../utils/greenMetric';
 import { exportRankingCsv } from '../../utils/exportUtils';
 import ExportBar from '../ui/ExportBar';
 import { Note } from '../ui/Metric';
@@ -73,12 +74,12 @@ export default function OverviewPanel({ data, handlers }) {
             </div>
             <div className="kv-row">
               <div className="kv">
-                <div className="kv__label">ผ่าน WHO</div>
+                <div className="kv__label">สูงกว่าค่าอ้างอิง WHO</div>
                 <div className="kv__value">{rankingStats.whoPass}</div>
                 <div className="kv__hint">{passPct}% ของที่จัดอันดับ</div>
               </div>
               <div className="kv">
-                <div className="kv__label">ต่ำกว่า WHO</div>
+                <div className="kv__label">ต่ำกว่าค่าอ้างอิง</div>
                 <div className="kv__value">{rankingStats.whoFail}</div>
                 <div className="kv__hint">{100 - passPct}% ของที่จัดอันดับ</div>
               </div>
@@ -87,9 +88,8 @@ export default function OverviewPanel({ data, handlers }) {
               <div className="bar__fill" style={{ width: `${passPct}%` }} />
             </div>
             <div className="helper" style={{ marginTop: 6 }}>
-              คำนวณจากพื้นที่สีเขียวทั้งจังหวัด (รวมป่า/เกษตร) ต่อประชากรทั้งจังหวัด —
-              ไม่ใช่พื้นที่สีเขียวที่เข้าถึงได้ในเขตเมืองตามเจตนาเดิมของเกณฑ์ WHO
-              จึง &ldquo;ผ่าน&rdquo; เกือบทุกจังหวัด ดูตัวเลขเทียบเขตเมืองได้ที่แท็บสถิติ → Urban Subset
+              {WHO_CAVEAT_SHORT} — ตัวเลขนี้จึงสูงกว่าค่าอ้างอิงเกือบทุกจังหวัด
+              และ<strong>ไม่ได้แปลว่าพื้นที่สวนสาธารณะเพียงพอ</strong>
             </div>
 
             {(rankingStats.total < TOTAL_PROVINCES || computing) && (

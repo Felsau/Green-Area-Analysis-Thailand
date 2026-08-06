@@ -106,23 +106,29 @@ class TestIsStale:
 
 # ── compute_who_status ────────────────────────────────────────────────────────
 class TestComputeWhoStatus:
-    def test_pass_when_above_9_m2_per_person(self):
-        # 100m² × 1M people = 0.1 m²/คน · ต้องลอง pop น้อย
-        # 100_000_000 m² / 1_000_000 = 100 m²/คน → ผ่าน
+    # ── ค่าตัวเลขต้องถูกต้องและปรากฏในข้อความ ────────────────────────────────
+    def test_computes_m2_per_person_above_reference(self):
+        # 100_000_000 m² / 1_000_000 คน = 100 m²/คน
         m2pp, status = compute_who_status(green_area_m2=100_000_000, population=1_000_000)
         assert m2pp == 100.0
-        assert "ผ่านมาตรฐาน" in status
+        assert "100.00" in status
 
-    def test_fail_when_below_9_m2_per_person(self):
-        # 5_000_000 m² / 1_000_000 = 5 m²/คน → ต่ำกว่า
+    def test_computes_m2_per_person_below_reference(self):
+        # 5_000_000 m² / 1_000_000 คน = 5 m²/คน
         m2pp, status = compute_who_status(green_area_m2=5_000_000, population=1_000_000)
         assert m2pp == 5.0
-        assert "ต่ำกว่ามาตรฐาน" in status
+        assert "5.00" in status
 
-    def test_at_exact_9_threshold_passes(self):
-        m2pp, status = compute_who_status(green_area_m2=9_000_000, population=1_000_000)
-        assert m2pp == 9.0
-        assert "ผ่าน" in status
+    # ── ห้ามตัดสินผ่าน/ไม่ผ่าน ───────────────────────────────────────────────
+    # ตัวชี้วัดนี้นับพืชพรรณทุกชนิด (NDVI > 0.3) ไม่ใช่พื้นที่สาธารณะที่เข้าถึงได้
+    # ตามนิยาม WHO จึงเทียบเกณฑ์ตรง ๆ ไม่ได้ (ดู docstring ของ compute_who_status)
+    # เทสต์นี้กันการถอยกลับไปใส่ถ้อยคำตัดสิน — เดิมเคยเป็น "ผ่านมาตรฐาน WHO ✅ (...)"
+    @pytest.mark.parametrize("green_m2", [100_000_000, 9_000_000, 5_000_000])
+    def test_never_claims_pass_or_fail(self, green_m2):
+        _, status = compute_who_status(green_area_m2=green_m2, population=1_000_000)
+        for verdict in ("ผ่าน", "ต่ำกว่ามาตรฐาน", "✅", "⚠️"):
+            assert verdict not in status, f"who_status ต้องไม่ตัดสิน แต่พบ {verdict!r}: {status}"
+        assert "ค่าอ้างอิง" in status
 
     def test_zero_population_returns_none(self):
         m2pp, status = compute_who_status(green_area_m2=1000, population=0)

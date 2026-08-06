@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getNdviLabel, getLstLabel } from '../../colorUtils';
 import { fmtArea } from '../../utils/formatArea';
+import { WHO_REFERENCE_M2, describeVsWhoReference } from '../../utils/greenMetric';
 import { Figure, KVRow, KV, Note } from '../ui/Metric';
 import ImpactSection from '../tabs/recommend/ImpactSection';
 import SpeciesSection from '../tabs/recommend/SpeciesSection';
@@ -49,9 +50,12 @@ export default function DrawResultCard({
           hint={`WorldPop ${result.worldpop_year}`}
         />
         <KV
-          label="สีเขียวต่อหัว"
+          label="พืชพรรณต่อหัว"
           value={result.green_area_m2_per_person != null ? `${result.green_area_m2_per_person.toFixed(1)} m²` : '—'}
-          hint={result.who_status || null}
+          // คิดสดจากตัวเลข ไม่อ่านข้อความ who_status ที่กำลังเลิกใช้
+          hint={result.green_area_m2_per_person != null
+            ? describeVsWhoReference(result.green_area_m2_per_person, WHO_REFERENCE_M2)
+            : null}
         />
       </KVRow>
 

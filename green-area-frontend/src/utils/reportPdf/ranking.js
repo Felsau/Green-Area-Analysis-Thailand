@@ -4,6 +4,7 @@ import { ts, fmt, fetchImageDataUrl } from './helpers';
 import { COLOR, cover, sectionTitle, table, calloutBox } from './components';
 import { methodologySection, limitationsSection, referencesSection } from './sections';
 import { renderSegmentsToPdf } from './layout';
+import { WHO_CAVEAT_FULL } from '../greenMetric';
 
 export const buildRankingReport = async (data) => {
   const { rankingData, rankingYear, rankingStats } = data;
@@ -32,21 +33,15 @@ export const buildRankingReport = async (data) => {
       ['รายการ', 'จำนวน', 'สัดส่วน'],
       [
         ['จังหวัดทั้งหมดในระบบ', String(rankingStats.total), '100%'],
-        ['ผ่านมาตรฐาน WHO', String(rankingStats.whoPass), `${passPct}%`],
-        ['ต่ำกว่ามาตรฐาน WHO', String(rankingStats.whoFail), `${(100 - parseFloat(passPct)).toFixed(1)}%`],
+        ['สูงกว่าค่าอ้างอิง WHO 9 m²/คน', String(rankingStats.whoPass), `${passPct}%`],
+        ['ต่ำกว่าค่าอ้างอิง', String(rankingStats.whoFail), `${(100 - parseFloat(passPct)).toFixed(1)}%`],
       ],
       { firstColWidth: 240 }
     );
-    // ตัวเลขนี้คือพื้นที่สีเขียวทั้งจังหวัด (รวมป่า/เกษตร) หารด้วยประชากรทั้งจังหวัด — ไม่ใช่
-    // "พื้นที่สีเขียวที่เข้าถึงได้ในเมือง" ที่เกณฑ์ WHO 9 m²/คน ตั้งใจวัด (ดูรายละเอียดใน Limitations)
-    // จึงเกือบทุกจังหวัด "ผ่าน" แม้แต่กรุงเทพฯ ที่มีพื้นที่สีเขียวในเมืองต่ำมาก
-    h += calloutBox(
-      'หมายเหตุ: ตัวเลข m²/คน นี้คำนวณจากพื้นที่สีเขียวทั้งจังหวัด (รวมป่าและพื้นที่เกษตรนอกเมือง) ' +
-      'หารด้วยประชากรทั้งจังหวัด — ไม่ใช่พื้นที่สีเขียวที่ประชาชนเข้าถึงได้ในเขตเมืองตามเจตนาเดิมของเกณฑ์ WHO ' +
-      'จึง "ผ่านเกณฑ์" เกือบทุกจังหวัดรวมถึงกรุงเทพฯ ที่มีพื้นที่สีเขียวในเมืองต่ำมาก · ' +
-      'สำหรับตัวเลขที่เทียบเคียงเขตเมืองได้ตรงกว่า ดู Urban Subset ในรายงานรายจังหวัด (Stats)',
-      COLOR.orange
-    );
+    // ไม่เรียกว่า "ผ่าน/ไม่ผ่านเกณฑ์" เพราะตัวชี้วัดนี้นับพืชพรรณทุกชนิดจาก NDVI > 0.3
+    // ไม่ใช่พื้นที่สาธารณะที่เข้าถึงได้ตามนิยาม WHO — วัดจริงแล้วแม้แต่ในเขต built-up
+    // ของกรุงเทพฯ (30.1 m²/คน) ก็ยังสูงกว่า 9 → ดู utils/greenMetric.js
+    h += calloutBox(WHO_CAVEAT_FULL, COLOR.orange);
     sections.push({ label: 'Summary', html: h });
   }
 

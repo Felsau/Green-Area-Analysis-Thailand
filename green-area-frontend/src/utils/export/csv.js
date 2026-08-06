@@ -1,5 +1,6 @@
 // CSV exports สำหรับแต่ละแท็บ (stats / trend / compare / ranking / recommend).
 import { PROVINCE_TH } from '../../constants';
+import { WHO_REFERENCE_M2, describeVsWhoReference } from '../greenMetric';
 import { ts, downloadCsv } from './shared';
 
 // คุณภาพ composite ที่ backend ส่งมากับค่า NDVI (NFR-07) — แนบท้ายบล็อก NDVI ทุกครั้ง
@@ -96,7 +97,10 @@ export const exportStatsCsv = (data) => {
     if (ndviStats.green_area_m2_per_person != null)
       rows.push(['Green Area m²/คน', ndviStats.green_area_m2_per_person]);
     if (ndviStats.population) rows.push(['ประชากร', ndviStats.population]);
-    if (ndviStats.who_status) rows.push(['สถานะ WHO', ndviStats.who_status]);
+    // ไม่ export who_status (ข้อความใน DB ที่กำลังเลิกใช้) — คิดสดจากตัวเลขแทน
+    if (ndviStats.green_area_m2_per_person != null)
+      rows.push(['เทียบค่าอ้างอิง WHO 9 m²/คน',
+        describeVsWhoReference(ndviStats.green_area_m2_per_person, WHO_REFERENCE_M2)]);
     canopyRows(ndviStats.canopy).forEach(r => rows.push(r));
     dataQualityRows(ndviStats.data_quality).forEach(r => rows.push(r));
     rows.push([]);
@@ -194,8 +198,8 @@ export const exportRankingCsv = (data) => {
   const rows = [['อันดับจังหวัด', `ปี ${rankingYear}`]];
   if (rankingStats) {
     rows.push(['ทั้งหมด', rankingStats.total]);
-    rows.push(['ผ่าน WHO', rankingStats.whoPass]);
-    rows.push(['ต่ำกว่า WHO', rankingStats.whoFail]);
+    rows.push(['สูงกว่าค่าอ้างอิง WHO 9 m²/คน', rankingStats.whoPass]);
+    rows.push(['ต่ำกว่าค่าอ้างอิง', rankingStats.whoFail]);
   }
   rows.push([]);
   rows.push(['อันดับ', 'จังหวัด (EN)', 'จังหวัด (TH)', 'm²/คน', 'NDVI Mean', 'Green Area %']);

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { API_BASE, CURRENT_YEAR, PROVINCE_TH, TOTAL_DISTRICTS, DATA_YEAR_SPAN } from '../constants';
+import { WHO_REFERENCE_M2 } from '../utils/greenMetric';
 
 // Public-facing intro page shown before the dashboard ("Atlas Index" direction):
 // an editorial, magazine-grade cover for the dataset. Pure presentation plus a
@@ -115,7 +116,10 @@ export default function Landing({ onEnter, theme, onToggleTheme, onCookieSetting
       th: PROVINCE_TH[d.province] || d.province,
       en: d.province,
       val: fmt(d.green_area_m2_per_person),
-      warn: typeof d.who_status === 'string' && d.who_status.includes('ต่ำกว่า'),
+      // คิดจากตัวเลขตรง ๆ — เดิม match ข้อความใน who_status ซึ่งพังเงียบทันทีที่แก้ถ้อยคำ
+      // (main.py:324 เตือนเรื่องนี้ไว้เองอยู่แล้ว) · who_status กำลังเลิกใช้
+      warn: d.green_area_m2_per_person != null
+        && d.green_area_m2_per_person < WHO_REFERENCE_M2,
       base: Math.max(0.18, Math.min(0.8, d.ndvi_mean ?? 0.4)),
     });
     const n = data.length;

@@ -1,4 +1,5 @@
 import { getNdviLabel, getLstLabel } from '../../colorUtils';
+import { WHO_REFERENCE_M2, describeVsWhoReference } from '../../utils/greenMetric';
 import { exportStatsCsv } from '../../utils/exportUtils';
 import Accordion from '../ui/Accordion';
 import { Figure, KVRow, KV, Note } from '../ui/Metric';
@@ -151,7 +152,11 @@ export default function StatsTab({ data, handlers }) {
               <KV
                 label="ต่อหัวประชากร"
                 value={ndviStats?.green_area_m2_per_person != null ? `${ndviStats.green_area_m2_per_person.toFixed(1)} m²` : '—'}
-                hint={ndviStats?.who_status || null}
+                // คิดสดจากตัวเลข ไม่อ่าน who_status ที่เก็บเป็นข้อความไว้ใน DB
+                // (แถวเก่ามีถ้อยคำคนละแบบ และกำลังเลิกใช้คอลัมน์นั้น)
+                hint={ndviStats?.green_area_m2_per_person != null
+                  ? describeVsWhoReference(ndviStats.green_area_m2_per_person, WHO_REFERENCE_M2)
+                  : null}
               />
             </KVRow>
             {/* ประชากร fallback: m²/คน อ้างอิงประชากรคนละปีกับ NDVI — บอกปีจริงให้ผู้ใช้รู้ */}

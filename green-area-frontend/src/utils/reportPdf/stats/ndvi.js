@@ -5,6 +5,7 @@ import { monthlyBarChart } from '../charts';
 import { dataQualityRows, dataQualityCallout, dataQualityMethodNote } from './dataQuality';
 import { canopyRows, canopyCallout, canopyMethodNote } from './canopy';
 import { validationRows, validationCallout, validationMethodNote } from './validation';
+import { WHO_REFERENCE_M2, describeVsWhoReference } from '../../greenMetric';
 
 export const ndviSections = (ctx) => {
   const {
@@ -48,9 +49,9 @@ export const ndviSections = (ctx) => {
     ]);
   }
   ndviRows.push(['ประชากร', fmtInt(ndviStats.population), 'จาก WorldPop 100m']);
-  ndviRows.push(['พื้นที่สีเขียว/คน', `${fmt(ndviStats.green_area_m2_per_person, 2)} m²`,
-    'เทียบเกณฑ์ WHO ≥ 9 (ดูข้อจำกัด)']);
-  ndviRows.push(['สถานะตามเกณฑ์ตัวเลข', ndviStats.who_status || '—', '']);
+  ndviRows.push(['พืชพรรณ/คน', `${fmt(ndviStats.green_area_m2_per_person, 2)} m²`,
+    describeVsWhoReference(ndviStats.green_area_m2_per_person, WHO_REFERENCE_M2)
+      + ' (ดูข้อจำกัด)']);
 
   ndviHtml += table(
     ['ตัวชี้วัด', 'ค่า', 'การตีความ'],

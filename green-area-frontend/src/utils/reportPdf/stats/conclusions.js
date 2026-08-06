@@ -4,7 +4,9 @@ import {
   methodologySection, conclusionsSection,
   limitationsSection, referencesSection,
 } from '../sections';
-import { WHO_STANDARD_M2 } from '../../../constants';
+import {
+  WHO_REFERENCE_M2, WHO_CAVEAT_FULL, describeVsWhoReference,
+} from '../../greenMetric';
 
 const buildComparisonText = (contextResp) => {
   if (!contextResp?.target?.ndvi_rank) return '';
@@ -13,36 +15,27 @@ const buildComparisonText = (contextResp) => {
     `— ดูรายชื่อจริงในตาราง "ลำดับ NDVI ใน N จังหวัดที่มีข้อมูล" ของส่วน Comparison · อันดับยังเปลี่ยนได้เมื่อมีข้อมูลครบ 77 จังหวัด`;
 };
 
+// รายงานค่าที่วัดได้ตามจริง + เทียบเส้นอ้างอิง WHO แบบไม่ตัดสินผ่าน/ตก
+// (ตัวชี้วัดนี้นับพืชพรรณทุกชนิด ไม่ใช่พื้นที่สาธารณะที่เข้าถึงได้ — ดู utils/greenMetric.js)
 const buildDeficitText = (ndviStats, urbanResp) => {
-  // ถ้ามี urban subset (Phase B-3) → ใช้เป็น primary metric เพราะตรงกับเจตนา WHO
+  // ถ้ามี urban subset (Phase B-3) → ใช้เป็นค่าหลัก เพราะจำกัดขอบเขตให้ตรงกับที่คนอาศัยอยู่
   if (urbanResp?.m2_per_person_urban != null && urbanResp.population_urban > 0) {
     const curU = urbanResp.m2_per_person_urban;
-    const deficitU = Math.max(0, WHO_STANDARD_M2 - curU);
     const provVal = ndviStats?.green_area_m2_per_person;
     const provNote = provVal != null
-      ? ` <i>(ค่ารวมระดับจังหวัด ${provVal.toFixed(0)} m²/คน นับรวมป่า+เกษตรนอกเมืองด้วย จึงสูงเกินจริงสำหรับเปรียบ WHO)</i>`
+      ? ` <i>(ค่ารวมระดับจังหวัด ${provVal.toFixed(0)} m²/คน นับรวมป่า+เกษตรนอกเมืองด้วย จึงสูงกว่ามาก)</i>`
       : '';
-    if (deficitU > 0) {
-      const deficitKm2 = (deficitU * urbanResp.population_urban / 1_000_000).toFixed(2);
-      return `<b>เกณฑ์ WHO ${WHO_STANDARD_M2} m²/คน (Urban-comparable):</b> ในเขต Built-up พบ <b>${curU.toFixed(2)} m²/คน</b> ` +
-        `— ต่ำกว่าเกณฑ์อยู่ <b>${deficitU.toFixed(1)} m²/คน</b> · ` +
-        `ต้องเพิ่ม ~<b>${deficitKm2} km²</b> ของพื้นที่สีเขียวในเขตเมือง${provNote}`;
-    }
-    return `<b>เกณฑ์ WHO ${WHO_STANDARD_M2} m²/คน (Urban-comparable):</b> ในเขต Built-up พบ <b>${curU.toFixed(2)} m²/คน</b> ` +
-      `✅ ผ่านเกณฑ์เกินมา <b>${(curU - WHO_STANDARD_M2).toFixed(1)} m²/คน</b>${provNote}`;
+    return `<b>พืชพรรณต่อประชากรในเขตเมือง:</b> <b>${curU.toFixed(2)} m²/คน</b> ` +
+      `— ${describeVsWhoReference(curU, WHO_REFERENCE_M2)}${provNote}<br/><br/>${WHO_CAVEAT_FULL}`;
   }
 
-  // Fallback: ไม่มี urban subset — ใช้ค่ารวมระดับจังหวัดพร้อม caveat
+  // Fallback: ไม่มี urban subset — ค่ารวมระดับจังหวัด ซึ่งกว้างกว่าเดิมอีกชั้น
   if (ndviStats?.green_area_m2_per_person != null && ndviStats.population > 0) {
     const cur = ndviStats.green_area_m2_per_person;
-    const deficit = Math.max(0, WHO_STANDARD_M2 - cur);
-    if (deficit > 0) {
-      const deficitKm2 = (deficit * ndviStats.population / 1_000_000).toFixed(1);
-      return `พื้นที่สีเขียวต่อคน <b>${cur.toFixed(1)} m²</b> ต่ำกว่าเกณฑ์ตัวเลข WHO อยู่ <b>${deficit.toFixed(1)} m²/คน</b> ` +
-        `ต้องเพิ่มอีก ~<b>${deficitKm2} km²</b> เพื่อผ่านเกณฑ์ <i>(หมายเหตุ: เกณฑ์ WHO หมายถึง accessible green ในเมือง — ดูข้อจำกัดด้านล่าง)</i>`;
-    }
-    return `ผ่านเกณฑ์ตัวเลข WHO เกินมา <b>${(cur - WHO_STANDARD_M2).toFixed(1)} m²/คน</b> ` +
-      `แต่ตัวเลขนี้รวมป่าและพื้นที่เกษตรนอกเมืองด้วย — ส่วนพื้นที่ accessible จริงในเขตชุมชน อาจต่ำกว่ามาก`;
+    return `<b>พืชพรรณต่อประชากร (ทั้งจังหวัด):</b> <b>${cur.toFixed(1)} m²/คน</b> ` +
+      `— ${describeVsWhoReference(cur, WHO_REFERENCE_M2)} · ` +
+      `ค่านี้นับรวมป่าและพื้นที่เกษตรนอกเขตชุมชนซึ่งประชากรในเมืองเข้าถึงไม่ได้ ` +
+      `จึงสูงกว่าสภาพจริงในเมืองมาก<br/><br/>${WHO_CAVEAT_FULL}`;
   }
   return '';
 };
