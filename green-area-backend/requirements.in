@@ -20,7 +20,7 @@ httpx==0.28.1
 matplotlib==3.10.9
 Pillow==12.2.0
 requests==2.34.2
-slowapi==0.1.9
+slowapi==0.1.10
 
 # Dev/test only
 pytest==9.0.3
