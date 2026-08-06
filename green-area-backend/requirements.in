@@ -15,7 +15,7 @@ supabase==2.31.0
 # จึงประกาศเป็น direct dependency ให้ตรงกับที่โค้ดใช้จริง
 pyjwt[crypto]==2.13.0
 python-dotenv==1.2.2
-earthengine-api==1.7.30
+earthengine-api==1.7.31
 httpx==0.28.1
 matplotlib==3.10.9
 Pillow==12.2.0
