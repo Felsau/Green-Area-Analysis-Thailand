@@ -86,6 +86,28 @@ ESA_NON_PLANTABLE_CLASSES = (10, 50, 70, 80, 90, 95, 100)
 # 30° ≈ 58% grade · ตัดหน้าผา/ภูเขาชันออก แต่ยังคงเนินเขาทั่วไป · คำนวณจาก SRTM 30m
 MAX_SLOPE_DEG = 30
 
+# ── FR-26 — ease of implementation เป็นปัจจัยไล่ระดับใน priority (ไม่ใช่แค่ตัวกรอง) ──
+# plantable_mask (binary) ยังคงใช้กรอง top-locations/plantable-area เหมือนเดิม — ต้องมี
+# ขอบเขตชัดว่าที่ไหนปลูกไม่ได้จริง ๆ (น้ำ/อาคาร/ป่าเดิม/ชันเกิน) แต่ในแง่คะแนน priority
+# พื้นที่ที่ "ปลูกได้" ไม่ได้ง่ายเท่ากันหมด — ที่ว่างเปล่าง่ายกว่าพงหญ้า/ไร่นาที่ต้องเคลียร์
+# ก่อน ระบบเดิมให้คะแนนเท่ากันหมด (0/1 ผ่าน mask) ทั้งที่ "ความง่าย" ควรมีน้ำหนักต่างกัน
+# (ข้อกำหนด FR-26 — ดู REQUIREMENTS.md §3.2 ธีม 5)
+#
+# ให้คะแนนความง่ายรายชนิดที่ดิน (เฉพาะ 4 คลาสที่ plantable_mask อนุญาต — ที่เหลือ = 0
+# เพราะถูกกรองออกทั้งหมดอยู่แล้วโดย mask, ไม่ต้องให้คะแนนซ้ำ):
+#   60 Bare/sparse vegetation → 1.00 (ที่ว่าง ไม่ต้องเคลียร์อะไร)
+#   30 Grassland             → 0.85 (แผ้วถางน้อย)
+#   20 Shrubland             → 0.65 (มีพุ่มไม้ให้เคลียร์ก่อน)
+#   40 Cropland              → 0.40 (ใช้ประโยชน์อยู่แล้ว — นับเป็น marginal land ตาม
+#                                    NOTE ของ ESA_NON_PLANTABLE_CLASSES ด้านบน)
+# ตัวเลขเป็นการจัดลำดับเชิงคุณภาพของโครงการ (bare < grass < shrub < crop ในแง่ความยาก)
+# ไม่ได้มาจากงานวิจัยวัดต้นทุนเคลียร์พื้นที่จริง — ถ้ามีข้อมูลต้นทุนจริงควรแทนที่ตารางนี้
+LANDCOVER_EASE = {60: 1.00, 30: 0.85, 20: 0.65, 40: 0.40}
+
+# น้ำหนักคงที่ของปัจจัย feasibility ใน priority — ตามแบบ W_PERI (additive, ไม่ลด
+# น้ำหนักปัจจัยผู้ใช้ 4 ตัวที่มีอยู่ ตามหลักการที่ REQUIREMENTS.md §3.2 ระบุไว้)
+W_FEAS = 0.15
+
 # ── Accessibility / equity (ระยะถึงพื้นที่สีเขียวเดิม) ────────────────────────
 # คนที่อยู่ไกลจากต้นไม้/พื้นที่สีเขียว = เข้าถึงพื้นที่สีเขียวยาก → ควรได้รับความสำคัญ
 # ก่อน (ตรงกับภารกิจ m²/คน ตามมาตรฐาน WHO ของทั้งระบบ) · ใช้ ESA WorldCover class 10
@@ -141,6 +163,27 @@ def plantable_mask(geom: ee.Geometry) -> ee.Image:
     slope_ok = ee.Terrain.slope(ee.Image('USGS/SRTMGL1_003')).lte(MAX_SLOPE_DEG)
     # selfMask() → 0 (ปลูกไม่ได้) ถูก mask, เหลือเฉพาะ pixel ค่า 1 ที่ปลูกได้
     return landcover_ok.And(slope_ok).selfMask().rename('plantable')
+
+
+def feasibility_need_image(geom: ee.Geometry) -> ee.Image:
+    """feasibility (0–1): ยิ่งปลูกง่าย (ที่ดินชนิดง่าย + ลาดชันน้อย) ยิ่งสูง — FR-26.
+
+    คนละตัวกับ `plantable_mask` (binary hard filter ที่ยังใช้กรอง top-locations/
+    plantable-area เหมือนเดิม) — ตัวนี้เป็นปัจจัยไล่ระดับที่บวกเข้า priority score
+    (ดู W_FEAS/LANDCOVER_EASE ด้านบน) ให้พื้นที่ปลูกง่ายได้คะแนนเพิ่มขึ้นเทียบพื้นที่
+    ปลูกยากที่ยังปลูกได้อยู่ · ไม่ mask/ไม่ตัดอะไรทิ้ง — พื้นที่ที่ไม่อยู่ใน
+    LANDCOVER_EASE (รวมทั้งที่ plantable_mask กรองออก) ได้ 0 โดยอัตโนมัติจาก
+    `.where()` ที่ไม่ match เคสไหนเลย จึงไม่ทำให้ priority สูงขึ้นบนพื้นที่ปลูกไม่ได้
+    """
+    wc = ee.ImageCollection(WORLDCOVER_ASSET).first().clip(geom)
+    ease = ee.Image.constant(0)
+    for code, score in LANDCOVER_EASE.items():
+        ease = ease.where(wc.eq(code), score)
+    slope = ee.Terrain.slope(ee.Image('USGS/SRTMGL1_003'))
+    # ลาดชันน้อย = ง่าย (1.0) ไล่ลงเชิงเส้นถึง 0 ที่ MAX_SLOPE_DEG — จุดเดียวกับที่
+    # plantable_mask ตัดทิ้งเป็น non-plantable พอดี (สอดคล้องกับ hard cutoff เดิม)
+    slope_ease = ee.Image.constant(1).subtract(slope.divide(MAX_SLOPE_DEG)).clamp(0, 1)
+    return ease.multiply(slope_ease).unmask(0).rename('feasibility')
 
 
 def assert_imagery_available(geom: ee.Geometry, year: int) -> None:
@@ -226,31 +269,38 @@ def compute_priority(geom: ee.Geometry, year: int,
     # โอกาสลดความร้อนสูงสุดที่ขอบเมืองกำลังขยาย (ISA ปานกลาง) — ดู W_PERI ด้านบน
     peri_need = peri_urban_need_image(geom, year)
 
-    # ── 6. Weighted Priority Score ──────────────────────────────
-    # 4 ปัจจัยผู้ใช้ (w_* normalize รวม 1.0) กินสัดส่วน (1 − W_PERI) · peri_need เป็นปัจจัย
-    # คงที่จากงานวิจัย · additive — ไม่ลดมิติ/ความคมของปัจจัยเดิม แค่เพิ่ม slice ใหม่ W_PERI
+    # ── 6. Ease of implementation (FR-26) ────────────────────────
+    # ที่ดินง่ายกว่า (ที่ว่าง > พงหญ้า > ไร่นา) + ลาดชันน้อยกว่า = ปลูกได้ง่ายกว่า —
+    # ดู W_FEAS/LANDCOVER_EASE ด้านบน
+    feasibility_need = feasibility_need_image(geom)
+
+    # ── 7. Weighted Priority Score ──────────────────────────────
+    # 4 ปัจจัยผู้ใช้ (w_* normalize รวม 1.0) กินสัดส่วน (1 − W_PERI − W_FEAS) ·
+    # peri_need/feasibility_need เป็นปัจจัยคงที่ (ไม่ผูก slider ผู้ใช้) · additive —
+    # ไม่ลดมิติ/ความคมของปัจจัยเดิม แค่เพิ่ม slice ใหม่ทีละตัว (เหมือน W_PERI ตอนเพิ่มก่อนหน้า)
     base4 = (ndvi_deficit.multiply(w_ndvi)
              .add(lst_heat.multiply(w_lst))
              .add(pop_need.multiply(w_pop))
              .add(access_need.multiply(w_access)))
-    priority = (base4.multiply(1.0 - W_PERI)
+    priority = (base4.multiply(1.0 - W_PERI - W_FEAS)
                 .add(peri_need.multiply(W_PERI))
+                .add(feasibility_need.multiply(W_FEAS))
                 .rename('priority')
                 .clip(geom))
 
-    # ── 7. Plantability mask ────────────────────────────────────
+    # ── 8. Plantability mask ────────────────────────────────────
     # ส่ง mask แยกออกมา (ไม่ mask ตัว priority) ให้ top-locations + plantable-area
     # กรองจุดที่ปลูกได้จริง · lazy ee.Image — ไม่ถูก evaluate จนกว่าจะถูกใช้
     plantable = plantable_mask(geom)
 
-    # ── 8. Land use tag (ไม่ใช่ปัจจัยคะแนน) ─────────────────────
+    # ── 9. Land use tag (ไม่ใช่ปัจจัยคะแนน) ─────────────────────
     # ประเภทการใช้ที่ดิน 1–5 (นิยาม LDD จาก Dynamic World — ดู landuse.py) sample
     # ที่จุด top-locations เพื่ออธิบายว่าจุดแนะนำอยู่บนพื้นที่แบบไหน · unmask(0)
     # (0 = ไม่ทราบ) กัน pixel ที่ DW ขาดทำจุด sample หลุดทั้งแถวจาก dropNulls
     landuse = landuse_image(geom, year).unmask(0)
 
     return (priority, ndvi_deficit, lst_heat, pop_need, access_need, peri_need,
-            plantable, landuse)
+            feasibility_need, plantable, landuse)
 
 
 # ── Top-locations sampling ───────────────────────────────────────────────────
@@ -313,14 +363,15 @@ def _space_out(candidates: list[dict], n: int, min_sep_m: float) -> list[dict]:
 
 def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
                       lst_heat: ee.Image, pop_need: ee.Image, access_need: ee.Image,
-                      peri_need: ee.Image,
+                      peri_need: ee.Image, feasibility_need: ee.Image,
                       geom: ee.Geometry, plantable: ee.Image, n: int = 10,
                       landuse: ee.Image | None = None):
     """หา top-n pixels ที่มี priority สูงสุด — เฉพาะบนพื้นที่ที่ปลูกได้จริง.
 
-    sample แบบ multi-band (priority + 5 องค์ประกอบ) ที่จุดเดียวกัน → คืน `factors`
-    ของแต่ละจุด (ขาดต้นไม้/ร้อน/คนหนาแน่น/เข้าถึงสีเขียวยาก/ขอบเมืองลดร้อนคุ้ม) เพื่ออธิบายว่า "ทำไม" จุดนี้
-    คะแนนสูง · updateMask(plantable) ก่อน sample → ไม่คืนจุดบนน้ำ/อาคาร/ป่าเดิม/ที่ชัน
+    sample แบบ multi-band (priority + 6 องค์ประกอบ) ที่จุดเดียวกัน → คืน `factors`
+    ของแต่ละจุด (ขาดต้นไม้/ร้อน/คนหนาแน่น/เข้าถึงสีเขียวยาก/ขอบเมืองลดร้อนคุ้ม/ปลูกง่าย)
+    เพื่ออธิบายว่า "ทำไม" จุดนี้คะแนนสูง · updateMask(plantable) ก่อน sample →
+    ไม่คืนจุดบนน้ำ/อาคาร/ป่าเดิม/ที่ชัน
 
     landuse (optional): band ประเภทการใช้ที่ดิน 1–5 (unmask(0) มาแล้ว — ดู
     compute_priority ขั้น 8) sample ที่จุดเดียวกัน → ติดป้าย `landuse` ต่อจุด
@@ -343,7 +394,8 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
         geometry=geom, scale=200, maxPixels=1e10, bestEffort=True).get('priority')
     p_thresh = ee.Number(ee.Algorithms.If(p_thresh, p_thresh, 0))
 
-    stack = priority.addBands([ndvi_deficit, lst_heat, pop_need, access_need, peri_need])
+    stack = priority.addBands([ndvi_deficit, lst_heat, pop_need, access_need,
+                               peri_need, feasibility_need])
     if landuse is not None:
         stack = stack.addBands(landuse)
     # gte() สืบ mask ของ plantable_priority มาด้วย → updateMask ตัดทั้ง non-plantable
@@ -371,6 +423,7 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
                 'pop_need': round(float(p.get('pop_need', 0)), 2),
                 'access_need': round(float(p.get('access_need', 0)), 2),
                 'peri_urban': round(float(p.get('peri_need', 0)), 2),
+                'feasibility': round(float(p.get('feasibility', 0)), 2),
             },
         }
         # ประเภทการใช้ที่ดินที่จุดนี้ — 0 (ไม่ทราบ/DW ขาด) ไม่ใส่ป้าย ·

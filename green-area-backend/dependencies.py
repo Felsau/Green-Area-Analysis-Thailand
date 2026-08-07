@@ -58,7 +58,10 @@ CURRENT_CACHE_VERSION = 2
 #          การปลูกตามประเภทที่ดิน) และ impact เพิ่ม `plantable_landuse` (breakdown
 #          พื้นที่ควรปลูกตามประเภทที่ดิน) · คะแนน/ตำแหน่งไม่เปลี่ยน แต่ row v7
 #          ไม่มีสอง field นี้ → recompute ให้ครบ
-RECOMMEND_CACHE_VERSION = 8
+# v8 → v9: เพิ่มปัจจัยที่ 6 feasibility (ความง่ายในการปลูก — ที่ดินง่าย/ยาก + ลาดชัน
+#          เป็น slice คงที่ W_FEAS ใน priority, FR-26) → heatmap/top_locations ที่
+#          cache ด้วย v8 ต่างไป (+ factors เพิ่ม feasibility) → stale
+RECOMMEND_CACHE_VERSION = 9
 MONTH_NAMES = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
                'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
 

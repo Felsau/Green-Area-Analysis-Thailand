@@ -1,6 +1,7 @@
 // buildStatsReport — flagship report orchestrator.
-// ดึงข้อมูล → ประกอบ section (Cover / Overview / NDVI / LST / Urban / District /
-// Comparison / Districts / Time-series / Methodology / Conclusions / Limitations / References) → render PDF.
+// ดึงข้อมูล → ประกอบ section (Cover / Overview / NDVI / LST / Urban / Access300 /
+// District / Comparison / Districts / Time-series / Methodology / Conclusions /
+// Limitations / References) → render PDF.
 import { ts, formatEnName } from '../helpers';
 import { renderSegmentsToPdf } from '../layout';
 import { fetchStatsData } from './fetchData';
@@ -8,6 +9,7 @@ import { overviewSections } from './overview';
 import { ndviSections } from './ndvi';
 import { lstSections } from './lst';
 import { urbanSections } from './urban';
+import { access300Sections } from './access300';
 import { districtSections } from './district';
 import { comparisonSections } from './comparison';
 import { districtSummarySections } from './districtSummary';
@@ -50,6 +52,7 @@ export const buildStatsReport = async (data) => {
     ...ndviSections(ctx),
     ...lstSections(ctx),
     ...urbanSections(ctx),
+    ...access300Sections(ctx),
     ...districtSections(ctx),
     ...comparisonSections(ctx),
     ...districtSummarySections(ctx),

@@ -1,13 +1,15 @@
 """Recommendation endpoints — province + district level.
 
-Priority Score = (1−W_PERI)·(w1·NDVI_deficit + w2·LST_heat + w3·pop_need + w4·access_need)
-                 + W_PERI·peri_urban_need
+Priority Score = (1−W_PERI−W_FEAS)·(w1·NDVI_deficit + w2·LST_heat + w3·pop_need + w4·access_need)
+                 + W_PERI·peri_urban_need + W_FEAS·feasibility_need
 - NDVI_deficit : พื้นที่ NDVI ต่ำ = ขาดต้นไม้ → ค่าสูงคือควรปลูก
 - LST_heat     : อุณหภูมิผิวพื้นสูง = ร้อนเกินต้องการพืช → ค่าสูงคือควรปลูก
 - pop_need     : ประชากรหนาแน่น (WorldPop) = คนเยอะต้องการพื้นที่สีเขียว
 - access_need  : ไกลจากพื้นที่สีเขียวเดิม = เข้าถึงยาก (equity) → ค่าสูงคือควรปลูก
 - peri_urban   : ขอบเมืองกำลังขยาย (ISA ปานกลาง, Dynamic World) = ปลูกลดร้อนคุ้มสุด
                  (Moukomla et al. 2026) → ปัจจัยคงที่ W_PERI, ไม่แตะ slider ผู้ใช้ 4 ตัว
+- feasibility  : ที่ดินง่าย (ที่ว่าง > พงหญ้า > ไร่นา) + ลาดชันน้อย = ปลูกได้ง่ายกว่า
+                 (FR-26 ease of implementation) → ปัจจัยคงที่ W_FEAS เช่นเดียวกับ peri_urban
 
 Province + district ใช้ flow เดียวกันทุกขั้น ต่างแค่ geometry/cache-key →
 รวมไว้ใน _run_recommendation() (district_name=None = province-level)
@@ -101,10 +103,11 @@ def _compute_recommendation_payload(geom: ee.Geometry, year: int,
     """
     assert_imagery_available(geom, year)
     (priority, ndvi_deficit, lst_heat, pop_need, access_need, peri_need,
-     plantable, landuse) = compute_priority(geom, year, *weights)
+     feasibility_need, plantable, landuse) = compute_priority(geom, year, *weights)
     tile_url = get_heatmap_url(priority)
     top = get_top_locations(priority, ndvi_deficit, lst_heat, pop_need, access_need,
-                            peri_need, geom, plantable, n=10, landuse=landuse)
+                            peri_need, feasibility_need, geom, plantable, n=10,
+                            landuse=landuse)
     species_info = rerank_species_for_spots(species_info, top, lst_mean, ndvi_mean)
     plantable_m2, plantable_by_lu = compute_plantable_area(priority, plantable,
                                                            landuse, geom)
@@ -186,7 +189,7 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
             if tile_url is None or impact is None:
                 try:
                     geom = ee.Geometry(raw_geom)
-                    priority, _, _, _, _, _, plantable, landuse_img = compute_priority(
+                    priority, _, _, _, _, _, _, plantable, landuse_img = compute_priority(
                         geom, year, w_ndvi, w_lst, w_pop, w_access)
                     if tile_url is None:
                         tile_url = get_heatmap_url(priority)

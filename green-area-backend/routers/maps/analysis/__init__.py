@@ -4,7 +4,7 @@ mount ได้เหมือน analysis.py เดิม.
 """
 from fastapi import APIRouter
 
-from . import districts, urban, timeseries, context, cooling, custom, landuse
+from . import districts, urban, timeseries, context, cooling, custom, landuse, access
 
 router = APIRouter()
 router.include_router(districts.router)
@@ -14,3 +14,4 @@ router.include_router(context.router)
 router.include_router(cooling.router)
 router.include_router(custom.router)
 router.include_router(landuse.router)
+router.include_router(access.router)

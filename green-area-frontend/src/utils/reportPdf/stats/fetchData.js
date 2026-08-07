@@ -1,4 +1,5 @@
-// ดึงรูป (mini-map + NDVI/LST thumb) + context + district summary + timeseries + urban subset แบบขนาน.
+// ดึงรูป (mini-map + NDVI/LST thumb) + context + district summary + timeseries
+// + urban subset + access-300m (FR-18) แบบขนาน.
 import { API_BASE } from '../../../constants';
 import { fetchImageDataUrl } from '../helpers';
 import { apiFetch } from '../../apiClient';
@@ -17,7 +18,11 @@ export const fetchStatsData = async ({ selectedProvinceEN, selectedDistrict, dis
   // Urban subset (Phase B-3) — ESA WorldCover Built-up clip; first call อาจช้า (GEE compute)
   const urbanUrl = `${API_BASE}/analysis/urban-subset/${encodeURIComponent(selectedProvinceEN)}?year=${year}${districtEN ? `&district_name=${encodeURIComponent(districtEN)}` : ''}`;
 
-  const [miniMap, ndviThumb, lstThumb, contextResp, districtSummary, timeseriesResp, urbanResp] = await Promise.all([
+  // FR-18 — % ประชากรในระยะ 300 ม. จากพื้นที่สีเขียว (เกณฑ์ 3-30-300)
+  const access300Url = `${API_BASE}/analysis/access-300m/${encodeURIComponent(selectedProvinceEN)}?year=${year}${districtEN ? `&district_name=${encodeURIComponent(districtEN)}` : ''}`;
+
+  const [miniMap, ndviThumb, lstThumb, contextResp, districtSummary, timeseriesResp,
+         urbanResp, access300Resp] = await Promise.all([
     fetchImageDataUrl(`${API_BASE}/maps/thailand-thumb?province=${encodeURIComponent(selectedProvinceEN)}`),
     fetchImageDataUrl(`${API_BASE}/maps/${encodeURIComponent(selectedProvinceEN)}/ndvi-thumb?year=${year}${districtEN ? `&district_name=${encodeURIComponent(districtEN)}` : ''}`),
     fetchImageDataUrl(`${API_BASE}/maps/${encodeURIComponent(selectedProvinceEN)}/lst-thumb?year=${year}${districtEN ? `&district_name=${encodeURIComponent(districtEN)}` : ''}`),
@@ -27,7 +32,11 @@ export const fetchStatsData = async ({ selectedProvinceEN, selectedDistrict, dis
       : Promise.resolve(null),
     apiFetch(tsUrl).then(r => r.ok ? r.json() : null).catch(() => null),
     apiFetch(urbanUrl).then(r => r.ok ? r.json() : null).catch(() => null),
+    apiFetch(access300Url).then(r => r.ok ? r.json() : null).catch(() => null),
   ]);
 
-  return { miniMap, ndviThumb, lstThumb, contextResp, districtSummary, timeseriesResp, urbanResp };
+  return {
+    miniMap, ndviThumb, lstThumb, contextResp, districtSummary, timeseriesResp,
+    urbanResp, access300Resp,
+  };
 };

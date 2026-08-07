@@ -779,6 +779,13 @@ class TestAuthGating:
         r = TestClient(main.app).get("/saved-areas")
         assert r.status_code == 401
 
+    def test_access_300m_rejects_anonymous(self):
+        import main
+        from dependencies import PROVINCE_GEOMETRIES
+        sample = next(iter(PROVINCE_GEOMETRIES))
+        r = TestClient(main.app).get(f"/analysis/access-300m/{sample}")
+        assert r.status_code == 401
+
     def test_ranking_stays_public(self, monkeypatch):
         # Landing.js (หน้าก่อนล็อกอิน) พึ่ง endpoint นี้เป็น teaser — ต้องไม่ถูกล็อก
         import main

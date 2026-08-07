@@ -91,7 +91,12 @@
 | ID | Requirement | เหตุผล/อ้างอิง |
 |---|---|---|
 | FR-17 | แสดงตัวชี้วัด **30% tree canopy cover** ต่ออำเภอ คู่กับ WHO m²/คน **(มีแล้ว)** | 3-30-300 เป็น benchmark ใหม่ที่หลักฐานเชิงประจักษ์รองรับ `[R2]` |
-| FR-18 | คำนวณ **% ประชากรที่อยู่ภายใน 300 ม.** จากพื้นที่สีเขียวสาธารณะ | เกณฑ์ "300" ของ 3-30-300 `[R2]` |
+| FR-18 | คำนวณ **% ประชากรที่อยู่ภายใน 300 ม.** จากพื้นที่สีเขียว **(มีแล้ว)** | เกณฑ์ "300" ของ 3-30-300 `[R2]` |
+
+> **หมายเหตุขอบเขต:** วัดระยะถึง "พืชพรรณ" ทุกชนิดที่ตรวจพบด้วย NDVI/WorldCover
+> (ไม่ใช่เฉพาะสวนสาธารณะที่เข้าถึงได้) และใช้ระยะทางตรง (straight-line) ไม่ใช่
+> ระยะทางเดินจริงบนถนน — เป็นค่าประมาณขั้นต้น (upper bound) ของการเข้าถึงจริง
+> การวิเคราะห์ที่แม่นยำกว่านี้ (พื้นที่สาธารณะจริง + ระยะทางบนโครงข่ายถนน) คือ FR-19/FR-20
 
 **ธีม 2 — มิติการเข้าถึง (Accessibility)**
 
@@ -122,14 +127,19 @@
 
 | ID | Requirement | เหตุผล/อ้างอิง |
 |---|---|---|
-| FR-26 | **เพิ่ม** ปัจจัย *ease of implementation* (พื้นที่ปลูกได้จริง/ข้อจำกัดการใช้ที่ดิน) เข้า priority **(บางส่วน)** | 1 ใน 4 องค์ประกอบหลักของ prioritization `[R3] [R4]` |
+| FR-26 | **เพิ่ม** ปัจจัย *ease of implementation* (พื้นที่ปลูกได้จริง/ข้อจำกัดการใช้ที่ดิน) เข้า priority **(มีแล้ว)** | 1 ใน 4 องค์ประกอบหลักของ prioritization `[R3] [R4]` |
 
-> **บางส่วน:** ความเป็นไปได้ในการปลูกถูกใช้เป็น *ตัวกรอง* แล้ว — `plantable_mask`
+> ความเป็นไปได้ในการปลูกทำงาน 2 ชั้นคู่กัน: **(1) ตัวกรอง** — `plantable_mask`
 > (ESA WorldCover + ความชัน SRTM > 30°) ตัดน้ำ/อาคาร/ป่าเดิม/พื้นที่ชันออกจาก
-> top-locations และพื้นที่ควรปลูก · ส่วนที่ยังไม่ทำคือการเป็น **ปัจจัยในสูตร
-> priority** ตามที่ข้อกำหนดระบุ (แบบ additive เช่นเดียวกับ `W_PERI` — ไม่ลด
-> น้ำหนักปัจจัยเดิม) ซึ่งจะทำให้คะแนนไล่ระดับตามความยากง่ายของการใช้ที่ดิน
-> ไม่ใช่ตัดทิ้งแบบ 0/1
+> top-locations และพื้นที่ควรปลูกแบบ hard cutoff (ยังต้องมีเสมอ — ที่ปลูกไม่ได้จริง
+> ต้องไม่ถูกแนะนำไม่ว่าจะให้น้ำหนักเท่าไร) · **(2) ปัจจัยไล่ระดับในสูตร priority**
+> (ของใหม่) — `feasibility_need_image` ให้คะแนนความง่าย 0–1 ตามชนิดที่ดิน
+> (ที่ว่าง 1.00 > พงหญ้า 0.85 > พุ่มไม้ 0.65 > ไร่นา 0.40) คูณด้วยความง่ายจากความชัน
+> (ไล่เชิงเส้นจาก 1.0 ที่ราบถึง 0 ที่ MAX_SLOPE_DEG) แล้วบวกเข้า priority แบบ
+> additive ด้วยน้ำหนักคงที่ `W_FEAS = 0.15` เช่นเดียวกับ `W_PERI` (ไม่ลดน้ำหนัก
+> ปัจจัยผู้ใช้ 4 ตัวเดิม — แค่ปรับสัดส่วนที่ 4 ตัวนั้นกินร่วมกันจาก 85% เหลือ 70%)
+> → คะแนนไล่ระดับตามความยากง่ายของการใช้ที่ดินจริงแล้ว ไม่ใช่แค่ผ่าน/ตัดทิ้งแบบ 0/1
+> (`routers/recommend/scoring.py`, `RECOMMEND_CACHE_VERSION` v8→v9)
 
 ---
 
@@ -237,7 +247,7 @@ composite ของ Sentinel-2 ไม่ได้ — GEE ตอบ `User memory
 | FR-06, FR-07, FR-14 | `[R3]` multi-objective | `routers/recommend/scoring.py` |
 | FR-06, FR-07 (peri-urban) | `[R32]` Moukomla 2026 — ISA→SUHI, ปลูกขอบเมืองคุ้มสุด | `scoring.py` `peri_urban_need_image` + `gee_utils.dynamic_world_built` (มีแล้ว) |
 | FR-17 | `[R2]` 3-30-300 (เกณฑ์ 30%) · `[R13]` WorldCover · `[R36]` Dynamic World | `canopy.py` `build_canopy` + `canopy_area_bands` (เกาะ reduceRegion เดิมของ `routers/ndvi/compute.py` ไม่เพิ่ม round-trip) → เก็บใน `ndvi_annual.canopy` / `district_ndvi_annual.canopy` (migration 015) · แสดงบน StatsTab (`CanopyNote`) + คอลัมน์ Canopy % ในตารางรายอำเภอ + ตาราง "เรือนยอดไม้ (3-30-300)" ในรายงาน PDF/CSV **(มีแล้ว)** |
-| FR-18 | `[R2]` 3-30-300 (เกณฑ์ 300 ม.) | (ใหม่) reuse `scoring.access_need_image` + WorldPop |
+| FR-18 | `[R2]` 3-30-300 (เกณฑ์ 300 ม.) | `routers/maps/analysis/access.py` `GET /analysis/access-300m/{province}` — fastDistanceTransform (เทคนิคเดียวกับ `scoring.access_need_image`) ตัด threshold 300 ม. ตรง + WorldPop sum · cache best-effort ลง `access_300m` (migration 022, ยังไม่บังคับรัน) · แสดงในรายงาน PDF (`reportPdf/stats/access300.js`) **(มีแล้ว)** |
 | FR-19, FR-20 | `[R8] [R9] [R18]` accessibility | (ใหม่) layer + GEE/network |
 | FR-21, FR-22 | `[R6] [R20] [R21]` Tree Equity | (ใหม่) เพิ่ม factor ใน scoring |
 | FR-23–25 | `[R7]` i-Tree | `impact.py` `estimate_impact` → `ecosystem_services` (air pollution PM2.5/O₃/NO₂ + stormwater + มูลค่าบาท/ปี) **(มีแล้ว)** |
@@ -247,7 +257,7 @@ composite ของ Sentinel-2 ไม่ได้ — GEE ตอบ `User memory
 | FR-11 | `[R16] [R17]` Mann-Kendall | `stats_utils.py` (มีแล้ว) |
 | NFR-07 | `[R12] [R33] [R34] [R35]` | `routers/ndvi/compute.py` `build_data_quality` (+ `summarize_acquisitions`, `composite_uncertainty`, `grade_uncertainty`, `season_of`) → เก็บใน `ndvi_annual.data_quality` / `district_ndvi_annual.data_quality` (migration 014) แสดงบน StatsTab + ตาราง "คุณภาพข้อมูล NDVI" ในรายงาน PDF/CSV **(มีแล้ว)** |
 | NFR-08 | `[R13]` | `validation.py` `build_validation` + `build_breakdown` (+ `validation_area_sums` เสียบเป็น `extra_sums_fn` ของ `_compute_ndvi_annual` → ใช้ `green_mask` ตัวเดียวกับที่ระบบใช้จริง ไม่เกิด drift) · สคริปต์ `validate_green_area.py` รันทุกจังหวัด → CSV ใน `reports/` · ผลสรุปอยู่ใน §5.1 **(มีแล้ว)** |
-| FR-07 (พื้นที่ปลูกได้จริง) · FR-26 **(บางส่วน)** | `[R13] [R37]` WorldCover + ความชัน SRTM | `routers/recommend/scoring.py` `plantable_mask` (ตัดชัน > 30°) — ใช้เป็น *ตัวกรอง* top-locations/พื้นที่ควรปลูกแล้ว · ยังไม่เป็น *ปัจจัยในสูตร priority* ตามที่ FR-26 ระบุ (ดูหมายเหตุใต้ตารางธีม 5 ใน §3.2) |
+| FR-07 (พื้นที่ปลูกได้จริง) · FR-26 **(มีแล้ว)** | `[R13] [R37]` WorldCover + ความชัน SRTM | `routers/recommend/scoring.py` `plantable_mask` (ตัวกรอง, ตัดชัน > 30°) + `feasibility_need_image` (ปัจจัยไล่ระดับใน priority, `W_FEAS=0.15`) — ดูหมายเหตุใต้ตารางธีม 5 ใน §3.2 |
 | ชั้น "การใช้ที่ดิน" (ยังไม่มีรหัส FR) | `[R36] [R38]` Dynamic World + LDD 1:25,000 | `landuse.py` (provider DW) · `ldd.py` (provider LDD, เปิดด้วย env `LDD_LANDUSE_ASSET`) · `routers/maps/analysis/landuse.py`, `routers/maps/tiles.py` (มีแล้ว) |
 | ข้อมูลขอบเขตอำเภอ | `[R30] [R39]` GADM v4.1 + FAO GAUL 2015 | `generate_districts.py` (มีแล้ว) |
 
