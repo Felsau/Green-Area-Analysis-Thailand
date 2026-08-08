@@ -1,6 +1,6 @@
 import ee
 
-# ── Sentinel-2 cloud masking — Cloud Score+ ──────────────────────────────────
+# Sentinel-2 cloud masking — Cloud Score+
 # เลิกใช้ QA60 (bitmask เมฆ) เพราะ ESA หยุดเติมข้อมูล band นี้ช่วง ม.ค.2022–ก.พ.2024
 # ใน S2_SR_HARMONIZED → mask กลายเป็น no-op (เมฆปนเข้า NDVI median ทำให้ค่าต่ำ/เพี้ยน)
 # Cloud Score+ เป็น dataset แยกที่ Google คำนวณให้ทั้ง S2 archive (เชื่อถือได้ทุกปี)

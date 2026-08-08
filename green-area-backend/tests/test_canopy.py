@@ -25,7 +25,7 @@ def _canopy(wc_km2=14.6, dw_km2=4.7, dw_base_km2=4.7, coverage=1.0,
                         km2(dw_base_km2), total_m2, year)
 
 
-# ── เกณฑ์ผ่าน/ไม่ผ่าน 30% (ค่าหลัก = WorldCover) ─────────────────────────────
+# เกณฑ์ผ่าน/ไม่ผ่าน 30% (ค่าหลัก = WorldCover)
 class TestTarget:
     def test_target_is_the_published_rule(self):
         assert CANOPY_TARGET_PCT == 30.0
@@ -65,7 +65,7 @@ class TestTarget:
         assert _canopy(wc_km2=14.6)["canopy_km2"] == 14.6
 
 
-# ── epoch ของ WorldCover (ค่าหลักไม่ขยับตามปีที่เลือก) ───────────────────────
+# epoch ของ WorldCover (ค่าหลักไม่ขยับตามปีที่เลือก)
 class TestEpoch:
     def test_offset_from_selected_year_is_reported(self):
         out = _canopy(year=BASE_YEAR + 4)
@@ -83,7 +83,7 @@ class TestEpoch:
         assert _canopy(year=2018)["canopy_pct"] == _canopy(year=2025)["canopy_pct"]
 
 
-# ── trend จาก Dynamic World ──────────────────────────────────────────────────
+# trend จาก Dynamic World
 class TestTrend:
     def test_increase_detected(self):
         trend = _canopy(dw_km2=6.0, dw_base_km2=4.5)["trend"]
@@ -122,7 +122,7 @@ class TestTrend:
         assert out["canopy_pct"] == 14.6
 
 
-# ── กรณีไม่มีข้อมูล ──────────────────────────────────────────────────────────
+# กรณีไม่มีข้อมูล
 class TestUnavailable:
     def test_missing_worldcover_marks_unavailable(self):
         out = _canopy(wc_km2=None)
@@ -133,7 +133,7 @@ class TestUnavailable:
         assert build_canopy(0, 0, 0, 0, 0, 2024)["available"] is False
 
 
-# ── รูปทรง payload ที่ลง jsonb / ส่งกลับ client ──────────────────────────────
+# รูปทรง payload ที่ลง jsonb / ส่งกลับ client
 class TestPayloadShape:
     def test_keys_are_stable_between_available_and_not(self):
         """frontend อ่านทางเดียวได้ ไม่ต้องเช็คว่า key มีไหมก่อนทุกครั้ง"""

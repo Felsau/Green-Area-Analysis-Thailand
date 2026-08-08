@@ -15,7 +15,7 @@
   6. ฝังรูป Class Diagram + Sequence Diagram 8/9/10 ที่วาดใหม่ พร้อมแก้ <wp:extent>
 
 วิธีรัน (ต้อง unzip .docx ไป /tmp/ch3/x และรัน merge_runs.py มาก่อน):
-    green-area-backend/venv/bin/python ภาพร่างไดอะแกรมใหม่/scripts/edit_docx_round13.py
+    green-area-backend/.venv/bin/python ภาพร่างไดอะแกรมใหม่/scripts/edit_docx_round13.py
 """
 import os
 import re
@@ -67,7 +67,7 @@ def set_type(attr, old, new, count=1):
     _n += n
 
 
-# ── 1) ชนิดข้อมูล: PostgreSQL → UML DataType ─────────────────────────────────
+# 1) ชนิดข้อมูล: PostgreSQL → UML DataType
 for _a in ('isLoaded', 'isDescending', 'isDrawingActive', 'cacheStatus', 'isSubmitting'):
     set_type(_a, 'bool', 'Boolean')
 for _a in ('themeMode', 'activeLayer', 'reportType', 'selectedProvince', 'selectedDistrict',
@@ -80,7 +80,7 @@ set_type('currentShapeArea', 'numeric', 'Real')
 set_type('whoStandardThreshold', 'float8', 'Real')
 set_type('currentUserId', 'uuid', 'UUID', count=2)   # SavedAreaManager + ProfileController
 
-# ── 2) ลายเซ็นเมธอดในตาราง §3.5 ──────────────────────────────────────────────
+# 2) ลายเซ็นเมธอดในตาราง §3.5
 sub('+ analyzeUrbanGreenShare(province, year)',
     '+ analyzeUrbanGreenShare(province, district, year)')
 sub('+ evaluateWHOCriteria(green_m2_per_person)',
@@ -94,7 +94,7 @@ sub('+ getProfile(user_id)', '+ getProfile(userId)')
 sub('+ updateProfile(display_name, organization)',
     '+ updateProfile(displayName, organization)')
 
-# ── 3) แยกหน้าที่ส่งออกรายงานให้ชื่อบอกเองว่าใครทำอะไร ───────────────────────
+# 3) แยกหน้าที่ส่งออกรายงานให้ชื่อบอกเองว่าใครทำอะไร
 # `ส่งออกข้อมูลรายงาน` มี 2 ที่ในเอกสาร — แก้เฉพาะแถวของ exportReportData()
 _i = d.index('+ exportReportData()')
 _j = d.index('ส่งออกข้อมูลรายงาน', _i)
@@ -103,7 +103,7 @@ _n += 1
 sub('+ exportReportData()', '+ buildReportDocument()')
 sub('สั่งส่งออกรายงานเป็นไฟล์', 'สั่งบันทึกเอกสารรายงานเป็นไฟล์ให้ผู้ใช้')
 
-# ── 4) คำบรรยายขั้นตอนใน §3.6 (เฉพาะที่อ้างชื่อเมธอด ไม่ใช่ชื่อคอลัมน์) ──────
+# 4) คำบรรยายขั้นตอนใน §3.6 (เฉพาะที่อ้างชื่อเมธอด ไม่ใช่ชื่อคอลัมน์)
 sub('เรียก analyzeUrbanGreenShare(province, year) ที่',
     'เรียก analyzeUrbanGreenShare(province, district, year) ที่')
 sub('evaluateWHOCriteria(green_m2_per_person) ภายใน',
@@ -114,7 +114,7 @@ sub('เรียก getProfile(user_id) ที่', 'เรียก getProfile
 sub('เรียก updateProfile(display_name, organization) ที่',
     'เรียก updateProfile(displayName, organization) ที่')
 
-# ── 5) ฝังรูปใหม่ + แก้ <wp:extent> และ <a:ext> ให้ตรงอัตราส่วนจริง ───────────
+# 5) ฝังรูปใหม่ + แก้ <wp:extent> และ <a:ext> ให้ตรงอัตราส่วนจริง
 CX = 5220000                      # 14.50 ซม. — ความกว้างพิมพ์คงที่ทุกภาพในเล่ม
 IMAGES = {                        # rId -> (ไฟล์ใน media, ไฟล์ต้นทางที่วาดใหม่)
     'rId19': ('diagram_class.png', 'class_new.png'),
@@ -142,7 +142,7 @@ for rid, (dst, src) in IMAGES.items():
 open(DOC, 'w', encoding='utf-8').write(d)
 print(f'แก้ข้อความ {_n} จุด')
 
-# ── 6) rezip โดยเดินตาม infolist() ของไฟล์ต้นฉบับ ────────────────────────────
+# 6) rezip โดยเดินตาม infolist() ของไฟล์ต้นฉบับ
 # ห้ามใช้ `zip -Xr` — zip cli ใส่ entry ไดเรกทอรีเพิ่ม ทำให้แพ็กเกจต่างจากเดิม
 with zipfile.ZipFile(SRC) as z:
     order = [i.filename for i in z.infolist()]

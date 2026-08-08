@@ -1,4 +1,4 @@
--- ── Migration 006: ตารางอ้างอิง provinces (normalization) ──────────────────────
+-- Migration 006: ตารางอ้างอิง provinces (normalization)
 -- รวมข้อมูลจังหวัดที่เดิมกระจาย/ซ้ำหลายที่ (province TEXT ซ้ำทุกตาราง · ชื่อไทยใน
 -- frontend constants · ภาคใน species.py) ให้เป็น single source of truth ตารางเดียว
 -- แล้วให้ตารางอื่น FK อ้างอิง name_en (3NF — ตัด redundancy ของชื่อไทย/ภาค)
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS provinces (
   region  TEXT NOT NULL        -- เหนือ / อีสาน / กลาง / ตะวันออก / ตะวันตก / ใต้
 );
 
--- ── Seed 77 จังหวัด (en, th, region) ──────────────────────────────────────────
+-- Seed 77 จังหวัด (en, th, region)
 INSERT INTO provinces (name_en, name_th, region) VALUES
   ('Amnat Charoen', 'อำนาจเจริญ', 'อีสาน'),
   ('Ang Thong', 'อ่างทอง', 'กลาง'),
@@ -94,7 +94,7 @@ INSERT INTO provinces (name_en, name_th, region) VALUES
 ON CONFLICT (name_en) DO UPDATE
   SET name_th = EXCLUDED.name_th, region = EXCLUDED.region;
 
--- ── FK: ตารางที่อ้างจังหวัด → provinces(name_en) ───────────────────────────────
+-- FK: ตารางที่อ้างจังหวัด → provinces(name_en)
 -- idempotent (ALTER ADD CONSTRAINT ไม่มี IF NOT EXISTS) · province nullable ใน
 -- บางตาราง (saved_areas = custom polygon นอกจังหวัด) — FK ยอม NULL อยู่แล้ว
 -- ⚠️ ต้อง seed provinces ครบก่อน (ด้านบน) ไม่งั้น row เดิมที่ชื่อไม่ตรงจะ block

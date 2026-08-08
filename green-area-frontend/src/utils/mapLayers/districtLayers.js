@@ -79,7 +79,7 @@ function labelFor(props) {
     .replace(/([a-z])([A-Z])/g, '$1 $2');
 }
 
-// ── Canvas-rendered labels ──────────────────────────────────────────────────
+// Canvas-rendered labels
 // deck.gl's TextLayer lays glyphs out one-by-one by advance width and can't do
 // complex-script shaping: Thai upper/lower vowels and tone marks get pushed
 // sideways instead of stacking on their base consonant, and the SDF atlas adds

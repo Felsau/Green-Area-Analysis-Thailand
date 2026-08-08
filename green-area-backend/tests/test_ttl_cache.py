@@ -13,7 +13,7 @@ import pytest
 from ttl_cache import TTLCache
 
 
-# ── basic get/set ────────────────────────────────────────────────────────────
+# basic get/set
 def test_get_miss_returns_none():
     cache = TTLCache(ttl_seconds=60, max_size=10)
     assert cache.get(("a", None, 2024)) is None
@@ -40,7 +40,7 @@ def test_distinct_tuple_keys_isolated():
     assert cache.get(("lst", "Tak", None, 2024)) == "b"
 
 
-# ── TTL expiry (monkeypatch time เพื่อไม่ต้อง sleep จริง) ─────────────────────
+# TTL expiry (monkeypatch time เพื่อไม่ต้อง sleep จริง)
 def test_entry_expires_after_ttl(monkeypatch):
     clock = {"t": 1000.0}
     monkeypatch.setattr("ttl_cache.time.time", lambda: clock["t"])
@@ -51,7 +51,7 @@ def test_entry_expires_after_ttl(monkeypatch):
     assert cache.get(("a",)) is None        # หมดอายุ → miss
 
 
-# ── size-bounded eviction ────────────────────────────────────────────────────
+# size-bounded eviction
 def test_evicts_expired_first_when_full(monkeypatch):
     clock = {"t": 1000.0}
     monkeypatch.setattr("ttl_cache.time.time", lambda: clock["t"])
@@ -82,7 +82,7 @@ def test_never_exceeds_max_size():
     assert len(cache._store) <= 5
 
 
-# ── thread-safety: concurrent set() ต้องไม่ crash + ไม่เกิน max_size ──────────
+# thread-safety: concurrent set() ต้องไม่ crash + ไม่เกิน max_size
 def test_concurrent_set_no_crash_and_bounded():
     cache = TTLCache(ttl_seconds=600, max_size=20)
     errors = []
@@ -104,7 +104,7 @@ def test_concurrent_set_no_crash_and_bounded():
     assert len(cache._store) <= 20
 
 
-# ── clear() ──────────────────────────────────────────────────────────────────
+# clear()
 def test_clear_empties_cache():
     cache = TTLCache(ttl_seconds=60, max_size=10)
     cache.set(("a",), "x")

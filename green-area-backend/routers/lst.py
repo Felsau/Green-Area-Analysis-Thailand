@@ -14,7 +14,7 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-# ── Shared compute helper ────────────────────────────────────────────────────
+# Shared compute helper
 def _compute_lst_monthly(geom: ee.Geometry, year: int, scale: int):
     """LST 12 เดือน รวมใน 1 round-trip ด้วย ee.List.sequence."""
     def build_col(m_int):
@@ -61,7 +61,7 @@ def _compute_lst_monthly(geom: ee.Geometry, year: int, scale: int):
     return results
 
 
-# ── District LST monthly ─────────────────────────────────── (before catch-all)
+# District LST monthly (before catch-all)
 @router.get("/lst/{province_name}/districts/{district_name}/monthly")
 def get_district_lst_monthly(province_name: str, district_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_district_geom(province_name, district_name)
@@ -99,7 +99,7 @@ def get_district_lst_monthly(province_name: str, district_name: str, year: YearP
             raise internal_error()
 
 
-# ── District LST annual ──────────────────────────────────── (before catch-all)
+# District LST annual (before catch-all)
 @router.get("/lst/{province_name}/districts/{district_name}")
 def get_district_lst(province_name: str, district_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_district_geom(province_name, district_name)
@@ -146,7 +146,7 @@ def get_district_lst(province_name: str, district_name: str, year: YearParam = C
             raise internal_error()
 
 
-# ── Province LST monthly ─────────────────────────────────────────────────────
+# Province LST monthly
 @router.get("/lst/{province_name}/monthly", response_model=LSTMonthlyResponse)
 def get_lst_monthly(province_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_province_geom(province_name)
@@ -181,7 +181,7 @@ def get_lst_monthly(province_name: str, year: YearParam = CURRENT_YEAR):
             raise internal_error()
 
 
-# ── Province LST annual ──────────────────────────────────────────────────────
+# Province LST annual
 @router.get("/lst/{province_name}", response_model=LSTResponse)
 def get_lst(province_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_province_geom(province_name)

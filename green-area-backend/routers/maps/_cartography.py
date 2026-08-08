@@ -93,7 +93,7 @@ def _add_cartographic_decor(ax, geom_dict):
     xmin, xmax, ymin, ymax = bbox_extent(geom_dict)
     cy = (ymin + ymax) / 2
 
-    # ── North arrow (มุมขวาบน) — สัญลักษณ์ใหญ่ขึ้นเหมาะกับรายงาน thesis
+    # North arrow (มุมขวาบน) — สัญลักษณ์ใหญ่ขึ้นเหมาะกับรายงาน thesis
     arrow_x = 0.94
     arrow = FancyArrowPatch(
         (arrow_x, 0.83), (arrow_x, 0.97),
@@ -107,7 +107,7 @@ def _add_cartographic_decor(ax, geom_dict):
             bbox=dict(facecolor='white', edgecolor='#202124',
                       boxstyle='round,pad=0.18', linewidth=0.8))
 
-    # ── Scale bar — เลือกความยาวที่อ่านง่าย (5/10/20/50 km)
+    # Scale bar — เลือกความยาวที่อ่านง่าย (5/10/20/50 km)
     # แสดง 4 segments ดำ-ขาวสลับ + ป้าย 0 / กลาง / สุด เพื่อให้อ่านระยะกลางได้
     lng_km, _ = km_per_deg(cy)
     extent_km = (xmax - xmin) * lng_km

@@ -67,7 +67,7 @@ test('เปิดหน้าตั้งค่าจากแบนเนอ�
   expect(onSettingsOpenChange).toHaveBeenCalledWith(true);
 });
 
-// ── หน้าตั้งค่ารายหมวด ─────────────────────────────────────────────────────
+// หน้าตั้งค่ารายหมวด
 test('สวิตช์เริ่มที่ปิดเสมอเมื่อยังไม่เคยเลือก (opt-in)', () => {
   setup({ settingsOpen: true });
   expect(screen.getByRole('checkbox', { name: 'คุกกี้หมวดเพื่อการทำงาน' })).not.toBeChecked();

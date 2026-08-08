@@ -11,7 +11,7 @@
 แล้วชี้ผ่าน env LDD_LANDUSE_ASSET (ดู data/ldd/README.md) · asset ยังไม่ตั้งค่า →
 ldd_available() = False → endpoint ตอบ 404 ที่อ่านรู้เรื่องแทนล่ม
 
-ต่างจาก DW ตรงที่สรุปพื้นที่คิดจาก **Shape_Area ของ polygon จริง** (พื้นที่ทางการ
+ต่างจาก DW ตรงที่สรุปพื้นที่คิดจาก Shape_Area ของ polygon จริง (พื้นที่ทางการ
 ระดับ 1:25,000) ไม่ใช่ประมาณจาก pixel — แม่นกว่าและได้ตัวเลขไร่/ตร.กม.ตรงกับเอกสาร LDD
 ส่วน tiles ยัง rasterize polygon → ee.Image เพื่อวาดทับ basemap แบบ pixel เหมือน DW
 """
@@ -22,7 +22,7 @@ import ee
 from landuse import CATEGORY_BY_VALUE
 from ldd_codes import LDD_LU_CODES
 
-# ── การตั้งค่า asset ──────────────────────────────────────────────────────────
+# การตั้งค่า asset
 # GEE FeatureCollection asset id (เช่น 'projects/xxx/assets/LU_BKK_2566') ที่ได้จาก
 # earthengine upload table ของ shapefile LDD · ไม่ตั้ง = provider ปิด (ดู README)
 LDD_ASSET_ID = os.getenv("LDD_LANDUSE_ASSET")
@@ -35,7 +35,7 @@ LDD_COVERAGE_PROVINCES = ("Bangkok Metropolis",)
 _DATA_YEAR_BE = 2566
 _DATA_YEAR_CE = 2023
 
-# ── mapping ประเภทหลัก / รหัสละเอียด → เลข (สำหรับ rasterize + grouped reduce) ──
+# mapping ประเภทหลัก / รหัสละเอียด → เลข (สำหรับ rasterize + grouped reduce)
 # ตัวอักษร LUL1_CODE บน asset → value 1–5 ของ schema กลาง (ทำเป็น ee.Dictionary
 # ตอน runtime — ไม่สร้าง ee object ระดับ module กัน import ก่อน ee.Initialize)
 _L1_TO_VALUE = {"U": 1, "A": 2, "F": 3, "W": 4, "M": 5}

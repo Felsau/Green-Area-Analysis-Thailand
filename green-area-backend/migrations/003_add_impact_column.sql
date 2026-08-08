@@ -1,16 +1,4 @@
--- ── Migration 003: เพิ่ม impact projection column ใน planting_recommendations ──
--- เก็บผลคำนวณ CO₂ + ΔLST + tree count ของ AI Recommend คู่กับ top_locations
--- ไม่ต้อง recompute ทุก request → cache hit เร็วขึ้น (และ deterministic เพราะ
--- coefficient ใน impact.py ไม่มีส่วน random)
---
--- structure ของ impact JSONB:
---   {
---     "plantable_area_km2": float, "plantable_area_ha": float,
---     "trees_total": int,
---     "annual_co2_tonnes": float, "annual_co2_kg": float,
---     "equivalent_cars_off_road": float,
---     "expected_delta_lst_c": float, "maturity_years": int,
---     "species_breakdown": [{name_th, scientific, trees, kg_co2_per_tree, annual_co2_kg}],
---     "methodology": {priority_threshold, trees_per_ha, sources: [...]}
---   }
+-- Migration 003: เพิ่มคอลัมน์ impact ใน planting_recommendations
+-- เก็บผลคำนวณ CO₂ + ΔLST + จำนวนต้นไม้ของ AI Recommend คู่กับ top_locations
+-- ไม่ต้อง recompute ทุก request · โครงสร้าง JSONB ดู impact.py::build_impact
 ALTER TABLE planting_recommendations ADD COLUMN IF NOT EXISTS impact JSONB;

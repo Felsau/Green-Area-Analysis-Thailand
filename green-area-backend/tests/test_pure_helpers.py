@@ -21,7 +21,7 @@ from fastapi import HTTPException
 from impact import estimate_impact, IMPACT_DEFAULTS, TREE_CO2_PER_YEAR
 
 
-# ── _is_stale ────────────────────────────────────────────────────────────────
+# _is_stale
 def _cached_row(**overrides):
     """row "modern" ที่ผ่านทุกเกณฑ์ — override ทีละ field เพื่อทดสอบเกณฑ์นั้นตรง ๆ
     (ใส่ cache_version ปัจจุบันเสมอ ไม่ให้ถูก version short-circuit ไปก่อน)"""
@@ -84,7 +84,7 @@ class TestIsStale:
         row = _cached_row(canopy={"available": False, "canopy_pct": None})
         assert _is_stale(row) is False
 
-    # ── NFR-08 validation (ระดับจังหวัดเท่านั้น) ─────────────────────────────
+    # NFR-08 validation (ระดับจังหวัดเท่านั้น)
     def test_missing_validation_is_stale_only_when_required(self):
         """กับดักสำคัญ: `_is_stale` ใช้ร่วมกันทั้ง path จังหวัดและอำเภอ แต่ NFR-08
         ทำระดับจังหวัดอย่างเดียว · ถ้าเช็ค validation โดยไม่มี flag row ของอำเภอ
@@ -104,9 +104,9 @@ class TestIsStale:
         assert _is_stale(row, require_validation=True) is False
 
 
-# ── compute_who_status ────────────────────────────────────────────────────────
+# compute_who_status
 class TestComputeWhoStatus:
-    # ── ค่าตัวเลขต้องถูกต้องและปรากฏในข้อความ ────────────────────────────────
+    # ค่าตัวเลขต้องถูกต้องและปรากฏในข้อความ
     def test_computes_m2_per_person_above_reference(self):
         # 100_000_000 m² / 1_000_000 คน = 100 m²/คน
         m2pp, status = compute_who_status(green_area_m2=100_000_000, population=1_000_000)
@@ -119,7 +119,7 @@ class TestComputeWhoStatus:
         assert m2pp == 5.0
         assert "5.00" in status
 
-    # ── ห้ามตัดสินผ่าน/ไม่ผ่าน ───────────────────────────────────────────────
+    # ห้ามตัดสินผ่าน/ไม่ผ่าน
     # ตัวชี้วัดนี้นับพืชพรรณทุกชนิด (NDVI > 0.3) ไม่ใช่พื้นที่สาธารณะที่เข้าถึงได้
     # ตามนิยาม WHO จึงเทียบเกณฑ์ตรง ๆ ไม่ได้ (ดู docstring ของ compute_who_status)
     # เทสต์นี้กันการถอยกลับไปใส่ถ้อยคำตัดสิน — เดิมเคยเป็น "ผ่านมาตรฐาน WHO ✅ (...)"
@@ -146,7 +146,7 @@ class TestComputeWhoStatus:
         assert status is None
 
 
-# ── _normalize_weights (4 ปัจจัย: NDVI/LST/pop/access) ────────────────────────
+# _normalize_weights (4 ปัจจัย: NDVI/LST/pop/access)
 class TestNormalizeWeights:
     def test_default_weights_pass_through(self):
         n, l, p, a = _normalize_weights(W_NDVI, W_LST, W_POP, W_ACCESS)
@@ -181,7 +181,7 @@ class TestNormalizeWeights:
         assert W_NDVI + W_LST + W_POP + W_ACCESS == pytest.approx(1.0)
 
 
-# ── _haversine_m (ระยะระหว่างจุดแนะนำ) ────────────────────────────────────────
+# _haversine_m (ระยะระหว่างจุดแนะนำ)
 class TestHaversine:
     def test_same_point_is_zero(self):
         assert _haversine_m(13.5, 100.5, 13.5, 100.5) == pytest.approx(0.0, abs=1e-6)
@@ -197,7 +197,7 @@ class TestHaversine:
         assert a == pytest.approx(b)
 
 
-# ── _space_out (คัดจุดแนะนำไม่ให้กระจุกซ้อนกัน) ───────────────────────────────
+# _space_out (คัดจุดแนะนำไม่ให้กระจุกซ้อนกัน)
 class TestSpaceOut:
     @staticmethod
     def _cand(score, lat, lng=100.0):
@@ -251,7 +251,7 @@ class TestSpaceOut:
         assert TOP_MIN_SEPARATION_M > 0
 
 
-# ── _validate_geojson_path ────────────────────────────────────────────────────
+# _validate_geojson_path
 class TestValidateGeojsonPath:
     def test_valid_json_file_passes(self, tmp_path):
         p = tmp_path / "test.json"
@@ -277,7 +277,7 @@ class TestValidateGeojsonPath:
             _validate_geojson_path(str(tmp_path))
 
 
-# ── estimate_impact ───────────────────────────────────────────────────────────
+# estimate_impact
 class TestEstimateImpact:
     def test_zero_area_returns_zero_trees(self):
         out = estimate_impact(0, [{"scientific": "Samanea saman", "name_th": "จามจุรี"}])
@@ -365,7 +365,7 @@ class TestEstimateImpact:
             assert sp in TREE_CO2_PER_YEAR, f"missing coefficient: {sp}"
             assert TREE_CO2_PER_YEAR[sp] > 0
 
-    # ── i-Tree ecosystem services (FR-23/24/25) ─────────────────────────────
+    # i-Tree ecosystem services (FR-23/24/25)
     def test_ecosystem_services_scale_with_trees(self):
         from impact import (AIR_POLLUTANT_KG_PER_TREE, STORMWATER_M3_PER_TREE)
         # 1 ha → 4000 ต้น
@@ -409,7 +409,7 @@ class TestEstimateImpact:
         assert any("Nowak" in s for s in out["methodology"]["sources"])
 
 
-# ── validate_polygon_geometry (custom-area) ──────────────────────────────────
+# validate_polygon_geometry (custom-area)
 class TestValidatePolygon:
     # ring สี่เหลี่ยมปิด (จุดแรก = จุดสุดท้าย)
     _SQUARE = {"type": "Polygon", "coordinates": [[
@@ -450,7 +450,7 @@ class TestValidatePolygon:
             validate_polygon_geometry({"type": "Polygon", "coordinates": []})
 
 
-# ── polygon_area_km2 (geodesic) ──────────────────────────────────────────────
+# polygon_area_km2 (geodesic)
 class TestPolygonArea:
     def test_known_box_area_within_tolerance(self):
         # กล่อง 0.1°×0.1° ที่ ~13°N: ลองจิจูดหด cos(13°)≈0.974
@@ -475,7 +475,7 @@ class TestPolygonArea:
         assert polygon_area_km2([]) == 0.0
 
 
-# ── validate_drawn_polygon (รวม guard ที่ 3 endpoint ใช้ร่วมกัน) ──────────────
+# validate_drawn_polygon (รวม guard ที่ 3 endpoint ใช้ร่วมกัน)
 class TestValidateDrawnPolygon:
     _SQUARE = {"type": "Polygon", "coordinates": [[
         [100.0, 13.0], [100.1, 13.0], [100.1, 13.1], [100.0, 13.1], [100.0, 13.0]]]}
@@ -500,7 +500,7 @@ class TestValidateDrawnPolygon:
             validate_drawn_polygon(huge)
 
 
-# ── get_recommended_species — region จาก provinces (DB) + fallback hardcoded ──
+# get_recommended_species — region จาก provinces (DB) + fallback hardcoded
 class TestRecommendedSpecies:
     def test_known_province_fallback_region(self, monkeypatch):
         # DB ว่าง (migration ยังไม่รัน) → ใช้ PROVINCE_REGION hardcoded
@@ -519,7 +519,7 @@ class TestRecommendedSpecies:
         assert get_recommended_species("Tak")["region"] == "เหนือ"  # hardcoded = ตะวันตก
 
 
-# ── province/district guards (ensure_* / get_*_geom) ──────────────────────────
+# province/district guards (ensure_* / get_*_geom)
 class TestGeometryGuards:
     def _sample_province(self):
         return next(iter(PROVINCE_GEOMETRIES))
@@ -559,7 +559,7 @@ class TestGeometryGuards:
             get_district_geom(prov, "ไม่มีอำเภอนี้จริง")
 
 
-# ── rank_species_by_site ──────────────────────────────────────────────────────
+# rank_species_by_site
 class TestSiteAwareSpecies:
     SAMPLE = [
         {"name_th": "ร่มเงา", "scientific": "Aa", "purpose": "ร่มเงาในเมือง",
@@ -598,7 +598,7 @@ class TestSiteAwareSpecies:
         assert any(s.get("site_fit") for s in out["species"])
 
 
-# ── _site_fit (per-species scoring เทียบสภาพพื้นที่) ──────────────────────────
+# _site_fit (per-species scoring เทียบสภาพพื้นที่)
 class TestSiteFit:
     _SHADE = {"traits": ["ร่มเงากว้าง", "ลดความร้อน"], "purpose": "ร่มเงา", "reason": "ให้ร่มเงา"}
     _NEUTRAL = {"traits": ["สวยงาม"], "purpose": "ประดับ", "reason": "ปลูกง่าย"}
@@ -638,7 +638,7 @@ class TestSiteFit:
         assert score == 0 and reason is None
 
 
-# ── dominant_spot_landuse (การใช้ที่ดินเด่นของจุด top-locations) ──────────────
+# dominant_spot_landuse (การใช้ที่ดินเด่นของจุด top-locations)
 class TestDominantSpotLanduse:
     @staticmethod
     def _spot(code):
@@ -664,7 +664,7 @@ class TestDominantSpotLanduse:
         assert species_mod.dominant_spot_landuse([self._spot("U")]) is None
 
 
-# ── rerank_species_for_spots (re-rank พันธุ์ตามการใช้ที่ดินเด่น) ──────────────
+# rerank_species_for_spots (re-rank พันธุ์ตามการใช้ที่ดินเด่น)
 class TestRerankSpeciesForSpots:
     SPECIES_INFO = {"region": "กลาง", "species": [
         {"name_th": "พื้นถิ่น", "scientific": "Cc", "purpose": "อนุรักษ์",
@@ -700,7 +700,7 @@ class TestRerankSpeciesForSpots:
         assert "ชุมชน" in top["site_fit"]
 
 
-# ── get_population — fallback ต้องบอก "ปีจริง" ของประชากรที่ใช้ ─────────────────
+# get_population — fallback ต้องบอก "ปีจริง" ของประชากรที่ใช้
 class _PopResp:
     def __init__(self, data):
         self.data = data

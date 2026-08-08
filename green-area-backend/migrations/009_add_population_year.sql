@@ -1,4 +1,4 @@
--- ── Migration 009: ndvi_annual.population_year — ปีของข้อมูลประชากรที่ใช้คำนวณ m²/คน ──
+-- Migration 009: ndvi_annual.population_year — ปีของข้อมูลประชากรที่ใช้คำนวณ m²/คน
 -- รันบน Supabase SQL Editor หลัง 008
 --
 -- get_population() จะ fallback ไป "ปีประชากรล่าสุดที่มี" ถ้าปีที่ขอไม่มีใน

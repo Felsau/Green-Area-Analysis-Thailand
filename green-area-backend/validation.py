@@ -7,7 +7,7 @@ canopy_pct ของ FR-17 ที่นับเฉพาะเรือนย�
 classification ไม่ใช่ vegetation-index threshold) แล้วรายงานค่าความคลาดเคลื่อน
 เทียบเป้าหมาย ±10 จุด% ที่ระบุใน REQUIREMENTS.md NFR-08
 
-── นิยาม "green" ฝั่ง WorldCover ที่เทียบเคียงกับ green_area_pct ────────────────
+นิยาม "green" ฝั่ง WorldCover ที่เทียบเคียงกับ green_area_pct
 green_area_pct นับพืชพรรณทุกชนิด ไม่ใช่แค่ป่า จึงรวมทุกคลาส WorldCover ที่เป็น
 พืชพรรณ:
   10 Tree cover · 20 Shrubland · 30 Grassland · 40 Cropland ·
@@ -17,7 +17,7 @@ green_area_pct นับพืชพรรณทุกชนิด ไม่ใ�
 "green") · 70 Snow/ice (ไม่มีในไทย) · 80 Permanent water · 100 Moss/lichen
 (พืชไม่มีท่อลำเลียง ชีวมวลต่ำ แทบไม่มีในไทย)
 
-── ทำไมต้องใช้ fractional area แบบเดียวกับ canopy.py ────────────────────────
+ทำไมต้องใช้ fractional area แบบเดียวกับ canopy.py
 WorldCover เป็น band แบบคลาส (pyramiding policy = MODE) — ถ้าอ่านผ่าน pyramid
 ตรงๆ ที่ scale หยาบ (100/500 ม.) พืชพรรณกระจัดกระจายในเมือง (ต้นไม้ริมถนน แปลง
 เกษตรแทรกตัวเมือง) จะหายไปเป็นระบบเหมือนที่ FR-17 เจอกับเรือนยอด — ทำให้ความ
@@ -50,7 +50,7 @@ WORLDCOVER_CLASS_NAMES = {
 # เป้าหมายความคลาดเคลื่อนของ NFR-08 (REQUIREMENTS.md §4.2) — ±10 จุด%
 VALIDATION_TARGET_PP = 10.0
 
-# ── แยกสาเหตุความคลาดเคลื่อนรายคลาส ──────────────────────────────────────────
+# แยกสาเหตุความคลาดเคลื่อนรายคลาส
 # ตัวเลขรวม ("ต่างกัน 15 จุด%") ตอบไม่ได้ว่าต่างเพราะอะไร — ซึ่งเป็นคำถามแรกที่
 # ตามมาเสมอ จึงแยกความไม่ตรงกันออกเป็นสองทิศทาง แล้วระบุว่าแต่ละคลาสของ
 # WorldCover มีส่วนเท่าไร:
@@ -69,9 +69,9 @@ VALIDATION_TARGET_PP = 10.0
 BREAKDOWN_MIN_PP = 0.1   # ต่ำกว่านี้ไม่ต้องลงรายการ (noise ระดับปัดเศษ)
 
 
-# ── ข้อจำกัดสำคัญ: reproject 10 ม. ใช้กับ mask ที่พึ่ง S2 ไม่ได้ ──────────────
+# ข้อจำกัดสำคัญ: reproject 10 ม. ใช้กับ mask ที่พึ่ง S2 ไม่ได้
 # `_fractional_area` ต้อง `reproject` ไปกริด 10 ม. ก่อน — ทำได้กับ mask ที่มาจาก
-# WorldCover ล้วน (canopy.py ใช้แบบนั้น) แต่ **ใช้กับ mask ที่พึ่ง green_mask ไม่ได้**
+# WorldCover ล้วน (canopy.py ใช้แบบนั้น) แต่ ใช้กับ mask ที่พึ่ง green_mask ไม่ได้
 # เพราะ green_mask มาจาก median composite ของ Sentinel-2 การ reproject จึงบังคับให้
 # GEE คำนวณ composite ทั้งจังหวัดที่ 10 ม. ในคราวเดียว → 'User memory limit exceeded'
 # ทุกจังหวัด แม้ band เดียวและ tileScale=16 (วัดจริง 2026-07-28 ที่อำนาจเจริญ)
@@ -81,7 +81,7 @@ BREAKDOWN_MIN_PP = 0.1   # ต่ำกว่านี้ไม่ต้อง�
 #                       เป็นตัวตั้งของ error_pp ที่เอาไปเทียบเกณฑ์ ±10 จุด%
 #   plain (scale วิเคราะห์) ใช้กับพจน์ที่ตัดกับ green_mask (fn/fp รายคลาส) →
 #                       วัดด้วยวิธีเดียวกับที่ระบบคิด green_area_pct พอดี จึง
-#                       **กระทบยอดกันเป๊ะ** ในโดเมนนี้ (วัดจริง: net −14.9 = error −14.9)
+#                       กระทบยอดกันเป๊ะ ในโดเมนนี้ (วัดจริง: net −14.9 = error −14.9)
 # ส่วนต่างระหว่างสองโดเมน (`reference_scale_delta_pp`) รายงานไว้ให้ตรวจสอบย้อนได้:
 #     error_pp = net_pp + reference_scale_delta_pp
 VALIDATION_TILE_SCALE = 8
@@ -97,7 +97,7 @@ def _worldcover_green_mask(wc: ee.Image) -> ee.Image:
 def worldcover_reference_sums(geom: ee.Geometry, scale: int) -> dict:
     """โดเมน 1 — พื้นที่สีเขียวตาม WorldCover แบบ fractional (m²) = ค่าอ้างอิงที่แม่นที่สุด.
 
-    **ไม่ขึ้นกับปีและไม่ขึ้นกับ Sentinel-2** (WorldCover เป็น epoch เดียว) → คำนวณ
+    ไม่ขึ้นกับปีและไม่ขึ้นกับ Sentinel-2 (WorldCover เป็น epoch เดียว) → คำนวณ
     ครั้งเดียวต่อจังหวัดแล้วเก็บลง `provinces.worldcover_green_pct` ใช้ซ้ำได้ทุกปี ·
     เป็นก้อนที่แพงที่สุด (วัดจริง ~17.5 วิ/จังหวัด) การดึงออกจาก request path จึงสำคัญ
     ต่อ NFR-01 (cache miss ≤ 60 วิ) — ดู `backfill_worldcover_reference.py`

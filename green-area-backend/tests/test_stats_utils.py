@@ -6,7 +6,7 @@ import pytest
 from stats_utils import forecast_linear, linregress, mann_kendall
 
 
-# ── linregress ───────────────────────────────────────────────────────────────
+# linregress
 class TestLinregress:
     def test_perfect_positive_line(self):
         fit = linregress([1, 2, 3, 4], [2, 4, 6, 8])  # y = 2x
@@ -44,7 +44,7 @@ class TestLinregress:
         assert 0.0 <= fit["r2"] <= 1.0
 
 
-# ── mann_kendall ─────────────────────────────────────────────────────────────
+# mann_kendall
 class TestMannKendall:
     def test_monotonic_increasing_is_significant(self):
         mk = mann_kendall([1, 2, 3, 4, 5, 6, 7, 8])
@@ -85,7 +85,7 @@ class TestMannKendall:
         assert 0.0 <= mk["p_value"] <= 1.0
 
 
-# ── forecast_linear ──────────────────────────────────────────────────────────
+# forecast_linear
 class TestForecastLinear:
     def test_perfect_line_projects_exactly(self):
         # y = 2x — residual ศูนย์ → คาดการณ์ตรงเส้น, ช่วงความเชื่อมั่นแคบมาก

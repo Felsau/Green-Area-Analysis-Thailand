@@ -13,7 +13,7 @@
 --      (ไม่บังคับ FK constraint จริง เพราะ population เป็น seed data ที่อาจมาไม่ครบ
 --       — ใช้ index ช่วย JOIN/lookup แทน)
 
--- ── CHECK constraints ────────────────────────────────────────────────────────
+-- CHECK constraints
 -- ใช้ DO block เพื่อให้ idempotent (ALTER ... ADD CONSTRAINT ไม่มี IF NOT EXISTS)
 DO $$
 BEGIN
@@ -101,7 +101,7 @@ BEGIN
   END IF;
 END $$;
 
--- ── Cache versioning + expiry ────────────────────────────────────────────────
+-- Cache versioning + expiry
 -- cache_version: bump เลขนี้ใน backend เมื่อเปลี่ยน compute logic
 -- (เช่น เพิ่ม water mask, เปลี่ยน threshold) → backend lookup จะถือว่า row เก่า stale
 ALTER TABLE ndvi_annual          ADD COLUMN IF NOT EXISTS cache_version INTEGER NOT NULL DEFAULT 1;
@@ -118,7 +118,7 @@ ALTER TABLE urban_ndvi_annual    ADD COLUMN IF NOT EXISTS cache_version INTEGER 
 -- backend อนาคตจะลบ row ที่ NOW() > expires_at อัตโนมัติ
 ALTER TABLE planting_recommendations ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
 
--- ── Indexes สำหรับ query ที่ใช้บ่อย ───────────────────────────────────────────
+-- Indexes สำหรับ query ที่ใช้บ่อย
 -- province_population: lookup population ตาม (province, year) ทำบ่อยใน get_ndvi
 CREATE INDEX IF NOT EXISTS idx_pop_province_year      ON province_population(province, year);
 -- district_ndvi/lst: filter ตาม province + year ทำใน get_district_summary

@@ -16,7 +16,7 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-# ── District NDVI monthly ────────────────────────────────── (before catch-all)
+# District NDVI monthly (before catch-all)
 @router.get("/ndvi/{province_name}/districts/{district_name}/monthly")
 def get_district_ndvi_monthly(province_name: str, district_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_district_geom(province_name, district_name)
@@ -62,7 +62,7 @@ def get_district_ndvi_monthly(province_name: str, district_name: str, year: Year
             raise internal_error()
 
 
-# ── District NDVI annual ─────────────────────────────────── (before catch-all)
+# District NDVI annual (before catch-all)
 @router.get("/ndvi/{province_name}/districts/{district_name}")
 def get_district_ndvi(province_name: str, district_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_district_geom(province_name, district_name)
@@ -128,7 +128,7 @@ def get_district_ndvi(province_name: str, district_name: str, year: YearParam = 
             raise internal_error()
 
 
-# ── Province NDVI monthly ────────────────────────────────────────────────────
+# Province NDVI monthly
 @router.get("/ndvi/{province_name}/monthly", response_model=NDVIMonthlyResponse)
 def get_ndvi_monthly(province_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_province_geom(province_name)
@@ -167,7 +167,7 @@ def get_ndvi_monthly(province_name: str, year: YearParam = CURRENT_YEAR):
             raise internal_error()
 
 
-# ── Province NDVI compare ────────────────────────────────────────────────────
+# Province NDVI compare
 @router.get("/ndvi/{province_name}/compare")
 def get_ndvi_compare(province_name: str,
                      years: str = ",".join(str(y) for y in range(CURRENT_YEAR - 3, CURRENT_YEAR + 1))):
@@ -197,7 +197,7 @@ def get_ndvi_compare(province_name: str,
     return {"province": province_name, "data": data}
 
 
-# ── NFR-08 validation (ระดับจังหวัด) ─────────────────────────────────────────
+# NFR-08 validation (ระดับจังหวัด)
 def _worldcover_reference_pct(province_name: str) -> float | None:
     """% พื้นที่สีเขียวตาม WorldCover ที่ backfill ไว้ — None ถ้ายังไม่ได้เติม.
 
@@ -216,7 +216,7 @@ def _worldcover_reference_pct(province_name: str) -> float | None:
 
 
 def _build_validation(result: dict, wc_ref_pct: float | None, year: int) -> dict | None:
-    """สร้าง payload NFR-08 แล้ว **ถอน field ดิบออกจาก result** ก่อนถูก insert ลง DB.
+    """สร้าง payload NFR-08 แล้ว ถอน field ดิบออกจาก result ก่อนถูก insert ลง DB.
 
     `extra_area_sums` / `total_area_m2_raw` เป็นค่ากลางของการคำนวณ ไม่มีคอลัมน์รองรับ
     ใน ndvi_annual — ถ้าหลุดติดไปกับ insert จะ error ทั้ง request
@@ -230,7 +230,7 @@ def _build_validation(result: dict, wc_ref_pct: float | None, year: int) -> dict
                             breakdown=breakdown)
 
 
-# ── Province NDVI annual ─────────────────────────────────────────────────────
+# Province NDVI annual
 @router.get("/ndvi/{province_name}", response_model=NDVIResponse)
 def get_ndvi(province_name: str, year: YearParam = CURRENT_YEAR):
     raw_geom = get_province_geom(province_name)

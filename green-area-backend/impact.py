@@ -22,30 +22,30 @@ References:
 
 # kg CO₂ sequestered per mature tree per year — species keyed by scientific name
 TREE_CO2_PER_YEAR: dict[str, float] = {
-    # ── ภาคกลาง ──────────────────────────────────────────────────────────────
+    # ภาคกลาง
     "Samanea saman":            28.0,  # จามจุรี — large canopy, urban shade
     "Pterocarpus indicus":      22.0,  # ประดู่บ้าน — medium-large hardwood
     "Mimusops elengi":          14.0,  # พิกุล — smaller urban
     "Lagerstroemia floribunda": 16.0,  # ตะแบกนา — medium ornamental
     "Delonix regia":            18.0,  # หางนกยูงฝรั่ง — medium-large
-    # ── ภาคเหนือ ─────────────────────────────────────────────────────────────
+    # ภาคเหนือ
     "Tectona grandis":          24.0,  # สัก — fast-growing economic forest
     "Alstonia scholaris":       20.0,  # พญาสัตบรรณ — fast-growing
     "Afzelia xylocarpa":        26.0,  # มะค่าโมง — long-lived hardwood
     "Syzygium cumini":          17.0,  # หว้า — fruit + shade
     "Chukrasia tabularis":      22.0,  # ยมหิน — hardwood
-    # ── อีสาน ────────────────────────────────────────────────────────────────
+    # อีสาน
     "Pterocarpus macrocarpus":  23.0,  # ประดู่ป่า — drought-tolerant native
     "Tamarindus indica":        15.0,  # มะขาม — fruit tree
     "Dalbergia cochinchinensis": 21.0, # พะยูง — endangered hardwood
     "Sindora siamensis":        18.0,  # มะค่าแต้ — native dry forest
     "Hopea odorata":            25.0,  # ตะเคียนทอง — long-lived shade
-    # ── ตะวันออก ─────────────────────────────────────────────────────────────
+    # ตะวันออก
     "Dipterocarpus alatus":     32.0,  # ยางนา — large emergent forest
     "Sandoricum koetjape":      16.0,  # กระท้อน — fruit + shade
-    # ── ตะวันตก ──────────────────────────────────────────────────────────────
+    # ตะวันตก
     "Acacia auriculiformis":    20.0,  # กระถินณรงค์ — N-fixer
-    # ── ใต้ ──────────────────────────────────────────────────────────────────
+    # ใต้
     "Cotylelobium melanoxylon": 28.0,  # เคี่ยม — native S. Thailand
     "Garcinia mangostana":      12.0,  # มังคุด — fruit tree, smaller
     "Barringtonia acutangula":  15.0,  # จิกน้ำ — riparian medium
@@ -70,7 +70,7 @@ SURVIVAL_LOW = 0.65
 SURVIVAL_HIGH = 0.90
 SEQUESTRATION_VARIANCE = 0.25
 
-# ── i-Tree ecosystem services (FR-23/24/25) — additive to CO₂ + cooling ───────
+# i-Tree ecosystem services (FR-23/24/25) — additive to CO₂ + cooling
 # ค่าเฉลี่ยต่อ "ต้นโตเต็มที่" ต่อปี ในบริบทเมืองเขตร้อน — order-of-magnitude ตาม
 # ระเบียบวิธี i-Tree Eco (US Forest Service) + Nowak et al. 2014 · เป็นค่ากลาง
 # ปรับได้ตาม canopy/LAI/ความเข้มมลพิษพื้นที่ ไม่ใช่ค่าตายตัว · additive: เติมบริการ
@@ -158,7 +158,7 @@ def estimate_impact(plantable_area_m2: float, species_list: list[dict]) -> dict:
     co2_low = annual_co2_tonnes * SURVIVAL_LOW * (1 - SEQUESTRATION_VARIANCE)
     co2_high = annual_co2_tonnes * SURVIVAL_HIGH * (1 + SEQUESTRATION_VARIANCE)
 
-    # ── i-Tree ecosystem services (additive: air pollution + stormwater + ฿) ──
+    # i-Tree ecosystem services (additive: air pollution + stormwater + ฿)
     # คิดจาก trees_total (ศักยภาพเต็ม) ให้สอดคล้องกับ annual_co2_tonnes · มี
     # *_expected ที่คูณอัตรารอดไว้คู่กันเช่นเดียวกับ CO₂
     air_removal_kg = {p: trees_total * kg
@@ -199,7 +199,7 @@ def estimate_impact(plantable_area_m2: float, species_list: list[dict]) -> dict:
         "annual_co2_tonnes":        round(annual_co2_tonnes, 1),
         "annual_co2_kg":            round(co2_total_kg, 0),
         "equivalent_cars_off_road": round(equivalent_cars, 1),
-        # ── Uncertainty range (สมจริง รวมอัตรารอด + ความแปรปรวน) ──
+        # Uncertainty range (สมจริง รวมอัตรารอด + ความแปรปรวน)
         "annual_co2_tonnes_expected": round(co2_expected, 1),
         "annual_co2_tonnes_low":      round(co2_low, 1),
         "annual_co2_tonnes_high":     round(co2_high, 1),
@@ -207,7 +207,7 @@ def estimate_impact(plantable_area_m2: float, species_list: list[dict]) -> dict:
         "survival_rate":              SURVIVAL_RATE,
         "expected_delta_lst_c":     IMPACT_DEFAULTS["delta_lst_c"],
         "maturity_years":           IMPACT_DEFAULTS["maturity_years"],
-        # ── i-Tree ecosystem services (FR-23/24/25) — additive ──
+        # i-Tree ecosystem services (FR-23/24/25) — additive
         "ecosystem_services":       ecosystem_services,
         "species_breakdown":        species_breakdown,
         "methodology": {

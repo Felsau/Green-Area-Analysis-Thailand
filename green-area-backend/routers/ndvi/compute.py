@@ -25,7 +25,7 @@ def _is_stale(row: dict, require_validation: bool = False) -> bool:
     กับ row ที่สร้างก่อน migration 002
 
     require_validation: เช็ค `validation` (NFR-08, migration 016) ด้วยหรือไม่ ·
-    **ต้องเป็น True เฉพาะ path จังหวัด** เพราะ NFR-08 ทำระดับจังหวัดอย่างเดียว —
+    ต้องเป็น True เฉพาะ path จังหวัด เพราะ NFR-08 ทำระดับจังหวัดอย่างเดียว —
     ฟังก์ชันนี้ใช้ร่วมกับ path อำเภอที่ไม่ได้คำนวณ field นี้ ถ้าเช็คตรง ๆ โดยไม่มี
     flag row ของอำเภอจะ stale ตลอดกาล = recompute ทุกครั้งที่เปิด (GEE quota ไหม้)
     """
@@ -60,7 +60,7 @@ def compute_who_status(green_area_m2, population):
 
     Return tuple (m2_per_person, status_text) — ทั้งสองเป็น None ถ้าข้อมูลไม่พอ
 
-    **ห้ามตัดสิน "ผ่าน/ไม่ผ่านมาตรฐาน" จากค่านี้** — `green_area_m2` มาจากการนับ
+    ห้ามตัดสิน "ผ่าน/ไม่ผ่านมาตรฐาน" จากค่านี้ — `green_area_m2` มาจากการนับ
     pixel ที่ NDVI > 0.3 ซึ่งเป็นพืชพรรณ *ทุกชนิด* (ต้นไม้ริมถนน สนามหญ้า ที่รกร้าง
     รวมป่าและเกษตรถ้าเป็นค่าระดับจังหวัด) ส่วนเกณฑ์ WHO 9 m²/คน หมายถึงพื้นที่สีเขียว
     *สาธารณะที่เข้าถึงได้* ซึ่งเล็กกว่ามาก — คนละปริมาณกัน
@@ -68,9 +68,9 @@ def compute_who_status(green_area_m2, population):
     ก็ยังได้ 30.1) จึงไม่มีจังหวัดไหน "ไม่ผ่าน" ได้เลย ทั้งที่ทราบกันว่ากรุงเทพฯ
     ขาดแคลนสวนสาธารณะ → เหตุผลเต็มอยู่ที่ green-area-frontend/src/utils/greenMetric.js
 
-    **คอลัมน์ `who_status` กำลังเลิกใช้** — ไม่มีที่ไหนใน frontend อ่านแล้ว (ทุกจุด
+    คอลัมน์ `who_status` กำลังเลิกใช้ — ไม่มีที่ไหนใน frontend อ่านแล้ว (ทุกจุด
     คิดสดจาก `green_area_m2_per_person`) เก็บไว้เพื่อ backward-compat ของแถวเก่าเท่านั้น
-    **ห้ามเขียนโค้ดใหม่ที่ match ข้อความนี้** (ดูคำเตือนเดิมที่ main.py ย้ำเรื่องนี้ไว้แล้ว)
+    ห้ามเขียนโค้ดใหม่ที่ match ข้อความนี้ (ดูคำเตือนเดิมที่ main.py ย้ำเรื่องนี้ไว้แล้ว)
     """
     if not population or not green_area_m2:
         return None, None
@@ -80,7 +80,7 @@ def compute_who_status(green_area_m2, population):
     return m2_per_person, status
 
 
-# ── NFR-07: คุณภาพ/ความไม่แน่นอนของ NDVI composite ──────────────────────────
+# NFR-07: คุณภาพ/ความไม่แน่นอนของ NDVI composite
 # ค่า NDVI ทุกค่าในระบบมาจาก *median composite* ของภาพทั้งปี — ถ้าปีนั้นในพื้นที่นั้น
 # มีภาพปลอดเมฆน้อย (ภาคใต้/ฤดูฝน — ข้อจำกัดที่ REQUIREMENTS §5 ระบุไว้เอง) median
 # ถูกคำนวณจากตัวอย่างไม่กี่ค่า ความไม่แน่นอนจึงสูง แต่หน้าจอแสดงทศนิยม 4 ตำแหน่ง
@@ -96,7 +96,7 @@ S2_CLOUD_FILTER_FALLBACK_PCT = 80  # เกณฑ์สำรอง เมื่
 # ด้านล่าง) · หลักการมาจาก QA4EO (CEOS/GEO): ผลิตภัณฑ์ EO ทุกชิ้นต้องแนบ Quality
 # Indicator ที่ "ประเมินเชิงปริมาณและสาวกลับไปหามาตรฐานที่ตกลงร่วมกันได้"
 
-# ── (1) ความไม่แน่นอนของค่ากลางรายปี ────────────────────────────────────────
+# (1) ความไม่แน่นอนของค่ากลางรายปี
 # u = 1.2533 · σ / √n  — standard error ของ *median* (ค่า asymptotic √(π/2) เทียบกับ
 # ของ mean) · σ = ส่วนเบี่ยงเบนมาตรฐานของ NDVI รายภาพในปีนั้นต่อ pixel (จึงรวมทั้ง
 # noise ของเซนเซอร์และการแปรผันตามฤดูกาลจริง — ตีความว่า "เรารู้ค่ากลางรายปีแม่นแค่ไหน
@@ -125,7 +125,7 @@ QUALITY_LABELS = {
     "none": "ไม่มีภาพ",
 }
 
-# ── (2) ความเป็นตัวแทนของฤดูกาล ─────────────────────────────────────────────
+# (2) ความเป็นตัวแทนของฤดูกาล
 # composite รายปีที่มีภาพเฉพาะฤดูแล้งให้ NDVI ต่ำกว่าค่าจริงของทั้งปี · แบ่งฤดูตาม
 # นิยามกรมอุตุนิยมวิทยา (ฤดูร้อน กลาง ก.พ.–กลาง พ.ค. · ฤดูฝน กลาง พ.ค.–กลาง ต.ค. ·
 # ฤดูหนาว กลาง ต.ค.–กลาง ก.พ.) แทนการนับเดือนแบบตั้งเกณฑ์เอง · TMD ประกาศวันเริ่ม
@@ -260,7 +260,7 @@ def build_data_quality(times_ms: list, clear_obs_mean, clear_obs_min, ndvi_sd_me
     }
 
 
-# ── Shared compute helpers ───────────────────────────────────────────────────
+# Shared compute helpers
 def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int,
                          extra_sums_fn=None):
     """คำนวณ NDVI + พื้นที่สีเขียว ประจำปี — คืน None ถ้าไม่มีภาพ.
@@ -271,7 +271,7 @@ def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int,
     extra_sums_fn (optional): callable(green_mask, geom, scale) -> dict ที่คำนวณ
     ผลรวมพื้นที่เพิ่มเติมเอง (reduce ของตัวเอง) แล้วส่งกลับใน key `extra_area_sums`
     · ใช้โดย validate_green_area.py (NFR-08) เพื่อให้ตัวชี้วัด validation คำนวณจาก
-    **green_mask ตัวเดียวกับที่ระบบใช้จริง** ไม่ใช่ mask ที่สร้างขึ้นใหม่ — ถ้าวันหลัง
+    green_mask ตัวเดียวกับที่ระบบใช้จริง ไม่ใช่ mask ที่สร้างขึ้นใหม่ — ถ้าวันหลัง
     แก้ threshold 0.3 หรือวิธี mask เมฆ validation จะขยับตามเองอัตโนมัติ ไม่เกิด
     drift เงียบ ๆ ระหว่างสิ่งที่วัดกับสิ่งที่ระบบให้
     · แยก reduce ของตัวเองแทนที่จะ fold เข้าก้อนนี้ เพราะ band ของ validation หนัก
@@ -306,7 +306,7 @@ def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int,
     water_mask = ndvi_raw.gte(0.0)
     ndvi_land = ndvi_raw.updateMask(water_mask)
 
-    # ── วัตถุดิบของตัวชี้วัดความไม่แน่นอน (NFR-07) ───────────────────────────
+    # วัตถุดิบของตัวชี้วัดความไม่แน่นอน (NFR-07)
     # NDVI รายภาพ (ต่างจาก ndvi_raw ที่เป็น NDVI ของ median composite) ใช้หา
     #   n  = จำนวน observation ที่ *รอดจาก mask เมฆ* ต่อ pixel — จริงกว่าจำนวนภาพทั้งปี
     #        (ภาพผ่านเกณฑ์เมฆ 20% ทั้งภาพ แต่ก้อนเมฆอาจทับอำเภอนี้ทุกครั้ง)

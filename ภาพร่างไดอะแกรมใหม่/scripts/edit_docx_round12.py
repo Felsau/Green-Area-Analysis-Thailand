@@ -97,19 +97,19 @@ def add_row_after(needle, col1, col2):
     log.append(f'เพิ่มแถว {col1!r} ต่อจาก {needle!r}')
 
 
-# ── 1) GISDataService — tileServerUrl ไม่มีอยู่จริง · service ไม่ได้ render ────
+# 1) GISDataService — tileServerUrl ไม่มีอยู่จริง · service ไม่ได้ render
 del_row('- tileServerUrl')
 set_text('+ renderMapTile(tile_url)', '+ getTileUrl(kind, province, year)', 1)
 set_text('แสดงผลภาพ tile บนแผนที่', 'คืน URL ภาพ tile ให้หน้าจอแผนที่นำไปแสดง', 1)
 
-# ── 2) SavedAreaManager — createSavedArea รับ year ด้วย ──────────────────────
+# 2) SavedAreaManager — createSavedArea รับ year ด้วย
 set_text('+ createSavedArea(label, geometry, province)',
          '+ createSavedArea(label, geometry, province, year)')
 
-# ── 3) AnalysisReportView — เพิ่ม exportReport() ให้ exportReportData() มีคนเรียก ─
+# 3) AnalysisReportView — เพิ่ม exportReport() ให้ exportReportData() มีคนเรียก
 add_row_after('+ sortData(criteria)', '+ exportReport()', 'สั่งส่งออกรายงานเป็นไฟล์')
 
-# ── 4) LoginView → AuthView (ครอบทั้งเข้าสู่ระบบ/สมัคร/ตั้งรหัสผ่านใหม่) ──────
+# 4) LoginView → AuthView (ครอบทั้งเข้าสู่ระบบ/สมัคร/ตั้งรหัสผ่านใหม่)
 set_text('ตาราง 57 Class Description : LoginView (Attribute)',
          'ตาราง 57 Class Description : AuthView (Attribute)', 1)
 set_text('ตาราง 58 Class Description : LoginView (Method)',
@@ -123,11 +123,11 @@ set_text('+ requestPasswordReset()', '+ submitForgotPassword()', 1)
 add_row_after('+ submitForgotPassword()', '+ submitNewPassword()',
               'ส่งรหัสผ่านใหม่หลังกดลิงก์ที่ได้รับทางอีเมล')
 
-# ── 5) ProfileView — เพิ่ม submitEmailChange() ให้ตรงกับ AccountModal ────────
+# 5) ProfileView — เพิ่ม submitEmailChange() ให้ตรงกับ AccountModal
 add_row_after('+ submitPasswordChange()', '+ submitEmailChange()',
               'ส่งอีเมลใหม่ไปเปลี่ยนอีเมลของบัญชี')
 
-# ── 6) ย้ายเมธอดที่แก้ข้อมูลยืนยันตัวตน ProfileController → AuthController ────
+# 6) ย้ายเมธอดที่แก้ข้อมูลยืนยันตัวตน ProfileController → AuthController
 #     ของจริงอยู่ใน src/hooks/useAuth.js โมดูลเดียวกับ signIn/signUp ทั้งหมด
 _cp = cut_row('+ changePassword(current, new)')
 _ce = cut_row('+ changeEmail(newEmail)')
@@ -140,14 +140,14 @@ set_text('Description : ตัวควบคุมการยืนยัน�
 set_text('Description : ตัวควบคุมการจัดการบัญชีและโปรไฟล์',
          'Description : ตัวควบคุมข้อมูลโปรไฟล์ผู้ใช้งาน', 2)
 
-# ── 7) §3.6 คำอธิบาย Sequence Diagram 1–2 และ 7 ─────────────────────────────
+# 7) §3.6 คำอธิบาย Sequence Diagram 1–2 และ 7
 n = d.count('หน้าจอเข้าสู่ระบบ (LoginView)')
 assert n == 8, f'คาด 8 จุด เจอ {n}'
 d = d.replace('หน้าจอเข้าสู่ระบบ (LoginView)', 'หน้าจอยืนยันตัวตน (AuthView)')
 log.append(f'ข้อความ  หน้าจอเข้าสู่ระบบ (LoginView) → หน้าจอยืนยันตัวตน (AuthView)  ({n} จุด)')
 assert 'LoginView' not in d, 'ยังเหลือ LoginView'
 
-# ── 8) ขนาดภาพ Class Diagram 1682×1518 → 1707×1614 ──────────────────────────
+# 8) ขนาดภาพ Class Diagram 1682×1518 → 1707×1614
 CX, OLD_CY, NEW_CY = 5220000, 4711034, 4935606
 i = d.find('rId19')
 a = d.rfind('<w:drawing>', 0, i)

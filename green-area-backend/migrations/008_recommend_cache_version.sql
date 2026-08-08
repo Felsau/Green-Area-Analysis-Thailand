@@ -1,19 +1,13 @@
--- ── Migration 008: cache versioning ให้ planting_recommendations ──────────────
+-- Migration 008: cache versioning ให้ planting_recommendations
 -- รันบน Supabase SQL Editor หลัง 007
 --
--- /recommend เพิ่ม "plantability mask" (ESA WorldCover v200) ที่ตัดน้ำ/อาคาร/ป่าเดิม/
--- พื้นที่ชุ่มน้ำ ออกจาก plantable area + top_locations → ค่า impact (จำนวนต้น/CO₂) และ
--- top_locations ที่ cache ไว้ "ก่อน" มี mask จะ overestimate (เคยนับพื้นที่ปลูกไม่ได้
--- เป็นพื้นที่ปลูก) · เดิม cache นี้ไม่มี versioning จึงไม่ auto-invalidate
+-- /recommend เพิ่ม plantability mask (ESA WorldCover) ที่ตัดน้ำ/อาคาร/ป่าเดิม/พื้นที่
+-- ชุ่มน้ำออกจาก plantable area — แคชที่เขียนไว้ก่อนมี mask จึง overestimate จำนวนต้น
+-- และ CO₂ แต่ cache นี้ไม่มี versioning จึงไม่ auto-invalidate
 --
--- หลัง migration:
---   • row เก่า (pre-mask)  → cache_version = 0
---   • โค้ดเช็ค `cache_version >= RECOMMEND_CACHE_VERSION (=1)` → row 0 ถือเป็น stale,
---     ลบทิ้งแล้ว recompute ในรอบที่ถูกเรียกครั้งถัดไป (lazy, ไม่ recompute พร้อมกันทั้งหมด)
---   • row ใหม่ที่ app เขียน → cache_version = 1
---
--- DEFAULT ตั้งเป็น 1 หลัง backfill เพื่อให้ row ที่ insert นอก app (ไม่ได้ระบุ column)
--- ถือเป็น current ไม่ค้าง stale
+-- แถวเก่าได้ cache_version = 0 แล้วโค้ดเช็ค `>= RECOMMEND_CACHE_VERSION` จะถือว่า stale
+-- ลบทิ้งแล้ว recompute เมื่อถูกเรียกครั้งถัดไป (lazy ไม่ recompute พร้อมกันทั้งหมด)
+-- DEFAULT ตั้งเป็น 1 หลัง backfill เพื่อให้แถวที่ insert นอกแอปไม่ค้าง stale
 
 -- 1) เพิ่ม column · DEFAULT 0 ตอนนี้ → row เดิมทุกแถวได้ค่า 0 (pre-mask)
 ALTER TABLE planting_recommendations

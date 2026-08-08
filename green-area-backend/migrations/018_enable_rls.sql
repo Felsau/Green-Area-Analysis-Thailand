@@ -1,41 +1,26 @@
 -- Migration 018: เปิด RLS ทุกตาราง (deny-all) + บังคับให้ saved_areas มีเจ้าของ
 -- รันบน Supabase SQL Editor หลัง 017
 --
--- ── ปัญหา ────────────────────────────────────────────────────────────────────
--- Supabase grant สิทธิ์ให้ role `anon` / `authenticated` กับตารางใน schema public
--- โดยปริยาย และ PostgREST เปิด REST endpoint ให้ทุกตารางอัตโนมัติ → ตารางที่ไม่ได้
--- ENABLE ROW LEVEL SECURITY จะ SELECT/INSERT/UPDATE/DELETE ได้จากภายนอกทั้งหมด
--- ด้วย anon key เพียงอย่างเดียว
+-- Supabase grant สิทธิ์ให้ role anon/authenticated กับตารางใน schema public โดยปริยาย
+-- และ PostgREST เปิด REST endpoint ให้ทุกตารางอัตโนมัติ → ตารางที่ไม่ได้ ENABLE ROW
+-- LEVEL SECURITY อ่าน/เขียน/ลบได้จากภายนอกด้วย anon key เพียงอย่างเดียว
 --
--- anon key ไม่ใช่ความลับ — มันถูก build ลง JS bundle ตั้งแต่ต้น (VITE_SUPABASE_ANON_KEY
--- ใน lib/supabaseClient.js) ซึ่งเป็นวิธีมาตรฐานของ Supabase และปลอดภัย *ก็ต่อเมื่อ*
--- RLS ทำหน้าที่กั้นอยู่ ตอนนี้มีแค่ `profiles` ตารางเดียวที่เปิด RLS (migration 010)
--- ที่เหลือ 14 ตารางเปิดโล่ง — รวมถึง `saved_areas` ที่เป็นข้อมูลผู้ใช้จริง (polygon
--- ที่วาดเอง อาจเป็นที่ดิน/บ้าน — ดู docstring ใน routers/saved.py) ใครก็อ่านพิกัด
--- ของทุกคนหรือ DELETE ทิ้งทั้งตารางได้ โดยไม่ต้องล็อกอิน
+-- anon key ไม่ใช่ความลับ มันถูก build ลง JS bundle ตั้งแต่ต้นตามวิธีมาตรฐานของ Supabase
+-- ซึ่งปลอดภัยก็ต่อเมื่อ RLS กั้นอยู่ · ตอนนี้มีแค่ profiles ที่เปิด RLS (migration 010)
+-- ที่เหลือ 14 ตารางเปิดโล่ง รวม saved_areas ที่เป็น polygon ที่ผู้ใช้วาดเอง (อาจเป็น
+-- ที่ดิน/บ้าน) ใครก็อ่านพิกัดของทุกคนหรือลบทิ้งทั้งตารางได้โดยไม่ต้องล็อกอิน
 --
--- ── ทำไม deny-all (เปิด RLS แต่ไม่ใส่ policy เลย) ────────────────────────────
--- ไม่มีอะไรในระบบเข้าถึงตารางเหล่านี้ด้วย anon key เลย:
---   - backend ใช้ service-role key (dependencies.py::get_supabase) ซึ่ง Supabase
---     ตั้ง BYPASSRLS ไว้ที่ตัว role → RLS ไม่มีผลกับ backend ทุกกรณี
---   - frontend ใช้ anon key เฉพาะ Supabase Auth (GoTrue) ไม่มี .from() สักจุด
---     (มีแค่ lib/supabaseClient.js + hooks/useAuth.js) ข้อมูลทั้งหมดวิ่งผ่าน FastAPI
--- policy ที่ใส่เพิ่มจึงมีแต่จะเพิ่มพื้นที่ให้พลาด — ปิดหมดคือสถานะที่ตรงกับการใช้งานจริง
+-- เลือก deny-all (เปิด RLS ไม่ใส่ policy) เพราะไม่มีอะไรเข้าถึงตารางเหล่านี้ด้วย
+-- anon key เลย: backend ใช้ service-role ซึ่ง Supabase ตั้ง BYPASSRLS ไว้ ส่วน frontend
+-- ใช้ anon key เฉพาะ Auth ไม่มี .from() สักจุด · ถ้าวันหลังอยากให้ frontend ยิงตรง
+-- ต้องมาเพิ่ม policy ที่ตารางนั้นก่อน (ตั้งใจให้เป็น explicit opt-in)
 --
--- ผลข้างเคียงที่ตั้งใจ: ถ้าวันหนึ่งอยากให้ frontend ยิง Supabase ตรงเพื่อลด latency
--- ต้องมาเพิ่ม policy ที่ตารางนั้นก่อน (ตั้งใจให้เป็น explicit opt-in) เช่น
---   CREATE POLICY provinces_public_read ON provinces FOR SELECT TO anon USING (true);
---
--- ── ทำไมไม่ REVOKE grant ทิ้งด้วย ────────────────────────────────────────────
--- RLS พอแล้วสำหรับ PostgREST และย้อนกลับง่ายกว่า (ALTER TABLE ... DISABLE ROW LEVEL
--- SECURITY) ส่วน REVOKE ต้องไล่ GRANT คืนทีละตารางถ้าเปลี่ยนใจ · service_role มี
--- grant ของตัวเองอยู่แล้วจึงไม่กระทบ backend ไม่ว่าทางไหน
---
--- รันซ้ำได้: ENABLE ROW LEVEL SECURITY idempotent ในตัว · CHECK อยู่ใน DO block
+-- ไม่ REVOKE grant ด้วยเพราะ RLS พอแล้วสำหรับ PostgREST และย้อนกลับง่ายกว่า
+-- รันซ้ำได้ — ENABLE ROW LEVEL SECURITY idempotent ในตัว
 
 BEGIN;
 
--- ── 1) เปิด RLS ทุกตาราง ─────────────────────────────────────────────────────
+-- 1) เปิด RLS ทุกตาราง
 -- `profiles` ไม่อยู่ในลิสต์ — เปิดไปแล้วใน 010 พร้อม policy profiles_select_own
 -- (เจ้าของอ่านโปรไฟล์ตัวเองได้ ส่วน write ผ่าน backend เท่านั้น) อย่าแตะซ้ำ
 DO $$
@@ -59,7 +44,7 @@ BEGIN
                  array_length(tables, 1);
 END $$;
 
--- ── 2) saved_areas ต้องมีเจ้าของเสมอ ─────────────────────────────────────────
+-- 2) saved_areas ต้องมีเจ้าของเสมอ
 -- ตอนนี้ทั้ง user_id และ owner_token เป็น nullable ทั้งคู่ → แถวที่ NULL ทั้งสอง
 -- ตัวจะไม่มีใครเป็นเจ้าของ: list ไม่เจอ (filter ด้วย user_id) และ DELETE ไม่ผ่าน
 -- (is_owner เป็น false เสมอ) เหลือแต่ admin ที่ลบได้ → กลายเป็นขยะที่ลบไม่ออก

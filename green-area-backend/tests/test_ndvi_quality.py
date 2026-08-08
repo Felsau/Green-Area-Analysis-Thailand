@@ -20,7 +20,7 @@ def _ms(year, month, day=15):
     return int(datetime(year, month, day, 3, 30, tzinfo=timezone.utc).timestamp() * 1000)
 
 
-# ── ฤดูกาลตามนิยาม TMD ───────────────────────────────────────────────────────
+# ฤดูกาลตามนิยาม TMD
 class TestSeasonOf:
     def test_boundaries_follow_tmd_mid_month_rule(self):
         assert season_of(2, 15) == "ฤดูหนาว"    # ยังเป็นฤดูหนาวถึงกลาง ก.พ.
@@ -35,7 +35,7 @@ class TestSeasonOf:
         assert season_of(1, 1) == "ฤดูหนาว"
 
 
-# ── summarize_acquisitions ───────────────────────────────────────────────────
+# summarize_acquisitions
 class TestSummarizeAcquisitions:
     def test_empty_collection(self):
         out = summarize_acquisitions([])
@@ -94,7 +94,7 @@ class TestSummarizeAcquisitions:
         assert summarize_acquisitions([])["year_complete"] is True
 
 
-# ── ความไม่แน่นอน (standard error ของ median) ────────────────────────────────
+# ความไม่แน่นอน (standard error ของ median)
 class TestCompositeUncertainty:
     def test_matches_median_standard_error_formula(self):
         u = composite_uncertainty(0.10, 25)
@@ -117,7 +117,7 @@ class TestCompositeUncertainty:
         assert composite_uncertainty(None, None) > 0
 
 
-# ── การจัดระดับตามเกณฑ์ GCOS ────────────────────────────────────────────────
+# การจัดระดับตามเกณฑ์ GCOS
 class TestGradeUncertainty:
     def test_goal_when_within_5_percent(self):
         ndvi = 0.60
@@ -150,7 +150,7 @@ class TestGradeUncertainty:
         assert rel is None
 
 
-# ── build_data_quality ───────────────────────────────────────────────────────
+# build_data_quality
 class TestBuildDataQuality:
     def test_composes_full_record(self):
         times = [_ms(2024, m) for m in range(1, 13)]

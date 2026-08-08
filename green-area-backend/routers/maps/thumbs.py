@@ -95,7 +95,7 @@ def lst_thumb(province_name: str, year: YearParam = CURRENT_YEAR,
     return Response(content=composed, media_type='image/png')
 
 
-# ── Thailand mini-map with province highlighted ──────────────────────────────
+# Thailand mini-map with province highlighted
 _THAILAND_GEOJSON = None
 
 

@@ -1,37 +1,21 @@
 -- Migration 017: ปิดช่องโหว่ UNIQUE ที่ NULL เลี่ยงได้ (urban_ndvi_annual, planting_recommendations)
 -- รันบน Supabase SQL Editor หลัง 016
 --
--- ── ปัญหา ────────────────────────────────────────────────────────────────────
--- ทั้งสองตารางใช้ `district IS NULL` แทนความหมาย "ระดับจังหวัด" (ดูคอมเมนต์ใน
--- 000_initial_schema.sql) แล้วกันข้อมูลซ้ำด้วย UNIQUE(province, district, year)
+-- ทั้งสองตารางใช้ `district IS NULL` แทนความหมาย "ระดับจังหวัด" แล้วกันข้อมูลซ้ำด้วย
+-- UNIQUE(province, district, year) แต่ UNIQUE ของ PostgreSQL เป็น NULLS DISTINCT
+-- โดยปริยาย — สอง NULL ไม่เท่ากัน ข้อจำกัดจึงคุมได้เฉพาะแถวระดับอำเภอ ส่วนแถวระดับ
+-- จังหวัดของ (province, year) เดียวกัน INSERT ซ้ำได้ไม่จำกัด
 --
--- แต่ UNIQUE ของ PostgreSQL เป็น NULLS DISTINCT โดยปริยาย — สอง NULL ไม่ถือว่า
--- เท่ากัน ข้อจำกัดนี้จึงคุมได้เฉพาะแถว *ระดับอำเภอ* ส่วนแถวระดับจังหวัดของ
--- (province, year) เดียวกัน INSERT ซ้ำได้ไม่จำกัดโดยไม่มี error
+-- ผลที่แย่กว่าข้อมูลซ้ำคือ ON CONFLICT ไม่ยิงกับแถวเหล่านั้น และ endpoint ที่อ่านด้วย
+-- .limit(1) จะได้แถวไหนก็ได้แล้วแต่ planner · urban.py กับ recommend/endpoints.py
+-- เขียนแคชด้วย .insert() ธรรมดา แถวระดับจังหวัดจึงเพิ่มใหม่ทุก cache miss
 --
--- ผลตามมาที่แย่กว่าข้อมูลซ้ำคือ ON CONFLICT ไม่ยิงสำหรับแถวเหล่านั้น — โค้ด
--- ingest ที่ตั้งใจ upsert จะกลายเป็น insert เงียบ ๆ ทุกครั้งที่ re-run ซึ่งงาน
--- ดึงจาก GEE ต้อง re-run บ่อยอยู่แล้ว (cache_version bump, backfill, แก้สูตร)
--- และ endpoint ที่อ่านด้วย .limit(1) จะได้แถวไหนก็ได้แล้วแต่ planner
+-- PG 15 เพิ่ม UNIQUE NULLS NOT DISTINCT ที่ตรงกับความหมายที่ตั้งใจพอดี เลือกวิธีนี้แทน
+-- partial unique index สองอัน ซึ่ง ON CONFLICT ต้องระบุ predicate ให้ตรงทุกจุดที่เรียก
 --
--- ยืนยันผลกระทบจากโค้ดจริง: ทั้ง routers/maps/analysis/urban.py และ
--- routers/recommend/endpoints.py เขียนแคชด้วย .insert() ธรรมดาใน try/except
--- แถวระดับ *อำเภอ* ที่ซ้ำจะโดน constraint ปัดตกแล้ว log warning (พฤติกรรมที่ตั้งใจ)
--- แต่แถวระดับ *จังหวัด* (district IS NULL) ไม่มีอะไรกัน → เพิ่มแถวใหม่ทุก cache miss
---
--- ── วิธีแก้ ──────────────────────────────────────────────────────────────────
--- PostgreSQL 15 เพิ่ม UNIQUE NULLS NOT DISTINCT ที่ทำให้ NULL เท่ากัน ตรงกับ
--- ความหมายที่ตั้งใจไว้พอดี (Supabase ปัจจุบันเป็น PG 15/16) จึงเปลี่ยน
--- constraint เดิมเป็นแบบนี้แทนการทำ partial unique index สองอัน ซึ่งอ่านยาก
--- กว่าและ ON CONFLICT ต้องระบุ index predicate ให้ตรงเป๊ะทุกจุดที่เรียก
---
--- ── ลำดับการทำงาน ────────────────────────────────────────────────────────────
--- 1) ลบแถวซ้ำที่หลุดเข้ามาแล้ว เก็บแถวใหม่สุดไว้ (created_at ล่าสุด, tie-break id)
--- 2) สลับ constraint เป็น NULLS NOT DISTINCT
--- 3) ทิ้ง index ที่ซ้ำกับ constraint ใหม่
---
--- รันซ้ำได้ — ถ้ามี constraint แบบ NULLS NOT DISTINCT อยู่แล้วจะข้ามตารางนั้นไป
--- (ตรวจจาก pg_index.indnullsnotdistinct — PG เก็บแฟล็กนี้ที่ index ไม่ใช่ที่ constraint)
+-- ลำดับ: ลบแถวซ้ำ (เก็บแถวใหม่สุด) → สลับ constraint → ทิ้ง index ที่ซ้ำ
+-- รันซ้ำได้ ถ้ามี constraint แบบนี้อยู่แล้วจะข้ามตารางนั้นไป (ตรวจจาก
+-- pg_index.indnullsnotdistinct — PG เก็บแฟล็กนี้ที่ index ไม่ใช่ที่ constraint)
 
 BEGIN;
 
@@ -44,7 +28,7 @@ BEGIN
     END IF;
 END $$;
 
--- ── 1) ลบแถวซ้ำระดับจังหวัด (district IS NULL) ที่หลุดเข้ามาก่อนหน้านี้ ──────
+-- 1) ลบแถวซ้ำระดับจังหวัด (district IS NULL) ที่หลุดเข้ามาก่อนหน้านี้
 WITH ranked AS (
     SELECT id,
            row_number() OVER (PARTITION BY province, district, year
@@ -65,7 +49,7 @@ DELETE FROM planting_recommendations p
       USING ranked r
       WHERE p.id = r.id AND r.rn > 1;
 
--- ── 2) สลับ constraint ─────────────────────────────────────────────────────
+-- 2) สลับ constraint
 -- หมายเหตุ: PostgreSQL เก็บแฟล็ก NULLS NOT DISTINCT ไว้ที่ *index*
 -- (pg_index.indnullsnotdistinct — เพิ่มใน PG 15) ไม่ใช่ที่ pg_constraint
 -- จึงต้อง join ผ่าน pg_constraint.conindid
@@ -110,7 +94,7 @@ BEGIN
     END LOOP;
 END $$;
 
--- ── 3) index เดิมซ้ำกับ index ที่ unique constraint สร้างให้ (คอลัมน์ชุดเดียวกัน) ──
+-- 3) index เดิมซ้ำกับ index ที่ unique constraint สร้างให้ (คอลัมน์ชุดเดียวกัน)
 -- ปลอดภัยแม้ขั้นที่ 2 จะข้าม เพราะ unique constraint (เดิมหรือใหม่) มี index ของมันเองเสมอ
 DROP INDEX IF EXISTS idx_urban_lookup;
 DROP INDEX IF EXISTS idx_planting_lookup;

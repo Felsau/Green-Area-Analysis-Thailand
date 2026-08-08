@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from routers.recommend.endpoints import _metric_tables, _site_metrics
 
 
-# ── _metric_tables (pure routing) ────────────────────────────────────────────
+# _metric_tables (pure routing)
 class TestMetricTables:
     def test_province_level_uses_province_tables(self):
         assert _metric_tables(None) == ("province_lst_annual", "ndvi_annual")
@@ -19,7 +19,7 @@ class TestMetricTables:
         assert _metric_tables("Mueang") == ("district_lst_annual", "district_ndvi_annual")
 
 
-# ── _site_metrics (query routing via fake client) ────────────────────────────
+# _site_metrics (query routing via fake client)
 class _FakeQuery:
     """บันทึก eq() filters + คืน data ว่าง (พอสำหรับเช็ค routing)"""
     def __init__(self, sink):

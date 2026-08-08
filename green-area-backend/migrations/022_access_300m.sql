@@ -2,17 +2,12 @@
 -- รันบน Supabase SQL Editor หลัง 021 (ไม่บังคับ — routers/maps/analysis/access.py
 -- ทำงานได้โดยไม่มีตารางนี้อยู่แล้ว แค่คำนวณใหม่ทุกครั้งแทนที่จะ cache)
 --
--- ── ทำไม ─────────────────────────────────────────────────────────────────────
--- GET /analysis/access-300m/{province} คำนวณ fastDistanceTransform + WorldPop sum
--- สด (~5–15 วิ) ทุกครั้งถ้าไม่มีตารางนี้ให้ cache — เหมือน urban_ndvi_annual ก่อน
--- migration ตัวมันจะมี (ดู comment ในไฟล์ access.py สำหรับ DDL ที่ endpoint คาดหวัง)
+-- GET /analysis/access-300m/{province} คำนวณ fastDistanceTransform + WorldPop sum สด
+-- (~5–15 วิ) ทุกครั้งถ้าไม่มีตารางนี้ให้ cache · DDL ที่ endpoint คาดหวังอยู่ใน access.py
 --
--- ── NULLS NOT DISTINCT ตั้งแต่ต้น ─────────────────────────────────────────────
--- urban_ndvi_annual สร้างด้วย UNIQUE ธรรมดาตอนแรก (migration 000) แล้วมาแก้เป็น
--- NULLS NOT DISTINCT ทีหลังใน migration 017 หลังเจอบั๊กจริง (แถวระดับจังหวัด
--- district=NULL ซ้ำกันได้เพราะ Postgres UNIQUE เห็น NULL แต่ละอันเป็นคนละค่า) ·
--- ตารางนี้เจอ pattern เดียวกัน (district NULL = ระดับจังหวัด) จึงใส่ให้ถูกตั้งแต่แรก
--- ต้อง PostgreSQL 15+ (เหมือน migration 017 — โปรเจกต์นี้ยืนยันแล้วว่าเป็น PG15+)
+-- ใช้ UNIQUE NULLS NOT DISTINCT ตั้งแต่ต้น เพราะตารางนี้ใช้ district NULL แทน
+-- "ระดับจังหวัด" แบบเดียวกับ urban_ndvi_annual ที่เจอบั๊กแถวซ้ำจนต้องมาแก้ใน
+-- migration 017 · ต้อง PostgreSQL 15+
 
 BEGIN;
 

@@ -1,4 +1,4 @@
--- ── Migration 005: ตาราง saved_areas — บันทึก polygon ที่ผู้ใช้วาดเอง + ผลวิเคราะห์ ──
+-- Migration 005: ตาราง saved_areas — บันทึก polygon ที่ผู้ใช้วาดเอง + ผลวิเคราะห์
 -- ต่างจาก cache tables อื่น: นี่คือ *ข้อมูลผู้ใช้* ไม่ใช่ cache → DELETE /cache ห้ามลบตารางนี้
 -- (ไม่อยู่ใน CACHE_TABLES ของ main.py)
 --

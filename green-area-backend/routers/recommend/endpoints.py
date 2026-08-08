@@ -254,7 +254,7 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
         raise internal_error()
 
 
-# ── Province-level recommendation ────────────────────────────────────────────
+# Province-level recommendation
 @router.get("/recommend/{province_name}")
 def recommend_province(province_name: str, year: YearParam = CURRENT_YEAR,
                        w_ndvi: WeightParam = W_NDVI, w_lst: WeightParam = W_LST,
@@ -264,7 +264,7 @@ def recommend_province(province_name: str, year: YearParam = CURRENT_YEAR,
                                w_ndvi, w_lst, w_pop, w_access)
 
 
-# ── District-level recommendation ────────────────────────────────────────────
+# District-level recommendation
 @router.get("/recommend/{province_name}/districts/{district_name}")
 def recommend_district(province_name: str, district_name: str,
                        year: YearParam = CURRENT_YEAR,
@@ -275,7 +275,7 @@ def recommend_district(province_name: str, district_name: str,
                                w_ndvi, w_lst, w_pop, w_access)
 
 
-# ── Custom-area recommendation (user-drawn polygon) ──────────────────────────
+# Custom-area recommendation (user-drawn polygon)
 class CustomAreaRecommendRequest(BaseModel):
     """Body ของ POST /recommend/custom-area"""
     geometry: dict = Field(..., description="GeoJSON Polygon geometry")
