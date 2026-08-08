@@ -51,12 +51,14 @@ TABLES = {
     'planting_recommendations': [(P, 'id'), (F, 'province'), (_, 'district'), (_, 'year'),
                                  (_, 'top_locations'), (_, 'impact'),
                                  (_, 'created_at'), (_, 'cache_version')],
+    # who_urban_pass ถูกตัดใน migration 023 — ไม่มีโค้ดอ่าน (verdict ผ่าน/ไม่ผ่านซ้ำ
+    # แบบเดียวกับ who_status เดิม แต่ไม่มีใครแตะเลยตั้งแต่สร้าง)
     'urban_ndvi_annual': [
         (P, 'id'), (F, 'province'), (_, 'district'), (_, 'year'), (_, 'worldcover_year'),
         (_, 'worldpop_year'), (_, 'total_area_km2'), (_, 'urban_area_km2'),
         (_, 'urban_share_pct'), (_, 'ndvi_mean_urban'), (_, 'green_in_urban_km2'),
         (_, 'green_share_in_urban_pct'), (_, 'population_urban'), (_, 'm2_per_person_urban'),
-        (_, 'who_urban_pass'), (_, 'created_at'), (_, 'cache_version')],
+        (_, 'created_at'), (_, 'cache_version')],
     # id เป็นทั้ง PK และ FK — 1 แถวต่อ 1 บัญชี โดยใช้ auth.users.id เป็นคีย์ตรง ๆ
     'profiles': [('PK,FK', 'id'), (_, 'display_name'), (_, 'role'), (_, 'organization'),
                  (_, 'accepted_terms_at'), (_, 'created_at'), (_, 'updated_at')],
@@ -239,7 +241,7 @@ for fk in FKS:
         c.line(x_s + 10 * outward, sy, x_s, sy + 6, 0.9)
     c.line(x_d + 7 * inward, dy - 6, x_d + 7 * inward, dy + 6, 0.9)   # ขีดเดียว = one
 
-    # ── ป้าย referential action — วางชิดสันแนวตั้งของเลน ด้านตรงข้ามกล่องต้นทาง
+    # ป้าย referential action — วางชิดสันแนวตั้งของเลน ด้านตรงข้ามกล่องต้นทาง
     # (ช่องว่างระหว่างคอลัมน์ซ้ายกับเลนกว้างพอ · เส้นละ 2 บรรทัดกันล้นไปทับกล่อง)
     # เก็บไว้วาดหลังจบลูป ไม่งั้นเส้น FK ของรอบถัด ๆ ไปจะพาดทับพื้นขาวของป้าย
     note = ON_DELETE.get((src, col if isinstance(col, str) else col[0]))

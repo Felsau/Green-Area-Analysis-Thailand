@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
-# ── NDVI ─────────────────────────────────────────────────────────────────────
+# NDVI
 class MonthlyNDVIPoint(BaseModel):
     month: str
     month_num: int = Field(ge=1, le=12)
@@ -151,7 +151,7 @@ class NDVIMonthlyResponse(BaseModel):
     from_cache: bool
 
 
-# ── LST ──────────────────────────────────────────────────────────────────────
+# LST
 class MonthlyLSTPoint(BaseModel):
     month: str
     month_num: int = Field(ge=1, le=12)
@@ -175,30 +175,30 @@ class LSTMonthlyResponse(BaseModel):
     from_cache: bool
 
 
-# ── Ranking ──────────────────────────────────────────────────────────────────
+# Ranking
+# ค่าจาก urban_ndvi_annual (เขต built-up) ไม่ใช่ ndvi_annual ทั้งจังหวัด — ดูเหตุผลใน
+# main.py::get_ranking
 class RankingRow(BaseModel):
     province: str
     rank: int
-    ndvi_mean: Optional[float] = None
-    green_area_pct: Optional[float] = None
-    green_area_km2: Optional[float] = None
-    green_area_m2_per_person: Optional[float] = None
-    who_status: Optional[str] = None
-    population: Optional[int] = None
-    total_area_km2: Optional[float] = None
-    deficit_m2_per_person: Optional[float] = None
-    deficit_km2: Optional[float] = None
+    ndvi_mean_urban: Optional[float] = None
+    green_share_in_urban_pct: Optional[float] = None
+    green_in_urban_km2: Optional[float] = None
+    urban_area_km2: Optional[float] = None
+    population_urban: Optional[int] = None
+    m2_per_person_urban: Optional[float] = None
 
 
 class RankingResponse(BaseModel):
     year: int
     total_cached: int
-    who_pass_count: int
-    who_fail_count: int
+    # จำนวนจังหวัดที่อยู่เหนือ/ใต้ค่าอ้างอิง WHO — ชื่อฟิลด์เลี่ยงคำว่า pass/fail ตั้งใจ
+    above_who_reference_count: int
+    below_who_reference_count: int
     data: list[RankingRow]
 
 
-# ── Custom area (user-drawn polygon) ─────────────────────────────────────────
+# Custom area (user-drawn polygon)
 class CustomAreaResponse(BaseModel):
     """ผลวิเคราะห์ polygon ที่ผู้ใช้วาดเอง — NDVI/พื้นที่สีเขียว/ประชากร/LST.
     ประชากรมาจาก WorldPop sum ภายในพื้นที่จริง (ไม่ใช่ค่าทั้งจังหวัด)"""
@@ -222,7 +222,7 @@ class CustomAreaResponse(BaseModel):
     worldpop_year: int
 
 
-# ── Timelapse ────────────────────────────────────────────────────────────────
+# Timelapse
 class TimelapseResponse(BaseModel):
     """ค่า annual (NDVI หรือ LST) ของทุกจังหวัด ใน range ที่กำหนด — เล่นเป็น
     animation บนแผนที่ · data['Bangkok']['2020'] = 0.42 (อาจ missing บางปีถ้ายัง

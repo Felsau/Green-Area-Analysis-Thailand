@@ -2,6 +2,7 @@
 import { PROVINCE_TH } from '../../../constants';
 import { fmt, arrow } from '../helpers';
 import { COLOR, sectionTitle, table, calloutBox, note } from '../components';
+import { WHO_CAVEAT_SHORT } from '../../greenMetric';
 
 export const comparisonSections = (ctx) => {
   const {
@@ -43,29 +44,33 @@ export const comparisonSections = (ctx) => {
     { firstColWidth: 160, keepTogether: true }
   );
 
-  // Ranked Top — แสดงอันดับจริงของ N จังหวัดที่มีข้อมูล (ตอบโจทย์ "ตรวจอันดับเอง")
+  // อันดับจาก urban subset ให้ตรงกับ /analysis/ranking — คนละแหล่งข้อมูลกับ
+  // ตารางเทียบค่าเฉลี่ยด้านบนที่ใช้ค่าทั้งจังหวัด
   if (contextResp.ranked_top?.length > 0) {
     const targetEN = selectedProvinceEN;
-    cHtml += sectionTitle('ลำดับ NDVI ใน N จังหวัดที่มีข้อมูล (อันดับสูงสุด 10)', { color: COLOR.primary });
+    cHtml += sectionTitle('อันดับพื้นที่สีเขียวต่อคน (Urban Subset, อันดับสูงสุด 10)', { color: COLOR.primary });
+    cHtml += note(
+      `อันดับนี้มาจาก <b>urban subset</b> (เฉพาะเขต Built-up — รายละเอียดดู section "Urban") ` +
+      `คนละแหล่งข้อมูลกับตารางเทียบค่าเฉลี่ยด้านบนที่เป็นทั้งจังหวัด · ${WHO_CAVEAT_SHORT}`
+    );
     cHtml += table(
-      ['อันดับ', 'จังหวัด', 'NDVI Mean', 'Green Area %'],
+      ['อันดับ', 'จังหวัด', 'm²/คน (Urban)'],
       contextResp.ranked_top.map(r => {
         const isTarget = r.province === targetEN;
         const provLabel = (PROVINCE_TH[r.province] || r.province) + (isTarget ? ' ◀' : '');
         return [
           String(r.rank),
           provLabel,
-          fmt(r.ndvi_mean, 3),
-          r.green_area_pct != null ? `${fmt(r.green_area_pct, 1)}%` : '—',
+          r.m2_per_person_urban != null ? fmt(r.m2_per_person_urban, 2) : '—',
         ];
       }),
       { keepTogether: true }
     );
-    cHtml += note('◀ = จังหวัดที่กำลังวิเคราะห์ในรายงานนี้');
+    cHtml += note('◀ = จังหวัดที่กำลังวิเคราะห์ในรายงานนี้ · อันดับ 1 = น้อยที่สุด');
   }
-  if (target?.ndvi_rank) {
+  if (target?.urban_rank) {
     cHtml += calloutBox(
-      `อันดับ NDVI ระดับจังหวัด: <b>#${target.ndvi_rank} จาก ${target.ndvi_total_ranked} จังหวัด</b> ที่มี cached ปี ${year} · อันดับนี้อาจเปลี่ยนเมื่อมีข้อมูลครบ 77 จังหวัด`,
+      `อันดับพื้นที่สีเขียวต่อคน (Urban Subset): <b>#${target.urban_rank} จาก ${target.urban_total_ranked} จังหวัด</b> ที่มี cached ปี ${year} · อันดับนี้อาจเปลี่ยนเมื่อมีข้อมูลครบ 77 จังหวัด`,
       COLOR.primary
     );
   }

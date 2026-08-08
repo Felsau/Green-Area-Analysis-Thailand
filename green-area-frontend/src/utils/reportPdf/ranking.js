@@ -18,7 +18,7 @@ export const buildRankingReport = async (data) => {
     html: cover({
       kicker: 'PROVINCE RANKING',
       heading: `อันดับพื้นที่สีเขียว ปี ${rankingYear}`,
-      subheading: 'จัดอันดับจาก green area m²/คน เทียบมาตรฐาน WHO',
+      subheading: 'จัดอันดับจาก green area m²/คน (urban subset) เทียบค่าอ้างอิง WHO',
       accent: COLOR.green,
       miniMapDataUrl: miniMap,
       year: rankingYear,
@@ -38,9 +38,8 @@ export const buildRankingReport = async (data) => {
       ],
       { firstColWidth: 240 }
     );
-    // ไม่เรียกว่า "ผ่าน/ไม่ผ่านเกณฑ์" เพราะตัวชี้วัดนี้นับพืชพรรณทุกชนิดจาก NDVI > 0.3
-    // ไม่ใช่พื้นที่สาธารณะที่เข้าถึงได้ตามนิยาม WHO — วัดจริงแล้วแม้แต่ในเขต built-up
-    // ของกรุงเทพฯ (30.1 m²/คน) ก็ยังสูงกว่า 9 → ดู utils/greenMetric.js
+    // ไม่เรียกว่าผ่าน/ไม่ผ่านเกณฑ์ — ตัวชี้วัดนี้นับพืชพรรณทุกชนิด ไม่ใช่พื้นที่สาธารณะ
+    // ตามนิยาม WHO (ดู utils/greenMetric.js)
     h += calloutBox(WHO_CAVEAT_FULL, COLOR.orange);
     sections.push({ label: 'Summary', html: h });
   }
@@ -48,46 +47,45 @@ export const buildRankingReport = async (data) => {
   if (rankingData?.length > 0) {
     sections.push({
       label: 'ต่ำที่สุด',
-      // "วิกฤต" เกินจริงเมื่อดูเป็นตัวเลขล้วน — จังหวัดต่ำสุดในตารางนี้ (เช่นกรุงเทพฯ) ยังคำนวณ
-      // ผ่านเกณฑ์ WHO เพราะตัวส่วนคือพื้นที่สีเขียวทั้งจังหวัด ไม่ใช่เฉพาะเขตเมือง (ดู Summary ด้านบน)
-      html: sectionTitle('จังหวัดพื้นที่สีเขียวต่อคนต่ำที่สุด (เทียบกันเอง)', { color: COLOR.red }) +
+      // เลี่ยงคำว่า "วิกฤต" — จังหวัดต่ำสุดในตารางนี้ก็ยังสูงกว่าค่าอ้างอิง WHO
+      html: sectionTitle('จังหวัดพื้นที่สีเขียวต่อคนต่ำที่สุด (Urban Subset, เทียบกันเอง)', { color: COLOR.red }) +
         table(
-          ['อันดับ', 'จังหวัด', 'm²/คน', 'NDVI Mean', 'Green Area %'],
+          ['อันดับ', 'จังหวัด', 'm²/คน', 'NDVI Mean', 'Green % (Urban)'],
           rankingData.slice(0, 10).map(r => [
             String(r.rank),
             PROVINCE_TH[r.province] || r.province,
-            fmt(r.green_area_m2_per_person, 2),
-            fmt(r.ndvi_mean, 3),
-            r.green_area_pct != null ? `${fmt(r.green_area_pct, 2)}%` : '—',
+            fmt(r.m2_per_person_urban, 2),
+            fmt(r.ndvi_mean_urban, 3),
+            r.green_share_in_urban_pct != null ? `${fmt(r.green_share_in_urban_pct, 2)}%` : '—',
           ])
         ),
     });
 
     sections.push({
       label: 'จังหวัดดีที่สุด',
-      html: sectionTitle('จังหวัดพื้นที่สีเขียวดีที่สุด', { color: COLOR.green }) +
+      html: sectionTitle('จังหวัดพื้นที่สีเขียวดีที่สุด (Urban Subset)', { color: COLOR.green }) +
         table(
-          ['อันดับ', 'จังหวัด', 'm²/คน', 'NDVI Mean', 'Green Area %'],
+          ['อันดับ', 'จังหวัด', 'm²/คน', 'NDVI Mean', 'Green % (Urban)'],
           [...rankingData].reverse().slice(0, 10).map(r => [
             String(r.rank),
             PROVINCE_TH[r.province] || r.province,
-            fmt(r.green_area_m2_per_person, 2),
-            fmt(r.ndvi_mean, 3),
-            r.green_area_pct != null ? `${fmt(r.green_area_pct, 2)}%` : '—',
+            fmt(r.m2_per_person_urban, 2),
+            fmt(r.ndvi_mean_urban, 3),
+            r.green_share_in_urban_pct != null ? `${fmt(r.green_share_in_urban_pct, 2)}%` : '—',
           ])
         ),
     });
 
     sections.push({
       label: 'ทั้งหมด',
-      html: sectionTitle('ข้อมูลทั้งหมด') +
+      html: sectionTitle('ข้อมูลทั้งหมด (Urban Subset)') +
         table(
           ['#', 'จังหวัด', 'm²/คน', 'NDVI'],
           rankingData.map(r => [
             String(r.rank),
             PROVINCE_TH[r.province] || r.province,
-            fmt(r.green_area_m2_per_person, 2),
-            fmt(r.ndvi_mean, 3),
+            fmt(r.m2_per_person_urban, 2),
+            fmt(r.ndvi_mean_urban, 3),
           ])
         ),
     });

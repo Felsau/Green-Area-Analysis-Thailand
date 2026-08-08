@@ -202,14 +202,14 @@ export const exportRankingCsv = (data) => {
     rows.push(['ต่ำกว่าค่าอ้างอิง', rankingStats.whoFail]);
   }
   rows.push([]);
-  rows.push(['อันดับ', 'จังหวัด (EN)', 'จังหวัด (TH)', 'm²/คน', 'NDVI Mean', 'Green Area %']);
+  rows.push(['อันดับ', 'จังหวัด (EN)', 'จังหวัด (TH)', 'm²/คน (Urban)', 'NDVI Mean (Urban)', 'Green % (Urban)']);
   rankingData.forEach(r => rows.push([
     r.rank,
     r.province,
     PROVINCE_TH[r.province] || r.province,
-    r.green_area_m2_per_person ?? '',
-    r.ndvi_mean ?? '',
-    r.green_area_pct ?? '',
+    r.m2_per_person_urban ?? '',
+    r.ndvi_mean_urban ?? '',
+    r.green_share_in_urban_pct ?? '',
   ]));
   downloadCsv(rows, `ranking_${rankingYear}_${ts()}.csv`);
 };

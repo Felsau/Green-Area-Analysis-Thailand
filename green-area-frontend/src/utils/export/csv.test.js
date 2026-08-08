@@ -19,8 +19,8 @@ describe('exportRankingCsv', () => {
       rankingYear: 2023,
       rankingStats: { total: 77, whoPass: 10, whoFail: 67 },
       rankingData: [
-        { rank: 1, province: 'Bangkok Metropolis', green_area_m2_per_person: 4.1,
-          ndvi_mean: 0.27, green_area_pct: 18 },
+        { rank: 1, province: 'Bangkok Metropolis', m2_per_person_urban: 31.5,
+          ndvi_mean_urban: 0.27, green_share_in_urban_pct: 18 },
       ],
     });
     const [rows, filename] = lastCall();

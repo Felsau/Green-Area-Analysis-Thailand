@@ -1,4 +1,9 @@
-"""Urban subset (Phase B-3) — WHO-comparable green-per-person ภายในเขต Built-up."""
+"""Urban subset (Phase B-3) — พืชพรรณต่อประชากรเฉพาะภายในเขต Built-up.
+
+จำกัดขอบเขตให้ตรงกับที่คนอยู่จริง แต่ยังนับพืชพรรณทุกชนิดที่ NDVI > 0.3 ไม่ใช่
+พื้นที่สาธารณะตามนิยาม WHO จึงเทียบเกณฑ์ตรง ๆ ไม่ได้ (กรุงเทพฯ ในเขต built-up
+วัดได้ 31.5 m²/คน) ถ้อยคำที่ใช้กับผู้ใช้อยู่ใน frontend utils/greenMetric.js
+"""
 import logging
 
 import ee
@@ -6,7 +11,7 @@ from fastapi import APIRouter, HTTPException
 
 from dependencies import (supa_call, internal_error, worldpop_unavailable_error,
                           get_province_geom, get_district_geom,
-                          CURRENT_YEAR, WHO_STANDARD_M2, CURRENT_CACHE_VERSION,
+                          CURRENT_YEAR, CURRENT_CACHE_VERSION,
                           WORLDPOP_YEAR, YearParam)
 from gee_utils import clean_s2_collection, worldpop_pop_collection
 from keyed_lock import COMPUTE_LOCK
@@ -85,8 +90,6 @@ def _compute_urban_subset(geom: ee.Geometry, province_name: str,
     pop_urban_int = int(round(pop_urban))
     m2_per_person_urban = (round(green_in_urban_m2 / pop_urban_int, 2)
                            if pop_urban_int > 0 else None)
-    who_urban_pass = (m2_per_person_urban is not None
-                      and m2_per_person_urban >= WHO_STANDARD_M2)
 
     result = {
         "province": province_name, "district": district_name, "year": year,
@@ -99,7 +102,6 @@ def _compute_urban_subset(geom: ee.Geometry, province_name: str,
         "green_share_in_urban_pct": green_share_in_urban,
         "population_urban": pop_urban_int,
         "m2_per_person_urban": m2_per_person_urban,
-        "who_urban_pass": who_urban_pass,
     }
 
     # Cache (best-effort — แค่ insert ถ้า table มีอยู่)
@@ -120,7 +122,7 @@ def _compute_urban_subset(geom: ee.Geometry, province_name: str,
 #     total_area_km2 NUMERIC, urban_area_km2 NUMERIC, urban_share_pct NUMERIC,
 #     ndvi_mean_urban NUMERIC,
 #     green_in_urban_km2 NUMERIC, green_share_in_urban_pct NUMERIC,
-#     population_urban INT, m2_per_person_urban NUMERIC, who_urban_pass BOOLEAN,
+#     population_urban INT, m2_per_person_urban NUMERIC,
 #     created_at TIMESTAMPTZ DEFAULT NOW()
 #   );
 # ถ้าไม่สร้าง endpoint ยังทำงานได้ปกติ — แค่คำนวณใหม่ทุกครั้ง (ใช้เวลา 30-60s ต่อครั้ง)
@@ -129,8 +131,8 @@ def get_urban_subset(province_name: str, year: YearParam = CURRENT_YEAR,
                      district_name: str | None = None):
     """NDVI + green area + ประชากร เฉพาะภายในเขต Built-up (ESA WorldCover v200, ปี 2021).
 
-    เปรียบ WHO 9 m²/คน ได้ตรงกว่าค่ารวมระดับจังหวัด เพราะ scope = "พื้นที่ที่คนอยู่"
-    ไม่ใช่ป่า/เกษตรนอกเมือง · WorldCover ใช้ปี 2021 เป็น proxy สำหรับขอบเขตเมืองในทุกปี
+    scope = "พื้นที่ที่คนอยู่" ไม่ใช่ป่า/เกษตรนอกเมือง จึงสะท้อนสภาพในเมืองได้ดีกว่า
+    ค่ารวมระดับจังหวัด · WorldCover ใช้ปี 2021 เป็น proxy ของขอบเขตเมืองในทุกปี
     (built-up เปลี่ยนแปลงน้อยใน timescale ปี)
     """
     if district_name:

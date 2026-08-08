@@ -6,14 +6,13 @@ const handlers = {
   onComputeMissing: () => {}, onCancelCompute: () => {},
 };
 
-// ตัวชี้วัดนี้นับพืชพรรณทุกชนิด (NDVI > 0.3) ไม่ใช่พื้นที่สาธารณะที่เข้าถึงได้ตามนิยาม WHO
-// จึงสูงกว่าค่าอ้างอิงแทบทุกจังหวัด (ดู utils/greenMetric.js) — ต้องมีคำเตือนกำกับเสมอ
-// และ **ต้องไม่มีคำว่า "ผ่าน/ไม่ผ่าน"** ซึ่งเป็นข้อสรุปที่ข้อมูลรองรับไม่ได้
+// ตัวชี้วัดนี้นับพืชพรรณทุกชนิดในเขต built-up ไม่ใช่พื้นที่สาธารณะตามนิยาม WHO
+// จึงยังสูงกว่าค่าอ้างอิงแทบทุกจังหวัด — ต้องมีคำเตือนกำกับ ห้ามมีคำว่าผ่าน/ไม่ผ่าน
 test('vegetation-per-capita summary carries the WHO caveat and avoids a pass verdict', () => {
   render(<OverviewPanel data={{
     rankingData: [
-      { province: 'Bangkok Metropolis', rank: 1, green_area_m2_per_person: 87.3 },
-      { province: 'Mae Hong Son', rank: 77, green_area_m2_per_person: 44577.7 },
+      { province: 'Bangkok Metropolis', rank: 1, m2_per_person_urban: 31.5 },
+      { province: 'Mae Hong Son', rank: 77, m2_per_person_urban: 412.7 },
     ],
     rankingStats: { total: 77, whoPass: 77, whoFail: 0 },
     selectedYear: 2026,

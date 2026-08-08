@@ -305,29 +305,31 @@ def get_timelapse_lst(start_year: YearParam = 2015,
 # จงใจไม่ใส่ require_user — Landing.js (หน้าก่อนล็อกอิน) เรียก endpoint นี้เป็น
 # teaser (index จังหวัดวิกฤต/ดีที่สุด) ให้ผู้เยี่ยมชมเห็นก่อนสมัคร · หน้า dashboard
 # (useRankingData) ก็เรียกซ้ำ endpoint เดียวกันหลังล็อกอินแล้วเช่นกัน
+#
+# อ่านจาก urban_ndvi_annual (เขต built-up) ไม่ใช่ ndvi_annual ทั้งจังหวัด เพราะค่าทั้ง
+# จังหวัดนับป่า/เกษตรรวมด้วย ต่ำสุดยังได้ ~87 m²/คน อันดับจึงไม่สะท้อนความต่างจริง
+# กรอง district IS NULL — ตารางนี้เก็บแถวระดับจังหวัดและอำเภอปนกัน
 @app.get("/analysis/ranking", response_model=RankingResponse)
 def get_ranking(year: YearParam = CURRENT_YEAR):
-    result = supa_call(lambda s: s.table("ndvi_annual")
-                       .select("province,ndvi_mean,green_area_pct,green_area_km2,green_area_m2_per_person,who_status,population,total_area_km2")
+    result = supa_call(lambda s: s.table("urban_ndvi_annual")
+                       .select("province,ndvi_mean_urban,green_share_in_urban_pct,"
+                               "green_in_urban_km2,urban_area_km2,population_urban,"
+                               "m2_per_person_urban")
                        .eq("year", year)
+                       .is_("district", "null")
                        .execute())
     data = result.data
-    rankable = [r for r in data if r.get("green_area_m2_per_person") is not None]
-    ranked = sorted(rankable, key=lambda x: x["green_area_m2_per_person"])
+    rankable = [r for r in data if r.get("m2_per_person_urban") is not None]
+    ranked = sorted(rankable, key=lambda x: x["m2_per_person_urban"])
     for i, row in enumerate(ranked):
         row["rank"] = i + 1
-        current = row["green_area_m2_per_person"]
-        row["deficit_m2_per_person"] = round(max(0, WHO_STANDARD_M2 - current), 2)
-        pop = row.get("population") or 0
-        row["deficit_km2"] = round(max(0, WHO_STANDARD_M2 - current) * pop / 1_000_000, 2) if pop else 0
-    # นับจากตัวเลขตรงๆ (rankable = m²/คน ไม่เป็น null แล้ว) แทนการ match ข้อความ
-    # who_status — กัน count เพี้ยนเงียบถ้าวันหลังแก้ถ้อยคำใน compute_who_status
-    who_pass = sum(1 for r in rankable if r["green_area_m2_per_person"] >= WHO_STANDARD_M2)
-    who_fail = len(rankable) - who_pass
+    # นับว่ากี่จังหวัดอยู่เหนือ/ใต้ค่าอ้างอิง WHO 9 m²/คน ไม่ใช่การตัดสินผ่าน/ไม่ผ่าน
+    above = sum(1 for r in rankable if r["m2_per_person_urban"] >= WHO_STANDARD_M2)
+    below = len(rankable) - above
     return {
         "year": year,
         "total_cached": len(rankable),
-        "who_pass_count": who_pass,
-        "who_fail_count": who_fail,
+        "above_who_reference_count": above,
+        "below_who_reference_count": below,
         "data": ranked,
     }

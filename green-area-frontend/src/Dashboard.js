@@ -73,7 +73,7 @@ export default function Dashboard({
   const timelapse = useTimelapseData();
   const cooling = useCoolingData();
   const landuse = useLanduseData();
-  const coverage = useCoverageCompute({ setNdviCache });
+  const coverage = useCoverageCompute();
   const raster = useRasterOverlay();
   const swipe = useSwipeCompare();
   // วาดพื้นที่เอง + บันทึกพื้นที่ — orchestration อยู่ใน useAreaTools

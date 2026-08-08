@@ -140,7 +140,7 @@ export default function OverviewPanel({ data, handlers }) {
                   <div className="rank-row" key={r.province}>
                     <span className="rank-row__num">{String(r.rank).padStart(2, '0')}</span>
                     <span className="rank-row__name">{PROVINCE_TH[r.province] || r.province}</span>
-                    <span className="rank-row__val">{r.green_area_m2_per_person?.toFixed(1) ?? '—'} m²</span>
+                    <span className="rank-row__val">{r.m2_per_person_urban?.toFixed(1) ?? '—'} m²</span>
                   </div>
                 ))}
               </div>
@@ -157,7 +157,7 @@ export default function OverviewPanel({ data, handlers }) {
                   <div className="rank-row" key={r.province}>
                     <span className="rank-row__num">{String(r.rank).padStart(2, '0')}</span>
                     <span className="rank-row__name">{PROVINCE_TH[r.province] || r.province}</span>
-                    <span className="rank-row__val">{r.green_area_m2_per_person?.toFixed(1) ?? '—'} m²</span>
+                    <span className="rank-row__val">{r.m2_per_person_urban?.toFixed(1) ?? '—'} m²</span>
                   </div>
                 ))}
               </div>

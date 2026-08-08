@@ -9,7 +9,7 @@ import { WHO_REFERENCE_M2 } from '../utils/greenMetric';
 
 const FEATURES = [
   ['สถิติเชิงพื้นที่', 'Spatial statistics',
-   'NDVI · LST · พื้นที่สีเขียวต่อหัวเทียบเกณฑ์ WHO ระดับจังหวัดถึงอำเภอ'],
+   'NDVI · LST · พื้นที่สีเขียวต่อหัวเทียบค่าอ้างอิง WHO ระดับจังหวัดถึงอำเภอ'],
   ['แนวโน้ม + พยากรณ์', 'Trends & forecast',
    'ย้อนหลังหลายปี พร้อมพยากรณ์ 3 ปีด้วย OLS regression และช่วงเชื่อมั่น 95%'],
   ['เทียบภาพดาวเทียม', 'Satellite compare',
@@ -62,7 +62,7 @@ function IndexRow({ r, i, onEnter }) {
       href="#dashboard"
       role="row"
       onClick={(e) => { e.preventDefault(); onEnter(); }}
-      aria-label={`${r.th} — ${r.val} ตารางเมตรต่อคน${r.warn ? ' (ต่ำกว่าเกณฑ์ WHO)' : ''}`}
+      aria-label={`${r.th} — ${r.val} ตารางเมตรต่อคน${r.warn ? ' (ต่ำกว่าค่าอ้างอิง WHO)' : ''}`}
     >
       <span className="c__row-rank" role="cell">{String(r.rank).padStart(2, '0')}</span>
       <span className="c__row-name" role="cell">
@@ -89,8 +89,9 @@ export default function Landing({ onEnter, theme, onToggleTheme, onCookieSetting
   const [navOpen, setNavOpen] = useState(false);
   const [ranking, setRanking] = useState(null);   // raw /analysis/ranking payload, or null
 
-  // Live national ranking (green m²/person). Best-effort: the cover still works
-  // without it, so a failed/empty fetch simply hides the province index.
+  // Live national ranking (green m²/person within built-up areas only).
+  // Best-effort: the cover still works without it, so a failed/empty fetch
+  // simply hides the province index.
   useEffect(() => {
     const ctrl = new AbortController();
     (async () => {
@@ -115,12 +116,11 @@ export default function Landing({ onEnter, theme, onToggleTheme, onCookieSetting
       rank,
       th: PROVINCE_TH[d.province] || d.province,
       en: d.province,
-      val: fmt(d.green_area_m2_per_person),
-      // คิดจากตัวเลขตรง ๆ — เดิม match ข้อความใน who_status ซึ่งพังเงียบทันทีที่แก้ถ้อยคำ
-      // (main.py:324 เตือนเรื่องนี้ไว้เองอยู่แล้ว) · who_status กำลังเลิกใช้
-      warn: d.green_area_m2_per_person != null
-        && d.green_area_m2_per_person < WHO_REFERENCE_M2,
-      base: Math.max(0.18, Math.min(0.8, d.ndvi_mean ?? 0.4)),
+      val: fmt(d.m2_per_person_urban),
+      // คิดจากตัวเลขตรง ๆ ไม่ match ข้อความสถานะใดๆ — กัน parsing พังเงียบถ้าวันหลังแก้ถ้อยคำ
+      warn: d.m2_per_person_urban != null
+        && d.m2_per_person_urban < WHO_REFERENCE_M2,
+      base: Math.max(0.18, Math.min(0.8, d.ndvi_mean_urban ?? 0.4)),
     });
     const n = data.length;
     const top = data.slice(-4).reverse().map((d, i) => toRow(d, i + 1));
@@ -129,7 +129,7 @@ export default function Landing({ onEnter, theme, onToggleTheme, onCookieSetting
       topRows: top,
       lowRows: low,
       total: n,
-      whoFail: ranking?.who_fail_count ?? 0,
+      whoFail: ranking?.below_who_reference_count ?? 0,
     };
   }, [ranking]);
 
@@ -339,7 +339,7 @@ export default function Landing({ onEnter, theme, onToggleTheme, onCookieSetting
                   <h2 className="c__h2" id="methodHeading">แหล่งข้อมูลและกระบวนการ</h2>
                 </div>
                 {whoFail > 0 && (
-                  <p className="c__sec-note">{whoFail} จังหวัดมีพื้นที่สีเขียวต่ำกว่าเกณฑ์ WHO (9 ตร.ม./คน)</p>
+                  <p className="c__sec-note">{whoFail} จังหวัดมีพืชพรรณในเขตเมืองต่ำกว่าค่าอ้างอิง WHO (9 ตร.ม./คน)</p>
                 )}
               </div>
               <div className="c__method-grid c-reveal c-reveal--delay-1">

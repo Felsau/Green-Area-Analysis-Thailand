@@ -9,10 +9,12 @@ import {
 } from '../../greenMetric';
 
 const buildComparisonText = (contextResp) => {
-  if (!contextResp?.target?.ndvi_rank) return '';
-  const N = contextResp.provinces_in_cache;
-  return `จากการเทียบกับ ${N} จังหวัดที่มีข้อมูล cached ปัจจุบัน จังหวัดนี้อยู่ <b>อันดับ ${contextResp.target.ndvi_rank} จาก ${contextResp.target.ndvi_total_ranked}</b> ` +
-    `— ดูรายชื่อจริงในตาราง "ลำดับ NDVI ใน N จังหวัดที่มีข้อมูล" ของส่วน Comparison · อันดับยังเปลี่ยนได้เมื่อมีข้อมูลครบ 77 จังหวัด`;
+  if (!contextResp?.target?.urban_rank) return '';
+  const { urban_rank, urban_total_ranked } = contextResp.target;
+  return `เทียบพื้นที่สีเขียวต่อคน (urban subset) กับ ${urban_total_ranked} จังหวัดที่มีข้อมูล ` +
+    `cached ปัจจุบัน จังหวัดนี้อยู่ <b>อันดับ ${urban_rank} จาก ${urban_total_ranked}</b> ` +
+    `— ดูรายชื่อจริงในตาราง "อันดับพื้นที่สีเขียวต่อคน (Urban Subset)" ของส่วน Comparison ` +
+    `· อันดับยังเปลี่ยนได้เมื่อมีข้อมูลครบ 77 จังหวัด`;
 };
 
 // รายงานค่าที่วัดได้ตามจริง + เทียบเส้นอ้างอิง WHO แบบไม่ตัดสินผ่าน/ตก

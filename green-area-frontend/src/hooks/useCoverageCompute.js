@@ -3,13 +3,16 @@ import { API_BASE } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
-// Computes NDVI for provinces that don't yet have cached data for a given year,
-// so the national ranking can cover all 77 provinces. Runs a small concurrency
-// pool (GEE compute is the bottleneck) with live progress and cancel support.
-// Each finished province is pushed into ndviCache so the map fills in as it goes.
+// Computes urban-subset data for provinces that don't yet have it cached for a
+// given year, so the national ranking can cover all 77 provinces. Runs a small
+// concurrency pool (GEE compute is the bottleneck) with progress and cancel.
+//
+// No longer touches ndviCache — that used to be a side effect of hitting
+// /ndvi/{province} here, back when ranking read the whole-province table.
+// The map choropleth fills independently via /cache/ndvi-latest.
 const CONCURRENCY = 4;
 
-export function useCoverageCompute({ setNdviCache }) {
+export function useCoverageCompute() {
   const [computing, setComputing] = useState(false);
   const [computeProgress, setComputeProgress] = useState({ done: 0, total: 0, failed: 0 });
   const abortRef = useRef(null);
@@ -31,15 +34,8 @@ export function useCoverageCompute({ setNdviCache }) {
         const { en } = missing[index++];
         try {
           const res = await fetchWithRetry(
-            `${API_BASE}/ndvi/${encodeURIComponent(en)}?year=${year}`, { signal });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.ndvi_mean != null) {
-              setNdviCache(prev => ({ ...prev, [en]: data.ndvi_mean }));
-            }
-          } else {
-            failed++;
-          }
+            `${API_BASE}/analysis/urban-subset/${encodeURIComponent(en)}?year=${year}`, { signal });
+          if (!res.ok) failed++;
         } catch (err) {
           if (err?.name === 'AbortError') return;
           failed++;
@@ -62,7 +58,7 @@ export function useCoverageCompute({ setNdviCache }) {
         abortRef.current = null;
       }
     }
-  }, [setNdviCache]);
+  }, []);
 
   const cancelCompute = useCallback(() => {
     abortRef.current?.abort();

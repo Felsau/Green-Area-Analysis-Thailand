@@ -20,8 +20,8 @@ export function useRankingData(selectedYear) {
       setRankingData(data.data || []);
       setRankingStats({
         total:    data.total_cached,
-        whoPass:  data.who_pass_count,
-        whoFail:  data.who_fail_count,
+        whoPass:  data.above_who_reference_count,
+        whoFail:  data.below_who_reference_count,
       });
     } catch (e) {
       setRankingData([]);

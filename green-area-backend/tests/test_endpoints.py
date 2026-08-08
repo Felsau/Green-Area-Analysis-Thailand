@@ -32,7 +32,7 @@ def client(monkeypatch):
     main.app.dependency_overrides.pop(require_user, None)
 
 
-# ── GET / ────────────────────────────────────────────────────────────────────
+# GET /
 class TestRoot:
     def test_returns_status_message_and_counts(self, client, monkeypatch):
         c, main = client
@@ -47,7 +47,7 @@ class TestRoot:
         assert d["cached_monthly"] == 3
 
 
-# ── GET /compare ─────────────────────────────────────────────────────────────
+# GET /compare
 class TestCompare:
     def test_empty_provinces_returns_400(self, client):
         c, _ = client
@@ -110,7 +110,7 @@ class TestCompare:
         assert r.json()["data"][0]["available"] is False
 
 
-# ── DELETE /cache/{province_name} — fix #1 ───────────────────────────────────
+# DELETE /cache/{province_name} — fix #1
 class TestClearProvinceCache:
     def test_no_token_returns_401(self, client):
         c, _ = client
@@ -150,7 +150,7 @@ class TestClearProvinceCache:
         assert len(calls) == len(main.CACHE_TABLES)
 
 
-# ── GET /cache ────────────────────────────────────────────────────────────────
+# GET /cache
 class TestCache:
     def test_returns_annual_and_monthly(self, client, monkeypatch):
         c, main = client
@@ -174,7 +174,7 @@ class TestCache:
         assert d["limit"] == main.CACHE_INSPECT_LIMIT
 
 
-# ── GET /cache/ndvi-latest ───────────────────────────────────────────────────
+# GET /cache/ndvi-latest
 class TestLatestNdviCache:
     def test_keeps_only_the_newest_year_per_province(self, client, monkeypatch):
         # แถวมาแบบ year desc (ตาม .order ใน endpoint) → แถวแรกของแต่ละจังหวัดชนะ
@@ -200,7 +200,7 @@ class TestLatestNdviCache:
         assert d == {"count": 0, "data": {}}
 
 
-# ── GET /cache/districts ─────────────────────────────────────────────────────
+# GET /cache/districts
 class TestDistrictCache:
     def test_returns_annual_list(self, client, monkeypatch):
         c, main = client
@@ -222,19 +222,18 @@ class TestDistrictCache:
         assert r.status_code == 200
 
 
-# ── GET /analysis/ranking ────────────────────────────────────────────────────
+# GET /analysis/ranking
+# ที่มาข้อมูลเปลี่ยนเป็น urban_ndvi_annual (เขต built-up) — ดู main.py::get_ranking
 class TestRanking:
-    def test_computes_rank_and_deficit(self, client, monkeypatch):
+    def test_computes_rank_and_who_reference_counts(self, client, monkeypatch):
         c, main = client
         data = [
-            {"province": "A", "ndvi_mean": 0.3, "green_area_pct": 20,
-             "green_area_km2": 100, "green_area_m2_per_person": 5.0,
-             "who_status": "ต่ำกว่ามาตรฐาน WHO",
-             "population": 1_000_000, "total_area_km2": 500},
-            {"province": "B", "ndvi_mean": 0.6, "green_area_pct": 60,
-             "green_area_km2": 500, "green_area_m2_per_person": 50.0,
-             "who_status": "ผ่านมาตรฐาน WHO",
-             "population": 100_000, "total_area_km2": 500},
+            {"province": "A", "ndvi_mean_urban": 0.3, "green_share_in_urban_pct": 20,
+             "green_in_urban_km2": 100, "urban_area_km2": 500,
+             "population_urban": 1_000_000, "m2_per_person_urban": 5.0},
+            {"province": "B", "ndvi_mean_urban": 0.6, "green_share_in_urban_pct": 60,
+             "green_in_urban_km2": 500, "urban_area_km2": 500,
+             "population_urban": 100_000, "m2_per_person_urban": 50.0},
         ]
         monkeypatch.setattr(main, "supa_call",
             lambda fn, **kw: _fake_response(data))
@@ -243,21 +242,20 @@ class TestRanking:
         assert r.status_code == 200
         d = r.json()
         assert d["total_cached"] == 2
-        assert d["who_pass_count"] == 1
-        assert d["who_fail_count"] == 1
+        assert d["above_who_reference_count"] == 1
+        assert d["below_who_reference_count"] == 1
         # เรียงจาก m²/คน น้อย → มาก, rank 1 = ขาดแคลนสุด
         assert d["data"][0]["province"] == "A"
         assert d["data"][0]["rank"] == 1
-        assert d["data"][0]["deficit_m2_per_person"] == 4.0  # 9 − 5
         assert d["data"][1]["province"] == "B"
-        assert d["data"][1]["deficit_m2_per_person"] == 0    # 9 − 50, clamp
+        assert d["data"][1]["rank"] == 2
 
     def test_skips_rows_without_m2_per_person(self, client, monkeypatch):
         c, main = client
         data = [{
-            "province": "A", "ndvi_mean": 0.3, "green_area_pct": 20,
-            "green_area_km2": 100, "green_area_m2_per_person": None,
-            "who_status": None, "population": None, "total_area_km2": 500,
+            "province": "A", "ndvi_mean_urban": 0.3, "green_share_in_urban_pct": 20,
+            "green_in_urban_km2": 100, "urban_area_km2": 500,
+            "population_urban": None, "m2_per_person_urban": None,
         }]
         monkeypatch.setattr(main, "supa_call",
             lambda fn, **kw: _fake_response(data))
@@ -269,7 +267,7 @@ class TestRanking:
         assert d["data"] == []
 
 
-# ── GET /timelapse/ndvi/provinces ────────────────────────────────────────────
+# GET /timelapse/ndvi/provinces
 class TestTimelapse:
     def test_groups_data_by_province_and_year(self, client, monkeypatch):
         c, main = client
@@ -357,7 +355,7 @@ class TestTimelapse:
         assert r.status_code == 400
 
 
-# ── GET /analysis/cooling/{province} ─────────────────────────────────────────
+# GET /analysis/cooling/{province}
 class TestCooling:
     def test_unknown_province_returns_404(self, client):
         c, _ = client
@@ -489,7 +487,7 @@ class TestCooling:
         assert "ข้อมูลไม่พอ" in d["interpretation"]
 
 
-# ── POST /analysis/custom-area ───────────────────────────────────────────────
+# POST /analysis/custom-area
 # ทดสอบเฉพาะ validation path ที่ตอบกลับ "ก่อน" แตะ GEE — compute path จริง
 # (NDVI/LST/WorldPop) พึ่ง Earth Engine จึงไม่ครอบคลุมใน unit test ชุดนี้
 class TestCustomArea:
@@ -542,7 +540,7 @@ class TestCustomArea:
         assert r.status_code == 400
 
 
-# ── POST /recommend/custom-area ──────────────────────────────────────────────
+# POST /recommend/custom-area
 # validation path เท่านั้น (ก่อนแตะ GEE) — เหมือน TestCustomArea
 class TestCustomAreaRecommend:
     _SQUARE = [[100.0, 13.0], [100.1, 13.0], [100.1, 13.1], [100.0, 13.1], [100.0, 13.0]]
@@ -588,14 +586,14 @@ class TestCustomAreaRecommend:
         assert r.status_code == 422
 
 
-# ── saved-areas CRUD (/saved-areas) ──────────────────────────────────────────
+# saved-areas CRUD (/saved-areas)
 class TestSavedAreas:
     _SQUARE = [[100.0, 13.0], [100.1, 13.0], [100.1, 13.1], [100.0, 13.1], [100.0, 13.0]]
 
     def _body(self, ring, **extra):
         return {"geometry": {"type": "Polygon", "coordinates": [ring]}, **extra}
 
-    # ── validation (ก่อนแตะ DB) ──
+    # validation (ก่อนแตะ DB)
     def test_create_missing_geometry_returns_422(self, client):
         c, _ = client
         r = c.post("/saved-areas", json={"year": 2024})
@@ -612,7 +610,7 @@ class TestSavedAreas:
         r = c.post("/saved-areas", json=self._body(huge))
         assert r.status_code == 400
 
-    # ── create + list (mock DB) ──
+    # create + list (mock DB)
     def test_create_returns_row_without_user_id(self, client, monkeypatch):
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call",
@@ -671,7 +669,7 @@ class TestSavedAreas:
         assert len(rows) == 1
         assert rows[0]["mine"] is True
 
-    # ── get-one authorization ──
+    # get-one authorization
     def test_get_one_not_found_returns_404(self, client, monkeypatch):
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call", lambda fn, **kw: _fake_response([]))
@@ -719,7 +717,7 @@ class TestSavedAreas:
         r = c.delete("/saved-areas/1", headers={"X-Owner-Token": "tok"})
         assert r.status_code == 403
 
-    # ── delete authorization ──
+    # delete authorization
     def test_delete_not_found_returns_404(self, client, monkeypatch):
         c, _ = client
         monkeypatch.setattr("routers.saved.supa_call", lambda fn, **kw: _fake_response([]))
@@ -750,7 +748,7 @@ class TestSavedAreas:
         assert r.status_code == 200
 
 
-# ── Auth gating ───────────────────────────────────────────────────────────────
+# Auth gating
 # Business-logic tests ข้างบนใช้ fixture `client` ที่ override require_user ไว้ —
 # ชุดนี้ใช้ TestClient แยกต่างหาก (ไม่ผ่าน override) เพื่อยืนยันว่า endpoint ที่
 # ควรถูกล็อกจริง ๆ ปฏิเสธ request ที่ไม่มี token, และที่ตั้งใจเปิดสาธารณะไว้ยังเข้าได้
