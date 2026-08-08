@@ -2,8 +2,9 @@
 
 ต่างจาก /ndvi/{province} ตรงที่ไม่ผูกกับขอบเขต admin ที่ load ไว้ล่วงหน้า — รับ
 GeoJSON Polygon ดิบจาก client แล้ว compute สดทุกครั้ง (ไม่ cache เพราะ geometry
-ไม่ซ้ำ) · ประชากรใช้ WorldPop sum *ภายในพื้นที่จริง* ทำให้ WHO m²/คน ตรงกับขอบเขต
-ที่วาดมากกว่าการ map กับประชากรทั้งจังหวัด
+ไม่ซ้ำ) · ประชากรใช้ WorldPop sum *ภายในพื้นที่จริง* ทำให้ค่า m²/คน ตรงกับขอบเขต
+ที่วาดมากกว่าการ map กับประชากรทั้งจังหวัด (ค่านี้เทียบ WHO เป็น "ค่าอ้างอิง" เท่านั้น
+ไม่ใช่เกณฑ์ตัดสิน — ดู routers/ndvi/compute.py::compute_who_status)
 
 Validation/area helpers อยู่ใน polygon_utils.py (pure, test ได้โดยไม่ต้องแตะ GEE)
 — ดู tests/test_pure_helpers.py

@@ -57,7 +57,7 @@ export default function AboutModal({ open, onClose, onCookieSettings, onOpenPoli
           <h3 className="modal__h3">ระเบียบวิธีโดยสรุป</h3>
           <ul className="modal__list">
             <li>พื้นที่สีเขียว: NDVI &gt; 0.3 (รวมพืชเกษตร) · ป่าหนาแน่น: NDVI &gt; 0.5</li>
-            <li>มาตรฐาน WHO: พื้นที่สีเขียว ≥ 9 m²/คน · Urban subset เทียบเฉพาะในเขตเมือง</li>
+            <li>ค่าอ้างอิง WHO 9 m²/คน — ใช้เทียบขนาดเท่านั้น ไม่ใช่เกณฑ์ตัดสิน เพราะ WHO หมายถึงพื้นที่สาธารณะที่เข้าถึงได้ ส่วนระบบนี้วัดพืชพรรณทุกชนิด · Urban subset จำกัดขอบเขตเหลือเฉพาะในเขตเมือง</li>
             <li>AI Recommend: Priority = 0.40·NDVI deficit + 0.30·LST heat + 0.30·population need</li>
             <li>Cooling: regression ของ LST ต่อ NDVI ระดับอำเภอ (slope &lt; 0 = ยิ่งเขียวยิ่งเย็น)</li>
           </ul>

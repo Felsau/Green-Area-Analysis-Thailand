@@ -35,7 +35,7 @@ src/
     useDistrictData.js  # NDVI + LST ระดับอำเภอ + ขอบเขตอำเภอ
     useTrendData.js     # trend หลายปี
     useCompareData.js   # เปรียบเทียบหลายจังหวัด
-    useRankingData.js   # อันดับ WHO 9 m²/คน
+    useRankingData.js   # อันดับ m²/คน ในเขต built-up (urban subset)
     useRecommendData.js # AI heatmap + top spots + year picker
   utils/
     mapLayers.js        # buildMapLayers() — สร้าง DeckGL layers

@@ -71,7 +71,7 @@ export default function DrawResultCard({
 
       <Note>
         ค่าจาก Sentinel-2 / Landsat ผ่าน Google Earth Engine · ประชากรประมาณจาก
-        WorldPop ภายในพื้นที่ที่วาด เทียบมาตรฐาน WHO 9 m²/คน
+        WorldPop ภายในพื้นที่ที่วาด เทียบค่าอ้างอิง WHO 9 m²/คน
       </Note>
 
       {/* AI Recommend — หาจุดควรปลูกในพื้นที่ที่วาด */}

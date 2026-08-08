@@ -9,7 +9,7 @@
 --   AI Recommend:   planting_recommendations
 --   Population:     province_population          (seed data)
 
--- ── NDVI · Province annual ────────────────────────────────────────────────────
+-- NDVI · Province annual
 CREATE TABLE IF NOT EXISTS ndvi_annual (
   id BIGSERIAL PRIMARY KEY,
   province TEXT NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS ndvi_annual (
   UNIQUE(province, year)
 );
 
--- ── NDVI · Province monthly ───────────────────────────────────────────────────
+-- NDVI · Province monthly
 CREATE TABLE IF NOT EXISTS ndvi_monthly (
   id BIGSERIAL PRIMARY KEY,
   province TEXT NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS ndvi_monthly (
   UNIQUE(province, year)
 );
 
--- ── NDVI · District annual ────────────────────────────────────────────────────
+-- NDVI · District annual
 CREATE TABLE IF NOT EXISTS district_ndvi_annual (
   id BIGSERIAL PRIMARY KEY,
   province TEXT NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS district_ndvi_annual (
   UNIQUE(province, district, year)
 );
 
--- ── NDVI · District monthly ───────────────────────────────────────────────────
+-- NDVI · District monthly
 CREATE TABLE IF NOT EXISTS district_ndvi_monthly (
   id BIGSERIAL PRIMARY KEY,
   province TEXT NOT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS district_ndvi_monthly (
   UNIQUE(province, district, year)
 );
 
--- ── LST · Province annual / monthly ───────────────────────────────────────────
+-- LST · Province annual / monthly
 CREATE TABLE IF NOT EXISTS province_lst_annual (
   id BIGSERIAL PRIMARY KEY,
   province TEXT NOT NULL,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS province_lst_monthly (
   UNIQUE(province, year)
 );
 
--- ── LST · District annual / monthly ───────────────────────────────────────────
+-- LST · District annual / monthly
 CREATE TABLE IF NOT EXISTS district_lst_annual (
   id BIGSERIAL PRIMARY KEY,
   province TEXT NOT NULL,
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS district_lst_monthly (
   UNIQUE(province, district, year)
 );
 
--- ── Urban subset · WHO-comparable (WorldCover + WorldPop) ─────────────────────
+-- Urban subset · พืชพรรณ/ประชากรเฉพาะเขต built-up (WorldCover + WorldPop)
 CREATE TABLE IF NOT EXISTS urban_ndvi_annual (
   id BIGSERIAL PRIMARY KEY,
   province TEXT NOT NULL,
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS urban_ndvi_annual (
   UNIQUE(province, district, year)
 );
 
--- ── AI Recommend · Priority heatmap + top spots ───────────────────────────────
+-- AI Recommend · Priority heatmap + top spots
 CREATE TABLE IF NOT EXISTS planting_recommendations (
   id BIGSERIAL PRIMARY KEY,
   province TEXT NOT NULL,
@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS planting_recommendations (
   UNIQUE(province, district, year)
 );
 
--- ── Population seed (ใช้คำนวณ green/person ตาม WHO 9 m²) ───────────────────────
+-- Population seed (ใช้คำนวณ green/person เทียบค่าอ้างอิง WHO 9 m²)
 -- โหลด CSV จาก worldbank/census ใส่ก่อนใช้งาน
 CREATE TABLE IF NOT EXISTS province_population (
   id BIGSERIAL PRIMARY KEY,
@@ -155,6 +155,6 @@ CREATE TABLE IF NOT EXISTS province_population (
   UNIQUE(province, year)
 );
 
--- ── Index แนะนำสำหรับ query ที่ใช้บ่อย ─────────────────────────────────────────
+-- Index แนะนำสำหรับ query ที่ใช้บ่อย
 CREATE INDEX IF NOT EXISTS idx_ndvi_annual_year          ON ndvi_annual(year);
 CREATE INDEX IF NOT EXISTS idx_district_ndvi_annual_prov ON district_ndvi_annual(province);

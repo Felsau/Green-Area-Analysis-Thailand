@@ -29,7 +29,7 @@ W_ACCESS = 0.15   # การเข้าถึงพื้นที่สีเ
 # ตามธรรมชาติได้คะแนนสูงทั้งจังหวัด จับ hotspot จริงไม่ได้
 LST_ANOMALY_SPREAD = 6.0
 
-# ── Peri-urban cooling opportunity (จากงานวิจัย Moukomla et al. 2026, Earth 7:76) ──
+# Peri-urban cooling opportunity (จากงานวิจัย Moukomla et al. 2026, Earth 7:76)
 # พื้นผิวทึบน้ำ (ISA) สัมพันธ์บวกกับความร้อนผิว แต่ "อิ่มตัว" ที่ใจกลางเมืองทึบเต็ม
 # (stratified Pearson r≈−0.14 ไม่ significant) — marginal cooling จากการปลูกต้นไม้สูงสุด
 # ที่ "ขอบเมืองกำลังขยาย" (pervious→mixed) ไม่ใช่ core ที่ทึบอยู่แล้ว หรือชนบทที่ยังเขียว
@@ -69,7 +69,7 @@ def normalize_weights(w_ndvi: float, w_lst: float, w_pop: float,
     return w_ndvi / total, w_lst / total, w_pop / total, w_access / total
 
 
-# ── Plantability (ESA WorldCover v200, ปี 2021) ──────────────────────────────
+# Plantability (ESA WorldCover v200, ปี 2021)
 # พื้นที่ที่ "ปลูกป่าได้จริง" — เดิม plantable area คิดจาก priority>threshold เฉยๆ
 # → ระบบแนะนำปลูกบนน้ำ/อาคาร/ป่าที่มีอยู่แล้วได้ · ใช้ WorldCover (global mosaic
 # ปี 2021, single image — ตัวเดียวกับที่ urban.py ใช้) เป็น mask กรองออก
@@ -86,7 +86,7 @@ ESA_NON_PLANTABLE_CLASSES = (10, 50, 70, 80, 90, 95, 100)
 # 30° ≈ 58% grade · ตัดหน้าผา/ภูเขาชันออก แต่ยังคงเนินเขาทั่วไป · คำนวณจาก SRTM 30m
 MAX_SLOPE_DEG = 30
 
-# ── FR-26 — ease of implementation เป็นปัจจัยไล่ระดับใน priority (ไม่ใช่แค่ตัวกรอง) ──
+# FR-26 — ease of implementation เป็นปัจจัยไล่ระดับใน priority (ไม่ใช่แค่ตัวกรอง)
 # plantable_mask (binary) ยังคงใช้กรอง top-locations/plantable-area เหมือนเดิม — ต้องมี
 # ขอบเขตชัดว่าที่ไหนปลูกไม่ได้จริง ๆ (น้ำ/อาคาร/ป่าเดิม/ชันเกิน) แต่ในแง่คะแนน priority
 # พื้นที่ที่ "ปลูกได้" ไม่ได้ง่ายเท่ากันหมด — ที่ว่างเปล่าง่ายกว่าพงหญ้า/ไร่นาที่ต้องเคลียร์
@@ -108,9 +108,9 @@ LANDCOVER_EASE = {60: 1.00, 30: 0.85, 20: 0.65, 40: 0.40}
 # น้ำหนักปัจจัยผู้ใช้ 4 ตัวที่มีอยู่ ตามหลักการที่ REQUIREMENTS.md §3.2 ระบุไว้)
 W_FEAS = 0.15
 
-# ── Accessibility / equity (ระยะถึงพื้นที่สีเขียวเดิม) ────────────────────────
+# Accessibility / equity (ระยะถึงพื้นที่สีเขียวเดิม)
 # คนที่อยู่ไกลจากต้นไม้/พื้นที่สีเขียว = เข้าถึงพื้นที่สีเขียวยาก → ควรได้รับความสำคัญ
-# ก่อน (ตรงกับภารกิจ m²/คน ตามมาตรฐาน WHO ของทั้งระบบ) · ใช้ ESA WorldCover class 10
+# ก่อน (ตรงกับภารกิจ m²/คน ที่เทียบค่าอ้างอิง WHO ของทั้งระบบ) · ใช้ ESA WorldCover class 10
 # (Tree cover) เป็น "พื้นที่สีเขียวเดิม" แล้ววัดระยะถึง pixel ต้นไม้ใกล้สุด
 # (นิยาม class/asset อยู่ใน canopy.py ที่เดียว — ใช้ร่วมกับตัวชี้วัด 30% ของ FR-17)
 # Scale คงที่ที่ใช้คำนวณ distance transform (เมตร/pixel) — ดู docstring ว่าทำไมต้องปักหมุด
@@ -225,7 +225,7 @@ def compute_priority(geom: ee.Geometry, year: int,
                      w_pop: float = W_POP, w_access: float = W_ACCESS):
     """คำนวณ Priority Score image (100m resolution) สำหรับ geometry ที่ระบุ"""
 
-    # ── 1. NDVI ────────────────────────────────────────────────
+    # 1. NDVI
     s2 = clean_s2_collection(
         ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
         .filterBounds(geom)
@@ -240,7 +240,7 @@ def compute_priority(geom: ee.Geometry, year: int,
     ndvi_deficit = (ee.Image.constant(0.3).subtract(ndvi)
                     .divide(0.3).clamp(0, 1).unmask(0).rename('ndvi_deficit'))
 
-    # ── 2. LST (relative heat anomaly) ──────────────────────────
+    # 2. LST (relative heat anomaly)
     lst_col = get_lst_col(geom, year)
     lst = lst_col.median().select('LST').rename('LST')
     # anomaly = LST − ค่าเฉลี่ยพื้นที่ → normalize ด้วย LST_ANOMALY_SPREAD
@@ -252,7 +252,7 @@ def compute_priority(geom: ee.Geometry, year: int,
     lst_heat = (lst.subtract(lst_mean_region).divide(LST_ANOMALY_SPREAD)
                 .clamp(0, 1).unmask(0).rename('lst_heat'))
 
-    # ── 3. Population (WorldPop) ────────────────────────────────
+    # 3. Population (WorldPop)
     pop = worldpop_pop_collection(WORLDPOP_YEAR).first()
     pop_img = ee.Image(pop).select('population').unmask(0)
     # Normalize ด้วย log base 1000 — สูตรคือ ln(pop+1) / ln(1000)
@@ -261,20 +261,20 @@ def compute_priority(geom: ee.Geometry, year: int,
     pop_need = (pop_img.add(1).log().divide(ee.Number(1000).log())
                 .clamp(0, 1).rename('pop_need'))
 
-    # ── 4. Accessibility / equity (ระยะถึงพื้นที่สีเขียวเดิม) ────
+    # 4. Accessibility / equity (ระยะถึงพื้นที่สีเขียวเดิม)
     # ไกลจากต้นไม้เดิม = เข้าถึงพื้นที่สีเขียวยาก → ควรปลูกก่อน (equity)
     access_need = access_need_image(geom)
 
-    # ── 5. Peri-urban cooling opportunity (Moukomla et al. 2026) ─
+    # 5. Peri-urban cooling opportunity (Moukomla et al. 2026)
     # โอกาสลดความร้อนสูงสุดที่ขอบเมืองกำลังขยาย (ISA ปานกลาง) — ดู W_PERI ด้านบน
     peri_need = peri_urban_need_image(geom, year)
 
-    # ── 6. Ease of implementation (FR-26) ────────────────────────
+    # 6. Ease of implementation (FR-26)
     # ที่ดินง่ายกว่า (ที่ว่าง > พงหญ้า > ไร่นา) + ลาดชันน้อยกว่า = ปลูกได้ง่ายกว่า —
     # ดู W_FEAS/LANDCOVER_EASE ด้านบน
     feasibility_need = feasibility_need_image(geom)
 
-    # ── 7. Weighted Priority Score ──────────────────────────────
+    # 7. Weighted Priority Score
     # 4 ปัจจัยผู้ใช้ (w_* normalize รวม 1.0) กินสัดส่วน (1 − W_PERI − W_FEAS) ·
     # peri_need/feasibility_need เป็นปัจจัยคงที่ (ไม่ผูก slider ผู้ใช้) · additive —
     # ไม่ลดมิติ/ความคมของปัจจัยเดิม แค่เพิ่ม slice ใหม่ทีละตัว (เหมือน W_PERI ตอนเพิ่มก่อนหน้า)
@@ -288,12 +288,12 @@ def compute_priority(geom: ee.Geometry, year: int,
                 .rename('priority')
                 .clip(geom))
 
-    # ── 8. Plantability mask ────────────────────────────────────
+    # 8. Plantability mask
     # ส่ง mask แยกออกมา (ไม่ mask ตัว priority) ให้ top-locations + plantable-area
     # กรองจุดที่ปลูกได้จริง · lazy ee.Image — ไม่ถูก evaluate จนกว่าจะถูกใช้
     plantable = plantable_mask(geom)
 
-    # ── 9. Land use tag (ไม่ใช่ปัจจัยคะแนน) ─────────────────────
+    # 9. Land use tag (ไม่ใช่ปัจจัยคะแนน)
     # ประเภทการใช้ที่ดิน 1–5 (นิยาม LDD จาก Dynamic World — ดู landuse.py) sample
     # ที่จุด top-locations เพื่ออธิบายว่าจุดแนะนำอยู่บนพื้นที่แบบไหน · unmask(0)
     # (0 = ไม่ทราบ) กัน pixel ที่ DW ขาดทำจุด sample หลุดทั้งแถวจาก dropNulls
@@ -303,7 +303,7 @@ def compute_priority(geom: ee.Geometry, year: int,
             feasibility_need, plantable, landuse)
 
 
-# ── Top-locations sampling ───────────────────────────────────────────────────
+# Top-locations sampling
 # "Top N จุด" ต้องเป็น pixel priority สูงสุด *จริง* ของพื้นที่ ไม่ใช่ของ sample สุ่ม
 # เดิม: sample(numPixels=2000) สุ่มทั่ว geom แล้วค่อย sort → จังหวัดใหญ่ (หลายแสน
 # pixel ที่ 200 m) สุ่มไม่โดน hotspot จริง + ไม่มี seed = ผลต่างกันทุกครั้ง

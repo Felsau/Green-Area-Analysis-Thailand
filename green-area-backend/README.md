@@ -30,12 +30,13 @@ admin (`DELETE /cache`) รับได้ทั้ง `X-Admin-Token` หรื
 | POST | `/recommend/custom-area` | AI Recommend บน polygon ที่ผู้ใช้วาดเอง |
 | GET | `/analysis/landuse/{province}?source=dynamic_world\|ldd` | สัดส่วนการใช้ที่ดิน 5 ประเภท (Dynamic World / LDD) |
 | GET | `/analysis/urban-subset/{province}` | NDVI + green/person ในเขต built-up (WorldCover) |
+| GET | `/analysis/access-300m/{province}` | FR-18 — % ประชากรที่อยู่ในระยะ 300 ม. จากพืชพรรณ (`fastDistanceTransform` + WorldPop) · cache best-effort ลง `access_300m` |
 | GET | `/analysis/districts/{province}` | NDVI + green/person รายอำเภอทั้งจังหวัด |
 | GET | `/analysis/cooling/{province}` | ศักยภาพลดความร้อน (NDVI ↔ LST) |
-| GET | `/analysis/context/{province}` | บริบทจังหวัด (mini-map + สถิติสรุป) |
+| GET | `/analysis/context/{province}` | ค่าเฉลี่ยของจังหวัดที่มี cache (ทั้งจังหวัด) + อันดับ m²/คน จาก urban subset — ใช้ในรายงาน PDF |
 | GET | `/analysis/timeseries/{province}` | NDVI+LST รายปีจาก cache + Mann-Kendall + forecast 3 ปี (95% PI) |
 | POST | `/analysis/custom-area` | วิเคราะห์ polygon ที่วาดเอง — NDVI/green/ป่าทึบ + ประชากร (WorldPop จริง) + WHO m²/คน + LST |
-| GET | `/analysis/ranking?year=2026` | อันดับจังหวัดตาม green/person (WHO) — **ไม่ต้องล็อกอิน** (teaser) |
+| GET | `/analysis/ranking?year=2026` | อันดับจังหวัดตาม m²/คน ใน**เขต built-up** (อ่านจาก `urban_ndvi_annual`) — **ไม่ต้องล็อกอิน** (teaser หน้า Landing) |
 | GET | `/maps/{province}/ndvi-tiles` · `lst-tiles` · `landuse-tiles` | raster tile URL (XYZ) ซ้อนบนแผนที่ |
 | GET | `/maps/{province}/ndvi-diff-tiles` · `lst-diff-tiles` | tile ส่วนต่าง 2 ปี (swipe compare) |
 | GET | `/maps/{province}/ndvi-thumb` · `lst-thumb` · `/maps/thailand-thumb` | PNG thumbnail (matplotlib) |
@@ -43,7 +44,7 @@ admin (`DELETE /cache`) รับได้ทั้ง `X-Admin-Token` หรื
 | GET | `/compare?provinces=A,B&year=2026` | เปรียบเทียบหลายจังหวัด |
 | POST | `/saved-areas` | บันทึก polygon ที่วาด + ผลวิเคราะห์ (ผูก `user_id` ของผู้ใช้ที่ล็อกอิน) |
 | GET | `/saved-areas` · `/saved-areas/{id}` | รายการ / รายละเอียดพื้นที่ที่บันทึก (flag `mine`) |
-| DELETE | `/saved-areas/{id}` | ลบพื้นที่ — เฉพาะเจ้าของ (`user_id` / owner-token legacy) หรือ admin |
+| DELETE | `/saved-areas/{id}` | ลบพื้นที่ — เฉพาะเจ้าของ (`user_id`) หรือ admin · `X-Owner-Token` ถูกตัดทิ้งใน migration 019 ส่งมาก็ไม่มีผล (403) |
 | GET | `/account/me` | โปรไฟล์ผู้ใช้ปัจจุบัน (display_name, role, organization) |
 | PATCH | `/account/me` | แก้ display_name / organization |
 | DELETE | `/account/me` | ลบบัญชีถาวร (auth.users + profiles + saved_areas ที่ผูกไว้) |

@@ -22,7 +22,7 @@ export const overviewSections = (ctx) => {
 
   let overviewHtml = sectionTitle('ภาพรวม (Overview)');
   overviewHtml += paragraph(
-    'รายงานนี้สรุปข้อมูลพื้นที่สีเขียวจากดัชนี <b>NDVI</b> (Sentinel-2) และอุณหภูมิผิวพื้น <b>LST</b> (Landsat 8/9) เปรียบเทียบกับมาตรฐาน WHO (พื้นที่สีเขียว ≥ 9 m²/คน)'
+    'รายงานนี้สรุปข้อมูลพื้นที่สีเขียวจากดัชนี <b>NDVI</b> (Sentinel-2) และอุณหภูมิผิวพื้น <b>LST</b> (Landsat 8/9) พร้อมเทียบกับ<b>ค่าอ้างอิง</b> WHO 9 m²/คน (ดูข้อจำกัดของการเทียบในส่วนท้ายรายงาน)'
   );
   const overviewRows = [
     ['จังหวัด', selectedProvince || '—'],
