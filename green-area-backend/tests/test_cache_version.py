@@ -23,7 +23,18 @@ from dependencies import (CURRENT_CACHE_VERSION, DISTRICT_GEOMETRIES,
                           PROVINCE_GEOMETRIES, require_user)
 
 PROVINCE = next(iter(PROVINCE_GEOMETRIES))
-DIST_PROVINCE, DISTRICT = next(iter(DISTRICT_GEOMETRIES))
+
+# thailand_districts.json ถูก gitignore (green-area-frontend/.gitignore) จึงไม่มีใน CI
+# → DISTRICT_GEOMETRIES ว่าง · ห้าม next(iter(...)) ตรง ๆ เพราะจะ StopIteration ตอน
+# import แล้วพังทั้งไฟล์ (ไม่ใช่แค่เคสอำเภอ) · เคสระดับอำเภอ skip ไปเมื่อไม่มีไฟล์
+_dist_entry = next(iter(DISTRICT_GEOMETRIES), None)
+HAS_DISTRICTS = _dist_entry is not None
+DIST_PROVINCE, DISTRICT = _dist_entry if _dist_entry else (PROVINCE, "—")
+
+needs_districts = pytest.mark.skipif(
+    not HAS_DISTRICTS,
+    reason="ไม่มี thailand_districts.json (gitignored) — รัน generate_districts.py ก่อน")
+
 YEAR = 2025
 STALE = CURRENT_CACHE_VERSION - 1
 
@@ -191,6 +202,7 @@ class TestNdviMonthlyCacheVersion:
 
 
 # ---- NDVI รายเดือน (อำเภอ) ----
+@needs_districts
 class TestDistrictNdviMonthlyCacheVersion:
     URL = f"/ndvi/{DIST_PROVINCE}/districts/{DISTRICT}/monthly?year={YEAR}"
     TABLE = "district_ndvi_monthly"
@@ -219,11 +231,14 @@ class TestDistrictNdviMonthlyCacheVersion:
 class TestLstCacheVersion:
     """ทั้ง 4 endpoint ของ LST ใช้แพตเทิร์นเดียวกัน — วนเทสต์ตารางละชุด"""
 
-    CASES = [
+    PROVINCE_CASES = [
         (f"/lst/{PROVINCE}?year={YEAR}", "province_lst_annual",
          {"province": PROVINCE, "year": YEAR, "lst_mean": 30.0, "lst_min": 25.0, "lst_max": 35.0}),
         (f"/lst/{PROVINCE}/monthly?year={YEAR}", "province_lst_monthly",
          {"province": PROVINCE, "year": YEAR, "monthly_data": _MONTHLY}),
+    ]
+    # แยกจาก PROVINCE_CASES เพราะต้อง skip ทั้งชุดเมื่อไม่มีไฟล์ขอบเขตอำเภอ
+    DISTRICT_CASES = [
         (f"/lst/{DIST_PROVINCE}/districts/{DISTRICT}?year={YEAR}", "district_lst_annual",
          {"province": DIST_PROVINCE, "district": DISTRICT, "year": YEAR,
           "lst_mean": 30.0, "lst_min": 25.0, "lst_max": 35.0}),
@@ -231,19 +246,16 @@ class TestLstCacheVersion:
          {"province": DIST_PROVINCE, "district": DISTRICT, "year": YEAR,
           "monthly_data": _MONTHLY}),
     ]
+    ALL_CASES = PROVINCE_CASES + DISTRICT_CASES
 
-    @pytest.mark.parametrize("url,table,row", CASES,
-                             ids=[c[1] for c in CASES])
-    def test_current_version_served_from_cache(self, env, url, table, row):
+    def _check_hit(self, env, url, table, row):
         _seed(env, table, {**row, "cache_version": CURRENT_CACHE_VERSION})
         r = env.client.get(url)
         assert r.status_code == 200
         assert r.json()["from_cache"] is True
         assert env.calls == [], f"{table}: แถว version ปัจจุบันต้องไม่ recompute"
 
-    @pytest.mark.parametrize("url,table,row", CASES,
-                             ids=[c[1] for c in CASES])
-    def test_stale_version_deleted_then_recomputed(self, env, url, table, row):
+    def _check_stale(self, env, url, table, row):
         _seed(env, table, {**row, "cache_version": STALE})
         r = env.client.get(url)
         assert r.status_code == 200
@@ -252,13 +264,44 @@ class TestLstCacheVersion:
         assert _inserts(env, table)[0]["cache_version"] == CURRENT_CACHE_VERSION
         assert all(r_["cache_version"] == CURRENT_CACHE_VERSION for r_ in env.store[table])
 
-    @pytest.mark.parametrize("url,table,row", CASES,
-                             ids=[c[1] for c in CASES])
-    def test_row_without_cache_version_treated_as_stale(self, env, url, table, row):
+    def _check_missing_version(self, env, url, table, row):
         _seed(env, table, dict(row))
         r = env.client.get(url)
         assert r.status_code == 200
         assert r.json()["from_cache"] is False
+
+    @pytest.mark.parametrize("url,table,row", PROVINCE_CASES,
+                             ids=[c[1] for c in PROVINCE_CASES])
+    def test_province_cache_behaviour(self, env, url, table, row):
+        self._check_hit(env, url, table, row)
+
+    @pytest.mark.parametrize("url,table,row", PROVINCE_CASES,
+                             ids=[c[1] for c in PROVINCE_CASES])
+    def test_province_stale_deleted_then_recomputed(self, env, url, table, row):
+        self._check_stale(env, url, table, row)
+
+    @pytest.mark.parametrize("url,table,row", PROVINCE_CASES,
+                             ids=[c[1] for c in PROVINCE_CASES])
+    def test_province_missing_version_is_stale(self, env, url, table, row):
+        self._check_missing_version(env, url, table, row)
+
+    @needs_districts
+    @pytest.mark.parametrize("url,table,row", DISTRICT_CASES,
+                             ids=[c[1] for c in DISTRICT_CASES])
+    def test_district_cache_behaviour(self, env, url, table, row):
+        self._check_hit(env, url, table, row)
+
+    @needs_districts
+    @pytest.mark.parametrize("url,table,row", DISTRICT_CASES,
+                             ids=[c[1] for c in DISTRICT_CASES])
+    def test_district_stale_deleted_then_recomputed(self, env, url, table, row):
+        self._check_stale(env, url, table, row)
+
+    @needs_districts
+    @pytest.mark.parametrize("url,table,row", DISTRICT_CASES,
+                             ids=[c[1] for c in DISTRICT_CASES])
+    def test_district_missing_version_is_stale(self, env, url, table, row):
+        self._check_missing_version(env, url, table, row)
 
 
 # ---- cache miss ปกติ (ไม่มีแถวเลย) ----
@@ -266,18 +309,27 @@ class TestColdCacheWritesCurrentVersion:
     """ทุก path ที่ insert ใหม่ต้องติดป้าย version ปัจจุบันเสมอ — กันการถอยกลับไป
     insert โดยไม่ใส่ cache_version ซึ่งจะทำให้แถวใหม่ stale ทันทีที่เขียน"""
 
-    @pytest.mark.parametrize("url,table", [
-        (f"/ndvi/{PROVINCE}/monthly?year={YEAR}", "ndvi_monthly"),
-        (f"/ndvi/{DIST_PROVINCE}/districts/{DISTRICT}/monthly?year={YEAR}", "district_ndvi_monthly"),
-        (f"/lst/{PROVINCE}?year={YEAR}", "province_lst_annual"),
-        (f"/lst/{PROVINCE}/monthly?year={YEAR}", "province_lst_monthly"),
-        (f"/lst/{DIST_PROVINCE}/districts/{DISTRICT}?year={YEAR}", "district_lst_annual"),
-        (f"/lst/{DIST_PROVINCE}/districts/{DISTRICT}/monthly?year={YEAR}", "district_lst_monthly"),
-    ])
-    def test_insert_carries_current_cache_version(self, env, url, table):
+    def _check_insert(self, env, url, table):
         r = env.client.get(url)
         assert r.status_code == 200
         assert r.json()["from_cache"] is False
         inserted = _inserts(env, table)
         assert len(inserted) == 1, f"{table}: ต้อง insert แถวใหม่ 1 แถว"
         assert inserted[0]["cache_version"] == CURRENT_CACHE_VERSION
+
+    @pytest.mark.parametrize("url,table", [
+        (f"/ndvi/{PROVINCE}/monthly?year={YEAR}", "ndvi_monthly"),
+        (f"/lst/{PROVINCE}?year={YEAR}", "province_lst_annual"),
+        (f"/lst/{PROVINCE}/monthly?year={YEAR}", "province_lst_monthly"),
+    ])
+    def test_province_insert_carries_current_cache_version(self, env, url, table):
+        self._check_insert(env, url, table)
+
+    @needs_districts
+    @pytest.mark.parametrize("url,table", [
+        (f"/ndvi/{DIST_PROVINCE}/districts/{DISTRICT}/monthly?year={YEAR}", "district_ndvi_monthly"),
+        (f"/lst/{DIST_PROVINCE}/districts/{DISTRICT}?year={YEAR}", "district_lst_annual"),
+        (f"/lst/{DIST_PROVINCE}/districts/{DISTRICT}/monthly?year={YEAR}", "district_lst_monthly"),
+    ])
+    def test_district_insert_carries_current_cache_version(self, env, url, table):
+        self._check_insert(env, url, table)
