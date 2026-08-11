@@ -149,8 +149,10 @@ export default function StatsTab({ data, handlers }) {
                 value={ndviStats?.green_area_pct != null ? `${ndviStats.green_area_pct}%` : '—'}
                 hint={ndviStats?.green_area_km2 != null ? `${ndviStats.green_area_km2.toLocaleString()} km²` : null}
               />
+              {/* ต้องกำกับ "(ทั้งจังหวัด)" — ตารางจัดอันดับใน OverviewPanel คิดเฉพาะ
+                  เขตเมือง ค่าจึงต่างกันหลายเท่าสำหรับจังหวัดเดียวกัน */}
               <KV
-                label="ต่อหัวประชากร"
+                label="ต่อหัวประชากร (ทั้งจังหวัด)"
                 value={ndviStats?.green_area_m2_per_person != null ? `${ndviStats.green_area_m2_per_person.toFixed(1)} m²` : '—'}
                 // คิดสดจากตัวเลข ไม่อ่าน who_status ที่เก็บเป็นข้อความไว้ใน DB
                 // (แถวเก่ามีถ้อยคำคนละแบบ และกำลังเลิกใช้คอลัมน์นั้น)

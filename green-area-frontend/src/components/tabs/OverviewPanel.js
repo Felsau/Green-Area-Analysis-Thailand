@@ -87,6 +87,13 @@ export default function OverviewPanel({ data, handlers }) {
             <div className="bar" style={{ marginTop: 4 }}>
               <div className="bar__fill" style={{ width: `${passPct}%` }} />
             </div>
+            {/* ต้องบอกขอบเขตให้ชัด — แผงนี้คิดเฉพาะเขต built-up แต่แท็บ "ข้อมูล"
+                ของจังหวัดเดียวกันแสดง m²/คน ของทั้งจังหวัด ซึ่งสูงกว่าหลายเท่า
+                (สมุทรปราการ 38.2 กับ 354.7) ถ้าไม่ติดป้ายจะอ่านเหมือนขัดกันเอง */}
+            <div className="helper" style={{ marginTop: 6 }}>
+              คิดเฉพาะ<strong>พื้นที่สิ่งปลูกสร้าง (เขตเมือง)</strong> ของแต่ละจังหวัด
+              ไม่ใช่ทั้งจังหวัด — ค่าทั้งจังหวัดดูได้ที่แท็บ “ข้อมูล” ของจังหวัดนั้น
+            </div>
             <div className="helper" style={{ marginTop: 6 }}>
               {WHO_CAVEAT_SHORT} — ตัวเลขนี้จึงสูงกว่าค่าอ้างอิงเกือบทุกจังหวัด
               และ<strong>ไม่ได้แปลว่าพื้นที่สวนสาธารณะเพียงพอ</strong>
@@ -133,7 +140,7 @@ export default function OverviewPanel({ data, handlers }) {
           {rankingData.length > 0 && (
             <section className="section">
               <div className="section__head">
-                <span className="section__title">ห้าจังหวัดที่มีพื้นที่สีเขียวต่อคนน้อยที่สุด</span>
+                <span className="section__title">ห้าจังหวัดที่มีพื้นที่สีเขียวในเขตเมืองต่อคนน้อยที่สุด</span>
               </div>
               <div className="rank-table">
                 {rankingData.slice(0, 5).map(r => (
@@ -150,7 +157,7 @@ export default function OverviewPanel({ data, handlers }) {
           {rankingData.length > 0 && (
             <section className="section">
               <div className="section__head">
-                <span className="section__title">ห้าจังหวัดที่มีพื้นที่สีเขียวมากที่สุด</span>
+                <span className="section__title">ห้าจังหวัดที่มีพื้นที่สีเขียวในเขตเมืองต่อคนมากที่สุด</span>
               </div>
               <div className="rank-table">
                 {[...rankingData].reverse().slice(0, 5).map(r => (
