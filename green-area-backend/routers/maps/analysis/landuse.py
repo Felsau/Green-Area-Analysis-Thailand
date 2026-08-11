@@ -9,8 +9,8 @@ import logging
 import ee
 from fastapi import APIRouter, HTTPException
 
-from dependencies import (get_province_geom, get_district_geom,
-                          CURRENT_YEAR, YearParam, internal_error)
+from dependencies import (get_province_geom, get_district_geom, resolve_year,
+                          OptionalYearParam, internal_error)
 from keyed_lock import COMPUTE_LOCK
 from landuse import (landuse_image_checked, landuse_meta, build_summary,
                      LANDUSE_SOURCES)
@@ -76,7 +76,7 @@ def _compute_summary_ldd(geom: ee.Geometry, province_name: str,
 
 
 @router.get("/analysis/landuse/{province_name}")
-def get_landuse_summary(province_name: str, year: YearParam = CURRENT_YEAR,
+def get_landuse_summary(province_name: str, year: OptionalYearParam = None,
                         district_name: str | None = None,
                         source: str = "dynamic_world"):
     """สัดส่วนการใช้ที่ดิน 5 ประเภทหลัก (ตามนิยามกรมพัฒนาที่ดิน) ของจังหวัด/อำเภอ.
@@ -87,6 +87,7 @@ def get_landuse_summary(province_name: str, year: YearParam = CURRENT_YEAR,
                                      จาก polygon จริง + แนบ `detail` รหัสละเอียด)
     response แนบ source/data_year ให้ผู้ใช้รู้ที่มาเสมอ
     """
+    year = resolve_year(year)
     if source not in LANDUSE_SOURCES:
         raise HTTPException(status_code=400,
             detail=f"source ไม่ถูกต้อง — รองรับ {', '.join(LANDUSE_SOURCES)}")

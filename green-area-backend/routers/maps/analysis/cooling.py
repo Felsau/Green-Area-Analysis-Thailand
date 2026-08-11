@@ -10,7 +10,7 @@ slope < 0 = ยิ่งเขียวยิ่งเย็น (urban cooling g
 """
 from fastapi import APIRouter
 
-from dependencies import supa_call, ensure_province, CURRENT_YEAR, YearParam
+from dependencies import supa_call, ensure_province, resolve_year, OptionalYearParam
 from stats_utils import linregress
 
 router = APIRouter()
@@ -43,12 +43,13 @@ def _interpret(fit: dict | None) -> str:
 
 
 @router.get("/analysis/cooling/{province_name}")
-def get_cooling_analysis(province_name: str, year: YearParam = CURRENT_YEAR):
+def get_cooling_analysis(province_name: str, year: OptionalYearParam = None):
     """Regression ของ LST ต่อ NDVI ระดับอำเภอ — วัด cooling effect ของพืชพรรณ.
 
     คืน scatter points (ndvi, lst ต่ออำเภอ) + regression (slope/r/r²) + คำอธิบายไทย
     สำหรับ plot เป็นกราฟ scatter ในรายงาน/หน้าเว็บ
     """
+    year = resolve_year(year)
     ensure_province(province_name)
 
     ndvi_rows = supa_call(lambda s: s.table("district_ndvi_annual")

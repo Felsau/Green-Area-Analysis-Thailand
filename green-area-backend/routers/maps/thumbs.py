@@ -5,8 +5,8 @@ import logging
 import ee
 from fastapi import APIRouter, HTTPException, Response
 
-from dependencies import (get_province_geom, get_district_geom,
-                          CURRENT_YEAR, YearParam, load_thailand_geojson_raw)
+from dependencies import (get_province_geom, get_district_geom, resolve_year,
+                          OptionalYearParam, load_thailand_geojson_raw)
 from gee_utils import clean_s2_collection, get_lst_col
 
 from ._cartography import (NDVI_PALETTE, LST_PALETTE,
@@ -17,9 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/maps/{province_name}/ndvi-thumb")
-def ndvi_thumb(province_name: str, year: YearParam = CURRENT_YEAR,
+def ndvi_thumb(province_name: str, year: OptionalYearParam = None,
                district_name: str | None = None):
     """NDVI raster thumbnail พร้อม colorbar + north arrow + scale bar"""
+    year = resolve_year(year)
     if district_name:
         raw_geom = get_district_geom(province_name, district_name)
         label = f"NDVI · {district_name}, {province_name} · {year}"
@@ -59,9 +60,10 @@ def ndvi_thumb(province_name: str, year: YearParam = CURRENT_YEAR,
 
 
 @router.get("/maps/{province_name}/lst-thumb")
-def lst_thumb(province_name: str, year: YearParam = CURRENT_YEAR,
+def lst_thumb(province_name: str, year: OptionalYearParam = None,
               district_name: str | None = None):
     """LST raster thumbnail พร้อม colorbar + north arrow + scale bar"""
+    year = resolve_year(year)
     if district_name:
         raw_geom = get_district_geom(province_name, district_name)
         label = f"Land Surface Temperature · {district_name}, {province_name} · {year}"

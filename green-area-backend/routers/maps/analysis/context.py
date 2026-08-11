@@ -1,18 +1,19 @@
 """National & regional context — ค่าเฉลี่ย + อันดับสำหรับเทียบกับจังหวัดที่เลือก."""
 from fastapi import APIRouter
 
-from dependencies import supa_call, ensure_province, CURRENT_YEAR, YearParam
+from dependencies import supa_call, ensure_province, resolve_year, OptionalYearParam
 
 router = APIRouter()
 
 
 @router.get("/analysis/context/{province_name}")
-def get_context(province_name: str, year: YearParam = CURRENT_YEAR):
+def get_context(province_name: str, year: OptionalYearParam = None):
     """ค่าเฉลี่ยของจังหวัดที่มี cache (ทั้งจังหวัด) + อันดับ m²/คน จาก urban subset
 
     สองส่วนนี้คนละแหล่งข้อมูลโดยตั้งใจ: ตารางเทียบค่าเฉลี่ยใช้ค่าทั้งจังหวัดเป็นบริบท
     ส่วนอันดับใช้ urban subset ให้ตรงกับ /analysis/ranking ที่ใช้บน Landing/Dashboard
     """
+    year = resolve_year(year)
     ensure_province(province_name)
 
     rows = supa_call(lambda s: s.table("ndvi_annual")

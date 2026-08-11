@@ -68,9 +68,10 @@ def compute_who_status(green_area_m2, population):
     ก็ยังได้ 30.1) จึงไม่มีจังหวัดไหน "ไม่ผ่าน" ได้เลย ทั้งที่ทราบกันว่ากรุงเทพฯ
     ขาดแคลนสวนสาธารณะ → เหตุผลเต็มอยู่ที่ green-area-frontend/src/utils/greenMetric.js
 
-    คอลัมน์ `who_status` กำลังเลิกใช้ — ไม่มีที่ไหนใน frontend อ่านแล้ว (ทุกจุด
-    คิดสดจาก `green_area_m2_per_person`) เก็บไว้เพื่อ backward-compat ของแถวเก่าเท่านั้น
-    ห้ามเขียนโค้ดใหม่ที่ match ข้อความนี้ (ดูคำเตือนเดิมที่ main.py ย้ำเรื่องนี้ไว้แล้ว)
+    คอลัมน์ `who_status` ถูกตัดออกจาก ndvi_annual แล้ว (migration 025) — ทั้งสอง
+    caller (routers/ndvi/endpoints.py, routers/maps/analysis/custom.py) ทิ้ง
+    status_text นี้ (`_who_status`) ใช้แค่ m2_per_person ห้ามเขียนโค้ดใหม่ที่
+    persist หรือคืนข้อความนี้กลับไปให้ client
     """
     if not population or not green_area_m2:
         return None, None

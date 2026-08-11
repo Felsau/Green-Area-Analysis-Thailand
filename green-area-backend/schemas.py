@@ -137,7 +137,6 @@ class NDVIResponse(BaseModel):
     green_area_m2_per_person: Optional[float] = None
     population: Optional[int] = None
     population_year: Optional[int] = None   # ปีของข้อมูลประชากร — อาจต่างจาก year ถ้า fallback
-    who_status: Optional[str] = None
     data_quality: Optional[NDVIDataQuality] = None
     canopy: Optional[CanopyCover] = None
     validation: Optional[GreenAreaValidation] = None
@@ -214,7 +213,6 @@ class CustomAreaResponse(BaseModel):
     total_area_km2: Optional[float] = None
     population: Optional[int] = None
     green_area_m2_per_person: Optional[float] = None
-    who_status: Optional[str] = None
     lst_mean: Optional[float] = None
     lst_min: Optional[float] = None
     lst_max: Optional[float] = None

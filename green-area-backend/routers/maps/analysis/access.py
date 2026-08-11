@@ -16,9 +16,9 @@ from fastapi import APIRouter, HTTPException
 
 from canopy import ESA_TREE_COVER_CLASS, WORLDCOVER_ASSET
 from dependencies import (supa_call, internal_error, worldpop_unavailable_error,
-                          get_province_geom, get_district_geom,
-                          CURRENT_YEAR, CURRENT_CACHE_VERSION,
-                          WORLDPOP_YEAR, YearParam)
+                          get_province_geom, get_district_geom, resolve_year,
+                          CURRENT_CACHE_VERSION,
+                          WORLDPOP_YEAR, OptionalYearParam)
 from gee_utils import worldpop_pop_collection
 from keyed_lock import COMPUTE_LOCK
 
@@ -83,9 +83,10 @@ def _compute_access_300m(geom: ee.Geometry) -> dict:
 #     created_at TIMESTAMPTZ DEFAULT NOW()
 #   );
 @router.get("/analysis/access-300m/{province_name}")
-def get_access_300m(province_name: str, year: YearParam = CURRENT_YEAR,
+def get_access_300m(province_name: str, year: OptionalYearParam = None,
                     district_name: str | None = None):
     """FR-18 — % ประชากรที่อยู่ในระยะเดิน 300 ม. จากพื้นที่สีเขียว (เกณฑ์ 3-30-300)."""
+    year = resolve_year(year)
     if district_name:
         raw_geom = get_district_geom(province_name, district_name)
         scope = f"{province_name}/{district_name}"

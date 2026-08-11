@@ -87,7 +87,6 @@ class TestCompare:
                 "province": sample, "ndvi_mean": 0.45,
                 "green_area_pct": 35.0, "green_area_km2": 1200,
                 "green_area_m2_per_person": 12.5,
-                "who_status": "ผ่านมาตรฐาน WHO",
             }]))
 
         r = c.get(f"/compare?provinces={sample}")

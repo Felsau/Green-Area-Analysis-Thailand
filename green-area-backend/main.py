@@ -25,8 +25,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 from dependencies import (supa_call, require_admin_or_user, require_user, ensure_province,
-                          PROVINCE_GEOMETRIES, CURRENT_YEAR,
-                          YearParam, WHO_STANDARD_M2)
+                          PROVINCE_GEOMETRIES, resolve_year,
+                          YearParam, OptionalYearParam, WHO_STANDARD_M2)
 from routers import ndvi, lst, recommend, maps, saved, account
 from schemas import RankingResponse, TimelapseResponse
 
@@ -144,7 +144,8 @@ MAX_COMPARE_PROVINCES = 50
 
 
 @app.get("/compare", dependencies=[Depends(require_user)])
-def compare_provinces(provinces: str, year: YearParam = CURRENT_YEAR):
+def compare_provinces(provinces: str, year: OptionalYearParam = None):
+    year = resolve_year(year)
     province_list = [p.strip() for p in provinces.split(",") if p.strip()]
     if not province_list:
         raise HTTPException(status_code=400, detail="ต้องระบุจังหวัดอย่างน้อย 1 จังหวัด")
@@ -156,7 +157,7 @@ def compare_provinces(provinces: str, year: YearParam = CURRENT_YEAR):
         raise HTTPException(status_code=404, detail=f"ไม่พบจังหวัด: {', '.join(missing)}")
 
     result = supa_call(lambda s: s.table("ndvi_annual")
-                       .select("province,ndvi_mean,green_area_pct,green_area_km2,green_area_m2_per_person,who_status")
+                       .select("province,ndvi_mean,green_area_pct,green_area_km2,green_area_m2_per_person")
                        .in_("province", province_list)
                        .eq("year", year)
                        .execute())
@@ -202,7 +203,7 @@ CACHE_INSPECT_LIMIT = 2000
 def get_cache():
     """ดัมป์ cache ไว้ตรวจสอบ/ดีบัก (ไม่ได้อยู่บน hot path ของ UI แล้ว —
     แผนที่ใช้ /cache/ndvi-latest ที่ยุบเหลือ 77 ค่าแทน)"""
-    annual  = supa_call(lambda s: s.table("ndvi_annual").select("province,year,ndvi_mean,green_area_pct,who_status,created_at").limit(CACHE_INSPECT_LIMIT).execute())
+    annual  = supa_call(lambda s: s.table("ndvi_annual").select("province,year,ndvi_mean,green_area_pct,created_at").limit(CACHE_INSPECT_LIMIT).execute())
     monthly = supa_call(lambda s: s.table("ndvi_monthly").select("province,year,created_at").limit(CACHE_INSPECT_LIMIT).execute())
     return {
         "annual": annual.data, "monthly": monthly.data,
@@ -217,11 +218,13 @@ def get_district_cache(province: str | None = None):
     def _query(s):
         q = s.table("district_ndvi_annual").select(
             "province,district,year,ndvi_mean,green_area_pct,created_at"
-        )
+        ).limit(CACHE_INSPECT_LIMIT)
         if province:
             q = q.eq("province", province)
         return q.execute()
-    return {"annual": supa_call(_query).data}
+    annual = supa_call(_query).data
+    return {"annual": annual, "limit": CACHE_INSPECT_LIMIT,
+            "truncated": len(annual) >= CACHE_INSPECT_LIMIT}
 
 
 CACHE_TABLES = (
@@ -288,18 +291,18 @@ def _timelapse_provinces(table: str, value_col: str,
 @app.get("/timelapse/ndvi/provinces", response_model=TimelapseResponse,
         dependencies=[Depends(require_user)])
 def get_timelapse_ndvi(start_year: YearParam = 2015,
-                       end_year: YearParam = CURRENT_YEAR):
+                       end_year: OptionalYearParam = None):
     """รวม NDVI annual ของทุกจังหวัดใน range — สำหรับ time-lapse animation"""
-    return _timelapse_provinces("ndvi_annual", "ndvi_mean", start_year, end_year)
+    return _timelapse_provinces("ndvi_annual", "ndvi_mean", start_year, resolve_year(end_year))
 
 
 @app.get("/timelapse/lst/provinces", response_model=TimelapseResponse,
         dependencies=[Depends(require_user)])
 def get_timelapse_lst(start_year: YearParam = 2015,
-                      end_year: YearParam = CURRENT_YEAR):
+                      end_year: OptionalYearParam = None):
     """รวม LST annual (°C) ของทุกจังหวัด — time-lapse ความร้อนพื้นผิวคู่กับ NDVI"""
     return _timelapse_provinces("province_lst_annual", "lst_mean",
-                                start_year, end_year)
+                                start_year, resolve_year(end_year))
 
 
 # จงใจไม่ใส่ require_user — Landing.js (หน้าก่อนล็อกอิน) เรียก endpoint นี้เป็น
@@ -310,7 +313,8 @@ def get_timelapse_lst(start_year: YearParam = 2015,
 # จังหวัดนับป่า/เกษตรรวมด้วย ต่ำสุดยังได้ ~87 m²/คน อันดับจึงไม่สะท้อนความต่างจริง
 # กรอง district IS NULL — ตารางนี้เก็บแถวระดับจังหวัดและอำเภอปนกัน
 @app.get("/analysis/ranking", response_model=RankingResponse)
-def get_ranking(year: YearParam = CURRENT_YEAR):
+def get_ranking(year: OptionalYearParam = None):
+    year = resolve_year(year)
     result = supa_call(lambda s: s.table("urban_ndvi_annual")
                        .select("province,ndvi_mean_urban,green_share_in_urban_pct,"
                                "green_in_urban_km2,urban_area_km2,population_urban,"

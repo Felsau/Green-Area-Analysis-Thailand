@@ -15,7 +15,7 @@ import ee
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from dependencies import (internal_error, worldpop_unavailable_error, CURRENT_YEAR,
+from dependencies import (internal_error, worldpop_unavailable_error, resolve_year,
                           YEAR_MIN, YEAR_MAX, WORLDPOP_YEAR)
 from gee_utils import get_lst_col, reduce_lst, worldpop_pop_collection
 from polygon_utils import validate_drawn_polygon
@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 class CustomAreaRequest(BaseModel):
     """Body ของ POST /analysis/custom-area"""
     geometry: dict = Field(..., description="GeoJSON Polygon geometry")
-    year: int = Field(default=CURRENT_YEAR, ge=YEAR_MIN, le=YEAR_MAX,
-                      description=f"ปี ค.ศ. ระหว่าง {YEAR_MIN}–{YEAR_MAX}")
+    year: int | None = Field(default=None, ge=YEAR_MIN, le=YEAR_MAX,
+                      description=f"ปี ค.ศ. ระหว่าง {YEAR_MIN}–{YEAR_MAX} (ไม่ระบุ = ปีปัจจุบัน)")
 
 
 def _population_in_geom(geom: ee.Geometry) -> int:
@@ -70,7 +70,7 @@ def analyze_custom_area(req: CustomAreaRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    year = req.year
+    year = resolve_year(req.year)
     logger.info("⏳ Custom-area analyze: %.1f km² · ปี %d", area_km2, year)
     try:
         geom = ee.Geometry(req.geometry)
@@ -81,7 +81,7 @@ def analyze_custom_area(req: CustomAreaRequest):
         green_area_m2 = ndvi.pop("green_area_m2_raw", None)
 
         population = _population_in_geom(geom)
-        m2_per_person, who_status = compute_who_status(green_area_m2, population)
+        m2_per_person, _who_status = compute_who_status(green_area_m2, population)
         lst_mean, lst_min, lst_max = _lst_in_geom(geom, year)
 
         return {
@@ -90,7 +90,6 @@ def analyze_custom_area(req: CustomAreaRequest):
             **ndvi,
             "population": population,
             "green_area_m2_per_person": m2_per_person,
-            "who_status": who_status,
             "lst_mean": lst_mean, "lst_min": lst_min, "lst_max": lst_max,
             "worldpop_year": WORLDPOP_YEAR,
         }

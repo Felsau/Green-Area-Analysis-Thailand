@@ -3,8 +3,8 @@ import logging
 import ee
 
 from dependencies import (supa_call, internal_error,
-                          get_province_geom, get_district_geom,
-                          CURRENT_YEAR, MONTH_NAMES, YearParam,
+                          get_province_geom, get_district_geom, resolve_year,
+                          MONTH_NAMES, OptionalYearParam,
                           CURRENT_CACHE_VERSION)
 from gee_utils import get_lst_col, reduce_lst, scale_lst
 from keyed_lock import COMPUTE_LOCK
@@ -63,7 +63,8 @@ def _compute_lst_monthly(geom: ee.Geometry, year: int, scale: int):
 
 # District LST monthly (before catch-all)
 @router.get("/lst/{province_name}/districts/{district_name}/monthly")
-def get_district_lst_monthly(province_name: str, district_name: str, year: YearParam = CURRENT_YEAR):
+def get_district_lst_monthly(province_name: str, district_name: str, year: OptionalYearParam = None):
+    year = resolve_year(year)
     raw_geom = get_district_geom(province_name, district_name)
 
     def _read_cache():
@@ -71,8 +72,14 @@ def get_district_lst_monthly(province_name: str, district_name: str, year: YearP
                            .select("*").eq("province", province_name)
                            .eq("district", district_name).eq("year", year).execute())
         if cached.data:
-            return {"province": province_name, "district": district_name, "year": year,
-                    "monthly": cached.data[0]["monthly_data"], "from_cache": True}
+            row = cached.data[0]
+            if row.get("cache_version", 1) >= CURRENT_CACHE_VERSION:
+                return {"province": province_name, "district": district_name, "year": year,
+                        "monthly": row["monthly_data"], "from_cache": True}
+            logger.info("♻️ Stale LST cache (district monthly): %s/%s/%d — recomputing",
+                        province_name, district_name, year)
+            supa_call(lambda s: s.table("district_lst_monthly")
+                      .delete().eq("id", row["id"]).execute())
         return None
 
     hit = _read_cache()
@@ -101,7 +108,8 @@ def get_district_lst_monthly(province_name: str, district_name: str, year: YearP
 
 # District LST annual (before catch-all)
 @router.get("/lst/{province_name}/districts/{district_name}")
-def get_district_lst(province_name: str, district_name: str, year: YearParam = CURRENT_YEAR):
+def get_district_lst(province_name: str, district_name: str, year: OptionalYearParam = None):
+    year = resolve_year(year)
     raw_geom = get_district_geom(province_name, district_name)
 
     def _read_cache():
@@ -110,9 +118,14 @@ def get_district_lst(province_name: str, district_name: str, year: YearParam = C
                            .eq("district", district_name).eq("year", year).execute())
         if cached.data:
             row = cached.data[0]
-            return {"province": province_name, "district": district_name, "year": year,
-                    "lst_mean": row["lst_mean"], "lst_min": row["lst_min"],
-                    "lst_max": row["lst_max"], "from_cache": True}
+            if row.get("cache_version", 1) >= CURRENT_CACHE_VERSION:
+                return {"province": province_name, "district": district_name, "year": year,
+                        "lst_mean": row["lst_mean"], "lst_min": row["lst_min"],
+                        "lst_max": row["lst_max"], "from_cache": True}
+            logger.info("♻️ Stale LST cache (district): %s/%s/%d — recomputing",
+                        province_name, district_name, year)
+            supa_call(lambda s: s.table("district_lst_annual")
+                      .delete().eq("id", row["id"]).execute())
         return None
 
     hit = _read_cache()
@@ -148,16 +161,22 @@ def get_district_lst(province_name: str, district_name: str, year: YearParam = C
 
 # Province LST monthly
 @router.get("/lst/{province_name}/monthly", response_model=LSTMonthlyResponse)
-def get_lst_monthly(province_name: str, year: YearParam = CURRENT_YEAR):
+def get_lst_monthly(province_name: str, year: OptionalYearParam = None):
+    year = resolve_year(year)
     raw_geom = get_province_geom(province_name)
 
     def _read_cache():
         cached = supa_call(lambda s: s.table("province_lst_monthly")
                            .select("*").eq("province", province_name).eq("year", year).execute())
         if cached.data:
-            logger.info("✅ LST cache hit: %s/%d/monthly", province_name, year)
-            return {"province": province_name, "year": year,
-                    "monthly": cached.data[0]["monthly_data"], "from_cache": True}
+            row = cached.data[0]
+            if row.get("cache_version", 1) >= CURRENT_CACHE_VERSION:
+                logger.info("✅ LST cache hit: %s/%d/monthly", province_name, year)
+                return {"province": province_name, "year": year,
+                        "monthly": row["monthly_data"], "from_cache": True}
+            logger.info("♻️ Stale LST cache (monthly): %s/%d — recomputing", province_name, year)
+            supa_call(lambda s: s.table("province_lst_monthly")
+                      .delete().eq("id", row["id"]).execute())
         return None
 
     hit = _read_cache()
@@ -183,7 +202,8 @@ def get_lst_monthly(province_name: str, year: YearParam = CURRENT_YEAR):
 
 # Province LST annual
 @router.get("/lst/{province_name}", response_model=LSTResponse)
-def get_lst(province_name: str, year: YearParam = CURRENT_YEAR):
+def get_lst(province_name: str, year: OptionalYearParam = None):
+    year = resolve_year(year)
     raw_geom = get_province_geom(province_name)
 
     def _read_cache():
@@ -191,10 +211,14 @@ def get_lst(province_name: str, year: YearParam = CURRENT_YEAR):
                            .select("*").eq("province", province_name).eq("year", year).execute())
         if cached.data:
             row = cached.data[0]
-            logger.info("✅ LST cache hit: %s/%d", province_name, year)
-            return {"province": province_name, "year": year,
-                    "lst_mean": row["lst_mean"], "lst_min": row["lst_min"],
-                    "lst_max": row["lst_max"], "from_cache": True}
+            if row.get("cache_version", 1) >= CURRENT_CACHE_VERSION:
+                logger.info("✅ LST cache hit: %s/%d", province_name, year)
+                return {"province": province_name, "year": year,
+                        "lst_mean": row["lst_mean"], "lst_min": row["lst_min"],
+                        "lst_max": row["lst_max"], "from_cache": True}
+            logger.info("♻️ Stale LST cache: %s/%d — recomputing", province_name, year)
+            supa_call(lambda s: s.table("province_lst_annual")
+                      .delete().eq("id", row["id"]).execute())
         return None
 
     hit = _read_cache()

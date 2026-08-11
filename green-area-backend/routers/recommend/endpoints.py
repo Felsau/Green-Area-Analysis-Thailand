@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field
 
 from dependencies import (supa_call, internal_error, RECOMMEND_CACHE_VERSION,
                           PROVINCE_GEOMETRIES, get_province_geom, get_district_geom,
-                          CURRENT_YEAR, YEAR_MIN, YEAR_MAX, YearParam, WeightParam,
+                          resolve_year, YEAR_MIN, YEAR_MAX, OptionalYearParam, WeightParam,
                           WORLDPOP_YEAR)
 from impact import estimate_impact
 from landuse import build_summary
@@ -256,22 +256,22 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
 
 # Province-level recommendation
 @router.get("/recommend/{province_name}")
-def recommend_province(province_name: str, year: YearParam = CURRENT_YEAR,
+def recommend_province(province_name: str, year: OptionalYearParam = None,
                        w_ndvi: WeightParam = W_NDVI, w_lst: WeightParam = W_LST,
                        w_pop: WeightParam = W_POP, w_access: WeightParam = W_ACCESS):
     raw_geom = get_province_geom(province_name)
-    return _run_recommendation(province_name, None, raw_geom, year,
+    return _run_recommendation(province_name, None, raw_geom, resolve_year(year),
                                w_ndvi, w_lst, w_pop, w_access)
 
 
 # District-level recommendation
 @router.get("/recommend/{province_name}/districts/{district_name}")
 def recommend_district(province_name: str, district_name: str,
-                       year: YearParam = CURRENT_YEAR,
+                       year: OptionalYearParam = None,
                        w_ndvi: WeightParam = W_NDVI, w_lst: WeightParam = W_LST,
                        w_pop: WeightParam = W_POP, w_access: WeightParam = W_ACCESS):
     raw_geom = get_district_geom(province_name, district_name)
-    return _run_recommendation(province_name, district_name, raw_geom, year,
+    return _run_recommendation(province_name, district_name, raw_geom, resolve_year(year),
                                w_ndvi, w_lst, w_pop, w_access)
 
 
@@ -279,8 +279,8 @@ def recommend_district(province_name: str, district_name: str,
 class CustomAreaRecommendRequest(BaseModel):
     """Body ของ POST /recommend/custom-area"""
     geometry: dict = Field(..., description="GeoJSON Polygon geometry")
-    year: int = Field(default=CURRENT_YEAR, ge=YEAR_MIN, le=YEAR_MAX,
-                      description=f"ปี ค.ศ. ระหว่าง {YEAR_MIN}–{YEAR_MAX}")
+    year: int | None = Field(default=None, ge=YEAR_MIN, le=YEAR_MAX,
+                      description=f"ปี ค.ศ. ระหว่าง {YEAR_MIN}–{YEAR_MAX} (ไม่ระบุ = ปีปัจจุบัน)")
     # ใบ้จังหวัด (centroid ตกในจังหวัดไหน) — ใช้เลือกพันธุ์ไม้ตามภาคเท่านั้น
     province: str | None = Field(default=None, description="ชื่อจังหวัด (อังกฤษ) สำหรับเลือกพันธุ์ไม้")
     w_ndvi: float = Field(default=W_NDVI, ge=0, le=1)
@@ -299,23 +299,24 @@ def recommend_custom_area(req: CustomAreaRecommendRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    year = resolve_year(req.year)
     w_ndvi, w_lst, w_pop, w_access = normalize_weights(
         req.w_ndvi, req.w_lst, req.w_pop, req.w_access)
     # province ใช้แค่เลือกพันธุ์ไม้ — ถ้าไม่อยู่ใน whitelist ก็ข้าม (คืน species ว่าง)
     province = req.province if req.province in PROVINCE_GEOMETRIES else None
-    lst_mean, ndvi_mean = _site_metrics(province, None, req.year) if province else (None, None)
+    lst_mean, ndvi_mean = _site_metrics(province, None, year) if province else (None, None)
     species_info = (get_recommended_species(province, lst_mean, ndvi_mean) if province
                     else {"region": None, "species": []})
 
     logger.info("⏳ Custom-area recommend: %.1f km² · ปี %d (w=%.2f/%.2f/%.2f/%.2f)",
-                area_km2, req.year, w_ndvi, w_lst, w_pop, w_access)
+                area_km2, year, w_ndvi, w_lst, w_pop, w_access)
     try:
         geom = ee.Geometry(req.geometry)
         tile_url, top, impact, species_info = _compute_recommendation_payload(
-            geom, req.year, (w_ndvi, w_lst, w_pop, w_access), species_info,
+            geom, year, (w_ndvi, w_lst, w_pop, w_access), species_info,
             lst_mean, ndvi_mean)
         return {
-            "year": req.year,
+            "year": year,
             "area_km2": round(area_km2, 2),
             "province": province,
             "weights": {"ndvi": w_ndvi, "lst": w_lst, "population": w_pop,
@@ -329,9 +330,9 @@ def recommend_custom_area(req: CustomAreaRecommendRequest):
     except HTTPException:
         raise
     except ee.EEException as ee_err:
-        logger.warning("⚠️ Custom-area recommend GEE failed (ปี %d): %s", req.year, ee_err)
+        logger.warning("⚠️ Custom-area recommend GEE failed (ปี %d): %s", year, ee_err)
         # custom-area = polygon เดี่ยว ไม่มี district → scope "พื้นที่นี้"
-        raise _imagery_unavailable_error(req.year, None)
+        raise _imagery_unavailable_error(year, None)
     except Exception:
-        logger.error("❌ Custom-area recommend error (ปี %d)", req.year, exc_info=True)
+        logger.error("❌ Custom-area recommend error (ปี %d)", year, exc_info=True)
         raise internal_error()

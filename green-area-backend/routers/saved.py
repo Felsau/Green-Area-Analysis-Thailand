@@ -26,7 +26,7 @@ from pydantic import BaseModel, Field
 
 import dependencies  # อ่าน ADMIN_TOKEN แบบ dynamic (รองรับ monkeypatch ใน test)
 from dependencies import (supa_call, internal_error, require_user, PROVINCE_GEOMETRIES,
-                          CURRENT_YEAR, YEAR_MIN, YEAR_MAX)
+                          resolve_year, YEAR_MIN, YEAR_MAX)
 from polygon_utils import validate_drawn_polygon
 
 router = APIRouter()
@@ -39,7 +39,7 @@ _SAVED_AREA_LIST_COLUMNS = "id,label,year,area_km2,province,geometry,user_id,cre
 class SavedAreaCreate(BaseModel):
     """Body ของ POST /saved-areas"""
     geometry: dict = Field(..., description="GeoJSON Polygon geometry")
-    year: int = Field(default=CURRENT_YEAR, ge=YEAR_MIN, le=YEAR_MAX)
+    year: int | None = Field(default=None, ge=YEAR_MIN, le=YEAR_MAX)
     label: str | None = Field(default=None, max_length=MAX_LABEL_LEN)
     province: str | None = None
     analysis: dict | None = None        # response ของ /analysis/custom-area
@@ -73,7 +73,7 @@ def create_saved_area(req: SavedAreaCreate, user: dict = Depends(require_user)):
     province = req.province if req.province in PROVINCE_GEOMETRIES else None
     label = (req.label or "").strip()[:MAX_LABEL_LEN] or None
     row = {
-        "label": label, "geometry": req.geometry, "year": req.year,
+        "label": label, "geometry": req.geometry, "year": resolve_year(req.year),
         "area_km2": round(area_km2, 2), "province": province,
         "analysis": req.analysis, "recommendation": req.recommendation,
         "user_id": user["id"],

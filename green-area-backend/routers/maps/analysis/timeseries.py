@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException
 
 from dependencies import (supa_call, gather, ensure_province, ensure_district,
-                          CURRENT_YEAR, YearParam)
+                          resolve_year, OptionalYearParam)
 from stats_utils import forecast_linear, mann_kendall
 
 router = APIRouter()
@@ -10,14 +10,22 @@ router = APIRouter()
 
 @router.get("/analysis/timeseries/{province_name}")
 def get_timeseries(province_name: str,
-                   start_year: YearParam = CURRENT_YEAR - 4,
-                   end_year: YearParam = CURRENT_YEAR,
+                   start_year: OptionalYearParam = None,
+                   end_year: OptionalYearParam = None,
                    district_name: str | None = None):
     """ดึง NDVI + LST รายปี (annual) ย้อนหลังจาก cache เพื่อแสดงแนวโน้ม.
 
     เฉพาะปีที่มี cached row เท่านั้น — ไม่ trigger GEE compute ใหม่ เพื่อให้ response ไว.
     ถ้า district_name ระบุ → ดึง district_*_annual แทน
+
+    start_year/end_year ไม่ระบุ = ปีปัจจุบัน−4 / ปีปัจจุบัน (คำนวณสดตอนเรียก ไม่ใช่ค่า
+    ที่ตรึงไว้ตอน import — ดู resolve_year) ทั้งสองอิสระต่อกัน ไม่ได้ผูกกับอีกฝั่ง
     """
+    now_year = resolve_year(None)
+    if start_year is None:
+        start_year = now_year - 4
+    if end_year is None:
+        end_year = now_year
     if district_name:
         ensure_district(province_name, district_name)
         ndvi_table, lst_table = "district_ndvi_annual", "district_lst_annual"

@@ -3,8 +3,8 @@ import logging
 import ee
 
 from dependencies import (get_population, supa_call, internal_error, ensure_province,
-                          get_province_geom, get_district_geom,
-                          CURRENT_YEAR, YearParam, YEAR_MIN, YEAR_MAX,
+                          get_province_geom, get_district_geom, resolve_year,
+                          OptionalYearParam, YEAR_MIN, YEAR_MAX,
                           CURRENT_CACHE_VERSION)
 from keyed_lock import COMPUTE_LOCK
 from schemas import NDVIResponse, NDVIMonthlyResponse
@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 
 # District NDVI monthly (before catch-all)
 @router.get("/ndvi/{province_name}/districts/{district_name}/monthly")
-def get_district_ndvi_monthly(province_name: str, district_name: str, year: YearParam = CURRENT_YEAR):
+def get_district_ndvi_monthly(province_name: str, district_name: str, year: OptionalYearParam = None):
+    year = resolve_year(year)
     raw_geom = get_district_geom(province_name, district_name)
 
     def _read_cache():
@@ -29,12 +30,22 @@ def get_district_ndvi_monthly(province_name: str, district_name: str, year: Year
                            .eq("year", year)
                            .execute())
         if cached.data:
-            logger.info("✅ Supabase hit: %s/%s/%d/monthly", province_name, district_name, year)
-            return {
-                "province": province_name, "district": district_name, "year": year,
-                "monthly": cached.data[0]["monthly_data"],
-                "from_cache": True, "cached_at": cached.data[0]["created_at"],
-            }
+            row = cached.data[0]
+            # _compute_ndvi_monthly ใช้ clean_s2_collection เหมือน path รายปี — แถวที่
+            # cache ก่อน v2 จึงมาจาก QA60 ที่เลิกใช้แล้ว ต้องเช็ค version ด้วย ไม่งั้น
+            # แถวเก่าถูก serve ตลอดกาลและไม่ตรงกับค่ารายปีที่แสดงข้างกัน
+            if row.get("cache_version", 1) >= CURRENT_CACHE_VERSION:
+                logger.info("✅ Supabase hit: %s/%s/%d/monthly", province_name, district_name, year)
+                return {
+                    "province": province_name, "district": district_name, "year": year,
+                    "monthly": row["monthly_data"],
+                    "from_cache": True, "cached_at": row["created_at"],
+                }
+            logger.info("♻️ Stale cache (district monthly): %s/%s/%d — recomputing",
+                        province_name, district_name, year)
+            # ลบก่อนตกไปคำนวณใหม่ ไม่งั้น insert รอบใหม่ชน UNIQUE(province,district,year)
+            supa_call(lambda s: s.table("district_ndvi_monthly")
+                      .delete().eq("id", row["id"]).execute())
         return None
 
     hit = _read_cache()
@@ -64,7 +75,8 @@ def get_district_ndvi_monthly(province_name: str, district_name: str, year: Year
 
 # District NDVI annual (before catch-all)
 @router.get("/ndvi/{province_name}/districts/{district_name}")
-def get_district_ndvi(province_name: str, district_name: str, year: YearParam = CURRENT_YEAR):
+def get_district_ndvi(province_name: str, district_name: str, year: OptionalYearParam = None):
+    year = resolve_year(year)
     raw_geom = get_district_geom(province_name, district_name)
 
     def _read_cache():
@@ -130,19 +142,28 @@ def get_district_ndvi(province_name: str, district_name: str, year: YearParam = 
 
 # Province NDVI monthly
 @router.get("/ndvi/{province_name}/monthly", response_model=NDVIMonthlyResponse)
-def get_ndvi_monthly(province_name: str, year: YearParam = CURRENT_YEAR):
+def get_ndvi_monthly(province_name: str, year: OptionalYearParam = None):
+    year = resolve_year(year)
     raw_geom = get_province_geom(province_name)
 
     def _read_cache():
         cached = supa_call(lambda s: s.table("ndvi_monthly")
                            .select("*").eq("province", province_name).eq("year", year).execute())
         if cached.data:
-            logger.info("✅ Supabase hit: %s/%d/monthly", province_name, year)
-            return {
-                "province": province_name, "year": year,
-                "monthly": cached.data[0]["monthly_data"],
-                "from_cache": True, "cached_at": cached.data[0]["created_at"],
-            }
+            row = cached.data[0]
+            # เหตุผลเดียวกับ path รายอำเภอด้านบน — QA60 → Cloud Score+ ทำให้ค่ารายเดือน
+            # ที่ cache ด้วย v1 ไม่ตรงกับวิธีคำนวณปัจจุบัน
+            if row.get("cache_version", 1) >= CURRENT_CACHE_VERSION:
+                logger.info("✅ Supabase hit: %s/%d/monthly", province_name, year)
+                return {
+                    "province": province_name, "year": year,
+                    "monthly": row["monthly_data"],
+                    "from_cache": True, "cached_at": row["created_at"],
+                }
+            logger.info("♻️ Stale cache (monthly): %s/%d — recomputing", province_name, year)
+            # ลบก่อนตกไปคำนวณใหม่ ไม่งั้น insert รอบใหม่ชน UNIQUE(province,year)
+            supa_call(lambda s: s.table("ndvi_monthly")
+                      .delete().eq("id", row["id"]).execute())
         return None
 
     hit = _read_cache()
@@ -169,9 +190,13 @@ def get_ndvi_monthly(province_name: str, year: YearParam = CURRENT_YEAR):
 
 # Province NDVI compare
 @router.get("/ndvi/{province_name}/compare")
-def get_ndvi_compare(province_name: str,
-                     years: str = ",".join(str(y) for y in range(CURRENT_YEAR - 3, CURRENT_YEAR + 1))):
+def get_ndvi_compare(province_name: str, years: str | None = None):
     ensure_province(province_name)
+    if years is None:
+        # เดิม default เป็น string ที่ประกอบจาก CURRENT_YEAR ตอน import — ค้างปีเก่า
+        # ถ้า process รันข้ามคืน 31 ธ.ค. โดยไม่ restart จึงย้ายมาประกอบสดที่นี่แทน
+        end = resolve_year(None)
+        years = ",".join(str(y) for y in range(end - 3, end + 1))
     if len(years) > 2000:  # bound parse cost — กัน query string ยักษ์
         raise HTTPException(status_code=400, detail="พารามิเตอร์ years ยาวเกินไป")
     year_list = sorted(set(int(y.strip()) for y in years.split(",") if y.strip().isdigit()))
@@ -183,7 +208,7 @@ def get_ndvi_compare(province_name: str,
             detail=f"years ต้องอยู่ใน {YEAR_MIN}–{YEAR_MAX} · นอกช่วง: {out_of_range}")
 
     result = supa_call(lambda s: s.table("ndvi_annual")
-                       .select("year,ndvi_mean,ndvi_min,ndvi_max,green_area_pct,green_area_km2,green_area_m2_per_person,who_status")
+                       .select("year,ndvi_mean,ndvi_min,ndvi_max,green_area_pct,green_area_km2,green_area_m2_per_person")
                        .eq("province", province_name)
                        .in_("year", year_list)
                        .order("year")
@@ -232,7 +257,8 @@ def _build_validation(result: dict, wc_ref_pct: float | None, year: int) -> dict
 
 # Province NDVI annual
 @router.get("/ndvi/{province_name}", response_model=NDVIResponse)
-def get_ndvi(province_name: str, year: YearParam = CURRENT_YEAR):
+def get_ndvi(province_name: str, year: OptionalYearParam = None):
+    year = resolve_year(year)
     raw_geom = get_province_geom(province_name)
 
     def _read_cache():
@@ -256,7 +282,6 @@ def get_ndvi(province_name: str, year: YearParam = CURRENT_YEAR):
                     "green_area_m2_per_person": row.get("green_area_m2_per_person"),
                     "population": row.get("population"),
                     "population_year": row.get("population_year"),
-                    "who_status": row.get("who_status"),
                     "data_quality": row.get("data_quality"),
                     "canopy": row.get("canopy"),
                     "validation": row.get("validation"),
@@ -286,13 +311,12 @@ def get_ndvi(province_name: str, year: YearParam = CURRENT_YEAR):
 
             green_area_m2 = result.pop('green_area_m2_raw', None)
             population, population_year = get_population(province_name, year)
-            m2_per_person, who_status = compute_who_status(green_area_m2, population)
+            m2_per_person, _who_status = compute_who_status(green_area_m2, population)
             validation = _build_validation(result, wc_ref_pct, year)
 
             full = {**result,
                     "green_area_m2_per_person": m2_per_person,
                     "population": population, "population_year": population_year,
-                    "who_status": who_status,
                     "validation": validation}
 
             supa_call(lambda s: s.table("ndvi_annual").insert({

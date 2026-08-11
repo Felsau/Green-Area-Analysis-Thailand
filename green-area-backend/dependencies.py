@@ -74,6 +74,26 @@ YearParam = Annotated[int, Query(
     description=f"ปี ค.ศ. ระหว่าง {YEAR_MIN}–{YEAR_MAX}",
 )]
 
+# Query param ปีที่ "ไม่ระบุ = ปีปัจจุบัน" — ต่างจาก YearParam ตรงที่ endpoint ต้อง
+# เรียก resolve_year(year) เองในตัว function แทนการพึ่ง default ค่าคงที่ (ดู
+# resolve_year ด้านล่างว่าทำไม `= CURRENT_YEAR` ตรงๆ ถึงมีปัญหา)
+OptionalYearParam = Annotated[int | None, Query(
+    ge=YEAR_MIN, le=YEAR_MAX,
+    description=f"ปี ค.ศ. ระหว่าง {YEAR_MIN}–{YEAR_MAX} (ไม่ระบุ = ปีปัจจุบัน)",
+)]
+
+
+def resolve_year(year: int | None) -> int:
+    """คืน year ถ้าถูกส่งมา ไม่งั้นคืนปีปัจจุบันจริง ณ เวลาที่เรียก.
+
+    ใช้คู่กับ OptionalYearParam แทนการปล่อยให้ `year: YearParam = CURRENT_YEAR`
+    เป็น default ตรงๆ — CURRENT_YEAR ถูกคำนวณครั้งเดียวตอน import module (ตรึงไว้
+    ตลอดอายุ process) ถ้า deploy รันข้ามคืน 31 ธ.ค. โดยไม่ restart endpoint ที่ผู้ใช้
+    ไม่ได้ส่ง year มาเองจะยังคำนวณ/คืนข้อมูลของปีเก่าต่อไปเรื่อยๆ จนกว่าจะ deploy ใหม่
+    """
+    return year if year is not None else datetime.now().year
+
+
 # น้ำหนัก priority (NDVI/LST/pop) — บังคับ 0–1 ตั้งแต่ชั้น validation กัน
 # ค่าติดลบที่ผ่าน normalize_weights() (total > 0) แล้วได้ priority image พิกล
 # โดยไม่มี error · ค่าจะถูก normalize ให้รวมเป็น 1 อีกชั้นใน scoring

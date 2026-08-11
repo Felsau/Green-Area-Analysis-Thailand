@@ -9,8 +9,8 @@ import logging
 import ee
 from fastapi import APIRouter, HTTPException
 
-from dependencies import (get_province_geom, get_district_geom,
-                          CURRENT_YEAR, YearParam, internal_error)
+from dependencies import (get_province_geom, get_district_geom, resolve_year,
+                          YearParam, OptionalYearParam, internal_error)
 from gee_utils import clean_s2_collection, get_lst_col
 from keyed_lock import COMPUTE_LOCK
 from landuse import (LANDUSE_CATEGORIES, LANDUSE_PALETTE, LANDUSE_SOURCES,
@@ -115,25 +115,27 @@ def _serve_tiles(kind: str, province_name: str, district_name: str | None,
 
 
 @router.get("/maps/{province_name}/ndvi-tiles")
-def ndvi_tiles(province_name: str, year: YearParam = CURRENT_YEAR,
+def ndvi_tiles(province_name: str, year: OptionalYearParam = None,
                district_name: str | None = None):
     """XYZ tile URL ของ NDVI raster (Sentinel-2) สำหรับวางทับ basemap"""
+    year = resolve_year(year)
     return _serve_tiles("ndvi", province_name, district_name, year,
                         _ndvi_image, NDVI_VIS, NDVI_PALETTE,
                         f"ไม่พบภาพ Sentinel-2 สำหรับปี {year}")
 
 
 @router.get("/maps/{province_name}/lst-tiles")
-def lst_tiles(province_name: str, year: YearParam = CURRENT_YEAR,
+def lst_tiles(province_name: str, year: OptionalYearParam = None,
               district_name: str | None = None):
     """XYZ tile URL ของ LST raster (Landsat 8/9) สำหรับวางทับ basemap"""
+    year = resolve_year(year)
     return _serve_tiles("lst", province_name, district_name, year,
                         _lst_image, LST_VIS, LST_PALETTE,
                         f"ไม่พบภาพ Landsat สำหรับปี {year}")
 
 
 @router.get("/maps/{province_name}/landuse-tiles")
-def landuse_tiles(province_name: str, year: YearParam = CURRENT_YEAR,
+def landuse_tiles(province_name: str, year: OptionalYearParam = None,
                   district_name: str | None = None,
                   source: str = "dynamic_world"):
     """XYZ tile URL การใช้ที่ดิน 5 ประเภทหลัก (นิยาม LDD) — raster ทับ basemap.
@@ -143,6 +145,7 @@ def landuse_tiles(province_name: str, year: YearParam = CURRENT_YEAR,
     `data_year` · source เลือกแหล่งข้อมูล (ดู LANDUSE_SOURCES): dynamic_world
     (ค่าเริ่มต้น, ดาวเทียมรายปี) หรือ ldd (polygon ราชการ rasterize — รายจังหวัด)
     """
+    year = resolve_year(year)
     if source not in LANDUSE_SOURCES:
         raise HTTPException(status_code=400,
             detail=f"source ไม่ถูกต้อง — รองรับ {', '.join(LANDUSE_SOURCES)}")

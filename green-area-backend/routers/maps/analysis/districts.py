@@ -2,17 +2,18 @@
 from fastapi import APIRouter
 
 from dependencies import (supa_call, gather, ensure_province, DISTRICT_GEOMETRIES,
-                          CURRENT_YEAR, YearParam)
+                          resolve_year, OptionalYearParam)
 
 router = APIRouter()
 
 
 @router.get("/analysis/districts/{province_name}")
-def get_district_summary(province_name: str, year: YearParam = CURRENT_YEAR):
+def get_district_summary(province_name: str, year: OptionalYearParam = None):
     """รวบรวมข้อมูลรายอำเภอ (NDVI + LST) จาก cache สำหรับใส่ในรายงานระดับจังหวัด.
 
     คืนเฉพาะอำเภอที่มี cached ปีนั้น — ไม่ trigger compute ใหม่เพื่อกันเวลา response.
     """
+    year = resolve_year(year)
     ensure_province(province_name)
 
     # NDVI + LST รายอำเภอเป็น query คนละตารางที่ไม่พึ่งกัน → ยิงขนาน ลด latency

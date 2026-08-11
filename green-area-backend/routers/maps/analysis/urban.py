@@ -10,9 +10,9 @@ import ee
 from fastapi import APIRouter, HTTPException
 
 from dependencies import (supa_call, internal_error, worldpop_unavailable_error,
-                          get_province_geom, get_district_geom,
-                          CURRENT_YEAR, CURRENT_CACHE_VERSION,
-                          WORLDPOP_YEAR, YearParam)
+                          get_province_geom, get_district_geom, resolve_year,
+                          CURRENT_CACHE_VERSION,
+                          WORLDPOP_YEAR, OptionalYearParam)
 from gee_utils import clean_s2_collection, worldpop_pop_collection
 from keyed_lock import COMPUTE_LOCK
 
@@ -127,7 +127,7 @@ def _compute_urban_subset(geom: ee.Geometry, province_name: str,
 #   );
 # ถ้าไม่สร้าง endpoint ยังทำงานได้ปกติ — แค่คำนวณใหม่ทุกครั้ง (ใช้เวลา 30-60s ต่อครั้ง)
 @router.get("/analysis/urban-subset/{province_name}")
-def get_urban_subset(province_name: str, year: YearParam = CURRENT_YEAR,
+def get_urban_subset(province_name: str, year: OptionalYearParam = None,
                      district_name: str | None = None):
     """NDVI + green area + ประชากร เฉพาะภายในเขต Built-up (ESA WorldCover v200, ปี 2021).
 
@@ -135,6 +135,7 @@ def get_urban_subset(province_name: str, year: YearParam = CURRENT_YEAR,
     ค่ารวมระดับจังหวัด · WorldCover ใช้ปี 2021 เป็น proxy ของขอบเขตเมืองในทุกปี
     (built-up เปลี่ยนแปลงน้อยใน timescale ปี)
     """
+    year = resolve_year(year)
     if district_name:
         raw_geom = get_district_geom(province_name, district_name)
         scope = f"{province_name}/{district_name}"
