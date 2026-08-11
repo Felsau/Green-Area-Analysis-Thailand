@@ -19,6 +19,9 @@
     "react-map-gl": "^7.1.9",
     "recharts": "^3.8.1"
   },
+  "overrides": {
+    "dompurify": "^3.4.13"
+  },
   "scripts": {
     "dev": "vite",
     "start": "vite",
