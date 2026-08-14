@@ -1,5 +1,4 @@
 import { getNdviLabel, getLstLabel } from '../../colorUtils';
-import { WHO_REFERENCE_M2, describeVsWhoReference } from '../../utils/greenMetric';
 import { exportStatsCsv } from '../../utils/exportUtils';
 import Accordion from '../ui/Accordion';
 import { Figure, KVRow, KV, Note } from '../ui/Metric';
@@ -10,13 +9,14 @@ import UhiRiskNote from './stats/UhiRiskNote';
 import DataQualityNote from './stats/DataQualityNote';
 import CanopyNote from './stats/CanopyNote';
 import ValidationNote from './stats/ValidationNote';
+import DataTrustSection from './stats/DataTrustSection';
 import LandusePanel from './stats/LandusePanel';
 
 export default function StatsTab({ data, handlers }) {
   const {
     selectedProvince, selectedProvinceEN, selectedDistrict, selectedDistrictEN,
     provinceArea, districtArea,
-    ndviStats, ndviMonthly, ndviLoading,
+    ndviStats, ndviMonthly, ndviLoading, urbanStats,
     lstStats, lstMonthly, lstLoading,
     districtNdviStats, districtNdviMonthly, districtNdviLoading,
     districtLstStats, districtLstMonthly, districtLstLoading,
@@ -53,6 +53,16 @@ export default function StatsTab({ data, handlers }) {
         </div>
       )}
 
+      {/* เรือนยอดไม้ตามเกณฑ์ 3-30-300 ขึ้นก่อนทุกอย่าง — เป็นค่าเดียวบนแผงที่บอก
+          ตรง ๆ ว่าต้องปลูกเพิ่มอีกกี่ km² จึงเอาไปทำแผน/งบประมาณต่อได้ทันที
+          เดิมอยู่ล่างสุดเพราะเป็นสิ่งที่เพิ่มทีหลังตาม FR-17 ไม่ใช่เพราะผู้ใช้ต้องอ่านทีหลัง
+          เลือกขอบเขตตามที่ผู้ใช้เลือกอยู่ — อำเภอมาก่อนถ้าเจาะอำเภออยู่ เพราะเกณฑ์
+          30% เป็นเกณฑ์ระดับย่าน ค่าเฉลี่ยทั้งจังหวัดกลบพื้นที่เมืองที่ขาดจริง */}
+      <CanopyNote
+        canopy={selectedDistrict ? districtNdviStats?.canopy : ndviStats?.canopy}
+        areaKm2={selectedDistrict ? districtNdviStats?.total_area_km2 : ndviStats?.total_area_km2}
+      />
+
       {/* District section */}
       {selectedDistrict && (
         <>
@@ -68,8 +78,8 @@ export default function StatsTab({ data, handlers }) {
                   progress={(districtNdviStats?.ndvi_mean || 0) * 100}
                 />
                 <KVRow>
-                  <KV label="Min" value={districtNdviStats?.ndvi_min ?? '—'} />
-                  <KV label="Max" value={districtNdviStats?.ndvi_max ?? '—'} />
+                  <KV label="Min" value={districtNdviStats?.ndvi_min != null ? districtNdviStats.ndvi_min.toFixed(2) : '—'} />
+                  <KV label="Max" value={districtNdviStats?.ndvi_max != null ? districtNdviStats.ndvi_max.toFixed(2) : '—'} />
                 </KVRow>
                 <KVRow>
                   <KV
@@ -78,11 +88,12 @@ export default function StatsTab({ data, handlers }) {
                     hint={districtNdviStats?.green_area_km2 != null ? `${districtNdviStats.green_area_km2.toLocaleString()} km²` : null}
                   />
                 </KVRow>
-                {/* FR-17 อยู่ระดับอำเภอเป็นหลัก — เกณฑ์ 30% ของ 3-30-300 เป็นเกณฑ์
-                    ระดับย่าน ค่าเฉลี่ยทั้งจังหวัดจึงกลบพื้นที่เมืองที่ขาดจริง */}
-                <CanopyNote canopy={districtNdviStats?.canopy}
-                            areaKm2={districtNdviStats?.total_area_km2} />
-                <DataQualityNote dataQuality={districtNdviStats?.data_quality} />
+                {/* เรือนยอดของอำเภอย้ายไปอยู่บนสุดของแท็บแล้ว (ดูคอมเมนต์ที่นั่น)
+                    เหลือแต่หลักฐานคุณภาพข้อมูลที่ยุบไว้เหมือนฝั่งจังหวัด */}
+                <DataTrustSection dataQuality={districtNdviStats?.data_quality}
+                                  title="ความน่าเชื่อถือของข้อมูล">
+                  <DataQualityNote dataQuality={districtNdviStats?.data_quality} />
+                </DataTrustSection>
                 {districtNdviMonthly.length > 0 && (
                   <div>
                     <div className="label">รายเดือน</div>
@@ -139,8 +150,10 @@ export default function StatsTab({ data, handlers }) {
               progress={(ndviStats?.ndvi_mean || 0) * 100}
             />
             <KVRow cols={3}>
-              <KV label="Min" value={ndviStats?.ndvi_min ?? '—'} />
-              <KV label="Max" value={ndviStats?.ndvi_max ?? '—'} />
+              {/* ทศนิยม 2 ตำแหน่งพอ — ค่าสุดขั้วราย pixel ที่ 4 ตำแหน่งให้ความแม่นยำลวง
+                  ทั้งที่ความไม่แน่นอนของค่ากลางรายปีอยู่ระดับ ±0.03 NDVI */}
+              <KV label="Min" value={ndviStats?.ndvi_min != null ? ndviStats.ndvi_min.toFixed(2) : '—'} />
+              <KV label="Max" value={ndviStats?.ndvi_max != null ? ndviStats.ndvi_max.toFixed(2) : '—'} />
               <KV label="พื้นที่จังหวัด" value={provinceArea ? `${Number(provinceArea).toLocaleString()}` : '—'} hint="km²" />
             </KVRow>
             <KVRow>
@@ -149,17 +162,26 @@ export default function StatsTab({ data, handlers }) {
                 value={ndviStats?.green_area_pct != null ? `${ndviStats.green_area_pct}%` : '—'}
                 hint={ndviStats?.green_area_km2 != null ? `${ndviStats.green_area_km2.toLocaleString()} km²` : null}
               />
-              {/* ต้องกำกับ "(ทั้งจังหวัด)" — ตารางจัดอันดับใน OverviewPanel คิดเฉพาะ
-                  เขตเมือง ค่าจึงต่างกันหลายเท่าสำหรับจังหวัดเดียวกัน */}
-              <KV
-                label="ต่อหัวประชากร (ทั้งจังหวัด)"
-                value={ndviStats?.green_area_m2_per_person != null ? `${ndviStats.green_area_m2_per_person.toFixed(1)} m²` : '—'}
-                // คิดสดจากตัวเลข ไม่อ่าน who_status ที่เก็บเป็นข้อความไว้ใน DB
-                // (แถวเก่ามีถ้อยคำคนละแบบ และกำลังเลิกใช้คอลัมน์นั้น)
-                hint={ndviStats?.green_area_m2_per_person != null
-                  ? describeVsWhoReference(ndviStats.green_area_m2_per_person, WHO_REFERENCE_M2)
-                  : null}
-              />
+              {/* ค่าหลักคิดเฉพาะเขตเมือง ไม่ใช่ทั้งจังหวัด — ประชากรกระจุกในเขตเมือง
+                  แต่พืชพรรณส่วนใหญ่อยู่นอกเขต ค่าทั้งจังหวัดจึงสูงจนไม่สื่อความจริง
+                  (สมุทรปราการ 354.7 เทียบ 38.2 m²/คน) และเป็นฐานเดียวกับตารางจัดอันดับ
+                  ใน OverviewPanel เสียที · ถ้าดึงค่าเขตเมืองไม่ได้ค่อยถอยไปใช้ทั้งจังหวัด
+                  พร้อมป้ายกำกับขอบเขตตามเดิม */}
+              {urbanStats?.m2_per_person_urban != null ? (
+                <KV
+                  label="ต่อหัวประชากร (เขตเมือง)"
+                  value={`${urbanStats.m2_per_person_urban.toFixed(1)} m²`}
+                  hint={ndviStats?.green_area_m2_per_person != null
+                    ? `ทั้งจังหวัด ${ndviStats.green_area_m2_per_person.toFixed(1)} m²`
+                    : null}
+                />
+              ) : (
+                <KV
+                  label="ต่อหัวประชากร (ทั้งจังหวัด)"
+                  value={ndviStats?.green_area_m2_per_person != null ? `${ndviStats.green_area_m2_per_person.toFixed(1)} m²` : '—'}
+                  hint={urbanStats === null ? 'กำลังดึงค่าเฉพาะเขตเมือง…' : null}
+                />
+              )}
             </KVRow>
             {/* ประชากร fallback: m²/คน อ้างอิงประชากรคนละปีกับ NDVI — บอกปีจริงให้ผู้ใช้รู้ */}
             {ndviStats?.population_year != null && ndviStats.population_year !== ndviStats.year && (
@@ -167,11 +189,6 @@ export default function StatsTab({ data, handlers }) {
                 * “ต่อหัวประชากร” คำนวณจากประชากรปี {ndviStats.population_year} (ปี {ndviStats.year} ยังไม่มีข้อมูลประชากร)
               </div>
             )}
-            <DataQualityNote dataQuality={ndviStats?.data_quality} />
-            {/* NFR-08 — วางต่อจาก DataQualityNote เพราะเป็นข้อมูลชนิดเดียวกัน
-                (ความเชื่อมั่นของตัวเลขด้านบน) แค่คนละแหล่งอ้างอิง · ระดับจังหวัด
-                เท่านั้น จึงไม่มีในบล็อกอำเภอ */}
-            <ValidationNote validation={ndviStats?.validation} />
             {!selectedDistrict && ndviMonthly.length > 0 && (
               <div>
                 <div className="label">NDVI รายเดือน</div>
@@ -185,12 +202,18 @@ export default function StatsTab({ data, handlers }) {
         )}
       </Accordion>
 
-      {/* เกณฑ์พื้นที่สีเขียว 2 มาตรฐานที่ตอบคนละคำถาม — WHO วัด "พอต่อหัวประชากรไหม"
-          ส่วน 3-30-300 วัด "ร่มไม้ปกคลุมพอไหม" · อ่านคู่กันจึงเห็นภาพครบ */}
-      <GreenDeficitNote ndviStats={ndviStats} />
-      {!selectedDistrict && (
-        <CanopyNote canopy={ndviStats?.canopy} areaKm2={ndviStats?.total_area_km2} />
-      )}
+      {/* หลักฐานเชิงสถิติทั้งหมดยุบไว้ใต้หัวข้อเดียว ปิดไว้เป็นค่าเริ่มต้น —
+          ทั้งคุณภาพภาพดาวเทียม (NFR-07), ผลเทียบ WorldCover (NFR-08) และการเทียบ
+          ค่าอ้างอิง WHO ซึ่งวัดคนละปริมาณกับตัวชี้วัดนี้ (ดู utils/greenMetric.js)
+          สามอย่างนี้ตอบคำถาม "เชื่อเลขนี้ได้แค่ไหน" ไม่ใช่ "ต้องทำอะไรต่อ" */}
+      <DataTrustSection
+        dataQuality={ndviStats?.data_quality}
+        validation={ndviStats?.validation}
+      >
+        <DataQualityNote dataQuality={ndviStats?.data_quality} />
+        <ValidationNote validation={ndviStats?.validation} />
+        <GreenDeficitNote ndviStats={ndviStats} urbanStats={urbanStats} />
+      </DataTrustSection>
 
       {/* Land use composition — 5 ประเภทหลักตามนิยาม LDD (Dynamic World หรือ LDD ราชการ) */}
       <LandusePanel

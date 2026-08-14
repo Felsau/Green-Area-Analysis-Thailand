@@ -49,7 +49,9 @@ export const ndviSections = (ctx) => {
     ]);
   }
   ndviRows.push(['ประชากร', fmtInt(ndviStats.population), 'จาก WorldPop 100m']);
-  ndviRows.push(['พืชพรรณ/คน', `${fmt(ndviStats.green_area_m2_per_person, 2)} m²`,
+  // กำกับขอบเขตไว้ในชื่อแถว — รายงานมีหัวข้อเขตเมืองแยกอีกส่วน (stats/urban.js)
+  // ที่ให้ค่าเดียวกันคนละฐาน ถ้าไม่บอกว่าแถวนี้คิดทั้งจังหวัดจะอ่านเป็นค่าขัดกันเอง
+  ndviRows.push(['พืชพรรณ/คน (ทั้งจังหวัด)', `${fmt(ndviStats.green_area_m2_per_person, 2)} m²`,
     describeVsWhoReference(ndviStats.green_area_m2_per_person, WHO_REFERENCE_M2)
       + ' (ดูข้อจำกัด)']);
 

@@ -4,20 +4,27 @@
 import { Note } from '../../ui/Metric';
 import { WHO_REFERENCE_M2, WHO_CAVEAT_SHORT } from '../../../utils/greenMetric';
 
-export default function GreenDeficitNote({ ndviStats }) {
+export default function GreenDeficitNote({ ndviStats, urbanStats }) {
   if (!(ndviStats?.green_area_m2_per_person != null && ndviStats?.population > 0)) return null;
 
-  const current = ndviStats.green_area_m2_per_person;
+  // เทียบด้วยค่าเขตเมืองเป็นหลัก — ประชากรที่เกณฑ์ WHO พูดถึงคือคนเมือง การเอา
+  // พืชพรรณนอกเขตเมืองมาหารด้วยประชากรทั้งจังหวัดทำให้ทุกจังหวัดดู "เกินเกณฑ์"
+  // เสมอ ทั้งที่คนในเมืองอาจไม่มีที่สีเขียวใกล้บ้านเลย · ไม่มีค่าเขตเมืองค่อยถอย
+  // ไปใช้ค่าทั้งจังหวัด และกำกับขอบเขตที่ใช้ไว้เสมอ
+  const useUrban = urbanStats?.m2_per_person_urban != null && urbanStats?.population_urban > 0;
+  const current = useUrban ? urbanStats.m2_per_person_urban : ndviStats.green_area_m2_per_person;
+  const population = useUrban ? urbanStats.population_urban : ndviStats.population;
+  const scope = useUrban ? 'เขตเมือง' : 'ทั้งจังหวัด';
   const gap = Math.max(0, WHO_REFERENCE_M2 - current);
-  const gapKm2 = (gap * ndviStats.population / 1_000_000).toFixed(1);
-  const gapRai = Math.round(gap * ndviStats.population / 1600).toLocaleString('th');
+  const gapKm2 = (gap * population / 1_000_000).toFixed(1);
+  const gapRai = Math.round(gap * population / 1600).toLocaleString('th');
   // โทนสีสื่อว่า "ค่าต่ำผิดปกติ" ไม่ใช่ "สอบตก"
   const sev = current < 3 ? 'crit' : current < WHO_REFERENCE_M2 ? 'warn' : 'default';
 
   return (
     <Note tone={sev} label={`พืชพรรณต่อประชากร · ค่าอ้างอิง WHO ${WHO_REFERENCE_M2} m² ต่อคน`}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span>วัดได้</span>
+        <span>วัดได้ <span className="helper">({scope})</span></span>
         <span className="note__num">{current.toFixed(1)} / {WHO_REFERENCE_M2} m²</span>
       </div>
       {gap > 0 ? (

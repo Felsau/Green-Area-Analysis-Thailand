@@ -343,6 +343,7 @@ export default function Dashboard({
     ndviStats:            province.ndviStats,
     ndviMonthly:          province.ndviMonthly,
     ndviLoading:          province.ndviLoading,
+    urbanStats:           province.urbanStats,
     lstStats:             province.lstStats,
     lstMonthly:           province.lstMonthly,
     lstLoading:           province.lstLoading,

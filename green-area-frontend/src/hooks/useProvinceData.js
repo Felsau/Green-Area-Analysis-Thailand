@@ -10,6 +10,10 @@ export function useProvinceData({ setNdviCache }) {
   const [ndviStats, setNdviStats]                   = useState(null);
   const [ndviMonthly, setNdviMonthly]               = useState([]);
   const [ndviLoading, setNdviLoading]               = useState(false);
+  // urban subset — ค่าต่อหัวประชากรเฉพาะเขตเมือง · แผงสถิติใช้ค่านี้เป็นตัวหลัก
+  // แทนค่าทั้งจังหวัด เพราะประชากรกระจุกในเขตเมืองแต่พื้นที่สีเขียวส่วนใหญ่อยู่นอกเขต
+  // ค่าทั้งจังหวัดจึงสูงจนไม่สื่อความจริง (สมุทรปราการ 354.7 vs 38.2 m²/คน)
+  const [urbanStats, setUrbanStats]                 = useState(null);
   const [lstStats, setLstStats]                     = useState(null);
   const [lstMonthly, setLstMonthly]                 = useState([]);
   const [lstLoading, setLstLoading]                 = useState(false);
@@ -33,9 +37,21 @@ export function useProvinceData({ setNdviCache }) {
     setNdviMonthly([]);
     setLstStats(null);
     setLstMonthly([]);
+    setUrbanStats(null);
     try {
       const enc = encodeURIComponent;
       const qs = `?year=${year}`;
+
+      // ยิงแยกจากชุดหลัก ไม่รวมใน Promise.all — จังหวัดที่ยังไม่มีแถวใน urban_ndvi_annual
+      // ต้องคำนวณผ่าน GEE ซึ่งช้ากว่าชุดหลักหลายเท่า ถ้ารอพร้อมกันแผงทั้งแผงจะค้างตาม
+      // ล้มเหลวก็ไม่เป็นไร — แผงจะถอยไปแสดงค่าทั้งจังหวัดแทน
+      fetchWithRetry(`${API_BASE}/analysis/urban-subset/${enc(provinceName)}${qs}`, { signal })
+        .then(res => (res.ok ? res.json() : null))
+        .then(urban => { if (urban) setUrbanStats(urban); })
+        .catch(err => {
+          if (err?.name !== 'AbortError') console.error('ดึงข้อมูลเขตเมืองไม่สำเร็จ:', err);
+        });
+
       const [statsRes, monthlyRes, lstRes, lstMonthlyRes] = await Promise.all([
         fetchWithRetry(`${API_BASE}/ndvi/${enc(provinceName)}${qs}`, { signal }),
         fetchWithRetry(`${API_BASE}/ndvi/${enc(provinceName)}/monthly${qs}`, { signal }),
@@ -80,13 +96,14 @@ export function useProvinceData({ setNdviCache }) {
     setProvinceArea(null);
     setLstStats(null);
     setLstMonthly([]);
+    setUrbanStats(null);
   }, []);
 
   return {
     selectedProvince, setSelectedProvince,
     selectedProvinceEN, setSelectedProvinceEN,
     provinceArea, setProvinceArea,
-    ndviStats, ndviMonthly, ndviLoading,
+    ndviStats, ndviMonthly, ndviLoading, urbanStats,
     lstStats, lstMonthly, lstLoading,
     fetchNDVI, resetProvince,
   };

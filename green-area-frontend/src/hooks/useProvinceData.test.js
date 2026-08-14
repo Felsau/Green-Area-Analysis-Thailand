@@ -68,11 +68,34 @@ test('fetchNDVI asks every endpoint for the year it was given', async () => {
   await act(async () => { await result.current.fetchNDVI('Bangkok Metropolis', 2021); });
 
   const urls = fetchWithRetry.mock.calls.map(([url]) => url);
-  expect(urls).toHaveLength(4);
+  expect(urls).toHaveLength(5);
   urls.forEach(url => expect(url).toContain('year=2021'));
   // the monthly variants must keep their path segment, not lose it to the query
   expect(urls.some(u => u.includes('/ndvi/Bangkok%20Metropolis/monthly?year=2021'))).toBe(true);
   expect(urls.some(u => u.includes('/lst/Bangkok%20Metropolis/monthly?year=2021'))).toBe(true);
+  // the urban subset feeds the panel's headline m²/person, so it has to follow
+  // the same year as everything else — a stale year here is invisible on screen
+  expect(urls.some(u => u.includes('/analysis/urban-subset/Bangkok%20Metropolis?year=2021'))).toBe(true);
+});
+
+// The urban call is deliberately outside the Promise.all: provinces without a
+// cached urban row make the backend compute it through GEE, which is far slower
+// than the four cached lookups. Awaiting it would hold the whole panel on the
+// spinner for a number that is not the first thing anyone reads.
+test('a failing urban-subset lookup still leaves the rest of the panel filled', async () => {
+  fetchWithRetry.mockImplementation((url) => (
+    url.includes('/analysis/urban-subset/')
+      ? Promise.reject(new Error('GEE timeout'))
+      : Promise.resolve(okJson({ ndvi_mean: 0.42, monthly: [], lst_mean: 28 }))
+  ));
+  const { result } = renderHook(() => useProvinceData({ setNdviCache: vi.fn() }));
+
+  await act(async () => { await result.current.fetchNDVI('Bangkok Metropolis', 2021); });
+
+  await waitFor(() =>
+    expect(result.current.ndviStats).toEqual(expect.objectContaining({ ndvi_mean: 0.42 })));
+  expect(result.current.urbanStats).toBeNull();
+  expect(result.current.ndviLoading).toBe(false);
 });
 
 test('fetchNDVI defaults to the current year when none is passed', async () => {
