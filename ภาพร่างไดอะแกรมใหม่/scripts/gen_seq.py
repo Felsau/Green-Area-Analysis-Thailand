@@ -68,7 +68,11 @@ def build(title, actor, parts, msgs, out, prefix=None):
             for j, (a, b, t, k) in enumerate(msgs):
                 lo, hi = sorted(((a + 1), (b + 1)))
                 if k != SELF and lo < i <= hi:
-                    need = max(need, lblw[j] + 34)
+                    # ป้ายวางกึ่งกลางตลอดช่วง จึงต้องการแค่ "ความกว้างรวม" ของทุกช่วง
+                    # ที่มันพาด — เดิมบังคับให้ทุกช่วงกว้างเท่าป้ายเต็ม ข้อความที่ข้าม
+                    # 2 lifeline จึงจองที่ไว้เป็นสองเท่าของที่ใช้จริง ดันรูปกว้างเกิน
+                    # เหตุ (ยิ่งกว้าง ตัวอักษรตอนพิมพ์ยิ่งเล็ก เพราะตรึงกว้าง 14.5 ซม.)
+                    need = max(need, lblw[j] / (hi - lo) + 34)
                 elif k == SELF and (a + 1) == i - 1:
                     need = max(need, lblw[j] + 120)
             gap = need

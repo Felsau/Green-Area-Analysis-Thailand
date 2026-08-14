@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Class Diagram — ระบบแดชบอร์ดพื้นที่สีเขียวและเกาะความร้อนในเขตเมือง
 
-29 คลาส · ชั้น Boundary → Control → Service → Entity
+30 คลาส (13 Boundary/Control/Service + 17 Entity) · ชั้น Boundary → Control → Service → Entity
 
 ⚠️ ก่อนแก้ไฟล์นี้ ให้เปิด green-area-backend/migrations/ + routers/ อ่านของจริงเสมอ
    (กฎเดียวกับ gen_er.py) — เคยมีรอบที่ไดอะแกรมโชว์ `SavedArea.owner_token` ซึ่งถูกตัดไป
    ตั้งแต่ migration 019 และเมธอด `calculateUHIIntensity()` ซึ่งไม่มีอยู่ในระบบเลย
 
 ทำไม Entity ถึงไม่มีช่อง attribute
-ตารางในสคีมามี 15 ตาราง (+ auth.users) ถ้าใส่คอลัมน์ครบทุกกล่องเหมือนเดิม ภาพจะต้อง
+ตารางในสคีมามี 16 ตาราง (+ auth.users) ถ้าใส่คอลัมน์ครบทุกกล่องเหมือนเดิม ภาพจะต้อง
 กว้าง 6 คอลัมน์ → ย่อลงหน้ากระดาษ 14.65 ซม. แล้วตัวอักษรเหลือ ~4.2pt อ่านไม่ออก
 UML อนุญาตให้ซ่อน attribute compartment ได้ จึงแสดง Entity เป็นชื่อคลาสอย่างเดียว
 รายละเอียดคอลัมน์อยู่ใน ER Diagram + ตาราง Data Dictionary ของบทที่ 3 อยู่แล้ว
@@ -25,6 +25,7 @@ camelCase ทั้งหมด · **ห้ามใช้ชนิดของ 
 รัน: python "ภาพร่างไดอะแกรมใหม่/scripts/gen_class.py"
 """
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -63,10 +64,17 @@ CLS = {
    ['+ showProfile()', '+ submitProfileUpdate()', '+ submitPasswordChange()',
     '+ submitEmailChange()', '+ confirmDeleteAccount()']),
 
+ # ⚠️ invalidateCache() เป็นเมธอด "ตามแบบที่ออกแบบไว้" ไม่ใช่ของที่มีในโค้ดวันนี้ —
+ # ต่างจากเมธอดอื่นทั้งภาพที่ยึดกฎ "ต้องมีจริงเท่านั้น" · เหตุผลที่ยังต้องมี: UC 21
+ # (จัดการข้อมูล/แคช) กับ SD 11 ในบทที่ 3 บรรยายหน้าที่นี้ไว้ ถ้าไม่มีเมธอดรองรับ
+ # SD 11 จะต้องยืม changeFilter() มาสื่อความหมาย "ล้างแคช" ซึ่งผิดความหมายชัด ๆ
+ # ของจริงวันนี้: ล้างแคชด้วยการขยับ CURRENT_CACHE_VERSION (dependencies.py:36) แล้ว
+ # _is_stale() สั่ง recompute เอง + สคริปต์ prefetch_cache.py ที่รันนอกแอป · ปุ่ม
+ # "จัดการระบบ" ใน UserMenu.js:37 ยังเป็น no-op
  'DashboardController': ('Control',
    ['- currentYear : Integer', '- selectedProvince : String', '- selectedDistrict : String'],
    ['+ getOverviewStats()', '+ changeFilter(province, district, year)',
-    '+ buildReportDocument()']),
+    '+ buildReportDocument()', '+ invalidateCache(scope, province, year)']),
  # year รับมาจาก request จริง (SavedAreaCreate.year — routers/saved.py:42) ส่วน
  # area_km2 ไม่ใช่พารามิเตอร์ เพราะคำนวณเองด้วย validate_drawn_polygon() (saved.py:70)
  # และ province ถูก validate ทิ้งเป็น NULL ถ้าไม่รู้จัก (saved.py:73)
@@ -94,11 +102,21 @@ CLS = {
  # getMapId(vis)['tile_fetcher'].url_format แล้ว cache ในหน่วยความจำ 30 นาที
  # (routers/maps/tiles.py:97,113) · และ service ไม่ได้ "render" อะไร มันคืน URL
  # ให้ MapViewComponent เอาไปวาดเอง จึงเป็น getTileUrl() ไม่ใช่ renderMapTile()
+ # refreshCache() เป็นเมธอดตามแบบเช่นเดียวกับ DashboardController.invalidateCache()
+ # (ดูเหตุผลเต็มที่คอมเมนต์เหนือ DashboardController) — คู่นี้เป็นสองเมธอดเดียวในภาพ
+ # ที่ยังไม่มีของจริงรองรับ
+ # fetchTimelapseSeries รองรับ UC 15 (ดูภาพเคลื่อนไหวย้อนหลัง) ที่เดิมไม่มีเมธอดไหน
+ # ในภาพรองรับเลย — ของจริงคือ GET /timelapse/{ndvi|lst}/provinces?start_year=&end_year=
+ # (main.py:291,299 → _timelapse_provinces) ที่คืนค่ารายปีของ *ทุกจังหวัด* ในช่วงที่ขอ
+ # จาก cache โดยไม่ trigger GEE · ไม่มีพารามิเตอร์ province เพราะดึงทั้งประเทศทีเดียว
+ # (useTimelapseData.js ยิงครั้งเดียวแล้วเล่นทั้งชุดในเครื่อง)
  'GISDataService': ('Service',
    ['- cacheStatus : Boolean'],
    ['+ fetchNDVIData(province, district, year)', '+ fetchLSTData(province, district, year)',
     '+ fetchProvinceList()', '+ fetchDistrictList(province)',
-    '+ getTileUrl(kind, province, year)']),
+    '+ getTileUrl(kind, province, year)',
+    '+ fetchTimelapseSeries(kind, startYear, endYear)',
+    '+ refreshCache(scope, province, year)']),
  # analyzeCoolingEffect แทน calculateUHIIntensity เดิมที่ไม่มีอยู่จริง — ของจริงคือ
  # GET /analysis/cooling/{province} (routers/maps/analysis/cooling.py) ที่ fit เส้นถดถอย
  # LST ต่อ NDVI ระดับอำเภอจาก district_ndvi_annual + district_lst_annual
@@ -110,18 +128,38 @@ CLS = {
  # ส่วน analyzeCoolingEffect(province, year) ถูกแล้ว — GET /analysis/cooling/{province}
  # รับแค่จังหวัดกับปี แล้ว *อ่าน* district_ndvi_annual + district_lst_annual ทุกอำเภอ
  # ในจังหวัดนั้นมา fit เส้นถดถอย (cooling.py:34) อำเภอเป็นหน่วยของข้อมูล ไม่ใช่พารามิเตอร์
+ # ⚠️ เคยมี evaluateWHOCriteria(greenAreaM2PerPerson) อยู่ตรงนี้ — **ไม่มีอยู่จริงในโค้ด
+ # เลยสักที่** (grep ทั้ง repo ไม่เจอ) และเป็นการตัดสิน "ผ่าน/ไม่ผ่าน WHO" ซึ่งทั้งระบบ
+ # เลิกใช้ไปแล้วตั้งแต่ commit cfbc558 เพราะค่าที่วัดได้คือพืชพรรณทุกชนิดจาก NDVI > 0.3
+ # ไม่ใช่พื้นที่สาธารณะที่เข้าถึงได้ตามนิยาม WHO → เทียบตรงกันไม่ได้
+ # แทนด้วย analyzeAccessWithin300m ซึ่งเป็นของจริง (FR-18) และยังไม่เคยมีในภาพเลย —
+ # GET /analysis/access-300m/{province_name}?district_name=&year= (access.py:85)
+ # attribute เก็บไว้แต่เปลี่ยนชื่อ: WHO_STANDARD_M2 = 9 มีจริง (dependencies.py:24)
+ # แต่ใช้เป็น "ค่าอ้างอิง" ไม่ใช่ "เกณฑ์ตัดสิน" — ชื่อเดิมสื่อความหมายผิด
+ # analyzeTrendForecast รองรับ UC 16 (วิเคราะห์แนวโน้มและพยากรณ์) ที่เดิมไม่มีเมธอดไหน
+ # ในภาพรองรับ — ของจริงคือ GET /analysis/timeseries/{province}?start_year=&end_year=
+ # &district_name= (routers/maps/analysis/timeseries.py) ที่อ่าน annual rows จาก cache
+ # แล้วเรียก mann_kendall + forecast_linear ใน stats_utils.py · อยู่คลาสนี้เพราะเป็น
+ # โมดูลวิเคราะห์ในชุดเดียวกับ cooling/urban/access ที่แม็ปมาคลาสนี้อยู่แล้ว
  'UrbanAnalysisService': ('Service',
-   ['- whoStandardThreshold : Real'],
+   ['- whoReferenceM2 : Real'],
    ['+ analyzeUrbanGreenShare(province, district, year)',
-    '+ evaluateWHOCriteria(greenAreaM2PerPerson)', '+ analyzeCoolingEffect(province, year)']),
+    '+ analyzeAccessWithin300m(province, district, year)',
+    '+ analyzeCoolingEffect(province, year)',
+    '+ analyzeTrendForecast(province, district, startYear, endYear)']),
  # generatePlantingPoints ต้องรับ year ด้วย — ทั้ง GET /recommend/{province} และ
  # /recommend/{province}/districts/{district} รับ year (endpoints.py:255,265) และตาราง
  # planting_recommendations มี UNIQUE (province, district, year)
  # ⚠️ ชื่อ/พารามิเตอร์ของเมธอดในคลาสนี้ปรากฏใน Sequence Diagram ด้วย (seq_specs.py) —
  # แก้ที่นี่แล้วต้องแก้ seq_specs.py + วาด SD ใหม่ + แก้ข้อความ §3.6 พร้อมกันเสมอ
+ # recommendSpecies รองรับ UC 18 (ดูคำแนะนำพันธุ์ไม้) ที่เดิมไม่มีเมธอดไหนในภาพรองรับ
+ # — ของจริงคือ get_recommended_species(province_name, lst_mean, ndvi_mean) ใน
+ # routers/recommend/species.py ที่หาภาคของจังหวัดจากตาราง provinces แล้วจัดอันดับ
+ # พันธุ์ไม้ตามสภาพพื้นที่ · ลำดับพารามิเตอร์ตามของจริง (lst ก่อน ndvi)
  'PlantingAdvisor': ('Service',
    ['- recommendationEngineVersion : String'],
    ['+ generatePlantingPoints(province, district, year)',
+    '+ recommendSpecies(province, lstMean, ndviMean)',
     '+ predictCoolingImpact(geometry)']),
 }
 
@@ -137,6 +175,8 @@ ENTITIES = [
     ('DistrictLSTAnnual', 'district_lst_annual'),
     ('DistrictLSTMonthly', 'district_lst_monthly'),
     ('UrbanNDVIAnnual', 'urban_ndvi_annual'),
+    # migration 022 — cache ของ FR-18 · เพิ่มพร้อม analyzeAccessWithin300m
+    ('Access300m', 'access_300m'),
     ('PlantingRecommendation', 'planting_recommendations'),
     ('SavedArea', 'saved_areas'), ('Profile', 'profiles'),
     # auth.users จัดการโดย Supabase Auth (GoTrue) ไม่ได้อยู่ใน migrations ของโปรเจกต์
@@ -155,7 +195,13 @@ COLS = [
     ['GISDataService', 'UrbanAnalysisService', 'PlantingAdvisor'],
     [n for n, _ in ENTITIES],
 ]
-BWS = [306, 306, 306, 246]          # Entity แคบกว่าเพราะไม่มีช่อง attribute
+# ความกว้างคอลัมน์ = ตัวคุมขนาดตัวอักษรตอนพิมพ์โดยตรง · ยิ่งแคบ ภาพยิ่งสูงและ
+# ตัวอักษรยิ่งใหญ่ (พื้นที่พิมพ์คงที่ 14.65 x 22.25 ซม. ภาพเดิมกว้างเต็มแต่สูงแค่
+# 13.6 ซม. = ทิ้งที่ว่างแนวตั้งไป 8.6 ซม. ตัวอักษรจึงเหลือ 5.8 pt)
+# ค่าต่ำสุดของแต่ละคอลัมน์คือชิ้นส่วนที่ตัดบรรทัดต่อไม่ได้ที่กว้างที่สุด:
+#   col0 214 (+ submitPasswordChange()  · col1 219 (+ generateCustomAnalysis()
+#   col2 274 (- recommendationEngineVersion :)  · col3 240 (หัวกล่อง PlantingRecommendation)
+BWS = [220, 222, 276, 246]
 
 # เส้นข้ามคอลัมน์: (จาก, ไป, ชนิด, เลน, ป้าย, mult ต้นทาง, mult ปลายทาง, ฝั่งเลน)
 #   ชนิด  assoc = เส้นทึบ · dep = เส้นประหัวลูกศรเปิด («use»)
@@ -202,9 +248,11 @@ TREES = [
       'DistrictNDVIAnnual', 'DistrictNDVIMonthly', 'ProvinceLSTAnnual',
       'ProvinceLSTMonthly', 'DistrictLSTAnnual', 'DistrictLSTMonthly'], 'dep', 106, '«use»'),
     # analyzeCoolingEffect อ่านคู่ NDVI/LST ระดับอำเภอ (cooling.py) ·
-    # analyzeUrbanGreenShare อ่าน/เขียน urban_ndvi_annual (urban.py)
+    # analyzeUrbanGreenShare อ่าน/เขียน urban_ndvi_annual (urban.py) ·
+    # analyzeAccessWithin300m อ่าน/เขียน access_300m (access.py)
     ('UrbanAnalysisService',
-     ['DistrictNDVIAnnual', 'DistrictLSTAnnual', 'UrbanNDVIAnnual'], 'dep', 70, '«use»'),
+     ['DistrictNDVIAnnual', 'DistrictLSTAnnual', 'UrbanNDVIAnnual', 'Access300m'],
+     'dep', 70, '«use»'),
     # _site_metrics() อ่าน ndvi/lst ระดับจังหวัดมาจัดอันดับพันธุ์ไม้ แล้วเขียนผลลง
     # planting_recommendations (routers/recommend/endpoints.py)
     ('PlantingAdvisor', ['NDVIAnnual', 'ProvinceLSTAnnual', 'PlantingRecommendation'],
@@ -239,7 +287,7 @@ ROW, HDR, GAP, PAD, EGAP = 32, 52, 30, 12, 24
 FS = 24
 # ช่องว่างคอลัมน์แรก 140: Boundary → Control มี 7 เส้น (ProfileView ผูก 2 Control)
 # เลนสุดท้ายอยู่ที่ XS[1]-30-6*15 = ขอบขวาคอลัมน์ Boundary + 20 พอดี
-COLGAP = [140, 115, 140]            # ช่องว่างระหว่างคอลัมน์ (เลน/สันต้นไม้)
+COLGAP = [128, 100, 128]            # ช่องว่างระหว่างคอลัมน์ (เลน/สันต้นไม้)
 
 XS = [40]
 for i, g in enumerate(COLGAP):
@@ -254,16 +302,34 @@ RMARGIN = int(ELANE0 + max(l for *_, l, _f in ELINKS) * ELANEW + 10
               + max(c0.textw(n, FS - 8) for _a, _b, n, *_ in ELINKS) + 16)
 
 
+BREAKS = re.compile(r', |\(| : ')
+
+
 def wrap(t, maxw):
+    """ตัดบรรทัดซ้ำจนทุกบรรทัดพอดีกล่อง
+
+    เดิมตัดได้ครั้งเดียวและเฉพาะที่ ", " หรือ "(" — พอบีบคอลัมน์ให้แคบลงเพื่อให้
+    ตัวอักษรตอนพิมพ์ใหญ่ขึ้น บรรทัดที่ต้องตัดสองครั้ง (เช่น
+    changePassword(currentPassword, newPassword)) หรือที่ไม่มีจุดตัดสองแบบนั้นเลย
+    (เช่น "- recommendationEngineVersion : String") จะทะลุขอบกล่องออกไปเงียบ ๆ
+    """
     if c0.textw(t, FS) <= maxw:
         return [t]
-    for sep in (', ', '('):
-        if sep in t:
-            i = t.index(sep) + len(sep)
-            head, tail = t[:i], '    ' + t[i:]
-            if c0.textw(head, FS) <= maxw and c0.textw(tail, FS) <= maxw:
-                return [head, tail]
-    return [t]
+    lines, rest, indent = [], t, ''
+    while c0.textw(indent + rest, FS) > maxw:
+        # ไม่ตัดจนเหลือหางสั้นกำพร้า เช่น "+ submitPasswordChange(" แล้วขึ้นบรรทัดใหม่
+        # เป็น ")" ตัวเดียว — อ่านแล้วเหมือนวงเล็บหลุด
+        pts = [m.end() for m in BREAKS.finditer(rest) if len(rest[m.end():].strip()) > 2]
+        fit = [p for p in pts if c0.textw(indent + rest[:p], FS) <= maxw]
+        if not fit:
+            if not pts:
+                break                      # ไม่มีจุดตัดเลย — ยอมให้ล้น ดีกว่าตัดกลางคำ
+            fit = [pts[0]]
+        p = fit[-1]                        # ตัดที่จุดไกลสุดที่ยังพอดี
+        lines.append(indent + rest[:p])
+        rest, indent = rest[p:], '    '
+    lines.append(indent + rest)
+    return lines
 
 
 def wrapped(n):

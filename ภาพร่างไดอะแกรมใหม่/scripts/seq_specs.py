@@ -100,16 +100,23 @@ SDS = [
    (1, 0, 'ส่งผลไปแสดงผล', RET),
    (0, 0, 'displayReport()', SELF)]),
 
+ # ⚠️ เดิมสเปกนี้ยิง evaluateWHOCriteria(greenAreaM2PerPerson) เข้าตัวเอง — เมธอดนั้น
+ # ไม่มีอยู่จริงในโค้ดเลย และถูกถอดออกจาก Class Diagram ไปแล้ว (ดูคอมเมนต์ยาวเหนือ
+ # UrbanAnalysisService ใน gen_class.py) · ภาพในรูปเล่มถูกวาดใหม่เป็นรุ่น
+ # analyzeAccessWithin300m + Access300m แล้ว แต่สเปกนี้ไม่ได้แก้ตาม ทำให้การรัน
+ # seq_specs.py อีกครั้งจะเขียนทับภาพที่ถูกด้วยรุ่นเก่าเงียบ ๆ
  ('การดูสถิติเขตเมือง', REG,
   [('AnalysisReportView', B), ('DashboardController', C), ('UrbanAnalysisService', S),
-   ('UrbanNDVIAnnual', E)],
+   ('UrbanNDVIAnnual', E), ('Access300m', E)],
   [(A, 0, 'เลือกเมนูสถิติเขตเมืองและเลือกอำเภอ', CALL),
    (0, 1, 'getOverviewStats()', CALL),
    (1, 2, 'analyzeUrbanGreenShare(province, district, year)', CALL),
    (2, 3, 'อ่านสัดส่วนพื้นที่เมืองและพื้นที่สีเขียว', CALL),
    (3, 2, 'คืนค่าสถิติเขตเมือง', RET),
-   (2, 2, 'evaluateWHOCriteria(greenAreaM2PerPerson)', SELF),
-   (2, 1, 'คืนผลประเมินเทียบเกณฑ์ WHO', RET),
+   (1, 2, 'analyzeAccessWithin300m(province, district, year)', CALL),
+   (2, 4, 'อ่านผลการเข้าถึงในระยะ 300 เมตร', CALL),
+   (4, 2, 'คืนประชากรในระยะและทั้งหมด', RET),
+   (2, 1, 'คืนสถิติเขตเมืองและร้อยละที่เข้าถึงได้', RET),
    (1, 0, 'ส่งผลไปแสดงผล', RET),
    (0, 0, 'sortData(criteria)', SELF)]),
 
@@ -126,12 +133,16 @@ SDS = [
    (2, 1, 'ยืนยันการบันทึก', RET),
    (1, 0, 'แจ้งผลการแก้ไขสำเร็จ', RET)]),
 
+ # ⚠️ เดิมยิง changeFilter(province, district, year) เพื่อสื่อว่า "ล้างแคช" ซึ่งเป็น
+ # เมธอดเปลี่ยนตัวกรองข้อมูล ผิดความหมายชัด ๆ · เปลี่ยนมาใช้ invalidateCache /
+ # refreshCache ที่เพิ่งเพิ่มเข้า Class Diagram แล้ว (ดูคอมเมนต์เหนือ
+ # DashboardController ใน gen_class.py ว่าทำไมสองเมธอดนี้เป็น "ตามแบบ" ไม่ใช่ของจริง)
  ('การจัดการข้อมูล/แคช', ADMIN,
   [('MainDashboardView', B), ('DashboardController', C), ('GISDataService', S),
    ('NDVIAnnual', E)],
   [(A, 0, 'เลือกล้างแคชของพื้นที่ที่ต้องการ', CALL),
-   (0, 1, 'changeFilter(province, district, year)', CALL),
-   (1, 2, 'ล้างแคชและเพิ่มค่า cache_version', CALL),
+   (0, 1, 'invalidateCache(scope, province, year)', CALL),
+   (1, 2, 'refreshCache(scope, province, year)', CALL),
    (2, 3, 'ปรับปรุง cache_version ของแถวที่เกี่ยวข้อง', CALL),
    (3, 2, 'ยืนยันการปรับปรุง', RET),
    (2, 1, 'แจ้งผลการล้างแคชสำเร็จ', RET),

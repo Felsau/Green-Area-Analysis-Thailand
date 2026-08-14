@@ -116,6 +116,9 @@ for col, frm, to, kind, lane, frac in REL:
                    (lx + tw / 2 + 3) * 3, (ym + 11) * 3], fill=WHITE)
     c.text(lx, ym, label, 15)
 
-c.save('/tmp/uc_new.png')
+# เขียนลงโฟลเดอร์ร่างใน repo เหมือน gen_er.py / gen_class.py — เดิมเขียน /tmp ซึ่งหาย
+# ทุกครั้งที่รีบูตและทำให้ "รันแล้ว" กับไฟล์ที่เอาไปแปะในรูปเล่มไม่ตรงกันเงียบ ๆ
+HERE = os.path.dirname(os.path.abspath(__file__))
+c.save(os.path.join(HERE, '..', 'uc_new.png'))
 print('saved', (W, H), 'aspect 1:%.3f' % (H / W),
       '· พิมพ์กว้าง 14.65 ซม. → สูง %.1f ซม.' % (14.65 * H / W))

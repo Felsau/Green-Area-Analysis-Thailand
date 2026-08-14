@@ -1,12 +1,29 @@
 """เครื่องมือวาดไดอะแกรม UML ด้วย Pillow — วาดที่ 3 เท่าแล้วย่อลงเพื่อให้ขอบเรียบ"""
 from PIL import Image, ImageDraw, ImageFont
 import math
+import os
 
-FONT_DIR = '/Users/sunflower/Library/Fonts/'
+# ที่อยู่ฟอนต์ THSarabunNew — เดิมตรึงเป็นพาธ macOS เครื่องเดียว ทำให้รันบนเครื่องอื่น
+# ไม่ได้เลย · ไล่หาตามลำดับแล้วใช้ตัวแรกที่มีไฟล์จริง (ตั้ง GREEN_FONT_DIR ทับได้)
+FONT_DIRS = [
+    os.environ.get('GREEN_FONT_DIR'),
+    os.path.expanduser('~/Library/Fonts/'),                                  # macOS
+    os.path.expanduser('~/AppData/Local/Microsoft/Windows/Fonts/'),          # Windows (ติดตั้งรายผู้ใช้)
+    'C:/Windows/Fonts/',                                                     # Windows (ทั้งเครื่อง)
+    os.path.expanduser('~/.local/share/fonts/'), '/usr/share/fonts/truetype/',  # Linux
+]
 S = 3                                    # supersample factor
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREY = (240, 240, 240)
+
+
+def find_font(name):
+    for d in FONT_DIRS:
+        if d and os.path.isfile(os.path.join(d, name)):
+            return os.path.join(d, name)
+    raise FileNotFoundError(
+        'ไม่พบฟอนต์ %s — ติดตั้ง TH Sarabun New หรือตั้ง GREEN_FONT_DIR ชี้โฟลเดอร์ฟอนต์' % name)
 
 
 class Canvas:
@@ -20,7 +37,7 @@ class Canvas:
         key = (size, bold)
         if key not in self._fonts:
             name = 'THSarabunNew Bold.ttf' if bold else 'THSarabunNew.ttf'
-            self._fonts[key] = ImageFont.truetype(FONT_DIR + name, int(size * S))
+            self._fonts[key] = ImageFont.truetype(find_font(name), int(size * S))
         return self._fonts[key]
 
     # ---------------------------------------------------------------- ข้อความ

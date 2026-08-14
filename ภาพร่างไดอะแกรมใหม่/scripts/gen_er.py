@@ -21,11 +21,13 @@ TABLES = {
     'provinces': [(P, 'name_en'), (_, 'name_th'), (_, 'region'), (_, 'worldcover_green_pct')],
     'districts': [(P, 'id'), (F, 'province'), (_, 'name_en'), (_, 'name_th'), (_, 'area_km2')],
     'province_population': [(P, 'id'), (F, 'province'), (_, 'year'), (_, 'population')],
+    # who_status ถูกตัดใน migration 025 — ข้อความบรรยาย m²/คน เทียบค่าอ้างอิง WHO ที่ไม่มี
+    # โค้ดไหนอ่านแล้ว (frontend คิดสดจาก green_area_m2_per_person ทุกจุด)
     'ndvi_annual': [
         (P, 'id'), (F, 'province'), (_, 'year'), (_, 'ndvi_mean'), (_, 'ndvi_min'),
         (_, 'ndvi_max'), (_, 'green_area_pct'), (_, 'green_area_km2'), (_, 'dense_area_pct'),
         (_, 'dense_area_km2'), (_, 'total_area_km2'), (_, 'green_area_m2_per_person'),
-        (_, 'population'), (_, 'population_year'), (_, 'who_status'), (_, 'data_quality'),
+        (_, 'population'), (_, 'population_year'), (_, 'data_quality'),
         (_, 'canopy'), (_, 'validation'), (_, 'created_at'), (_, 'cache_version')],
     'ndvi_monthly': [(P, 'id'), (F, 'province'), (_, 'year'), (_, 'monthly_data'),
                      (_, 'created_at'), (_, 'cache_version')],
@@ -45,20 +47,28 @@ TABLES = {
                             (_, 'created_at'), (_, 'cache_version')],
     'district_lst_monthly': [(P, 'id'), (F, 'province'), (F, 'district'), (_, 'year'),
                              (_, 'monthly_data'), (_, 'created_at'), (_, 'cache_version')],
-    # district ไม่ใช่ FK — migration 007 สร้าง composite FK ให้เฉพาะ 4 ตาราง district_*
-    # ตารางนี้ปล่อย district เป็น NULL ได้ (= แถวระดับจังหวัด) จึงไม่ผูก FK ไว้
+    # district เป็น FK แล้วตั้งแต่ migration 021 (composite (province, district) →
+    # districts) · MATCH SIMPLE จึงไม่บังคับกับแถวที่ district เป็น NULL = ระดับจังหวัด
     # tile_url ถูกตัดใน migration 020 — ย้ายไป in-process TTL cache ตั้งแต่ 004 แล้ว
-    'planting_recommendations': [(P, 'id'), (F, 'province'), (_, 'district'), (_, 'year'),
+    'planting_recommendations': [(P, 'id'), (F, 'province'), (F, 'district'), (_, 'year'),
                                  (_, 'top_locations'), (_, 'impact'),
                                  (_, 'created_at'), (_, 'cache_version')],
     # who_urban_pass ถูกตัดใน migration 023 — ไม่มีโค้ดอ่าน (verdict ผ่าน/ไม่ผ่านซ้ำ
     # แบบเดียวกับ who_status เดิม แต่ไม่มีใครแตะเลยตั้งแต่สร้าง)
+    # district เป็น FK แล้วตั้งแต่ migration 021 เช่นเดียวกับ planting_recommendations
     'urban_ndvi_annual': [
-        (P, 'id'), (F, 'province'), (_, 'district'), (_, 'year'), (_, 'worldcover_year'),
+        (P, 'id'), (F, 'province'), (F, 'district'), (_, 'year'), (_, 'worldcover_year'),
         (_, 'worldpop_year'), (_, 'total_area_km2'), (_, 'urban_area_km2'),
         (_, 'urban_share_pct'), (_, 'ndvi_mean_urban'), (_, 'green_in_urban_km2'),
         (_, 'green_share_in_urban_pct'), (_, 'population_urban'), (_, 'm2_per_person_urban'),
         (_, 'created_at'), (_, 'cache_version')],
+    # migration 022 — cache ของ FR-18 (% ประชากรในระยะ 300 ม. จากพื้นที่สีเขียว)
+    # ต่างจากตารางอื่นตรงที่ **ไม่มี** FK ไป provinces เพราะสร้างหลัง migration 006
+    # ซึ่งเป็นตัวไล่ใส่ FK province ให้ตารางในรายการตายตัว 12 ตาราง (ไม่มีตารางนี้)
+    'access_300m': [
+        (P, 'id'), (F, 'province'), (F, 'district'), (_, 'year'), (_, 'distance_m'),
+        (_, 'worldpop_year'), (_, 'population_total'), (_, 'population_within'),
+        (_, 'pct_within'), (_, 'cache_version'), (_, 'created_at')],
     # id เป็นทั้ง PK และ FK — 1 แถวต่อ 1 บัญชี โดยใช้ auth.users.id เป็นคีย์ตรง ๆ
     'profiles': [('PK,FK', 'id'), (_, 'display_name'), (_, 'role'), (_, 'organization'),
                  (_, 'accepted_terms_at'), (_, 'created_at'), (_, 'updated_at')],
@@ -83,8 +93,15 @@ FKS = [('districts', 'province', 'provinces', 'name_en'),
        ('district_ndvi_monthly', ('province', 'district'), 'districts', ('province', 'name_en')),
        ('district_lst_annual', ('province', 'district'), 'districts', ('province', 'name_en')),
        ('district_lst_monthly', ('province', 'district'), 'districts', ('province', 'name_en')),
-       ('planting_recommendations', 'province', 'provinces', 'name_en'),
-       ('urban_ndvi_annual', 'province', 'provinces', 'name_en'),
+       # migration 021 เพิ่ม composite FK ให้สองตารางนี้ (เดิมมีแค่ FK province)
+       # migration 022 สร้าง access_300m พร้อม composite FK แต่ไม่มี FK province
+       # กติกาการวาด: ตารางที่มี composite FK ไป districts จะวาดเฉพาะเส้นนั้น —
+       # เส้น province → provinces ที่ migration 006 ใส่ไว้ด้วยเป็นทางอ้อมซ้ำ
+       # (districts.province → provinces อยู่แล้ว) วาดทั้งคู่จะได้เส้นซ้อนกันสองเส้น
+       # ออกจากแถวที่ติดกัน · ใช้กติกาเดียวกับ 4 ตาราง district_* มาตั้งแต่ต้น
+       ('planting_recommendations', ('province', 'district'), 'districts', ('province', 'name_en')),
+       ('urban_ndvi_annual', ('province', 'district'), 'districts', ('province', 'name_en')),
+       ('access_300m', ('province', 'district'), 'districts', ('province', 'name_en')),
        # migration 010 / 013 — ทั้งคู่ชี้ auth.users ไม่ใช่ชี้หากันเอง
        # profiles เป็น 1:1 (id คือ auth.users.id) ส่วน saved_areas เป็น many-to-one
        ('profiles', 'id', 'auth.users', 'id', 'one'),
@@ -113,15 +130,25 @@ UNIQ = {
     # migration 017 — NULL ของ district (= ระดับจังหวัด) ต้องถือว่าเท่ากัน
     'urban_ndvi_annual': 'UNIQUE NULLS NOT DISTINCT (province, district, year)',
     'planting_recommendations': 'UNIQUE NULLS NOT DISTINCT (province, district, year)',
+    # migration 022 ใส่ NULLS NOT DISTINCT มาตั้งแต่ CREATE TABLE (เรียนจากบั๊ก 017)
+    'access_300m': 'UNIQUE NULLS NOT DISTINCT (province, district, year)',
 }
 
-COL1 = ['ndvi_annual', 'urban_ndvi_annual', 'province_lst_annual', 'province_population']
+# การแบ่งคอลัมน์คุมความสูงของภาพโดยตรง — ต้องพิมพ์ลงหน้า A4 ได้ทั้งภาพพร้อมชื่อภาพ
+# พื้นที่พิมพ์ = 29.7 - 3.81 (บน) - 2.54 (ล่าง) = 23.35 ซม. · ชื่อภาพ + บรรทัดเว้น
+# กินอีก ~1.1 ซม. จึงเหลืองบให้ตัวภาพ ~22.2 ซม.
+# planting_recommendations ย้ายมาคอลัมน์ซ้าย (เดิมอยู่ขวา) เพื่อถ่วงกับ access_300m
+# ที่เพิ่มเข้าคอลัมน์ขวา ไม่งั้นคอลัมน์ขวาสูง 1762 → ภาพเกินหน้ากระดาษ
+COL1 = ['ndvi_annual', 'urban_ndvi_annual', 'province_lst_annual', 'province_population',
+        'planting_recommendations']
 COL2 = ['provinces', 'districts', 'ndvi_monthly', 'province_lst_monthly',
         'auth.users', 'profiles', 'saved_areas']
 COL3 = ['district_ndvi_annual', 'district_ndvi_monthly', 'district_lst_annual',
-        'district_lst_monthly', 'planting_recommendations']
+        'district_lst_monthly', 'access_300m']
 
-BW, ROW, HDR, GAP = 236, 22, 30, 30
+# ROW ลดจาก 22 → 20 ตอนเพิ่ม access_300m (16 → 17 ตาราง) · ที่ 22 ภาพสูง 22.5 ซม.
+# ซึ่งพอรวมชื่อภาพแล้วตกหน้า
+BW, ROW, HDR, GAP = 236, 20, 30, 30
 KEYW = 32                      # ความกว้างช่อง PK/FK
 X1, X2, X3 = 40, 430, 820
 LANE_1 = [288, 302, 316, 330, 344]   # ตารางคอลัมน์ซ้าย -> คอลัมน์กลาง
@@ -201,6 +228,13 @@ def bracket(x_edge, ys, direction):
     return bx
 
 
+# คู่ที่วาดเป็นเส้นตั้งตรงระหว่างขอบบน-ล่างของกล่องที่อยู่ติดกันในคอลัมน์เดียวกัน
+# แทนการอ้อมออกไปเลนด้านข้าง — districts เป็นทั้งต้นทาง (→ provinces) และปลายทาง
+# ของ composite FK จาก urban_ndvi_annual / planting_recommendations ซึ่งทั้งคู่
+# มาลงที่แถว province ของขอบซ้ายพอดี ตีนกาขาออกจึงไปกองทับวงเล็บขาเข้า
+# (จุดนี้คือจุดที่รีวิวภายนอกอ่าน cardinality ผิดซ้ำหลายรอบ)
+VERTICAL = {('districts', 'provinces')}
+
 # ---- เส้น FK: ออกจากคอลัมน์ FK ไปเข้า PK ของตารางปลายทาง (เลี่ยงวิ่งทับกล่อง)
 use = {1: 0, 2: 0, 3: 0}
 notes = []
@@ -213,6 +247,17 @@ for fk in FKS:
     dcols = dcol if isinstance(dcol, tuple) else (dcol,)
     srows = [row_y(src, cc) for cc in scols]
     drows = [row_y(dst, cc) for cc in dcols]
+
+    if (src, dst) in VERTICAL:
+        vx = sx + BW / 2
+        y_top = pos[src][1]                       # ขอบบนของกล่องต้นทาง
+        y_bot = pos[dst][1] + height(dst)         # ขอบล่างของกล่องปลายทาง
+        c.line(vx, y_top, vx, y_bot, 0.9)
+        # ตีนกาที่ต้นทาง — ปลายแหลมอยู่นอกกล่อง สามง่ามแตะขอบ (ทิศเดียวกับเส้นแนวนอน)
+        c.line(vx, y_top - 10, vx - 6, y_top, 0.9)
+        c.line(vx, y_top - 10, vx + 6, y_top, 0.9)
+        c.line(vx - 6, y_bot + 7, vx + 6, y_bot + 7, 0.9)   # ขีดเดียว = one ที่ปลายทาง
+        continue
 
     group = 1 if sx < X2 else (2 if sx < X3 else 3)
     lanes = {1: LANE_1, 2: LANE_2, 3: LANE_3}[group]
