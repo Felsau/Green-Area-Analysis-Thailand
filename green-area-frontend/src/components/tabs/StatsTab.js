@@ -53,16 +53,6 @@ export default function StatsTab({ data, handlers }) {
         </div>
       )}
 
-      {/* เรือนยอดไม้ตามเกณฑ์ 3-30-300 ขึ้นก่อนทุกอย่าง — เป็นค่าเดียวบนแผงที่บอก
-          ตรง ๆ ว่าต้องปลูกเพิ่มอีกกี่ km² จึงเอาไปทำแผน/งบประมาณต่อได้ทันที
-          เดิมอยู่ล่างสุดเพราะเป็นสิ่งที่เพิ่มทีหลังตาม FR-17 ไม่ใช่เพราะผู้ใช้ต้องอ่านทีหลัง
-          เลือกขอบเขตตามที่ผู้ใช้เลือกอยู่ — อำเภอมาก่อนถ้าเจาะอำเภออยู่ เพราะเกณฑ์
-          30% เป็นเกณฑ์ระดับย่าน ค่าเฉลี่ยทั้งจังหวัดกลบพื้นที่เมืองที่ขาดจริง */}
-      <CanopyNote
-        canopy={selectedDistrict ? districtNdviStats?.canopy : ndviStats?.canopy}
-        areaKm2={selectedDistrict ? districtNdviStats?.total_area_km2 : ndviStats?.total_area_km2}
-      />
-
       {/* District section */}
       {selectedDistrict && (
         <>
@@ -87,11 +77,23 @@ export default function StatsTab({ data, handlers }) {
                     value={districtNdviStats?.green_area_pct != null ? `${districtNdviStats.green_area_pct}%` : '—'}
                     hint={districtNdviStats?.green_area_km2 != null ? `${districtNdviStats.green_area_km2.toLocaleString()} km²` : null}
                   />
+                  {/* ค่าเรือนยอดของอำเภอวางคู่กันแบบเดียวกับฝั่งจังหวัด — เป็นค่า ไม่ใช่คำตัดสิน */}
+                  {districtNdviStats?.canopy?.available && (
+                    <KV
+                      label="เรือนยอดไม้ยืนต้น"
+                      value={`${districtNdviStats.canopy.canopy_pct.toFixed(1)}%`}
+                      hint={`${districtNdviStats.canopy.canopy_km2.toLocaleString('th')} km²`
+                        + (districtNdviStats.canopy.epoch_offset_years > 0
+                            ? ` · ข้อมูลปี ${districtNdviStats.canopy.epoch_year}` : '')}
+                    />
+                  )}
                 </KVRow>
-                {/* เรือนยอดของอำเภอย้ายไปอยู่บนสุดของแท็บแล้ว (ดูคอมเมนต์ที่นั่น)
-                    เหลือแต่หลักฐานคุณภาพข้อมูลที่ยุบไว้เหมือนฝั่งจังหวัด */}
                 <DataTrustSection dataQuality={districtNdviStats?.data_quality}
-                                  title="ความน่าเชื่อถือของข้อมูล">
+                                  title="ความน่าเชื่อถือของข้อมูล · เกณฑ์อ้างอิง">
+                  {/* เกณฑ์ 30% ของ 3-30-300 เป็นเกณฑ์ระดับย่าน ระดับอำเภอจึงเป็นหน่วย
+                      ที่ตรงกับเจตนาของเกณฑ์มากกว่าค่าเฉลี่ยทั้งจังหวัด */}
+                  <CanopyNote canopy={districtNdviStats?.canopy}
+                              areaKm2={districtNdviStats?.total_area_km2} />
                   <DataQualityNote dataQuality={districtNdviStats?.data_quality} />
                 </DataTrustSection>
                 {districtNdviMonthly.length > 0 && (
@@ -183,6 +185,23 @@ export default function StatsTab({ data, handlers }) {
                 />
               )}
             </KVRow>
+            {/* เรือนยอดไม้ยืนต้นอยู่ตรงนี้ในฐานะ "อีกค่าหนึ่งที่วัดได้" ไม่ใช่คำตัดสิน —
+                คู่กับพื้นที่สีเขียวด้านบนมันเล่าเรื่องได้เองโดยไม่ต้องมีเกณฑ์มาช่วย
+                (พืชพรรณทุกชนิด 51.6% แต่เป็นไม้ยืนต้นจริง 14.3%) ส่วนการเทียบเกณฑ์ 30%
+                ของ 3-30-300 ว่าผ่านหรือไม่ ต้องเพิ่มอีกกี่ km² และข้อจำกัดของชุดข้อมูล
+                อยู่ในหัวข้อที่ยุบไว้ด้านล่าง — คนส่วนใหญ่เปิดมาเพื่อดูว่าค่าเท่าไร
+                ไม่ได้เปิดมาเพื่อรับคำตัดสิน */}
+            {ndviStats?.canopy?.available && (
+              <KVRow>
+                <KV
+                  label="เรือนยอดไม้ยืนต้น"
+                  value={`${ndviStats.canopy.canopy_pct.toFixed(1)}%`}
+                  hint={`${ndviStats.canopy.canopy_km2.toLocaleString('th')} km²`
+                    + (ndviStats.canopy.epoch_offset_years > 0
+                        ? ` · ข้อมูลปี ${ndviStats.canopy.epoch_year}` : '')}
+                />
+              </KVRow>
+            )}
             {/* ประชากร fallback: m²/คน อ้างอิงประชากรคนละปีกับ NDVI — บอกปีจริงให้ผู้ใช้รู้ */}
             {ndviStats?.population_year != null && ndviStats.population_year !== ndviStats.year && (
               <div className="helper" style={{ marginTop: 4 }}>
@@ -210,9 +229,12 @@ export default function StatsTab({ data, handlers }) {
         dataQuality={ndviStats?.data_quality}
         validation={ndviStats?.validation}
       >
+        {/* เกณฑ์ 3-30-300 (FR-17) และค่าอ้างอิง WHO อยู่ในกองเดียวกับหลักฐานคุณภาพ
+            ข้อมูล — ทั้งสามอย่างเป็น "การตีความค่าเทียบเกณฑ์ภายนอก" ไม่ใช่ตัวค่าเอง */}
+        <CanopyNote canopy={ndviStats?.canopy} areaKm2={ndviStats?.total_area_km2} />
+        <GreenDeficitNote ndviStats={ndviStats} urbanStats={urbanStats} />
         <DataQualityNote dataQuality={ndviStats?.data_quality} />
         <ValidationNote validation={ndviStats?.validation} />
-        <GreenDeficitNote ndviStats={ndviStats} urbanStats={urbanStats} />
       </DataTrustSection>
 
       {/* Land use composition — 5 ประเภทหลักตามนิยาม LDD (Dynamic World หรือ LDD ราชการ) */}
