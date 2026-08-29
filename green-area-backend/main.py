@@ -97,6 +97,16 @@ async def log_slow_requests(request: Request, call_next):
                        request.method, request.url.path)
     return response
 
+# Production (Render/Railway) ไม่มีขั้นตอน `earthengine authenticate` แบบ interactive
+# ให้รัน — ถ้าตั้ง EE_CREDENTIALS_JSON (เนื้อไฟล์ ~/.config/earthengine/credentials
+# ทั้งก้อน) ไว้เป็น env var ให้เขียนไฟล์นั้นลงตำแหน่งเดิมก่อน ee.Initialize() อ่าน
+_EE_CREDENTIALS_JSON = os.getenv("EE_CREDENTIALS_JSON")
+if _EE_CREDENTIALS_JSON:
+    _ee_cred_path = os.path.expanduser("~/.config/earthengine/credentials")
+    os.makedirs(os.path.dirname(_ee_cred_path), exist_ok=True)
+    with open(_ee_cred_path, "w") as _f:
+        _f.write(_EE_CREDENTIALS_JSON)
+
 if not GEE_PROJECT:
     logger.warning("⚠️  ไม่พบ GEE_PROJECT ใน .env — endpoint ที่ต้องใช้ GEE จะใช้งานไม่ได้")
 else:

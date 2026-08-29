@@ -27,3 +27,5 @@ yarn-error.log*
 
 # generated district boundary file (regenerate with generate_districts.py)
 /public/thailand_districts.json
+.vercel
+.env*

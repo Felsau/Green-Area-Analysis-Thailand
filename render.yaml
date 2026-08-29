@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: green-area-backend
+    env: python
+    plan: free
+    rootDir: green-area-backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: GEE_PROJECT
+        sync: false
+      - key: EE_CREDENTIALS_JSON
+        sync: false
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: https://green-area-frontend-liart.vercel.app
