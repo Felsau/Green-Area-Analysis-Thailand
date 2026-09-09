@@ -25,7 +25,10 @@ yarn-error.log*
 # environment variables
 .env
 
-# generated district boundary file (regenerate with generate_districts.py)
-/public/thailand_districts.json
+# thailand_districts.json ต้อง track ไว้ — เคยถูก ignore ตรงนี้ ทำให้ deploy ทุกครั้ง
+# ได้ build ที่ไม่มีไฟล์ (Vercel/Render clone จาก git) → fetch('/thailand_districts.json')
+# ได้ 404 และ backend โหลดขอบเขตอำเภอได้ 0 เขต = ฟีเจอร์ระดับอำเภอตายทั้งชุด
+# สร้างใหม่ด้วย generate_districts.py + add_district_th_names.py ซึ่งเขียนสำเนาให้ทั้ง
+# public/ และ green-area-backend/data/ พร้อมกัน (ดู tests/test_geodata_assets.py)
 .vercel
 .env*

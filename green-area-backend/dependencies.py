@@ -310,15 +310,25 @@ def _resolve_geojson_path(env_var: str, fallback_name: str) -> str | None:
 
     ทุก path ผ่าน _validate_geojson_path กัน path traversal/symlink + ไฟล์ไม่ใช่ .json
     Return None ถ้าหาไม่เจอเลย (caller ตัดสินใจว่าจะ warn หรือ raise)
+
+    env override ที่ตั้งมาแต่ใช้ไม่ได้ = **raise ทันที ไม่ fallback** — การตั้ง env นี้
+    เป็นการสั่งอย่างชัดเจนว่า "ใช้ไฟล์นี้" ถ้าเงียบแล้วถอยไปใช้ candidate ถัดไป ผู้ดูแล
+    ที่พิมพ์ path ผิดจะเห็นระบบทำงานได้ปกติแล้วเข้าใจว่าตั้งค่าสำเร็จ ทั้งที่ระบบกำลังอ่าน
+    ไฟล์อื่น (หรือชุดข้อมูลคนละชุด) อยู่ — ปัญหาชนิดที่หายากที่สุดเวลาไล่ทีหลัง
     """
-    candidates = []
     override = os.getenv(env_var)
     if override:
-        candidates.append(override)
-    candidates.append(os.path.join(BACKEND_DATA_DIR, fallback_name))
-    candidates.append(os.path.join(LEGACY_FRONTEND_PUBLIC, fallback_name))
+        try:
+            return _validate_geojson_path(override)
+        except (FileNotFoundError, ValueError) as e:
+            raise RuntimeError(
+                f"env {env_var} ตั้งไว้เป็น '{override}' แต่ใช้ไม่ได้: {e} · "
+                f"แก้ path ให้ถูก หรือ unset {env_var} เพื่อให้ระบบใช้ "
+                f"green-area-backend/data/{fallback_name} ตามค่าปกติ"
+            ) from e
 
-    for cand in candidates:
+    for cand in (os.path.join(BACKEND_DATA_DIR, fallback_name),
+                 os.path.join(LEGACY_FRONTEND_PUBLIC, fallback_name)):
         try:
             return _validate_geojson_path(cand)
         except (FileNotFoundError, ValueError):
@@ -341,7 +351,14 @@ def _load_province_geometries() -> dict:
 def _load_district_geometries() -> dict:
     path = _resolve_geojson_path('DISTRICTS_GEOJSON_PATH', 'thailand_districts.json')
     if not path:
-        logger.warning("⚠️  thailand_districts.json ไม่พบ — รัน generate_districts.py ก่อน")
+        # ไฟล์นี้ถูก commit ไว้ที่ data/ แล้ว — หาไม่เจอ = image/checkout ไม่สมบูรณ์
+        # ไม่ใช่สภาพปกติที่ยอมรับได้ · ไม่ raise เพราะจะพาระดับจังหวัดที่ยังใช้ได้ล่มไปด้วย
+        # แต่ต้อง log ระดับ ERROR พร้อมบอกผลกระทบตรง ๆ ไม่ใช่ warning กลาง ๆ ที่คนเลื่อนผ่าน
+        logger.error(
+            "❌ ไม่พบ thailand_districts.json — endpoint ระดับอำเภอทุกตัวจะคืน 404 · "
+            "ต้องมีที่ green-area-backend/data/thailand_districts.json (อยู่ใน git) "
+            "หรือรัน generate_districts.py + add_district_th_names.py ใหม่"
+        )
         return {}
     with open(path, encoding='utf-8') as f:
         data = json.load(f)

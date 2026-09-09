@@ -16,6 +16,17 @@ import urllib.request
 KONGVUT_PROVINCE = "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/province.json"
 KONGVUT_DISTRICT = "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/district.json"
 
+_HERE = os.path.dirname(os.path.abspath(__file__))
+# ปลายทางเดียวกับ generate_districts.OUTPUT_PATHS — frontend/public (vite copy ลง
+# build/ ให้ browser fetch ได้) + backend/data (อยู่ใน build context ของ Dockerfile
+# จึงติดไปใน image) · สคริปต์นี้เป็นขั้นสุดท้ายของ pipeline จึงต้องเขียนครบทุกสำเนา
+# ไม่งั้นสำเนาที่ไปกับ image จะไม่มีชื่อไทย
+OUTPUT_PATHS = (
+    os.path.normpath(os.path.join(_HERE, "..", "green-area-frontend", "public",
+                                  "thailand_districts.json")),
+    os.path.normpath(os.path.join(_HERE, "data", "thailand_districts.json")),
+)
+
 PROVINCE_EN_OVERRIDES = {
     "Bangkok":         "Bangkok Metropolis",
     "Buriram":         "Buri Ram",
@@ -197,9 +208,7 @@ def fetch_json(url: str):
 
 
 def main():
-    here = os.path.dirname(os.path.abspath(__file__))
-    geojson_path = os.path.normpath(os.path.join(
-        here, "..", "green-area-frontend", "public", "thailand_districts.json"))
+    geojson_path = OUTPUT_PATHS[0]
 
     if not os.path.exists(geojson_path):
         print(f"X Not found: {geojson_path}", file=sys.stderr)
@@ -269,13 +278,20 @@ def main():
             props["name_th"] = dist_en  # graceful fallback
             unmatched.append(f"{prov_en} :: {dist_en}")
 
-    with open(geojson_path, "w", encoding="utf-8") as f:
-        json.dump(geo, f, ensure_ascii=False, separators=(",", ":"))
+    # เขียนกลับทุกสำเนา ไม่ใช่แค่ไฟล์ที่อ่านมา — สคริปต์นี้เป็นขั้น *สุดท้าย* ของ
+    # pipeline (generate_districts.py แล้วต่อด้วยตัวนี้) ถ้าเขียนแต่ frontend/public
+    # สำเนาใน backend/data ที่ไปกับ Docker image จะไม่มีชื่อไทยเลย
+    payload = json.dumps(geo, ensure_ascii=False, separators=(",", ":"))
+    for path in OUTPUT_PATHS:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(payload)
 
     matched_total = matched_manual + matched_strict + matched_loose + matched_global
     print(f"OK  Patched {matched_total}/{total} districts with Thai names")
     print(f"      manual={matched_manual}  strict={matched_strict}  loose={matched_loose}  global={matched_global}  unmatched={len(unmatched)}")
-    print(f"      File: {geojson_path}")
+    for path in OUTPUT_PATHS:
+        print(f"      File: {path}")
     if unmatched:
         print("\nUnmatched (kept English):")
         for u in unmatched:

@@ -1,7 +1,21 @@
-# วางไฟล์ thailand.json + thailand_districts.json ที่ folder นี้สำหรับ production deploy
-# (deploy backend แยกจาก frontend image)
+# thailand.json + thailand_districts.json อยู่ใน git แล้ว (ไม่ต้องวางเอง)
 #
-# ตอน dev local ที่ตั้ง monorepo ปกติ backend จะ fallback ไปอ่านจาก
-# ../green-area-frontend/public/ ให้อัตโนมัติ
+# เดิมโฟลเดอร์นี้ว่าง มีแต่คำสั่งให้ "วางไฟล์เองก่อน deploy" ผลคือทุก deploy ที่ build
+# จาก git โดยตรง (Render blueprint / docker build) ได้ image ที่ไม่มีไฟล์:
+#   - thailand.json ไม่มี      → _load_province_geometries() raise RuntimeError ตอน
+#                                import = container บูตไม่ขึ้นเลย
+#   - thailand_districts.json  → DISTRICT_GEOMETRIES = {} = endpoint อำเภอ 404 ทุกตัว
+# (docker-compose รอดเพราะ bind-mount ../green-area-frontend/public เข้ามา แต่
+#  docker build + docker run เปล่า ๆ ไม่มี mount นั้น)
 #
-# Generate thailand_districts.json: cd green-area-backend && python generate_districts.py
+# ตอนนี้ทั้งสองไฟล์ถูก commit ไว้ที่นี่ จึงติดไปกับ `COPY . .` ของ Dockerfile และอยู่ใน
+# repo ที่ Render clone · dependencies._resolve_geojson_path หาโฟลเดอร์นี้ก่อน legacy
+# path ../green-area-frontend/public/ อยู่แล้ว
+#
+# ไฟล์ที่นี่ต้อง byte-identical กับสำเนาใน green-area-frontend/public/ (ฝั่ง browser
+# fetch เอง) — tests/test_geodata_assets.py บังคับไว้ใน CI
+#
+# Regenerate (เขียนสำเนาให้ครบทั้งสองที่ในรอบเดียว):
+#   cd green-area-backend
+#   python generate_districts.py        # ดึงขอบเขตจาก GADM 4.1 (หรือ GEE GAUL 2015)
+#   python add_district_th_names.py     # เติม name_th — ต้องรันต่อทุกครั้ง

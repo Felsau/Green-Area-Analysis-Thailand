@@ -12,11 +12,29 @@ import ValidationNote from './stats/ValidationNote';
 import DataTrustSection from './stats/DataTrustSection';
 import LandusePanel from './stats/LandusePanel';
 
+/** ข้อความกำกับแถว "ต่อหัวประชากร (ทั้งจังหวัด)" ตอนที่ยังไม่มีค่าเขตเมืองให้ใช้.
+ *
+ * เดิมเช็ค `urbanStats === null` ตัวเดียว ซึ่งเป็นจริงทั้งตอนกำลังโหลดและตอนโหลด
+ * ไม่สำเร็จ → คำขอที่ล้มไปแล้วยังโชว์ "กำลังดึง…" ค้างตลอด · แยกตามสถานะจริงของ
+ * คำขอ (ดู useProvinceData.urbanStatus) แล้วบอกผู้ใช้ว่าค่าที่เห็นคือค่าทั้งจังหวัด
+ * เพราะเหตุใด — ไม่ใช่ปล่อยให้เข้าใจว่าระบบค้าง
+ */
+export function urbanFallbackHint(urbanStatus, urbanStats) {
+  if (urbanStatus === 'loading') return 'กำลังดึงค่าเฉพาะเขตเมือง…';
+  if (urbanStatus === 'error') return 'ดึงค่าเฉพาะเขตเมืองไม่สำเร็จ — แสดงค่าทั้งจังหวัด';
+  // ตอบกลับสำเร็จแต่หารไม่ได้ (urban.py คืน m2_per_person_urban = null เมื่อ
+  // ประชากรในเขต built-up รวมได้ 0 — เขตเมืองเล็กมากหรือ WorldPop ไม่ครอบคลุม)
+  if (urbanStatus === 'ready' && urbanStats?.m2_per_person_urban == null) {
+    return 'เขตเมืองไม่มีข้อมูลประชากรพอคำนวณ — แสดงค่าทั้งจังหวัด';
+  }
+  return null;
+}
+
 export default function StatsTab({ data, handlers }) {
   const {
     selectedProvince, selectedProvinceEN, selectedDistrict, selectedDistrictEN,
     provinceArea, districtArea,
-    ndviStats, ndviMonthly, ndviLoading, urbanStats,
+    ndviStats, ndviMonthly, ndviLoading, urbanStats, urbanStatus,
     lstStats, lstMonthly, lstLoading,
     districtNdviStats, districtNdviMonthly, districtNdviLoading,
     districtLstStats, districtLstMonthly, districtLstLoading,
@@ -89,6 +107,7 @@ export default function StatsTab({ data, handlers }) {
                   )}
                 </KVRow>
                 <DataTrustSection dataQuality={districtNdviStats?.data_quality}
+                                  hasEvidence={!!districtNdviStats}
                                   title="ความน่าเชื่อถือของข้อมูล · เกณฑ์อ้างอิง">
                   {/* เกณฑ์ 30% ของ 3-30-300 เป็นเกณฑ์ระดับย่าน ระดับอำเภอจึงเป็นหน่วย
                       ที่ตรงกับเจตนาของเกณฑ์มากกว่าค่าเฉลี่ยทั้งจังหวัด */}
@@ -181,7 +200,7 @@ export default function StatsTab({ data, handlers }) {
                 <KV
                   label="ต่อหัวประชากร (ทั้งจังหวัด)"
                   value={ndviStats?.green_area_m2_per_person != null ? `${ndviStats.green_area_m2_per_person.toFixed(1)} m²` : '—'}
-                  hint={urbanStats === null ? 'กำลังดึงค่าเฉพาะเขตเมือง…' : null}
+                  hint={urbanFallbackHint(urbanStatus, urbanStats)}
                 />
               )}
             </KVRow>
@@ -228,6 +247,7 @@ export default function StatsTab({ data, handlers }) {
       <DataTrustSection
         dataQuality={ndviStats?.data_quality}
         validation={ndviStats?.validation}
+        hasEvidence={!!ndviStats}
       >
         {/* เกณฑ์ 3-30-300 (FR-17) และค่าอ้างอิง WHO อยู่ในกองเดียวกับหลักฐานคุณภาพ
             ข้อมูล — ทั้งสามอย่างเป็น "การตีความค่าเทียบเกณฑ์ภายนอก" ไม่ใช่ตัวค่าเอง */}

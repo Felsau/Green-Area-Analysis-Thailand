@@ -14,6 +14,13 @@ export function useProvinceData({ setNdviCache }) {
   // แทนค่าทั้งจังหวัด เพราะประชากรกระจุกในเขตเมืองแต่พื้นที่สีเขียวส่วนใหญ่อยู่นอกเขต
   // ค่าทั้งจังหวัดจึงสูงจนไม่สื่อความจริง (สมุทรปราการ 354.7 vs 38.2 m²/คน)
   const [urbanStats, setUrbanStats]                 = useState(null);
+  // สถานะของคำขอ urban แยกจากตัวข้อมูล — 'idle' | 'loading' | 'ready' | 'error'
+  //
+  // เดิมมีแค่ urbanStats แล้วให้ UI ตีความ `null` ว่า "กำลังโหลด" ซึ่งชนกับกรณี
+  // "โหลดไม่สำเร็จ" ที่ก็เป็น null เหมือนกัน (คำขอนี้ล้มได้จริง — urban.py คืน 404
+  // เมื่อปีนั้นไม่มีภาพ S2 และ 422/503 เมื่อ GEE/WorldPop ไม่พร้อม) ผลคือป้าย
+  // "กำลังดึงค่าเฉพาะเขตเมือง…" ค้างตลอดกาลทั้งที่คำขอจบไปแล้ว
+  const [urbanStatus, setUrbanStatus]               = useState('idle');
   const [lstStats, setLstStats]                     = useState(null);
   const [lstMonthly, setLstMonthly]                 = useState([]);
   const [lstLoading, setLstLoading]                 = useState(false);
@@ -38,18 +45,35 @@ export function useProvinceData({ setNdviCache }) {
     setLstStats(null);
     setLstMonthly([]);
     setUrbanStats(null);
+    setUrbanStatus('loading');
     try {
       const enc = encodeURIComponent;
       const qs = `?year=${year}`;
 
       // ยิงแยกจากชุดหลัก ไม่รวมใน Promise.all — จังหวัดที่ยังไม่มีแถวใน urban_ndvi_annual
       // ต้องคำนวณผ่าน GEE ซึ่งช้ากว่าชุดหลักหลายเท่า ถ้ารอพร้อมกันแผงทั้งแผงจะค้างตาม
-      // ล้มเหลวก็ไม่เป็นไร — แผงจะถอยไปแสดงค่าทั้งจังหวัดแทน
+      // ล้มเหลวก็ไม่เป็นไร — แผงถอยไปแสดงค่าทั้งจังหวัด แต่ต้องบันทึกสถานะ 'error'
+      // ไว้ด้วย ไม่งั้น UI แยกไม่ออกจาก 'loading' แล้วโชว์ข้อความโหลดค้าง
+      //
+      // ทุกการ set ต้องเช็ค abortRef ก่อน (เหมือน loading flag ท้ายฟังก์ชัน) — คำขอนี้
+      // อยู่นอก Promise.all จึงค้างข้าม fetchNDVI รอบถัดไปได้ ถ้าไม่เช็ค ผลของจังหวัด
+      // ก่อนหน้าอาจมาทับสถานะของจังหวัดที่เลือกใหม่
+      const isCurrent = () => abortRef.current === controller;
       fetchWithRetry(`${API_BASE}/analysis/urban-subset/${enc(provinceName)}${qs}`, { signal })
         .then(res => (res.ok ? res.json() : null))
-        .then(urban => { if (urban) setUrbanStats(urban); })
+        .then(urban => {
+          if (!isCurrent()) return;
+          if (urban) {
+            setUrbanStats(urban);
+            setUrbanStatus('ready');
+          } else {
+            setUrbanStatus('error');
+          }
+        })
         .catch(err => {
-          if (err?.name !== 'AbortError') console.error('ดึงข้อมูลเขตเมืองไม่สำเร็จ:', err);
+          if (err?.name === 'AbortError') return;  // superseded — สถานะเป็นของรอบใหม่แล้ว
+          console.error('ดึงข้อมูลเขตเมืองไม่สำเร็จ:', err);
+          if (isCurrent()) setUrbanStatus('error');
         });
 
       const [statsRes, monthlyRes, lstRes, lstMonthlyRes] = await Promise.all([
@@ -97,13 +121,14 @@ export function useProvinceData({ setNdviCache }) {
     setLstStats(null);
     setLstMonthly([]);
     setUrbanStats(null);
+    setUrbanStatus('idle');
   }, []);
 
   return {
     selectedProvince, setSelectedProvince,
     selectedProvinceEN, setSelectedProvinceEN,
     provinceArea, setProvinceArea,
-    ndviStats, ndviMonthly, ndviLoading, urbanStats,
+    ndviStats, ndviMonthly, ndviLoading, urbanStats, urbanStatus,
     lstStats, lstMonthly, lstLoading,
     fetchNDVI, resetProvince,
   };

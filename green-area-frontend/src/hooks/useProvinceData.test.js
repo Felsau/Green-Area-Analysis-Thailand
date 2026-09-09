@@ -98,6 +98,100 @@ test('a failing urban-subset lookup still leaves the rest of the panel filled', 
   expect(result.current.ndviLoading).toBe(false);
 });
 
+// urbanStatus แยกจาก urbanStats เพราะ `urbanStats === null` เป็นจริงทั้งตอนกำลังโหลด
+// และตอนโหลดไม่สำเร็จ — UI ที่อ่านแค่ตัวข้อมูลจึงโชว์ "กำลังดึง…" ค้างตลอดกาลหลังคำขอล้ม
+describe('urbanStatus', () => {
+  test('เริ่มที่ idle ก่อนมีคำขอ', () => {
+    const { result } = renderHook(() => useProvinceData({ setNdviCache: vi.fn() }));
+    expect(result.current.urbanStatus).toBe('idle');
+  });
+
+  test('สำเร็จ → ready พร้อมข้อมูล', async () => {
+    fetchWithRetry.mockImplementation((url) => Promise.resolve(okJson(
+      url.includes('/analysis/urban-subset/')
+        ? { m2_per_person_urban: 38.2, population_urban: 1_200_000 }
+        : { ndvi_mean: 0.42, monthly: [], lst_mean: 28 }
+    )));
+    const { result } = renderHook(() => useProvinceData({ setNdviCache: vi.fn() }));
+
+    await act(async () => { await result.current.fetchNDVI('Samut Prakan', 2021); });
+
+    await waitFor(() => expect(result.current.urbanStatus).toBe('ready'));
+    expect(result.current.urbanStats.m2_per_person_urban).toBe(38.2);
+  });
+
+  test('คำขอ reject → error ไม่ค้างที่ loading', async () => {
+    fetchWithRetry.mockImplementation((url) => (
+      url.includes('/analysis/urban-subset/')
+        ? Promise.reject(new Error('GEE timeout'))
+        : Promise.resolve(okJson({ ndvi_mean: 0.42, monthly: [], lst_mean: 28 }))
+    ));
+    const { result } = renderHook(() => useProvinceData({ setNdviCache: vi.fn() }));
+
+    await act(async () => { await result.current.fetchNDVI('Samut Prakan', 2021); });
+
+    await waitFor(() => expect(result.current.urbanStatus).toBe('error'));
+    expect(result.current.urbanStats).toBeNull();
+  });
+
+  // urban.py คืน 404 เมื่อปีนั้นไม่มีภาพ S2 และ 422/503 เมื่อ GEE/WorldPop ไม่พร้อม
+  test('ตอบกลับไม่ ok (404/422) → error ไม่ค้างที่ loading', async () => {
+    fetchWithRetry.mockImplementation((url) => Promise.resolve(
+      url.includes('/analysis/urban-subset/')
+        ? { ok: false, status: 422, json: async () => ({ detail: 'ไม่มีภาพ' }) }
+        : okJson({ ndvi_mean: 0.42, monthly: [], lst_mean: 28 })
+    ));
+    const { result } = renderHook(() => useProvinceData({ setNdviCache: vi.fn() }));
+
+    await act(async () => { await result.current.fetchNDVI('Samut Prakan', 2021); });
+
+    await waitFor(() => expect(result.current.urbanStatus).toBe('error'));
+  });
+
+  test('resetProvince คืนสถานะเป็น idle', async () => {
+    fetchWithRetry.mockResolvedValue(okJson({ ndvi_mean: 0.42, monthly: [], lst_mean: 28 }));
+    const { result } = renderHook(() => useProvinceData({ setNdviCache: vi.fn() }));
+
+    await act(async () => { await result.current.fetchNDVI('Samut Prakan', 2021); });
+    await act(async () => { result.current.resetProvince(); });
+
+    expect(result.current.urbanStatus).toBe('idle');
+    expect(result.current.urbanStats).toBeNull();
+  });
+
+  // คำขอ urban อยู่นอก Promise.all จึงค้างข้ามการเลือกจังหวัดรอบถัดไปได้
+  test('ผลของจังหวัดที่ถูกแทนที่แล้วไม่มาทับสถานะของจังหวัดใหม่', async () => {
+    let releaseA;
+    fetchWithRetry.mockImplementation((url, opts) => {
+      if (url.includes('ProvinceA') && url.includes('/analysis/urban-subset/')) {
+        // ค้างไว้ แล้วปล่อยให้ "สำเร็จ" ทีหลัง โดยไม่สนใจ abort signal เลย —
+        // เคสที่แย่ที่สุด: response มาถึงหลังผู้ใช้เปลี่ยนจังหวัดไปแล้ว
+        return new Promise(resolve => {
+          releaseA = () => resolve(okJson({ m2_per_person_urban: 999 }));
+        });
+      }
+      if (url.includes('ProvinceA')) {
+        return new Promise((_r, reject) => {
+          opts?.signal?.addEventListener('abort', () =>
+            reject(Object.assign(new Error('Aborted'), { name: 'AbortError' })));
+        });
+      }
+      return Promise.resolve(okJson({ ndvi_mean: 0.8, monthly: [], lst_mean: 25 }));
+    });
+    const { result } = renderHook(() => useProvinceData({ setNdviCache: vi.fn() }));
+
+    await act(async () => {
+      result.current.fetchNDVI('ProvinceA');
+      await result.current.fetchNDVI('ProvinceB');
+    });
+    await act(async () => { releaseA(); });
+
+    // ProvinceB ตอบกลับ urban เป็น ndvi payload (mock เดียวกัน) → ready ของ B
+    // สิ่งที่ต้องไม่เกิดคือค่า 999 ของ A มาโผล่
+    expect(result.current.urbanStats?.m2_per_person_urban).not.toBe(999);
+  });
+});
+
 test('fetchNDVI defaults to the current year when none is passed', async () => {
   fetchWithRetry.mockResolvedValue(okJson({ ndvi_mean: 0.5, monthly: [], lst_mean: 30 }));
   const { result } = renderHook(() => useProvinceData({ setNdviCache: vi.fn() }));

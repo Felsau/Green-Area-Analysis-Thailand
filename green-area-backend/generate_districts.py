@@ -74,9 +74,33 @@ def match_province(name: str) -> str:
     return name
 
 
-OUTPUT_PATH = os.path.join(
-    os.path.dirname(__file__), '..', 'green-area-frontend', 'public', 'thailand_districts.json'
+# ปลายทางสองที่ ต้องเขียนพร้อมกันทุกครั้ง — ไม่ใช่ที่เดียวแล้ว
+#   1) frontend/public/  → vite copy ลง build/ ให้ browser fetch('/thailand_districts.json')
+#   2) backend/data/     → อยู่ใน build context ของ Dockerfile (COPY . .) จึงติดไปใน image
+#                          ด้วย · dependencies.py หาที่นี่ก่อน legacy path
+# เขียนที่เดียวแล้วอีกที่ค้างของเก่า = สองฝั่งเห็นชุดอำเภอไม่ตรงกัน (tests/
+# test_geodata_assets.py กัน drift นี้ไว้ใน CI)
+OUTPUT_PATHS = (
+    os.path.join(os.path.dirname(__file__), '..', 'green-area-frontend', 'public',
+                 'thailand_districts.json'),
+    os.path.join(os.path.dirname(__file__), 'data', 'thailand_districts.json'),
 )
+# คงชื่อเดิมไว้ให้สคริปต์/คนที่อ้างถึงตัวแปรนี้ (สำเนาหลัก = frontend/public)
+OUTPUT_PATH = OUTPUT_PATHS[0]
+
+
+def write_districts(geojson: dict, source_label: str) -> None:
+    """เขียน GeoJSON ลงปลายทางทุกที่ใน OUTPUT_PATHS ด้วย byte เดียวกัน"""
+    payload = json.dumps(geojson, ensure_ascii=False, separators=(',', ':'))
+    for path in OUTPUT_PATHS:
+        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(payload)
+    size_mb = len(payload.encode('utf-8')) / 1024 / 1024
+    print(f"✅ {source_label}: Saved {len(geojson['features'])} districts "
+          f"({size_mb:.1f} MB) → {len(OUTPUT_PATHS)} ปลายทาง")
+    for path in OUTPUT_PATHS:
+        print(f"     · {os.path.relpath(path, os.path.dirname(__file__))}")
 
 # ---------------------------------------------------------------------------
 # Strategy 1: Download GADM 4.1 directly (no GEE needed)
@@ -124,10 +148,7 @@ def try_gadm_direct() -> bool:
         return False
 
     geojson = {"type": "FeatureCollection", "features": result_features}
-    with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
-        json.dump(geojson, f, ensure_ascii=False, separators=(',', ':'))
-    size_mb = os.path.getsize(OUTPUT_PATH) / 1024 / 1024
-    print(f"✅ GADM 4.1: Saved {len(result_features)} districts ({size_mb:.1f} MB)")
+    write_districts(geojson, "GADM 4.1")
     return True
 
 
@@ -183,10 +204,7 @@ def try_gee_gaul() -> bool:
         return False
 
     geojson = {"type": "FeatureCollection", "features": result_features}
-    with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
-        json.dump(geojson, f, ensure_ascii=False, separators=(',', ':'))
-    size_mb = os.path.getsize(OUTPUT_PATH) / 1024 / 1024
-    print(f"✅ GAUL 2015: Saved {len(result_features)} districts ({size_mb:.1f} MB)")
+    write_districts(geojson, "GAUL 2015")
     return True
 
 
