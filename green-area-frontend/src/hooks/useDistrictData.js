@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { API_BASE, CURRENT_YEAR } from '../constants';
 import { pushError } from '../utils/toast';
+import { pushApiError } from '../utils/apiErrors';
 import { fetchWithRetry } from '../utils/fetchRetry';
 import { apiFetch } from '../utils/apiClient';
 
@@ -105,7 +106,7 @@ export function useDistrictData() {
     } catch (err) {
       if (err?.name === 'AbortError') return;  // superseded by a newer selection
       console.error('ดึงข้อมูล NDVI/LST อำเภอไม่สำเร็จ:', err);
-      pushError(`โหลดข้อมูลอำเภอ ${districtName} ไม่สำเร็จ — ลองอีกครั้ง`);
+      pushApiError(err, `ข้อมูลอำเภอ ${districtName}`);
     } finally {
       // only the most-recent request may clear the loading flags
       if (abortRef.current === controller) {

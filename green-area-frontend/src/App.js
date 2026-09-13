@@ -5,6 +5,7 @@ import { useTheme }       from './hooks/useTheme';
 import { useAuth }        from './hooks/useAuth';
 import { useLandingGate } from './hooks/useLandingGate';
 import Toast      from './components/Toast';
+import BackendWakingBanner from './components/BackendWakingBanner';
 import Landing from './components/Landing';
 import AuthGate from './components/auth/AuthGate';
 import CookieConsent from './components/CookieConsent';
@@ -112,6 +113,7 @@ function App() {
   return (
     <>
       {screen}
+      <BackendWakingBanner />
       <Toast />
       {consentLayer}
     </>

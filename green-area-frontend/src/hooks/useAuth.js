@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase, supabaseConfigured } from '../lib/supabaseClient';
 import { API_BASE } from '../constants';
+import { fetchWithRetry } from '../utils/fetchRetry';
 import { setApiAuthToken } from '../utils/apiClient';
 
 const NOT_CONFIGURED = 'ระบบล็อกอินยังไม่ได้ตั้งค่า — ขาด VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY';
@@ -46,7 +47,9 @@ export function useAuth() {
   const loadProfile = useCallback(async (accessToken) => {
     if (!accessToken) { setProfile(null); return; }
     try {
-      const res = await fetch(`${API_BASE}/account/me`, { headers: authHeaders(accessToken) });
+      // ผ่าน fetchWithRetry เพื่อให้มี timeout — เดิมเป็น fetch() ดิบที่รอไม่จำกัด
+      // คำขอนี้ยิงทันทีหลังได้ session จึงเป็นตัวแรก ๆ ที่ชน backend ที่ยังหลับอยู่
+      const res = await fetchWithRetry(`${API_BASE}/account/me`, { headers: authHeaders(accessToken) });
       const json = await res.json().catch(() => ({}));
       if (res.ok) setProfile(json);
     } catch (err) {
@@ -146,11 +149,13 @@ export function useAuth() {
     const token = session?.access_token;
     if (!token) return { ok: false, error: 'เซสชันหมดอายุ — เข้าสู่ระบบใหม่อีกครั้ง' };
     try {
-      const res = await fetch(`${API_BASE}/account/me`, {
+      // retryOnError: false — ต้องการแค่ timeout ไม่ต้องการการยิงซ้ำ เพราะคำขอที่
+      // timeout ไปแล้วอาจถึงเซิร์ฟเวอร์และบันทึกสำเร็จ การยิงซ้ำจึงไม่ปลอดภัย
+      const res = await fetchWithRetry(`${API_BASE}/account/me`, {
         method: 'PATCH',
         headers: authHeaders(token, true),
         body: JSON.stringify({ display_name: displayName, organization: organization || null }),
-      });
+      }, { retryOnError: false });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) return { ok: false, error: json.detail || 'บันทึกข้อมูลไม่สำเร็จ' };
       setProfile(json);
@@ -174,9 +179,9 @@ export function useAuth() {
       if (signInErr) return { ok: false, error: 'รหัสผ่านไม่ถูกต้อง' };
     }
     try {
-      const res = await fetch(`${API_BASE}/account/me`, {
+      const res = await fetchWithRetry(`${API_BASE}/account/me`, {
         method: 'DELETE', headers: authHeaders(token),
-      });
+      }, { retryOnError: false });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
         return { ok: false, error: json.detail || 'ลบบัญชีไม่สำเร็จ' };

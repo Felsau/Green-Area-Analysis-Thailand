@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { API_BASE, CURRENT_YEAR, PROVINCE_TH, TOTAL_DISTRICTS, DATA_YEAR_SPAN } from '../constants';
+import { fetchWithRetry } from '../utils/fetchRetry';
 import { WHO_REFERENCE_M2 } from '../utils/greenMetric';
 
 // Public-facing intro page shown before the dashboard ("Atlas Index" direction):
@@ -96,7 +97,10 @@ export default function Landing({ onEnter, theme, onToggleTheme, onCookieSetting
     const ctrl = new AbortController();
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/analysis/ranking?year=${CURRENT_YEAR}`, { signal: ctrl.signal });
+        // ผ่าน fetchWithRetry เพื่อให้มี timeout และถูกนับเข้าป้าย "กำลังปลุกเซิร์ฟเวอร์"
+        // คำขอนี้คือคำขอแรกสุดที่ผู้ใช้ยิงไป backend (หน้าปกโหลดก่อนล็อกอิน) จึงเป็น
+        // ตัวที่รับแรง cold start เต็ม ๆ — ป้ายที่ขึ้นตรงนี้ช่วยได้มากที่สุด
+        const res = await fetchWithRetry(`${API_BASE}/analysis/ranking?year=${CURRENT_YEAR}`, { signal: ctrl.signal });
         if (!res.ok) return;
         const json = await res.json();
         if (Array.isArray(json.data) && json.data.length) setRanking(json);

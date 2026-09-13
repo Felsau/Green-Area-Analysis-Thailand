@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { API_BASE } from '../constants';
 import { pushError } from '../utils/toast';
-import { apiFetch } from '../utils/apiClient';
+import { fetchWithRetry } from '../utils/fetchRetry';
 
 // Retry the fetch a few times before surfacing an error. A freshly
 // minted access token (right after login/refresh) can be briefly rejected by
@@ -33,7 +33,10 @@ export function useNdviCache(enabled = true) {
     const load = async () => {
       for (let attempt = 0; attempt <= CACHE_RETRIES; attempt++) {
         try {
-          const r = await apiFetch(`${API_BASE}/cache/ndvi-latest`);
+          // retries: 0 — hook นี้มีลูป retry ของตัวเอง (CACHE_RETRIES) ที่รอ token
+          // ให้พร้อมก่อน ถ้าปล่อยให้ fetchWithRetry retry ด้วยจะกลายเป็น retry ซ้อน
+          // retry = 9 ครั้ง · เอาแค่ timeout ก็พอ ส่วนการลองใหม่ปล่อยให้ลูปข้างนอกทำ
+          const r = await fetchWithRetry(`${API_BASE}/cache/ndvi-latest`, {}, { retries: 0 });
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const json = await r.json();
           if (cancelled) return;

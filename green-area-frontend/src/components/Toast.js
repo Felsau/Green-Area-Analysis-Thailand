@@ -14,7 +14,16 @@ export default function Toast() {
   useEffect(() => {
     const timers = timersRef.current;
     const unsub = subscribeToast(toast => {
-      setToasts(prev => [...prev, toast]);
+      // ยุบข้อความซ้ำ: ถ้ามีอันที่ key เดียวกันค้างอยู่ ให้แทนที่แทนการต่อท้าย
+      // แล้วนับเวลาถอยหลังใหม่ — เรื่องเดิมที่เกิดซ้ำควรอยู่ต่อ ไม่ใช่กองสุม
+      // (แดชบอร์ดยิงหลายคำขอพร้อมกัน เวลา backend หลับมันล้มพร้อมกันทั้งชุด)
+      setToasts(prev => {
+        const dup = prev.find(t => t.key === toast.key);
+        if (!dup) return [...prev, toast];
+        const oldTimer = timers.get(dup.id);
+        if (oldTimer) { clearTimeout(oldTimer); timers.delete(dup.id); }
+        return prev.map(t => (t.key === toast.key ? toast : t));
+      });
       const timerId = setTimeout(() => {
         timers.delete(toast.id);
         setToasts(prev => prev.filter(t => t.id !== toast.id));

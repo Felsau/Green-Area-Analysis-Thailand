@@ -1,0 +1,43 @@
+/* ป้ายบอกสถานะเซิร์ฟเวอร์ — ขึ้นเมื่อคำขอค้างนานผิดปกติ (backend กำลังตื่นจากโหมดพัก)
+   วางกลางบนจอ ใต้แถบบน เพื่อไม่ชนกับ Toast ที่อยู่มุมขวาบน (top:52 right:16) */
+.wake-banner {
+  position: fixed;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9998;              /* ใต้ Toast (9999) — error ที่ผู้ใช้ต้องอ่านต้องอยู่บนสุด */
+  max-width: min(92vw, 460px);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: 10px var(--s-4);
+  background: var(--warn-soft);
+  color: var(--ink-1);
+  border: 1px solid var(--rule-2);
+  border-left: 2px solid var(--warn);
+  border-radius: var(--rad-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-size: var(--t-sm);
+  line-height: 1.5;
+}
+
+.wake-banner__spinner {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  margin-top: 2px;
+  border: 2px solid var(--rule-2);
+  border-top-color: var(--warn);
+  border-radius: 50%;
+  animation: wake-spin 0.9s linear infinite;
+}
+
+.wake-banner__title { font-weight: 600; }
+.wake-banner__hint { color: var(--ink-3); font-size: var(--t-xs); margin-top: 2px; }
+
+@keyframes wake-spin { to { transform: rotate(360deg); } }
+
+/* เคารพการตั้งค่าของผู้ใช้ที่ขอให้ลดการเคลื่อนไหว */
+@media (prefers-reduced-motion: reduce) {
+  .wake-banner__spinner { animation: none; }
+}

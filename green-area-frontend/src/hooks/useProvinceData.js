@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { API_BASE, CURRENT_YEAR } from '../constants';
-import { pushError } from '../utils/toast';
+import { pushApiError } from '../utils/apiErrors';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
 export function useProvinceData({ setNdviCache }) {
@@ -100,7 +100,9 @@ export function useProvinceData({ setNdviCache }) {
     } catch (err) {
       if (err?.name === 'AbortError') return;  // superseded by a newer selection
       console.error('ดึงข้อมูล NDVI/LST ไม่สำเร็จ:', err);
-      pushError(`โหลดข้อมูลจังหวัด ${provinceName} ไม่สำเร็จ — ลองอีกครั้ง`);
+      // ข้อความจะเลือกเองตามชนิดของปัญหา (timeout / เน็ตไม่ถึง / 5xx / 4xx)
+      // และยุบซ้ำให้อัตโนมัติเมื่อคำขออื่นล้มด้วยสาเหตุเดียวกัน
+      pushApiError(err, `ข้อมูลจังหวัด ${provinceName}`);
     } finally {
       // only the most-recent request may clear the loading flags
       if (abortRef.current === controller) {

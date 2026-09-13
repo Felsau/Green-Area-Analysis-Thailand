@@ -1,5 +1,5 @@
 // Shared helpers — formatting, escape, font injection, image fetching.
-import { apiFetch } from '../apiClient';
+import { fetchWithRetry } from '../fetchRetry';
 
 export const MONTH_NAMES_TH = [
   'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
@@ -65,7 +65,7 @@ export const ensureFont = () => {
 // Fetch image from backend → dataUrl (so html2canvas doesn't need CORS round-trip)
 export const fetchImageDataUrl = async (url) => {
   try {
-    const resp = await apiFetch(url);
+    const resp = await fetchWithRetry(url);
     if (!resp.ok) return null;
     const blob = await resp.blob();
     return await new Promise((res) => {

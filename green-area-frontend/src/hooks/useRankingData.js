@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { API_BASE } from '../constants';
-import { pushError } from '../utils/toast';
+import { API_ERROR, ApiError, pushApiError } from '../utils/apiErrors';
+import { fetchWithRetry } from '../utils/fetchRetry';
 
 // selectedYear is owned by Dashboard and shared with the province/district
 // panels, the raster overlay and the draw tool — the ranking used to keep its
@@ -14,8 +15,10 @@ export function useRankingData(selectedYear) {
     const y = year !== undefined ? year : selectedYear;
     setRankingLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/analysis/ranking?year=${y}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // ผ่าน fetchWithRetry เหมือน hook อื่น — เดิมเป็น fetch() ดิบจึงไม่มี timeout
+      // และไม่ถูกนับเข้าป้าย "กำลังปลุกเซิร์ฟเวอร์" ทั้งที่เป็นคำขอแรก ๆ ที่ผู้ใช้เจอ
+      const res = await fetchWithRetry(`${API_BASE}/analysis/ranking?year=${y}`);
+      if (!res.ok) throw new ApiError(API_ERROR.CLIENT, `HTTP ${res.status}`, { status: res.status });
       const data = await res.json();
       setRankingData(data.data || []);
       setRankingStats({
@@ -26,7 +29,7 @@ export function useRankingData(selectedYear) {
     } catch (e) {
       setRankingData([]);
       setRankingStats(null);
-      pushError(`โหลดอันดับจังหวัดปี ${y} ไม่สำเร็จ`);
+      pushApiError(e, `อันดับจังหวัดปี ${y}`);
     } finally {
       setRankingLoading(false);
     }

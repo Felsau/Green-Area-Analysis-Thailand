@@ -2,7 +2,7 @@
 // + urban subset + access-300m (FR-18) แบบขนาน.
 import { API_BASE } from '../../../constants';
 import { fetchImageDataUrl } from '../helpers';
-import { apiFetch } from '../../apiClient';
+import { fetchWithRetry } from '../../fetchRetry';
 
 export const fetchStatsData = async ({ selectedProvinceEN, selectedDistrict, districtEN, year }) => {
   // ดึง district summary เฉพาะตอนรายงานระดับจังหวัด (ไม่ได้ลึกถึงอำเภอแล้ว)
@@ -26,13 +26,13 @@ export const fetchStatsData = async ({ selectedProvinceEN, selectedDistrict, dis
     fetchImageDataUrl(`${API_BASE}/maps/thailand-thumb?province=${encodeURIComponent(selectedProvinceEN)}`),
     fetchImageDataUrl(`${API_BASE}/maps/${encodeURIComponent(selectedProvinceEN)}/ndvi-thumb?year=${year}${districtEN ? `&district_name=${encodeURIComponent(districtEN)}` : ''}`),
     fetchImageDataUrl(`${API_BASE}/maps/${encodeURIComponent(selectedProvinceEN)}/lst-thumb?year=${year}${districtEN ? `&district_name=${encodeURIComponent(districtEN)}` : ''}`),
-    apiFetch(`${API_BASE}/analysis/context/${encodeURIComponent(selectedProvinceEN)}?year=${year}`).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetchWithRetry(`${API_BASE}/analysis/context/${encodeURIComponent(selectedProvinceEN)}?year=${year}`).then(r => r.ok ? r.json() : null).catch(() => null),
     districtSummaryUrl
-      ? apiFetch(districtSummaryUrl).then(r => r.ok ? r.json() : null).catch(() => null)
+      ? fetchWithRetry(districtSummaryUrl).then(r => r.ok ? r.json() : null).catch(() => null)
       : Promise.resolve(null),
-    apiFetch(tsUrl).then(r => r.ok ? r.json() : null).catch(() => null),
-    apiFetch(urbanUrl).then(r => r.ok ? r.json() : null).catch(() => null),
-    apiFetch(access300Url).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetchWithRetry(tsUrl).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetchWithRetry(urbanUrl).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetchWithRetry(access300Url).then(r => r.ok ? r.json() : null).catch(() => null),
   ]);
 
   return {

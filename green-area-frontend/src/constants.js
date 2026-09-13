@@ -41,6 +41,25 @@ export const PROVINCE_TH = {
 };
 
 export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+// ── เวลาของการเรียก API ─────────────────────────────────────────────────────
+// backend อยู่บน Render free plan ซึ่ง "หลับ" เมื่อไม่มีคำขอราว 15 นาที คำขอแรก
+// หลังหลับต้องรอปลุกเครื่อง — วัดจริงเมื่อ 13 ก.ย. 2569 ได้ first byte ที่ 47 วินาที
+// และเคยเกิน 180 วินาที ค่าพวกนี้จึงตั้งจากของจริง ไม่ใช่ค่าเดา
+//
+// API_TIMEOUT_MS       เพดานของ "หนึ่งครั้ง" ที่ยิง — กันคำขอค้างตลอดกาล
+//                      (เดิมไม่มี timeout เลย fetch จึงรอไม่จำกัด)
+// API_TOTAL_BUDGET_MS  เพดานรวม "ทุกครั้งที่ retry + เวลาหน่วง" ของคำขอเดียว
+//                      ถ้าไม่มีตัวนี้ 3 ครั้ง × 90 วินาที = 4 นาทีครึ่ง ซึ่งคือ
+//                      อาการที่ผู้ใช้เจอ · มีตัวนี้แล้วแย่สุดจบใน ~2 นาที
+// API_MIN_ATTEMPT_MS   เหลือเวลาน้อยกว่านี้ก็ไม่ต้องเริ่มครั้งใหม่ ยิงไปก็ไม่ทัน
+// API_COLD_START_HINT_MS  ค้างเกินนี้ถือว่าผิดปกติ → ขึ้นป้าย "กำลังปลุกเซิร์ฟเวอร์"
+//                      ตั้ง 4 วินาทีเพราะคำขอที่เข้าแคชจริงตอบใน < 2 วินาทีเสมอ
+//                      (reports/response_time_2025.csv: เฉลี่ย 0.07 ช้าสุด 0.51)
+export const API_TIMEOUT_MS = 90_000;
+export const API_TOTAL_BUDGET_MS = 120_000;
+export const API_MIN_ATTEMPT_MS = 5_000;
+export const API_COLD_START_HINT_MS = 4_000;
 export const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 export const MAP_STYLE_DARK = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 

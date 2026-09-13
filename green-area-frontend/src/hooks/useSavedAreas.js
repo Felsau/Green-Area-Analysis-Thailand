@@ -30,11 +30,14 @@ export function useSavedAreas() {
   const save = useCallback(async (payload) => {
     setSaving(true);
     try {
+      // retryOnError: false — POST นี้สร้างแถวจริงในฐานข้อมูล ถ้าคำขอ timeout
+      // ไปแล้วแต่เซิร์ฟเวอร์รับไว้ การยิงซ้ำจะได้พื้นที่ซ้ำสองรายการ
+      // ยอมให้ล้มแล้วให้ผู้ใช้กดเองดีกว่าบันทึกซ้ำโดยไม่รู้ตัว
       const res = await fetchWithRetry(`${API_BASE}/saved-areas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-      });
+      }, { retryOnError: false });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         pushError(json.detail || 'บันทึกพื้นที่ไม่สำเร็จ');
@@ -68,7 +71,9 @@ export function useSavedAreas() {
 
   const remove = useCallback(async (id) => {
     try {
-      const res = await fetchWithRetry(`${API_BASE}/saved-areas/${id}`, { method: 'DELETE' });
+      // DELETE ยิงซ้ำได้ผลเดียวกันก็จริง แต่ครั้งที่สองจะได้ 404 แล้วขึ้น toast
+      // "ลบไม่สำเร็จ" ทั้งที่ลบไปแล้ว — ปิด retry เพื่อไม่ให้ผู้ใช้สับสน
+      const res = await fetchWithRetry(`${API_BASE}/saved-areas/${id}`, { method: 'DELETE' }, { retryOnError: false });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
         pushError(json.detail || 'ลบพื้นที่ไม่สำเร็จ');
