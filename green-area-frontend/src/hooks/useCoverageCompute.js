@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { API_BASE } from '../constants';
+import { API_BASE, API_COMPUTE_TIMEOUT_MS } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
@@ -34,7 +34,8 @@ export function useCoverageCompute() {
         const { en } = missing[index++];
         try {
           const res = await fetchWithRetry(
-            `${API_BASE}/analysis/urban-subset/${encodeURIComponent(en)}?year=${year}`, { signal });
+            `${API_BASE}/analysis/urban-subset/${encodeURIComponent(en)}?year=${year}`,
+            { signal }, { timeoutMs: API_COMPUTE_TIMEOUT_MS });
           if (!res.ok) failed++;
         } catch (err) {
           if (err?.name === 'AbortError') return;

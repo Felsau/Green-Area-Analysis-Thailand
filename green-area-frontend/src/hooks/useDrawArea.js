@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import * as turf from '@turf/turf';
-import { API_BASE } from '../constants';
+import { API_BASE, API_COMPUTE_TIMEOUT_MS } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
@@ -123,7 +123,7 @@ export function useDrawArea() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ geometry, year }),
         signal: controller.signal,
-      });
+      }, { timeoutMs: API_COMPUTE_TIMEOUT_MS });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         pushError(json.detail || 'วิเคราะห์พื้นที่ไม่สำเร็จ — ลองอีกครั้ง');
@@ -157,7 +157,7 @@ export function useDrawArea() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ geometry, year, province: provinceHint || undefined }),
         signal: controller.signal,
-      });
+      }, { timeoutMs: API_COMPUTE_TIMEOUT_MS });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         pushError(json.detail || 'หาจุดควรปลูกไม่สำเร็จ — ลองอีกครั้ง');

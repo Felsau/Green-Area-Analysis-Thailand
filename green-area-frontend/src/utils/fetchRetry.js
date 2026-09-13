@@ -8,27 +8,36 @@
 // ซ้ำร้าย ถ้า Render ตอบ 5xx ระหว่างกำลังตื่น ตัว retry เดิมจะยิงใหม่อีก 2 ครั้ง
 // แต่ละครั้งไปรอเครื่องตื่นได้อีกรอบ → รวมเป็นหลายนาที นี่คืออาการที่ผู้ใช้เจอ
 //
-// ── กติกาใหม่ ─────────────────────────────────────────────────────────────
-// 1. ทุกครั้งที่ยิงมีเพดานเวลา (API_TIMEOUT_MS) — ไม่มีคำขอไหนค้างตลอดกาลอีก
-// 2. มี "งบเวลารวม" (API_TOTAL_BUDGET_MS) ครอบทั้งคำขอ นับรวมเวลาหน่วงระหว่าง
-//    retry ด้วย ดังนั้นต่อให้ retry ครบทุกครั้ง แย่สุดก็จบใน ~2 นาที ไม่ใช่ 4 นาทีครึ่ง
+// ── บทเรียนรอบสอง (13 ก.ย. 2569) ──────────────────────────────────────────
+// timeout รอบแรกตั้งไว้ 90 วินาที ซึ่งเผื่อไว้แค่ cold start — แต่ระบบนี้ "คำนวณสด
+// จาก GEE เมื่อไม่มีในแคช" เป็นเรื่องปกติ วัดจริงพบ /recommend ของเชียงใหม่ใช้
+// **242 วินาที** แปลว่า timeout ไปตัดงานที่กำลังทำงานถูกต้องอยู่ ทำให้หน้า AI แนะนำ
+// ของจังหวัดใหญ่พังทั้งฟีเจอร์ · ค่าใหม่จึงเผื่อการคำนวณจริง ไม่ใช่เผื่อแค่การปลุกเครื่อง
+//
+// ── กติกา ─────────────────────────────────────────────────────────────────
+// 1. ทุกครั้งที่ยิงมีเพดานเวลา — ไม่มีคำขอไหนค้างตลอดกาล
+//    · คำขอทั่วไป      API_TIMEOUT_MS          (3 นาที)
+//    · งานคำนวณ GEE    API_COMPUTE_TIMEOUT_MS  (8 นาที — call site ส่งเข้ามาเอง)
+// 2. งบเวลารวม = timeout + API_RETRY_HEADROOM_MS ผูกกับ timeout ที่ใช้จริงเสมอ
+//    กัน retry ซ้อนกันจนเวลารวมบานปลาย
 // 3. แยกชนิดความล้มเหลวชัดเจน (timeout / network / server / client) เพื่อให้
-//    ชั้นบนเลือกข้อความและตัดสินใจ retry ได้ถูก — ดู utils/apiErrors.js
+//    ชั้นบนเลือกข้อความและตัดสินใจได้ถูก — ดู utils/apiErrors.js
 // 4. การยกเลิกโดยผู้เรียกไม่ใช่ความล้มเหลว: โยน AbortError ทันที ห้าม retry
 //    ห้ามนับเป็น error และห้ามขึ้น toast
 //
 // ── retry เฉพาะกรณีที่ยิงซ้ำแล้วมีโอกาสต่างเดิม ──────────────────────────
-//   network error, timeout, 5xx  → retry
-//   4xx                          → คืน response เลย (retry ก็ได้ผลเดิม)
-//   AbortError                   → โยนออกทันที
+//   network error, 5xx  → retry (อาการสะดุดชั่วคราว)
+//   timeout             → **ไม่ retry** งานมันนานจริง ยิงซ้ำได้ผลเดิมแต่ผู้ใช้รอสองเท่า
+//   4xx                 → คืน response เลย (retry ก็ได้ผลเดิม)
+//   AbortError          → โยนออกทันที
 import { apiFetch } from './apiClient';
 import {
   API_TIMEOUT_MS,
-  API_TOTAL_BUDGET_MS,
+  API_RETRY_HEADROOM_MS,
   API_MIN_ATTEMPT_MS,
 } from '../constants';
 import { API_ERROR, ApiError, createAbortError, isAbortError } from './apiErrors';
-import { beginRequest, endRequest } from './backendStatus';
+import { beginRequest, endRequest, markServerAlive } from './backendStatus';
 
 // หน่วงเวลาที่ยกเลิกได้ — ถ้าผู้ใช้เปลี่ยนจังหวัดระหว่างรอ backoff ต้องเลิกทันที
 // ไม่ใช่นอนจนครบแล้วค่อยรู้ตัว
@@ -77,7 +86,11 @@ async function attemptFetch(url, options, { timeoutMs, callerSignal }) {
   }, timeoutMs);
 
   try {
-    return await apiFetch(url, { ...options, signal: controller.signal });
+    const res = await apiFetch(url, { ...options, signal: controller.signal });
+    // ได้ response กลับมา = เครื่องตื่นแน่นอน ไม่ว่าสถานะจะเป็น 200, 404 หรือ 500
+    // ใช้แยกว่าคำขอที่ช้าตัวถัดไปคือ "กำลังปลุก" หรือ "กำลังคำนวณ"
+    markServerAlive();
+    return res;
   } catch (err) {
     if (cause === 'timeout') {
       throw new ApiError(
@@ -98,8 +111,11 @@ async function attemptFetch(url, options, { timeoutMs, callerSignal }) {
 export async function fetchWithRetry(url, options = {}, {
   retries = 2,
   baseDelayMs = 1000,
+  // งานที่คำนวณหนักจาก GEE ส่ง API_COMPUTE_TIMEOUT_MS เข้ามาแทน
   timeoutMs = API_TIMEOUT_MS,
-  totalBudgetMs = API_TOTAL_BUDGET_MS,
+  // งบรวมผูกกับ timeout ที่ใช้จริงเสมอ — ถ้าตั้งค่าคงที่ไว้ call site ที่ขอเวลานาน
+  // จะโดนงบตัดก่อนได้ใช้เวลาที่ขอ (เคยพลาดแบบนี้มาแล้ว)
+  totalBudgetMs = timeoutMs + API_RETRY_HEADROOM_MS,
   // ตั้ง false สำหรับคำขอที่ยิงซ้ำไม่ได้ (POST/DELETE ที่เปลี่ยนข้อมูลจริง) —
   // คำขอที่ timeout อาจถึงเซิร์ฟเวอร์ไปแล้ว การยิงซ้ำจะได้ของซ้ำ
   retryOnError = true,
@@ -134,6 +150,10 @@ export async function fetchWithRetry(url, options = {}, {
       } catch (err) {
         if (isAbortError(err)) throw err;  // ผู้เรียกยกเลิก — ออกทันที ไม่ retry ไม่ error
         lastErr = err;                      // timeout | network
+        // timeout ไม่ใช่อาการ "สะดุดชั่วคราว" ที่ยิงซ้ำแล้วจะต่างออกไป — มันแปลว่างานนี้
+        // ใช้เวลานานกว่าที่เผื่อไว้ ยิงซ้ำมีแต่ทำให้ผู้ใช้รอนานเป็นเท่าตัวและไปเพิ่มงาน
+        // ให้เซิร์ฟเวอร์ที่กำลังหนักอยู่แล้ว · retry ไว้ใช้กับ network error และ 5xx เท่านั้น
+        if (err?.kind === API_ERROR.TIMEOUT) break;
       }
 
       if (attempt === maxAttempts) break;

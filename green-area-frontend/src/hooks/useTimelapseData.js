@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { API_BASE, CURRENT_YEAR, DATA_START_YEAR } from '../constants';
+import { API_BASE, CURRENT_YEAR, DATA_START_YEAR, API_COMPUTE_TIMEOUT_MS } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
@@ -35,7 +35,7 @@ export function useTimelapseData() {
     setLoadError(false);
     try {
       const url = `${API_BASE}/timelapse/${metric}/provinces?start_year=${DEFAULT_START}&end_year=${CURRENT_YEAR}`;
-      const r = await fetchWithRetry(url, { signal: controller.signal });
+      const r = await fetchWithRetry(url, { signal: controller.signal }, { timeoutMs: API_COMPUTE_TIMEOUT_MS });
       if (controller.signal.aborted) return;
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const json = await r.json();

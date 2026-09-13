@@ -43,23 +43,34 @@ export const PROVINCE_TH = {
 export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // ── เวลาของการเรียก API ─────────────────────────────────────────────────────
-// backend อยู่บน Render free plan ซึ่ง "หลับ" เมื่อไม่มีคำขอราว 15 นาที คำขอแรก
-// หลังหลับต้องรอปลุกเครื่อง — วัดจริงเมื่อ 13 ก.ย. 2569 ได้ first byte ที่ 47 วินาที
-// และเคยเกิน 180 วินาที ค่าพวกนี้จึงตั้งจากของจริง ไม่ใช่ค่าเดา
+// ระบบนี้ "คำนวณสดจาก Google Earth Engine เมื่อไม่มีในแคช" เป็นพฤติกรรมปกติ ไม่ใช่
+// ความผิดปกติ เวลาที่วัดได้จริง 13 ก.ย. 2569 จึงกระจายกว้างมาก:
+//   · อ่านจากแคช                      0.06–0.5 วินาที
+//   · ปลุกเครื่อง (Render free)       42–47 วินาที
+//   · NDVI ระดับจังหวัดคำนวณใหม่      26–92 วินาที
+//   · /recommend เชียงใหม่            **242 วินาที**
 //
-// API_TIMEOUT_MS       เพดานของ "หนึ่งครั้ง" ที่ยิง — กันคำขอค้างตลอดกาล
-//                      (เดิมไม่มี timeout เลย fetch จึงรอไม่จำกัด)
-// API_TOTAL_BUDGET_MS  เพดานรวม "ทุกครั้งที่ retry + เวลาหน่วง" ของคำขอเดียว
-//                      ถ้าไม่มีตัวนี้ 3 ครั้ง × 90 วินาที = 4 นาทีครึ่ง ซึ่งคือ
-//                      อาการที่ผู้ใช้เจอ · มีตัวนี้แล้วแย่สุดจบใน ~2 นาที
-// API_MIN_ATTEMPT_MS   เหลือเวลาน้อยกว่านี้ก็ไม่ต้องเริ่มครั้งใหม่ ยิงไปก็ไม่ทัน
-// API_COLD_START_HINT_MS  ค้างเกินนี้ถือว่าผิดปกติ → ขึ้นป้าย "กำลังปลุกเซิร์ฟเวอร์"
-//                      ตั้ง 4 วินาทีเพราะคำขอที่เข้าแคชจริงตอบใน < 2 วินาทีเสมอ
-//                      (reports/response_time_2025.csv: เฉลี่ย 0.07 ช้าสุด 0.51)
-export const API_TIMEOUT_MS = 90_000;
-export const API_TOTAL_BUDGET_MS = 120_000;
+// ⚠️ บทเรียน: timeout เดิมที่ตั้งไว้ 90 วินาทีสั้นเกินไปจนทำให้หน้า "AI แนะนำ" ของ
+// จังหวัดใหญ่พังทั้งฟีเจอร์ — ค่าพวกนี้ต้องเผื่อการคำนวณจริง ไม่ใช่เผื่อแค่ cold start
+//
+// API_TIMEOUT_MS          เพดานของคำขอทั่วไป (อ่านแคช / คำนวณระดับจังหวัด)
+// API_COMPUTE_TIMEOUT_MS  เพดานของงานที่คำนวณหนักจาก GEE แน่ ๆ — recommend,
+//                         custom-area, urban-subset, landuse, timelapse, tile
+// API_RETRY_HEADROOM_MS   เวลาที่เผื่อไว้ให้ retry ของความล้มเหลวแบบเร็ว
+//                         (network error / 5xx) งบรวม = timeout + ค่านี้
+// API_MIN_ATTEMPT_MS      เหลือเวลาน้อยกว่านี้ก็ไม่ต้องเริ่มครั้งใหม่
+export const API_TIMEOUT_MS = 180_000;
+export const API_COMPUTE_TIMEOUT_MS = 480_000;
+export const API_RETRY_HEADROOM_MS = 30_000;
 export const API_MIN_ATTEMPT_MS = 5_000;
+
+// ค้างเกินนี้ถือว่าช้าผิดปกติ → ขึ้นป้ายบอกสถานะ (คำขอที่เข้าแคชตอบใน < 2 วินาทีเสมอ)
 export const API_COLD_START_HINT_MS = 4_000;
+
+// ถ้าเพิ่งได้ response จาก backend ภายในเวลานี้ แปลว่าเซิร์ฟเวอร์ "ตื่นอยู่แน่นอน"
+// คำขอที่ช้าหลังจากนั้นจึงไม่ใช่ cold start แต่เป็นการคำนวณจริง — ใช้แยกข้อความบนป้าย
+// ไม่ให้ไปบอกผู้ใช้ว่า "กำลังปลุกเซิร์ฟเวอร์" ทั้งที่เครื่องตื่นอยู่แล้ว
+export const API_SERVER_ALIVE_TTL_MS = 60_000;
 export const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 export const MAP_STYLE_DARK = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 

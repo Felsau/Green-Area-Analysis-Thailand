@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { API_BASE } from '../constants';
+import { API_BASE, API_COMPUTE_TIMEOUT_MS } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
@@ -25,7 +25,7 @@ export function useRasterOverlay() {
       const enc = encodeURIComponent;
       const qs = `year=${year}${districtEN ? `&district_name=${enc(districtEN)}` : ''}`;
       const url = `${API_BASE}/maps/${enc(provinceEN)}/${kind}-tiles?${qs}`;
-      const res = await fetchWithRetry(url, { signal });
+      const res = await fetchWithRetry(url, { signal }, { timeoutMs: API_COMPUTE_TIMEOUT_MS });
       if (signal.aborted) return;
       if (!res.ok) {
         let detail = `HTTP ${res.status}`;

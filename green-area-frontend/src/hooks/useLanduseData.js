@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { API_BASE, CURRENT_YEAR } from '../constants';
+import { API_BASE, CURRENT_YEAR, API_COMPUTE_TIMEOUT_MS } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
@@ -28,7 +28,7 @@ export function useLanduseData() {
       const qs = `year=${year}&source=${source || 'dynamic_world'}`
         + (districtEN ? `&district_name=${enc(districtEN)}` : '');
       const res = await fetchWithRetry(
-        `${API_BASE}/analysis/landuse/${enc(provinceEN)}?${qs}`, { signal });
+        `${API_BASE}/analysis/landuse/${enc(provinceEN)}?${qs}`, { signal }, { timeoutMs: API_COMPUTE_TIMEOUT_MS });
       const json = await res.json();
       if (signal.aborted) return;
       if (res.ok) {

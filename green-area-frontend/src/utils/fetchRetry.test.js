@@ -1,11 +1,12 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { fetchWithRetry } from './fetchRetry';
 import { API_ERROR } from './apiErrors';
-import { resetBackendStatus, isBackendWaking, inFlightCount, subscribeBackendStatus } from './backendStatus';
+import { resetBackendStatus, backendHint, inFlightCount, subscribeBackendStatus, markServerAlive } from './backendStatus';
 import {
   API_TIMEOUT_MS,
-  API_TOTAL_BUDGET_MS,
+  API_RETRY_HEADROOM_MS,
   API_COLD_START_HINT_MS,
+  API_SERVER_ALIVE_TTL_MS,
 } from '../constants';
 import { apiFetch } from './apiClient';
 
@@ -92,8 +93,8 @@ describe('fetchWithRetry — แยกชนิดความล้มเหล
   });
 });
 
-describe('fetchWithRetry — งบเวลารวม (กันรอซ้ำจนเป็นหลายนาที)', () => {
-  it('คำขอที่ timeout ทุกครั้ง ต้องจบภายในงบรวม ไม่ใช่ retries × timeout', async () => {
+describe('fetchWithRetry — เพดานเวลาและการไม่ retry เมื่อ timeout', () => {
+  it('timeout แล้วต้องไม่ยิงซ้ำ — งานมันนานจริง ยิงซ้ำได้ผลเดิมแต่ผู้ใช้รอสองเท่า', async () => {
     apiFetch.mockImplementation((_url, opts) => hangUntilAborted(opts));
     const started = Date.now();
     // จับเวลา ณ ตอนที่คำขอจบจริง ไม่ใช่หลังเดินนาฬิกาเสร็จ — advanceTimersByTimeAsync
@@ -101,26 +102,47 @@ describe('fetchWithRetry — งบเวลารวม (กันรอซ้�
     let settledAt = null;
     const p = fetchWithRetry('https://api.test/lst').catch(e => { settledAt = Date.now(); return e; });
 
-    // เดินนาฬิกาเผื่อไว้เกินงบไปมาก — ถ้าโค้ดยังรออยู่ จะจับได้ตรงนี้
-    await vi.advanceTimersByTimeAsync(API_TOTAL_BUDGET_MS * 3);
+    await vi.advanceTimersByTimeAsync((API_TIMEOUT_MS + API_RETRY_HEADROOM_MS) * 3);
     const err = await p;
 
     expect(err.kind).toBe(API_ERROR.TIMEOUT);
-    expect(settledAt - started).toBeLessThanOrEqual(API_TOTAL_BUDGET_MS + 1_000);
-    // ก่อนแก้: 3 ครั้ง × 90 วินาที = 4 นาทีครึ่ง · หลังแก้งบ 120 วินาทีพอให้ยิงได้ 2 ครั้ง
-    expect(apiFetch).toHaveBeenCalledTimes(2);
+    expect(apiFetch).toHaveBeenCalledTimes(1);
+    // จบทันทีที่ครบ timeout ไม่ลากยาวไปจนหมดงบ
+    expect(settledAt - started).toBe(API_TIMEOUT_MS);
   });
 
-  it('ครั้งสุดท้ายต้องไม่กินเกินเวลาที่เหลือในงบ', async () => {
+  it('timeoutMs ที่ call site ส่งมาต้องถูกใช้จริง (งานคำนวณหนักจาก GEE)', async () => {
+    // เคสจริง: /recommend เชียงใหม่ใช้ 242 วินาที ถ้าเพดานยังเป็นค่าเริ่มต้นจะถูกตัดทิ้ง
+    const LONG = 480_000;
     apiFetch.mockImplementation((_url, opts) => hangUntilAborted(opts));
-    const p = fetchWithRetry('https://api.test/lst').catch(e => e);
-    await vi.advanceTimersByTimeAsync(API_TOTAL_BUDGET_MS * 3);
-    await p;
+    const p = fetchWithRetry('https://api.test/recommend', {}, { timeoutMs: LONG }).catch(e => e);
 
-    // ครั้งที่สองเริ่มหลังครั้งแรก (90s) + หน่วง (1s) จึงเหลืองบ 29 วินาที
-    // ถ้าเผลอให้ timeout เต็ม 90 วินาทีอีกรอบ งบรวมจะไม่มีความหมาย
-    const secondAttemptSignal = apiFetch.mock.calls[1][1].signal;
-    expect(secondAttemptSignal.aborted).toBe(true);
+    // ผ่านเพดานค่าเริ่มต้นไปแล้วต้องยังไม่ยอมแพ้
+    await vi.advanceTimersByTimeAsync(API_TIMEOUT_MS + 10_000);
+    expect(apiFetch.mock.calls[0][1].signal.aborted).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(LONG);
+    const err = await p;
+    expect(err.kind).toBe(API_ERROR.TIMEOUT);
+  });
+
+  it('งบรวมต้องขยายตาม timeoutMs ไม่ใช่ค่าคงที่ที่ตัดงานยาวทิ้ง', async () => {
+    const LONG = 480_000;
+    let call = 0;
+    apiFetch.mockImplementation((_url, opts) => {
+      call += 1;
+      if (call === 1) return Promise.reject(new TypeError('Failed to fetch'));
+      return hangUntilAborted(opts);   // ครั้งที่สองค้างยาว
+    });
+    const p = fetchWithRetry('https://api.test/recommend', {}, { timeoutMs: LONG }).catch(e => e);
+
+    // network error ครั้งแรก → หน่วง 1 วิ แล้วยิงใหม่ · ครั้งที่สองต้องได้เวลาเต็ม ไม่ใช่เศษงบ
+    await vi.advanceTimersByTimeAsync(API_TIMEOUT_MS + 10_000);
+    expect(apiFetch).toHaveBeenCalledTimes(2);
+    expect(apiFetch.mock.calls[1][1].signal.aborted).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(LONG);
+    await p;
   });
 
   it('retryOnError: false → ยิงครั้งเดียวจบ (คำขอที่ยิงซ้ำไม่ได้)', async () => {
@@ -181,13 +203,13 @@ describe('fetchWithRetry — สถานะ "กำลังปลุกเซ�
     apiFetch.mockImplementation(() => new Promise(r => { resolveFetch = r; }));
     const p = fetchWithRetry('https://api.test/ndvi');
 
-    expect(isBackendWaking()).toBe(false);
+    expect(backendHint()).toBe(null);
     await vi.advanceTimersByTimeAsync(API_COLD_START_HINT_MS + 100);
-    expect(isBackendWaking()).toBe(true);
+    expect(backendHint()).toBe('waking');
 
     resolveFetch(ok());
     await p;
-    expect(isBackendWaking()).toBe(false);
+    expect(backendHint()).toBe(null);
     expect(inFlightCount()).toBe(0);
   });
 
@@ -195,19 +217,63 @@ describe('fetchWithRetry — สถานะ "กำลังปลุกเซ�
     apiFetch.mockResolvedValue(ok());
     await fetchWithRetry('https://api.test/ndvi');
     await vi.advanceTimersByTimeAsync(API_COLD_START_HINT_MS * 2);
-    expect(isBackendWaking()).toBe(false);
+    expect(backendHint()).toBe(null);
   });
 
   it('ล้มเหลวก็ต้องลบป้าย ไม่ค้าง', async () => {
     apiFetch.mockImplementation((_url, opts) => hangUntilAborted(opts));
     const p = fetchWithRetry('https://api.test/lst').catch(e => e);
     await vi.advanceTimersByTimeAsync(API_COLD_START_HINT_MS + 100);
-    expect(isBackendWaking()).toBe(true);
+    expect(backendHint()).toBe('waking');
 
-    await vi.advanceTimersByTimeAsync(API_TOTAL_BUDGET_MS * 3);
+    await vi.advanceTimersByTimeAsync((API_TIMEOUT_MS + API_RETRY_HEADROOM_MS) * 3);
     await p;
-    expect(isBackendWaking()).toBe(false);
+    expect(backendHint()).toBe(null);
     expect(inFlightCount()).toBe(0);
+  });
+
+  // อาการที่ผู้ใช้เจอจริง 13 ก.ย. 2569: อยู่หน้า "AI แนะนำ" ซึ่งข้อมูลจังหวัดโหลดเสร็จ
+  // ไปแล้ว (เครื่องตื่นแน่นอน) พอกดวิเคราะห์ซึ่งใช้เวลานาน ป้ายกลับขึ้นว่า
+  // "กำลังปลุกเซิร์ฟเวอร์" ทั้งที่ความจริงคือกำลังคำนวณจาก GEE
+  it('ช้าเพราะกำลังคำนวณ (เคยได้ response มาแล้ว) → ต้องเป็น working ไม่ใช่ waking', async () => {
+    apiFetch.mockResolvedValue(ok());
+    await fetchWithRetry('https://api.test/ndvi/ChiangMai');   // โหลดข้อมูลจังหวัดสำเร็จก่อน
+
+    apiFetch.mockImplementation(() => new Promise(() => {}));  // คำขอวิเคราะห์ที่ค้างยาว
+    fetchWithRetry('https://api.test/recommend/ChiangMai');
+    await vi.advanceTimersByTimeAsync(API_COLD_START_HINT_MS + 100);
+
+    expect(backendHint()).toBe('working');
+  });
+
+  it('ช้าโดยไม่เคยได้ response เลย → เป็น waking ตามเดิม', async () => {
+    apiFetch.mockImplementation(() => new Promise(() => {}));
+    fetchWithRetry('https://api.test/analysis/ranking');
+    await vi.advanceTimersByTimeAsync(API_COLD_START_HINT_MS + 100);
+
+    expect(backendHint()).toBe('waking');
+  });
+
+  it('หลักฐานว่าเครื่องตื่นหมดอายุตามเวลา → กลับไปเป็น waking', async () => {
+    markServerAlive();
+    await vi.advanceTimersByTimeAsync(API_SERVER_ALIVE_TTL_MS + 1_000);
+
+    apiFetch.mockImplementation(() => new Promise(() => {}));
+    fetchWithRetry('https://api.test/ndvi');
+    await vi.advanceTimersByTimeAsync(API_COLD_START_HINT_MS + 100);
+
+    expect(backendHint()).toBe('waking');
+  });
+
+  it('response ที่เป็น 4xx/5xx ก็นับว่าเครื่องตื่น — เครื่องที่หลับตอบอะไรไม่ได้เลย', async () => {
+    apiFetch.mockResolvedValue(status(404));
+    await fetchWithRetry('https://api.test/ndvi/ไม่มีจังหวัดนี้');
+
+    apiFetch.mockImplementation(() => new Promise(() => {}));
+    fetchWithRetry('https://api.test/recommend');
+    await vi.advanceTimersByTimeAsync(API_COLD_START_HINT_MS + 100);
+
+    expect(backendHint()).toBe('working');
   });
 
   it('หลายคำขอพร้อมกัน: ป้ายขึ้นครั้งเดียว และหายเมื่อตัวสุดท้ายจบ', async () => {
@@ -224,17 +290,18 @@ describe('fetchWithRetry — สถานะ "กำลังปลุกเซ�
     ]);
 
     await vi.advanceTimersByTimeAsync(API_COLD_START_HINT_MS + 100);
-    expect(isBackendWaking()).toBe(true);
+    expect(backendHint()).toBe('waking');
 
+    // สามตัวแรกตอบกลับมาแล้ว = พิสูจน์ว่าเครื่องตื่น → ป้ายต้องเปลี่ยนข้อความเองทันที
+    // จาก "กำลังปลุกเซิร์ฟเวอร์" เป็น "กำลังประมวลผล" ทั้งที่ตัวสุดท้ายยังค้างอยู่
     resolvers.slice(0, 3).forEach(r => r(ok()));
     await vi.advanceTimersByTimeAsync(10);
-    expect(isBackendWaking()).toBe(true);      // ยังเหลืออีกตัว
+    expect(backendHint()).toBe('working');
 
     resolvers[3](ok());
     await all;
-    expect(isBackendWaking()).toBe(false);
+    expect(backendHint()).toBe(null);
 
-    // subscribe ครั้งแรกได้ false ทันที แล้วเปลี่ยนเป็น true → false เท่านั้น
-    expect(seen).toEqual([false, true, false]);
+    expect(seen).toEqual([null, 'waking', 'working', null]);
   });
 });

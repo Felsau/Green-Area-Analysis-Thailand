@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { API_BASE, CURRENT_YEAR } from '../constants';
+import { API_BASE, CURRENT_YEAR, API_COMPUTE_TIMEOUT_MS } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
@@ -42,7 +42,8 @@ export function useRecommendData() {
       }
       const qs  = params.toString();
       const url = `${API_BASE}${path}${qs ? `?${qs}` : ''}`;
-      const res  = await fetchWithRetry(url, { signal: controller.signal });
+      // งานคำนวณสดจาก GEE — ใช้เวลาได้หลายนาที (วัดจริง /recommend เชียงใหม่ 242 วิ)
+      const res  = await fetchWithRetry(url, { signal: controller.signal }, { timeoutMs: API_COMPUTE_TIMEOUT_MS });
       if (!res.ok) {
         // อ่าน detail (FastAPI HTTPException) ให้ user เห็นเหตุผลจริง เช่น
         // "ปี 2026 ยังไม่มีข้อมูล Sentinel-2 เพียงพอ — ลองเลือกปีก่อนหน้านี้"

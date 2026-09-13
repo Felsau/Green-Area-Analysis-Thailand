@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { API_BASE, CURRENT_YEAR } from '../constants';
+import { API_BASE, CURRENT_YEAR, API_COMPUTE_TIMEOUT_MS } from '../constants';
 import { pushApiError } from '../utils/apiErrors';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
@@ -59,7 +59,8 @@ export function useProvinceData({ setNdviCache }) {
       // อยู่นอก Promise.all จึงค้างข้าม fetchNDVI รอบถัดไปได้ ถ้าไม่เช็ค ผลของจังหวัด
       // ก่อนหน้าอาจมาทับสถานะของจังหวัดที่เลือกใหม่
       const isCurrent = () => abortRef.current === controller;
-      fetchWithRetry(`${API_BASE}/analysis/urban-subset/${enc(provinceName)}${qs}`, { signal })
+      fetchWithRetry(`${API_BASE}/analysis/urban-subset/${enc(provinceName)}${qs}`, { signal },
+                     { timeoutMs: API_COMPUTE_TIMEOUT_MS })
         .then(res => (res.ok ? res.json() : null))
         .then(urban => {
           if (!isCurrent()) return;
