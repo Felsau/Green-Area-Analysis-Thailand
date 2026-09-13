@@ -1,0 +1,75 @@
+# ปลุก backend ไม่ให้หลับ — Render free plan พักเครื่องเมื่อไม่มีคำขอราว 15 นาที
+# คำขอแรกหลังหลับจึงรอปลุกนาน (วัดจริง 13 ก.ย. 2569 ได้ first byte ที่ 47 วินาที
+# และเคยเกิน 180 วินาที) การยิง /health เป็นระยะทำให้เครื่องตื่นอยู่ตลอด
+#
+# ⚠️ ข้อจำกัดที่ต้องรู้ก่อนพึ่งไฟล์นี้ตัวเดียว — อ่าน docs/keep-backend-warm.md
+#   1. cron ของ GitHub Actions "ไม่ตรงเวลา" มันเข้าคิวรวมกับทั้งแพลตฟอร์ม ช้าได้
+#      10-30 นาทีในชั่วโมงเร่งด่วน ซึ่งเกิน 15 นาทีที่ Render ใช้ตัดสินใจพักเครื่อง
+#      → กันหลับได้เกือบตลอด แต่ "ไม่รับประกัน" ถ้าต้องชัวร์ (เช่นวันสอบ) ให้ใช้
+#        ตัวจับเวลาภายนอกอย่าง UptimeRobot ควบคู่ หรือกด Run workflow เองก่อนใช้งาน
+#   2. workflow ตามตารางจะถูก "ปิดอัตโนมัติ" เมื่อ repo ไม่มีความเคลื่อนไหว 60 วัน
+#   3. Render free plan ให้ 750 ชั่วโมงเครื่องต่อเดือนต่อบัญชี · การปลุกตลอด 24 ชม.
+#      กินราว 730 ชั่วโมง = เกือบเต็มโควตาของ service เดียว ถ้ามี free service
+#      มากกว่าหนึ่งตัวจะเกินโควตา — ดูวิธีจำกัดเป็นช่วงเวลาในเอกสาร
+name: Keep backend warm
+
+on:
+  schedule:
+    # ทุก 10 นาที — ถี่กว่า 15 นาทีที่ Render ใช้ตัดสินใจพัก เผื่อ cron มาช้า
+    # หมายเหตุ: workflow ตามตารางรันจาก default branch เท่านั้น
+    - cron: '*/10 * * * *'
+  workflow_dispatch:      # กดปลุกเองได้ก่อนนำเสนอ/สอบ
+
+# ไม่ให้รอบที่ยิงค้างอยู่ซ้อนกับรอบใหม่ — ถ้าเครื่องกำลังตื่น รอบก่อนอาจใช้เวลาเป็นนาที
+concurrency:
+  group: keep-backend-warm
+  cancel-in-progress: false
+
+permissions: {}           # ไม่ต้องแตะ repo เลย ให้สิทธิ์ว่างไว้
+
+jobs:
+  ping:
+    name: Ping /health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping backend health endpoint
+        env:
+          # ตั้งค่าที่ Settings → Secrets and variables → Actions → Variables
+          # ชื่อ BACKEND_HEALTH_URL · ไม่ใช่ความลับ (endpoint สาธารณะ) จึงใช้
+          # variable ไม่ใช่ secret — จะได้เห็นค่าในล็อกเวลาดีบั๊ก
+          # ไม่ hardcode ไว้ในไฟล์ เพราะ URL ของ Render เปลี่ยนได้เมื่อย้าย service
+          HEALTH_URL: ${{ vars.BACKEND_HEALTH_URL }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${HEALTH_URL}" ]; then
+            echo "::error::ยังไม่ได้ตั้งตัวแปร BACKEND_HEALTH_URL — ดูขั้นตอนใน docs/keep-backend-warm.md"
+            exit 1
+          fi
+
+          echo "ยิงไปที่ ${HEALTH_URL}"
+          start=$(date +%s)
+
+          # -m 180  เผื่อกรณีเครื่องหลับสนิท (วัดจริงได้ 47 วินาที เคยเกิน 180)
+          # --retry 2 --retry-all-errors  ปลุกครั้งแรกอาจโดน 502 ระหว่าง Render
+          #                               กำลังยกเครื่องขึ้น ลองซ้ำได้
+          code=$(curl -sS -o /dev/null -w '%{http_code}' \
+                   -m 180 --retry 2 --retry-delay 5 --retry-all-errors \
+                   "${HEALTH_URL}")
+
+          elapsed=$(( $(date +%s) - start ))
+          echo "HTTP ${code} ใช้เวลา ${elapsed} วินาที"
+
+          if [ "${code}" != "200" ]; then
+            echo "::error::/health ตอบ HTTP ${code} — เซิร์ฟเวอร์อาจล่มจริง ไม่ใช่แค่หลับ"
+            exit 1
+          fi
+
+          # > 20 วินาที แปลว่าเครื่องหลับไปแล้วจริง ๆ (ปกติแคชตอบใน < 2 วินาที)
+          # ไม่ทำให้ job แดง แค่เตือนไว้ในสรุป — จะได้รู้ว่าความถี่ที่ตั้งไว้ไม่พอ
+          if [ "${elapsed}" -gt 20 ]; then
+            echo "::warning::ใช้เวลา ${elapsed} วินาที — เครื่องหลับไปก่อนหน้านี้ แปลว่า cron มาไม่ทัน"
+          fi
+
+          echo "### Backend warm ✓ (HTTP ${code}, ${elapsed}s)" >> "${GITHUB_STEP_SUMMARY}"
