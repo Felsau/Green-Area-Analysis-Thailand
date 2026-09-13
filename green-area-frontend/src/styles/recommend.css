@@ -174,3 +174,17 @@
   color: var(--ink-2);
   line-height: 1.6;
 }
+
+/* ที่มาของข้อมูลพันธุ์ไม้ — ตัวเล็กกว่าเหตุผล เพราะเป็นข้อมูลอ้างอิง ไม่ใช่สาระหลัก
+   แต่ต้องอ่านออกและกดได้ (ผู้ใช้ต้องตรวจย้อนกลับไปยังต้นทางได้เสมอ) */
+.species__source {
+  margin-top: 4px;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+.species__source a {
+  color: inherit;
+  text-decoration: underline;
+}

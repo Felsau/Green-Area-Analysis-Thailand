@@ -1,0 +1,1137 @@
+{
+  "_comment": "บัญชีพันธุ์ไม้ที่ระบบแนะนำ — ฟิลด์ curated เป็นข้อมูลของโครงงาน ส่วน verification สร้างอัตโนมัติด้วย refresh_species_verification.py จากฐานข้อมูลภายนอก ห้ามแก้ด้วยมือ",
+  "generated_at": "2026-09-13",
+  "sources": {
+    "bgci": "BGCI GlobalTreeSearch — Botanic Gardens Conservation International, https://tools.bgci.org/global_tree_search.php",
+    "wcvp": "World Checklist of Vascular Plants (WCVP), Royal Botanic Gardens Kew, เข้าถึงผ่าน GBIF dataset f382f0ce-323a-4091-bb9f-add557f3a9a2",
+    "gbif_backbone": "GBIF Backbone Taxonomy, https://doi.org/10.15468/39omei",
+    "gbif_occurrence": "GBIF Occurrence Search API, https://www.gbif.org/"
+  },
+  "regions": {
+    "กลาง": [
+      {
+        "name_th": "จามจุรี (ก้ามปู)",
+        "scientific": "Samanea saman",
+        "purpose": "ร่มเงาในเมือง",
+        "height_m": "15–25",
+        "traits": [
+          "ร่มเงากว้าง",
+          "ทนแดดจัด",
+          "ลดความร้อนเมืองดีมาก"
+        ],
+        "reason": "ทรงพุ่มใหญ่ที่สุด เหมาะกับสวนสาธารณะและถนนกว้างในพื้นที่ร้อน",
+        "verification": {
+          "gbif_usage_key": 2972960,
+          "gbif_url": "https://www.gbif.org/species/2972960",
+          "gbif_accepted_name": "Samanea saman",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": false,
+          "bgci_native_range": [
+            "Belize",
+            "Bolivia, Plurinational State of",
+            "Colombia",
+            "Costa Rica",
+            "El Salvador",
+            "Guatemala",
+            "Guyana",
+            "Mexico",
+            "Nicaragua",
+            "Panama",
+            "Venezuela, Bolivarian Republic of"
+          ],
+          "wcvp_thailand": "INTRODUCED",
+          "gbif_records_thailand": 116,
+          "gbif_records_by_region": {
+            "กลาง": 40,
+            "เหนือ": 23,
+            "อีสาน": 23,
+            "ตะวันออก": 13,
+            "ใต้": 9,
+            "ตะวันตก": 8
+          },
+          "gbif_records_in_this_region": 40
+        }
+      },
+      {
+        "name_th": "ประดู่บ้าน",
+        "scientific": "Pterocarpus indicus",
+        "purpose": "ร่มเงาในเมือง",
+        "height_m": "10–20",
+        "traits": [
+          "ทนแล้ง",
+          "โตเร็วปานกลาง",
+          "ดอกหอม"
+        ],
+        "reason": "ปลูกข้างถนนได้ ทนมลพิษ ไม่ทำลายผิวจราจร",
+        "verification": {
+          "gbif_usage_key": 5349242,
+          "gbif_url": "https://www.gbif.org/species/5349242",
+          "gbif_accepted_name": "Pterocarpus indicus",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 41,
+          "gbif_records_by_region": {
+            "กลาง": 18,
+            "เหนือ": 5,
+            "อีสาน": 3,
+            "ใต้": 10,
+            "ตะวันตก": 3,
+            "ตะวันออก": 2
+          },
+          "gbif_records_in_this_region": 18
+        }
+      },
+      {
+        "name_th": "พิกุล",
+        "scientific": "Mimusops elengi",
+        "purpose": "ริมถนน/ชุมชน",
+        "height_m": "8–15",
+        "traits": [
+          "ทนมลพิษเมือง",
+          "ดอกหอม",
+          "ใบหนา ดักฝุ่นดี"
+        ],
+        "reason": "เหมาะกับเขตประชากรหนาแน่น ช่วยลด PM2.5",
+        "verification": {
+          "gbif_usage_key": 2883768,
+          "gbif_url": "https://www.gbif.org/species/2883768",
+          "gbif_accepted_name": "Mimusops elengi",
+          "gbif_family": "Sapotaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 101,
+          "gbif_records_by_region": {
+            "กลาง": 49,
+            "เหนือ": 18,
+            "อีสาน": 16,
+            "ตะวันออก": 8,
+            "ตะวันตก": 3,
+            "ใต้": 7
+          },
+          "gbif_records_in_this_region": 49
+        }
+      },
+      {
+        "name_th": "ตะแบกนา",
+        "scientific": "Lagerstroemia floribunda",
+        "purpose": "ริมถนน",
+        "height_m": "10–20",
+        "traits": [
+          "ดอกสวย",
+          "ทนน้ำท่วม",
+          "ทรงพุ่มเป็นระเบียบ"
+        ],
+        "reason": "เหมาะกับที่ลุ่มภาคกลาง น้ำท่วมขังได้บ้าง",
+        "verification": {
+          "gbif_usage_key": 3988950,
+          "gbif_url": "https://www.gbif.org/species/3988950",
+          "gbif_accepted_name": "Lagerstroemia floribunda",
+          "gbif_family": "Lythraceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 59,
+          "gbif_records_by_region": {
+            "อีสาน": 17,
+            "ตะวันตก": 11,
+            "ตะวันออก": 7,
+            "กลาง": 15,
+            "ใต้": 8,
+            "เหนือ": 1
+          },
+          "gbif_records_in_this_region": 15
+        }
+      },
+      {
+        "name_th": "หางนกยูงฝรั่ง",
+        "scientific": "Delonix regia",
+        "purpose": "ร่มเงา/ประดับ",
+        "height_m": "8–12",
+        "traits": [
+          "ดอกสวยเด่น",
+          "ร่มเงาดี",
+          "โตเร็ว"
+        ],
+        "reason": "ใช้ตกแต่งภูมิทัศน์ในเมืองและสวนสาธารณะ",
+        "verification": {
+          "gbif_usage_key": 2956176,
+          "gbif_url": "https://www.gbif.org/species/2956176",
+          "gbif_accepted_name": "Delonix regia",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": false,
+          "bgci_native_range": [
+            "Madagascar"
+          ],
+          "wcvp_thailand": "INTRODUCED",
+          "gbif_records_thailand": 297,
+          "gbif_records_by_region": {
+            "กลาง": 87,
+            "ใต้": 85,
+            "เหนือ": 35,
+            "ตะวันออก": 46,
+            "ตะวันตก": 21,
+            "อีสาน": 23
+          },
+          "gbif_records_in_this_region": 87
+        }
+      }
+    ],
+    "ตะวันตก": [
+      {
+        "name_th": "ประดู่ป่า",
+        "scientific": "Pterocarpus macrocarpus",
+        "purpose": "ฟื้นฟูป่า",
+        "height_m": "15–25",
+        "traits": [
+          "ทนแล้ง",
+          "พันธุ์พื้นถิ่น",
+          "ไม้เศรษฐกิจ"
+        ],
+        "reason": "เหมาะกับภาคตะวันตกที่มีอากาศแห้ง",
+        "verification": {
+          "gbif_usage_key": 5349297,
+          "gbif_url": "https://www.gbif.org/species/5349297",
+          "gbif_accepted_name": "Pterocarpus macrocarpus",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 861,
+          "gbif_records_by_region": {
+            "เหนือ": 316,
+            "อีสาน": 306,
+            "กลาง": 114,
+            "ตะวันตก": 101,
+            "ตะวันออก": 20,
+            "ใต้": 4
+          },
+          "gbif_records_in_this_region": 101
+        }
+      },
+      {
+        "name_th": "มะขาม",
+        "scientific": "Tamarindus indica",
+        "purpose": "ผลไม้/ร่มเงา",
+        "height_m": "10–20",
+        "traits": [
+          "ทนแล้งสุด",
+          "ผลใช้ประโยชน์",
+          "อายุยืน"
+        ],
+        "reason": "เหมาะกับเขตเงาฝนของภาคตะวันตก",
+        "verification": {
+          "gbif_usage_key": 2975768,
+          "gbif_url": "https://www.gbif.org/species/2975768",
+          "gbif_accepted_name": "Tamarindus indica",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": false,
+          "bgci_native_range": [
+            "Benin",
+            "Burkina Faso",
+            "Burundi",
+            "Cameroon",
+            "Cape Verde",
+            "Central African Republic",
+            "Chad",
+            "Congo",
+            "Congo, The Democratic Republic of the",
+            "Côte d'Ivoire",
+            "Equatorial Guinea",
+            "Ethiopia",
+            "Gabon",
+            "Gambia",
+            "Ghana",
+            "Guinea",
+            "Guinea-Bissau",
+            "Kenya",
+            "Madagascar",
+            "Mali",
+            "Morocco",
+            "Mozambique",
+            "Niger",
+            "Nigeria",
+            "Sao Tomé and Principe",
+            "Senegal",
+            "Sudan",
+            "Tanzania, United Republic of",
+            "Togo",
+            "Uganda",
+            "Zambia",
+            "Zimbabwe"
+          ],
+          "wcvp_thailand": "INTRODUCED",
+          "gbif_records_thailand": 255,
+          "gbif_records_by_region": {
+            "เหนือ": 44,
+            "กลาง": 73,
+            "ใต้": 51,
+            "ตะวันออก": 25,
+            "อีสาน": 40,
+            "ตะวันตก": 22
+          },
+          "gbif_records_in_this_region": 22
+        }
+      },
+      {
+        "name_th": "กระถินณรงค์",
+        "scientific": "Acacia auriculiformis",
+        "purpose": "ฟื้นฟูดิน",
+        "height_m": "8–15",
+        "traits": [
+          "โตเร็วมาก",
+          "ตรึงไนโตรเจน",
+          "ฟื้นฟูดินเสื่อม"
+        ],
+        "reason": "ปรับปรุงดินที่เสื่อมโทรมจากการเกษตรเชิงเดี่ยว",
+        "verification": {
+          "gbif_usage_key": 2981001,
+          "gbif_url": "https://www.gbif.org/species/2981001",
+          "gbif_accepted_name": "Acacia auriculiformis",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": false,
+          "bgci_native_range": [
+            "Australia",
+            "Indonesia",
+            "Papua New Guinea",
+            "Timor-Leste"
+          ],
+          "wcvp_thailand": null,
+          "gbif_records_thailand": 93,
+          "gbif_records_by_region": {
+            "ใต้": 36,
+            "กลาง": 23,
+            "ตะวันออก": 18,
+            "อีสาน": 12,
+            "ตะวันตก": 3,
+            "เหนือ": 1
+          },
+          "gbif_records_in_this_region": 3
+        }
+      },
+      {
+        "name_th": "พะยูง",
+        "scientific": "Dalbergia cochinchinensis",
+        "purpose": "อนุรักษ์/เศรษฐกิจ",
+        "height_m": "15–25",
+        "traits": [
+          "ทนแล้ง",
+          "ราคาสูง",
+          "ใกล้สูญพันธุ์"
+        ],
+        "reason": "อนุรักษ์พันธุ์หายาก ปลูกร่วมในป่าฟื้นฟู",
+        "verification": {
+          "gbif_usage_key": 2968506,
+          "gbif_url": "https://www.gbif.org/species/2968506",
+          "gbif_accepted_name": "Dalbergia cochinchinensis",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 45,
+          "gbif_records_by_region": {
+            "ตะวันออก": 16,
+            "อีสาน": 16,
+            "กลาง": 9,
+            "เหนือ": 1,
+            "ตะวันตก": 2,
+            "ใต้": 1
+          },
+          "gbif_records_in_this_region": 2
+        }
+      },
+      {
+        "name_th": "ตะแบกนา",
+        "scientific": "Lagerstroemia floribunda",
+        "purpose": "ร่มเงาในเมือง",
+        "height_m": "10–20",
+        "traits": [
+          "ดอกสวย",
+          "ทนแล้ง",
+          "พุ่มเป็นระเบียบ"
+        ],
+        "reason": "เหมาะปลูกริมถนนในเขตเทศบาล",
+        "verification": {
+          "gbif_usage_key": 3988950,
+          "gbif_url": "https://www.gbif.org/species/3988950",
+          "gbif_accepted_name": "Lagerstroemia floribunda",
+          "gbif_family": "Lythraceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 59,
+          "gbif_records_by_region": {
+            "อีสาน": 17,
+            "ตะวันตก": 11,
+            "ตะวันออก": 7,
+            "กลาง": 15,
+            "ใต้": 8,
+            "เหนือ": 1
+          },
+          "gbif_records_in_this_region": 11
+        }
+      }
+    ],
+    "ตะวันออก": [
+      {
+        "name_th": "ยางนา",
+        "scientific": "Dipterocarpus alatus",
+        "purpose": "ฟื้นฟูป่า",
+        "height_m": "30–40",
+        "traits": [
+          "ขนาดใหญ่มาก",
+          "อายุยืน",
+          "พันธุ์พื้นถิ่น"
+        ],
+        "reason": "เหมาะกับภาคตะวันออกที่มีฝนชุก ฟื้นฟูป่าดิบชื้นได้ดี",
+        "verification": {
+          "gbif_usage_key": 4096596,
+          "gbif_url": "https://www.gbif.org/species/4096596",
+          "gbif_accepted_name": "Dipterocarpus alatus",
+          "gbif_family": "Dipterocarpaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 34,
+          "gbif_records_by_region": {
+            "กลาง": 13,
+            "เหนือ": 3,
+            "อีสาน": 7,
+            "ใต้": 8,
+            "ตะวันตก": 3
+          },
+          "gbif_records_in_this_region": 0
+        }
+      },
+      {
+        "name_th": "ประดู่บ้าน",
+        "scientific": "Pterocarpus indicus",
+        "purpose": "ร่มเงาในเมือง",
+        "height_m": "10–20",
+        "traits": [
+          "ทนแล้ง",
+          "ทนเค็ม",
+          "โตเร็วปานกลาง"
+        ],
+        "reason": "เหมาะกับชายฝั่งตะวันออก ทนลมและไอเค็ม",
+        "verification": {
+          "gbif_usage_key": 5349242,
+          "gbif_url": "https://www.gbif.org/species/5349242",
+          "gbif_accepted_name": "Pterocarpus indicus",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 41,
+          "gbif_records_by_region": {
+            "กลาง": 18,
+            "เหนือ": 5,
+            "อีสาน": 3,
+            "ใต้": 10,
+            "ตะวันตก": 3,
+            "ตะวันออก": 2
+          },
+          "gbif_records_in_this_region": 2
+        }
+      },
+      {
+        "name_th": "จามจุรี",
+        "scientific": "Samanea saman",
+        "purpose": "ร่มเงา",
+        "height_m": "15–25",
+        "traits": [
+          "ร่มเงากว้าง",
+          "โตเร็ว",
+          "ลดความร้อน"
+        ],
+        "reason": "เหมาะกับสวนสาธารณะและพื้นที่นิคมอุตสาหกรรม",
+        "verification": {
+          "gbif_usage_key": 2972960,
+          "gbif_url": "https://www.gbif.org/species/2972960",
+          "gbif_accepted_name": "Samanea saman",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": false,
+          "bgci_native_range": [
+            "Belize",
+            "Bolivia, Plurinational State of",
+            "Colombia",
+            "Costa Rica",
+            "El Salvador",
+            "Guatemala",
+            "Guyana",
+            "Mexico",
+            "Nicaragua",
+            "Panama",
+            "Venezuela, Bolivarian Republic of"
+          ],
+          "wcvp_thailand": "INTRODUCED",
+          "gbif_records_thailand": 116,
+          "gbif_records_by_region": {
+            "กลาง": 40,
+            "เหนือ": 23,
+            "อีสาน": 23,
+            "ตะวันออก": 13,
+            "ใต้": 9,
+            "ตะวันตก": 8
+          },
+          "gbif_records_in_this_region": 13
+        }
+      },
+      {
+        "name_th": "กระท้อน",
+        "scientific": "Sandoricum koetjape",
+        "purpose": "ผลไม้/ร่มเงา",
+        "height_m": "15–20",
+        "traits": [
+          "ผลกินได้",
+          "ร่มเงาดี",
+          "เหมาะดินชื้น"
+        ],
+        "reason": "ใช้ประโยชน์ได้ทั้งร่มเงาและผลผลิต",
+        "verification": {
+          "gbif_usage_key": 3850843,
+          "gbif_url": "https://www.gbif.org/species/3850843",
+          "gbif_accepted_name": "Sandoricum koetjape",
+          "gbif_family": "Meliaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": false,
+          "bgci_native_range": [
+            "Brunei Darussalam",
+            "Indonesia",
+            "Malaysia",
+            "Papua New Guinea",
+            "Philippines",
+            "Singapore"
+          ],
+          "wcvp_thailand": "INTRODUCED",
+          "gbif_records_thailand": 58,
+          "gbif_records_by_region": {
+            "กลาง": 16,
+            "ใต้": 17,
+            "เหนือ": 12,
+            "ตะวันออก": 6,
+            "อีสาน": 4,
+            "ตะวันตก": 3
+          },
+          "gbif_records_in_this_region": 6
+        }
+      },
+      {
+        "name_th": "ตะเคียนทอง",
+        "scientific": "Hopea odorata",
+        "purpose": "ฟื้นฟูป่า",
+        "height_m": "20–30",
+        "traits": [
+          "ทนชื้น",
+          "ไม้เนื้อแข็ง",
+          "อายุยืน"
+        ],
+        "reason": "พันธุ์พื้นถิ่นของป่าตะวันออก ปลูกฟื้นฟูได้ดี",
+        "verification": {
+          "gbif_usage_key": 5669231,
+          "gbif_url": "https://www.gbif.org/species/5669231",
+          "gbif_accepted_name": "Hopea odorata",
+          "gbif_family": "Dipterocarpaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 66,
+          "gbif_records_by_region": {
+            "เหนือ": 11,
+            "ตะวันตก": 12,
+            "อีสาน": 9,
+            "ตะวันออก": 10,
+            "ใต้": 13,
+            "กลาง": 11
+          },
+          "gbif_records_in_this_region": 10
+        }
+      }
+    ],
+    "อีสาน": [
+      {
+        "name_th": "ประดู่ป่า",
+        "scientific": "Pterocarpus macrocarpus",
+        "purpose": "ฟื้นฟูป่า/ร่มเงา",
+        "height_m": "15–25",
+        "traits": [
+          "ทนแล้งสุดยอด",
+          "พันธุ์พื้นถิ่นอีสาน",
+          "ไม้เศรษฐกิจ"
+        ],
+        "reason": "ทนภัยแล้งและดินทรายของอีสานได้ดีที่สุด",
+        "verification": {
+          "gbif_usage_key": 5349297,
+          "gbif_url": "https://www.gbif.org/species/5349297",
+          "gbif_accepted_name": "Pterocarpus macrocarpus",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 861,
+          "gbif_records_by_region": {
+            "เหนือ": 316,
+            "อีสาน": 306,
+            "กลาง": 114,
+            "ตะวันตก": 101,
+            "ตะวันออก": 20,
+            "ใต้": 4
+          },
+          "gbif_records_in_this_region": 306
+        }
+      },
+      {
+        "name_th": "มะขาม",
+        "scientific": "Tamarindus indica",
+        "purpose": "ผลไม้/ร่มเงา",
+        "height_m": "10–20",
+        "traits": [
+          "ทนแล้งสุดขีด",
+          "ผลใช้ประโยชน์",
+          "อายุยืน"
+        ],
+        "reason": "เหมาะกับสภาพอากาศร้อนแล้งของอีสาน ปลูกง่ายมาก",
+        "verification": {
+          "gbif_usage_key": 2975768,
+          "gbif_url": "https://www.gbif.org/species/2975768",
+          "gbif_accepted_name": "Tamarindus indica",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": false,
+          "bgci_native_range": [
+            "Benin",
+            "Burkina Faso",
+            "Burundi",
+            "Cameroon",
+            "Cape Verde",
+            "Central African Republic",
+            "Chad",
+            "Congo",
+            "Congo, The Democratic Republic of the",
+            "Côte d'Ivoire",
+            "Equatorial Guinea",
+            "Ethiopia",
+            "Gabon",
+            "Gambia",
+            "Ghana",
+            "Guinea",
+            "Guinea-Bissau",
+            "Kenya",
+            "Madagascar",
+            "Mali",
+            "Morocco",
+            "Mozambique",
+            "Niger",
+            "Nigeria",
+            "Sao Tomé and Principe",
+            "Senegal",
+            "Sudan",
+            "Tanzania, United Republic of",
+            "Togo",
+            "Uganda",
+            "Zambia",
+            "Zimbabwe"
+          ],
+          "wcvp_thailand": "INTRODUCED",
+          "gbif_records_thailand": 255,
+          "gbif_records_by_region": {
+            "เหนือ": 44,
+            "กลาง": 73,
+            "ใต้": 51,
+            "ตะวันออก": 25,
+            "อีสาน": 40,
+            "ตะวันตก": 22
+          },
+          "gbif_records_in_this_region": 40
+        }
+      },
+      {
+        "name_th": "พะยูง",
+        "scientific": "Dalbergia cochinchinensis",
+        "purpose": "ฟื้นฟูป่า/เศรษฐกิจ",
+        "height_m": "15–25",
+        "traits": [
+          "ทนแล้ง",
+          "ราคาสูง",
+          "ใกล้สูญพันธุ์"
+        ],
+        "reason": "อนุรักษ์พันธุ์ไม้หายากของไทย และเพิ่มมูลค่าระยะยาว",
+        "verification": {
+          "gbif_usage_key": 2968506,
+          "gbif_url": "https://www.gbif.org/species/2968506",
+          "gbif_accepted_name": "Dalbergia cochinchinensis",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 45,
+          "gbif_records_by_region": {
+            "ตะวันออก": 16,
+            "อีสาน": 16,
+            "กลาง": 9,
+            "เหนือ": 1,
+            "ตะวันตก": 2,
+            "ใต้": 1
+          },
+          "gbif_records_in_this_region": 16
+        }
+      },
+      {
+        "name_th": "มะค่าแต้",
+        "scientific": "Sindora siamensis",
+        "purpose": "ฟื้นฟูป่า",
+        "height_m": "10–15",
+        "traits": [
+          "พันธุ์พื้นถิ่น",
+          "ทนแล้ง",
+          "ดินไม่ดีก็ปลูกได้"
+        ],
+        "reason": "เหมาะกับป่าเต็งรังของอีสาน ปลูกฟื้นฟูดินเสื่อมได้",
+        "verification": {
+          "gbif_usage_key": 2943376,
+          "gbif_url": "https://www.gbif.org/species/2943376",
+          "gbif_accepted_name": "Sindora siamensis",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 75,
+          "gbif_records_by_region": {
+            "อีสาน": 35,
+            "ตะวันตก": 12,
+            "ใต้": 6,
+            "ตะวันออก": 8,
+            "เหนือ": 5,
+            "กลาง": 9
+          },
+          "gbif_records_in_this_region": 35
+        }
+      },
+      {
+        "name_th": "ตะเคียนทอง",
+        "scientific": "Hopea odorata",
+        "purpose": "ร่มเงา/ฟื้นฟูป่า",
+        "height_m": "20–30",
+        "traits": [
+          "โตปานกลาง",
+          "ทนแล้ง",
+          "ไม้เนื้อแข็ง"
+        ],
+        "reason": "ปลูกได้ทั้งริมถนนและในป่า ให้ร่มเงาและไม้คุณภาพ",
+        "verification": {
+          "gbif_usage_key": 5669231,
+          "gbif_url": "https://www.gbif.org/species/5669231",
+          "gbif_accepted_name": "Hopea odorata",
+          "gbif_family": "Dipterocarpaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 66,
+          "gbif_records_by_region": {
+            "เหนือ": 11,
+            "ตะวันตก": 12,
+            "อีสาน": 9,
+            "ตะวันออก": 10,
+            "ใต้": 13,
+            "กลาง": 11
+          },
+          "gbif_records_in_this_region": 9
+        }
+      }
+    ],
+    "เหนือ": [
+      {
+        "name_th": "สัก",
+        "scientific": "Tectona grandis",
+        "purpose": "ฟื้นฟูป่า/เศรษฐกิจ",
+        "height_m": "20–30",
+        "traits": [
+          "ไม้เศรษฐกิจ",
+          "ทนแล้ง",
+          "อายุยืน"
+        ],
+        "reason": "พันธุ์พื้นถิ่นภาคเหนือ ฟื้นฟูป่าและสร้างมูลค่าระยะยาว",
+        "verification": {
+          "gbif_usage_key": 2925649,
+          "gbif_url": "https://www.gbif.org/species/2925649",
+          "gbif_accepted_name": "Tectona grandis",
+          "gbif_family": "Lamiaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 260,
+          "gbif_records_by_region": {
+            "เหนือ": 141,
+            "ใต้": 23,
+            "กลาง": 42,
+            "ตะวันตก": 19,
+            "อีสาน": 15,
+            "ตะวันออก": 20
+          },
+          "gbif_records_in_this_region": 141
+        }
+      },
+      {
+        "name_th": "พญาสัตบรรณ (ตีนเป็ด)",
+        "scientific": "Alstonia scholaris",
+        "purpose": "ร่มเงาชุมชน",
+        "height_m": "15–25",
+        "traits": [
+          "ร่มเงาดี",
+          "โตเร็ว",
+          "ดอกหอมยามค่ำ"
+        ],
+        "reason": "ปลูกง่าย ทนทาน เหมาะกับเขตเทศบาลและริมถนน",
+        "verification": {
+          "gbif_usage_key": 5414410,
+          "gbif_url": "https://www.gbif.org/species/5414410",
+          "gbif_accepted_name": "Alstonia scholaris",
+          "gbif_family": "Apocynaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 72,
+          "gbif_records_by_region": {
+            "กลาง": 17,
+            "เหนือ": 19,
+            "อีสาน": 15,
+            "ใต้": 11,
+            "ตะวันตก": 6,
+            "ตะวันออก": 4
+          },
+          "gbif_records_in_this_region": 19
+        }
+      },
+      {
+        "name_th": "มะค่าโมง",
+        "scientific": "Afzelia xylocarpa",
+        "purpose": "ฟื้นฟูป่า",
+        "height_m": "20–30",
+        "traits": [
+          "ทนแล้งดีมาก",
+          "อายุยืน 100+ ปี",
+          "พันธุ์พื้นถิ่น"
+        ],
+        "reason": "เหมาะกับโครงการปลูกป่าระยะยาวบนพื้นที่สูง",
+        "verification": {
+          "gbif_usage_key": 5358297,
+          "gbif_url": "https://www.gbif.org/species/5358297",
+          "gbif_accepted_name": "Afzelia xylocarpa",
+          "gbif_family": "Fabaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 78,
+          "gbif_records_by_region": {
+            "อีสาน": 28,
+            "เหนือ": 14,
+            "ตะวันตก": 13,
+            "กลาง": 19,
+            "ตะวันออก": 4
+          },
+          "gbif_records_in_this_region": 14
+        }
+      },
+      {
+        "name_th": "หว้า",
+        "scientific": "Syzygium cumini",
+        "purpose": "ผลไม้/ร่มเงา",
+        "height_m": "10–20",
+        "traits": [
+          "ทนแล้ง",
+          "ผลกินได้",
+          "นกชอบ"
+        ],
+        "reason": "เพิ่มความหลากหลายทางชีวภาพ ผลใช้ประโยชน์ได้",
+        "verification": {
+          "gbif_usage_key": 3183840,
+          "gbif_url": "https://www.gbif.org/species/3183840",
+          "gbif_accepted_name": "Syzygium cumini",
+          "gbif_family": "Myrtaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 246,
+          "gbif_records_by_region": {
+            "ตะวันออก": 58,
+            "เหนือ": 40,
+            "กลาง": 58,
+            "ใต้": 28,
+            "ตะวันตก": 22,
+            "อีสาน": 40
+          },
+          "gbif_records_in_this_region": 40
+        }
+      },
+      {
+        "name_th": "ยมหิน",
+        "scientific": "Chukrasia tabularis",
+        "purpose": "ฟื้นฟูป่า",
+        "height_m": "15–25",
+        "traits": [
+          "โตเร็ว",
+          "ทนแล้ง",
+          "ไม้เนื้อแข็ง"
+        ],
+        "reason": "เหมาะกับการฟื้นฟูพื้นที่เสื่อมโทรมในภาคเหนือ",
+        "verification": {
+          "gbif_usage_key": 4934732,
+          "gbif_url": "https://www.gbif.org/species/4934732",
+          "gbif_accepted_name": "Chukrasia tabularis",
+          "gbif_family": "Meliaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 59,
+          "gbif_records_by_region": {
+            "เหนือ": 33,
+            "อีสาน": 10,
+            "ตะวันตก": 4,
+            "กลาง": 7,
+            "ตะวันออก": 4,
+            "ใต้": 1
+          },
+          "gbif_records_in_this_region": 33
+        }
+      }
+    ],
+    "ใต้": [
+      {
+        "name_th": "ยางนา",
+        "scientific": "Dipterocarpus alatus",
+        "purpose": "ฟื้นฟูป่า",
+        "height_m": "30–40",
+        "traits": [
+          "ขนาดยักษ์",
+          "ทนชื้น",
+          "อายุยืน 100+ ปี"
+        ],
+        "reason": "พันธุ์เด่นของป่าฝนภาคใต้ ฟื้นฟูป่าดิบชื้นได้ยอดเยี่ยม",
+        "verification": {
+          "gbif_usage_key": 4096596,
+          "gbif_url": "https://www.gbif.org/species/4096596",
+          "gbif_accepted_name": "Dipterocarpus alatus",
+          "gbif_family": "Dipterocarpaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 34,
+          "gbif_records_by_region": {
+            "กลาง": 13,
+            "เหนือ": 3,
+            "อีสาน": 7,
+            "ใต้": 8,
+            "ตะวันตก": 3
+          },
+          "gbif_records_in_this_region": 8
+        }
+      },
+      {
+        "name_th": "ตะเคียนทอง",
+        "scientific": "Hopea odorata",
+        "purpose": "ฟื้นฟูป่า",
+        "height_m": "20–30",
+        "traits": [
+          "ทนชื้น",
+          "ไม้เนื้อแข็ง",
+          "พันธุ์พื้นถิ่น"
+        ],
+        "reason": "เหมาะกับภาคใต้ที่ฝนชุก ฟื้นฟูป่าได้ดี",
+        "verification": {
+          "gbif_usage_key": 5669231,
+          "gbif_url": "https://www.gbif.org/species/5669231",
+          "gbif_accepted_name": "Hopea odorata",
+          "gbif_family": "Dipterocarpaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 66,
+          "gbif_records_by_region": {
+            "เหนือ": 11,
+            "ตะวันตก": 12,
+            "อีสาน": 9,
+            "ตะวันออก": 10,
+            "ใต้": 13,
+            "กลาง": 11
+          },
+          "gbif_records_in_this_region": 13
+        }
+      },
+      {
+        "name_th": "เคี่ยม",
+        "scientific": "Cotylelobium melanoxylon",
+        "purpose": "ฟื้นฟูป่าใต้",
+        "height_m": "15–30",
+        "traits": [
+          "พันธุ์พื้นถิ่นใต้",
+          "ทนชื้นจัด",
+          "ไม้เนื้อแข็งมาก"
+        ],
+        "reason": "พันธุ์เฉพาะถิ่นภาคใต้ ควรอนุรักษ์และขยายพันธุ์",
+        "verification": {
+          "gbif_usage_key": 4096722,
+          "gbif_url": "https://www.gbif.org/species/4096722",
+          "gbif_accepted_name": "Cotylelobium melanoxylon",
+          "gbif_family": "Dipterocarpaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 0,
+          "gbif_records_by_region": {},
+          "gbif_records_in_this_region": 0
+        }
+      },
+      {
+        "name_th": "มังคุด",
+        "scientific": "Garcinia mangostana",
+        "purpose": "ผลไม้เศรษฐกิจ",
+        "height_m": "8–15",
+        "traits": [
+          "ทนชื้น",
+          "ผลผลิตสูง",
+          "เศรษฐกิจดี"
+        ],
+        "reason": "เหมาะกับสภาพอากาศชื้นของใต้ และสร้างรายได้ชุมชน",
+        "verification": {
+          "gbif_usage_key": 3189571,
+          "gbif_url": "https://www.gbif.org/species/3189571",
+          "gbif_accepted_name": "Garcinia mangostana",
+          "gbif_family": "Clusiaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": false,
+          "bgci_native_range": [
+            "Indonesia"
+          ],
+          "wcvp_thailand": null,
+          "gbif_records_thailand": 117,
+          "gbif_records_by_region": {
+            "ใต้": 112,
+            "ตะวันออก": 4,
+            "อีสาน": 1
+          },
+          "gbif_records_in_this_region": 112
+        }
+      },
+      {
+        "name_th": "จิกน้ำ",
+        "scientific": "Barringtonia acutangula",
+        "purpose": "ฟื้นฟูแหล่งน้ำ",
+        "height_m": "8–15",
+        "traits": [
+          "ทนน้ำท่วม",
+          "ดอกสวย",
+          "เหมาะริมน้ำ"
+        ],
+        "reason": "เหมาะกับพื้นที่ลุ่มและริมแหล่งน้ำในภาคใต้",
+        "verification": {
+          "gbif_usage_key": 3082835,
+          "gbif_url": "https://www.gbif.org/species/3082835",
+          "gbif_accepted_name": "Barringtonia acutangula",
+          "gbif_family": "Lecythidaceae",
+          "gbif_name_status": "ACCEPTED",
+          "gbif_match_type": "EXACT",
+          "bgci_is_tree": true,
+          "bgci_native_to_thailand": true,
+          "bgci_native_range": [],
+          "wcvp_thailand": "NATIVE",
+          "gbif_records_thailand": 84,
+          "gbif_records_by_region": {
+            "เหนือ": 16,
+            "ตะวันตก": 11,
+            "ใต้": 24,
+            "กลาง": 16,
+            "อีสาน": 11,
+            "ตะวันออก": 6
+          },
+          "gbif_records_in_this_region": 24
+        }
+      }
+    ]
+  }
+}

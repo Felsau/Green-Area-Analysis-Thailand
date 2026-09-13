@@ -1,13 +1,16 @@
 """Province → region mapping + per-region tree species recommendations.
 
-คัดเฉพาะที่ปลูกง่าย ทนสภาพท้องถิ่น และให้ร่มเงา/ฟื้นฟูดี — ใช้ใน recommend endpoint
-เพื่อแนะนำพันธุ์ไม้ที่เหมาะกับสภาพภูมิอากาศ/ดินของแต่ละภาค
+บัญชีพันธุ์ไม้อยู่ใน `data/tree_species.json` (ไม่ได้เขียนคงที่ในโค้ดแล้ว) ทุกชนิด
+แนบบล็อก `verification` ที่ตรวจกับ BGCI GlobalTreeSearch / Kew WCVP / GBIF ไว้ —
+ดู refresh_species_verification.py สำหรับวิธีสร้างใหม่
 
 ภาค (region) ของแต่ละจังหวัดอ่านจากตาราง `provinces` (single source of truth หลัง
 migration 006) ผ่าน `_region_for()` ที่ cache ผลไว้ · `PROVINCE_REGION` ด้านล่างเป็น
 ทั้ง seed ของตารางนั้นและ fallback กรณี DB ยังไม่มีข้อมูล/เชื่อมไม่ได้
 """
+import json
 import logging
+import os
 from collections import Counter
 from functools import lru_cache
 
@@ -51,142 +54,35 @@ THAI_REGIONS = {
     },
 }
 PROVINCE_REGION = {p: r for r, ps in THAI_REGIONS.items() for p in ps}
+# บัญชีพันธุ์ไม้แนะนำต่อภาค — โหลดจาก data/tree_species.json ไม่ใช่เขียนคงที่ในโค้ด
+# ไฟล์นั้นเก็บทั้งข้อมูลที่โครงงานกำหนดเอง (name_th/traits/purpose/height_m/reason)
+# และบล็อก `verification` ที่สร้างอัตโนมัติจากฐานข้อมูลภายนอก 3 แหล่ง (BGCI
+# GlobalTreeSearch, Kew WCVP, GBIF) ด้วย refresh_species_verification.py →
+# ตอบได้ว่าพันธุ์แต่ละชนิด "มาจากไหน" และตรวจย้อนกลับได้ทุกชนิด
+# verification ถูกส่งต่อไปกับคำตอบของ API ให้หน้าเว็บแสดงแหล่งอ้างอิงได้
+SPECIES_DATA_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "data", "tree_species.json")
 
-# พันธุ์ไม้แนะนำต่อภาค — คัดเฉพาะที่ปลูกง่าย ทนสภาพท้องถิ่น และให้ร่มเงา/ฟื้นฟูดี
-TREE_SPECIES_BY_REGION = {
-    "กลาง": [
-        {"name_th": "จามจุรี (ก้ามปู)", "scientific": "Samanea saman",
-         "purpose": "ร่มเงาในเมือง", "height_m": "15–25",
-         "traits": ["ร่มเงากว้าง", "ทนแดดจัด", "ลดความร้อนเมืองดีมาก"],
-         "reason": "ทรงพุ่มใหญ่ที่สุด เหมาะกับสวนสาธารณะและถนนกว้างในพื้นที่ร้อน"},
-        {"name_th": "ประดู่บ้าน", "scientific": "Pterocarpus indicus",
-         "purpose": "ร่มเงาในเมือง", "height_m": "10–20",
-         "traits": ["ทนแล้ง", "โตเร็วปานกลาง", "ดอกหอม"],
-         "reason": "ปลูกข้างถนนได้ ทนมลพิษ ไม่ทำลายผิวจราจร"},
-        {"name_th": "พิกุล", "scientific": "Mimusops elengi",
-         "purpose": "ริมถนน/ชุมชน", "height_m": "8–15",
-         "traits": ["ทนมลพิษเมือง", "ดอกหอม", "ใบหนา ดักฝุ่นดี"],
-         "reason": "เหมาะกับเขตประชากรหนาแน่น ช่วยลด PM2.5"},
-        {"name_th": "ตะแบกนา", "scientific": "Lagerstroemia floribunda",
-         "purpose": "ริมถนน", "height_m": "10–20",
-         "traits": ["ดอกสวย", "ทนน้ำท่วม", "ทรงพุ่มเป็นระเบียบ"],
-         "reason": "เหมาะกับที่ลุ่มภาคกลาง น้ำท่วมขังได้บ้าง"},
-        {"name_th": "หางนกยูงฝรั่ง", "scientific": "Delonix regia",
-         "purpose": "ร่มเงา/ประดับ", "height_m": "8–12",
-         "traits": ["ดอกสวยเด่น", "ร่มเงาดี", "โตเร็ว"],
-         "reason": "ใช้ตกแต่งภูมิทัศน์ในเมืองและสวนสาธารณะ"},
-    ],
-    "เหนือ": [
-        {"name_th": "สัก", "scientific": "Tectona grandis",
-         "purpose": "ฟื้นฟูป่า/เศรษฐกิจ", "height_m": "20–30",
-         "traits": ["ไม้เศรษฐกิจ", "ทนแล้ง", "อายุยืน"],
-         "reason": "พันธุ์พื้นถิ่นภาคเหนือ ฟื้นฟูป่าและสร้างมูลค่าระยะยาว"},
-        {"name_th": "พญาสัตบรรณ (ตีนเป็ด)", "scientific": "Alstonia scholaris",
-         "purpose": "ร่มเงาชุมชน", "height_m": "15–25",
-         "traits": ["ร่มเงาดี", "โตเร็ว", "ดอกหอมยามค่ำ"],
-         "reason": "ปลูกง่าย ทนทาน เหมาะกับเขตเทศบาลและริมถนน"},
-        {"name_th": "มะค่าโมง", "scientific": "Afzelia xylocarpa",
-         "purpose": "ฟื้นฟูป่า", "height_m": "20–30",
-         "traits": ["ทนแล้งดีมาก", "อายุยืน 100+ ปี", "พันธุ์พื้นถิ่น"],
-         "reason": "เหมาะกับโครงการปลูกป่าระยะยาวบนพื้นที่สูง"},
-        {"name_th": "หว้า", "scientific": "Syzygium cumini",
-         "purpose": "ผลไม้/ร่มเงา", "height_m": "10–20",
-         "traits": ["ทนแล้ง", "ผลกินได้", "นกชอบ"],
-         "reason": "เพิ่มความหลากหลายทางชีวภาพ ผลใช้ประโยชน์ได้"},
-        {"name_th": "ยมหิน", "scientific": "Chukrasia tabularis",
-         "purpose": "ฟื้นฟูป่า", "height_m": "15–25",
-         "traits": ["โตเร็ว", "ทนแล้ง", "ไม้เนื้อแข็ง"],
-         "reason": "เหมาะกับการฟื้นฟูพื้นที่เสื่อมโทรมในภาคเหนือ"},
-    ],
-    "อีสาน": [
-        {"name_th": "ประดู่ป่า", "scientific": "Pterocarpus macrocarpus",
-         "purpose": "ฟื้นฟูป่า/ร่มเงา", "height_m": "15–25",
-         "traits": ["ทนแล้งสุดยอด", "พันธุ์พื้นถิ่นอีสาน", "ไม้เศรษฐกิจ"],
-         "reason": "ทนภัยแล้งและดินทรายของอีสานได้ดีที่สุด"},
-        {"name_th": "มะขาม", "scientific": "Tamarindus indica",
-         "purpose": "ผลไม้/ร่มเงา", "height_m": "10–20",
-         "traits": ["ทนแล้งสุดขีด", "ผลใช้ประโยชน์", "อายุยืน"],
-         "reason": "เหมาะกับสภาพอากาศร้อนแล้งของอีสาน ปลูกง่ายมาก"},
-        {"name_th": "พะยูง", "scientific": "Dalbergia cochinchinensis",
-         "purpose": "ฟื้นฟูป่า/เศรษฐกิจ", "height_m": "15–25",
-         "traits": ["ทนแล้ง", "ราคาสูง", "ใกล้สูญพันธุ์"],
-         "reason": "อนุรักษ์พันธุ์ไม้หายากของไทย และเพิ่มมูลค่าระยะยาว"},
-        {"name_th": "มะค่าแต้", "scientific": "Sindora siamensis",
-         "purpose": "ฟื้นฟูป่า", "height_m": "10–15",
-         "traits": ["พันธุ์พื้นถิ่น", "ทนแล้ง", "ดินไม่ดีก็ปลูกได้"],
-         "reason": "เหมาะกับป่าเต็งรังของอีสาน ปลูกฟื้นฟูดินเสื่อมได้"},
-        {"name_th": "ตะเคียนทอง", "scientific": "Hopea odorata",
-         "purpose": "ร่มเงา/ฟื้นฟูป่า", "height_m": "20–30",
-         "traits": ["โตปานกลาง", "ทนแล้ง", "ไม้เนื้อแข็ง"],
-         "reason": "ปลูกได้ทั้งริมถนนและในป่า ให้ร่มเงาและไม้คุณภาพ"},
-    ],
-    "ตะวันออก": [
-        {"name_th": "ยางนา", "scientific": "Dipterocarpus alatus",
-         "purpose": "ฟื้นฟูป่า", "height_m": "30–40",
-         "traits": ["ขนาดใหญ่มาก", "อายุยืน", "พันธุ์พื้นถิ่น"],
-         "reason": "เหมาะกับภาคตะวันออกที่มีฝนชุก ฟื้นฟูป่าดิบชื้นได้ดี"},
-        {"name_th": "ประดู่บ้าน", "scientific": "Pterocarpus indicus",
-         "purpose": "ร่มเงาในเมือง", "height_m": "10–20",
-         "traits": ["ทนแล้ง", "ทนเค็ม", "โตเร็วปานกลาง"],
-         "reason": "เหมาะกับชายฝั่งตะวันออก ทนลมและไอเค็ม"},
-        {"name_th": "จามจุรี", "scientific": "Samanea saman",
-         "purpose": "ร่มเงา", "height_m": "15–25",
-         "traits": ["ร่มเงากว้าง", "โตเร็ว", "ลดความร้อน"],
-         "reason": "เหมาะกับสวนสาธารณะและพื้นที่นิคมอุตสาหกรรม"},
-        {"name_th": "กระท้อน", "scientific": "Sandoricum koetjape",
-         "purpose": "ผลไม้/ร่มเงา", "height_m": "15–20",
-         "traits": ["ผลกินได้", "ร่มเงาดี", "เหมาะดินชื้น"],
-         "reason": "ใช้ประโยชน์ได้ทั้งร่มเงาและผลผลิต"},
-        {"name_th": "ตะเคียนทอง", "scientific": "Hopea odorata",
-         "purpose": "ฟื้นฟูป่า", "height_m": "20–30",
-         "traits": ["ทนชื้น", "ไม้เนื้อแข็ง", "อายุยืน"],
-         "reason": "พันธุ์พื้นถิ่นของป่าตะวันออก ปลูกฟื้นฟูได้ดี"},
-    ],
-    "ตะวันตก": [
-        {"name_th": "ประดู่ป่า", "scientific": "Pterocarpus macrocarpus",
-         "purpose": "ฟื้นฟูป่า", "height_m": "15–25",
-         "traits": ["ทนแล้ง", "พันธุ์พื้นถิ่น", "ไม้เศรษฐกิจ"],
-         "reason": "เหมาะกับภาคตะวันตกที่มีอากาศแห้ง"},
-        {"name_th": "มะขาม", "scientific": "Tamarindus indica",
-         "purpose": "ผลไม้/ร่มเงา", "height_m": "10–20",
-         "traits": ["ทนแล้งสุด", "ผลใช้ประโยชน์", "อายุยืน"],
-         "reason": "เหมาะกับเขตเงาฝนของภาคตะวันตก"},
-        {"name_th": "กระถินณรงค์", "scientific": "Acacia auriculiformis",
-         "purpose": "ฟื้นฟูดิน", "height_m": "8–15",
-         "traits": ["โตเร็วมาก", "ตรึงไนโตรเจน", "ฟื้นฟูดินเสื่อม"],
-         "reason": "ปรับปรุงดินที่เสื่อมโทรมจากการเกษตรเชิงเดี่ยว"},
-        {"name_th": "พะยูง", "scientific": "Dalbergia cochinchinensis",
-         "purpose": "อนุรักษ์/เศรษฐกิจ", "height_m": "15–25",
-         "traits": ["ทนแล้ง", "ราคาสูง", "ใกล้สูญพันธุ์"],
-         "reason": "อนุรักษ์พันธุ์หายาก ปลูกร่วมในป่าฟื้นฟู"},
-        {"name_th": "ตะแบกนา", "scientific": "Lagerstroemia floribunda",
-         "purpose": "ร่มเงาในเมือง", "height_m": "10–20",
-         "traits": ["ดอกสวย", "ทนแล้ง", "พุ่มเป็นระเบียบ"],
-         "reason": "เหมาะปลูกริมถนนในเขตเทศบาล"},
-    ],
-    "ใต้": [
-        {"name_th": "ยางนา", "scientific": "Dipterocarpus alatus",
-         "purpose": "ฟื้นฟูป่า", "height_m": "30–40",
-         "traits": ["ขนาดยักษ์", "ทนชื้น", "อายุยืน 100+ ปี"],
-         "reason": "พันธุ์เด่นของป่าฝนภาคใต้ ฟื้นฟูป่าดิบชื้นได้ยอดเยี่ยม"},
-        {"name_th": "ตะเคียนทอง", "scientific": "Hopea odorata",
-         "purpose": "ฟื้นฟูป่า", "height_m": "20–30",
-         "traits": ["ทนชื้น", "ไม้เนื้อแข็ง", "พันธุ์พื้นถิ่น"],
-         "reason": "เหมาะกับภาคใต้ที่ฝนชุก ฟื้นฟูป่าได้ดี"},
-        {"name_th": "เคี่ยม", "scientific": "Cotylelobium melanoxylon",
-         "purpose": "ฟื้นฟูป่าใต้", "height_m": "15–30",
-         "traits": ["พันธุ์พื้นถิ่นใต้", "ทนชื้นจัด", "ไม้เนื้อแข็งมาก"],
-         "reason": "พันธุ์เฉพาะถิ่นภาคใต้ ควรอนุรักษ์และขยายพันธุ์"},
-        {"name_th": "มังคุด", "scientific": "Garcinia mangostana",
-         "purpose": "ผลไม้เศรษฐกิจ", "height_m": "8–15",
-         "traits": ["ทนชื้น", "ผลผลิตสูง", "เศรษฐกิจดี"],
-         "reason": "เหมาะกับสภาพอากาศชื้นของใต้ และสร้างรายได้ชุมชน"},
-        {"name_th": "จิกน้ำ", "scientific": "Barringtonia acutangula",
-         "purpose": "ฟื้นฟูแหล่งน้ำ", "height_m": "8–15",
-         "traits": ["ทนน้ำท่วม", "ดอกสวย", "เหมาะริมน้ำ"],
-         "reason": "เหมาะกับพื้นที่ลุ่มและริมแหล่งน้ำในภาคใต้"},
-    ],
-}
+
+def _load_species_data(path: str = SPECIES_DATA_PATH) -> tuple[dict, dict]:
+    """อ่านบัญชีพันธุ์ไม้จากไฟล์ข้อมูล → ({ภาค: [พันธุ์...]}, metadata).
+
+    ไฟล์นี้เป็น asset ที่ระบบต้องมี (เหมือน data/thailand.json) — ถ้าหายให้ล้มทันที
+    พร้อมข้อความที่บอกวิธีสร้างใหม่ ดีกว่าปล่อยให้ endpoint คืนรายการว่างเงียบ ๆ
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            payload = json.load(f)
+    except FileNotFoundError:
+        raise RuntimeError(
+            f"ไม่พบไฟล์บัญชีพันธุ์ไม้ {path} — สร้างใหม่ด้วย "
+            "`python refresh_species_verification.py`") from None
+    meta = {k: v for k, v in payload.items() if k != "regions"}
+    return payload["regions"], meta
+
+
+TREE_SPECIES_BY_REGION, SPECIES_DATA_META = _load_species_data()
 
 
 @lru_cache(maxsize=1)
