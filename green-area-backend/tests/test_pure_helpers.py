@@ -8,7 +8,8 @@ import pytest
 # Import จาก backend modules — conftest.py ตั้ง sys.path ให้แล้ว
 from routers.ndvi import _is_stale, compute_who_status
 from routers.recommend import (_normalize_weights, W_NDVI, W_LST, W_POP, W_ACCESS,
-                               _haversine_m, _space_out, TOP_MIN_SEPARATION_M)
+                               _haversine_m, _space_out, TOP_MIN_SEPARATION_M,
+                               _drop_non_plantable, NATIVE_CHECK_SCALE_M)
 from routers.recommend import species as species_mod
 from routers.recommend.species import get_recommended_species
 from polygon_utils import (
@@ -249,6 +250,45 @@ class TestSpaceOut:
 
     def test_default_separation_is_positive(self):
         assert TOP_MIN_SEPARATION_M > 0
+
+
+# _drop_non_plantable (ตัดจุดที่พิกัดจริงตกบนพื้นที่ปลูกไม่ได้)
+# ครอบบั๊กที่วัดได้จริง: mask ถูกบังคับใช้บนกริด 200 m ทำให้จุดที่คืนมาตกบนอาคาร/
+# ป่าเดิมได้ (ลำพูน 2024 พบ 4/10 จุด) — ตัวกรองนี้ทำงานหลัง sample ก่อน _space_out
+class TestDropNonPlantable:
+    @staticmethod
+    def _cand(score):
+        return {'lat': 13.0, 'lng': 100.0, 'score': score, 'factors': {}}
+
+    def test_keeps_only_flagged_true(self):
+        cands = [self._cand(0.9), self._cand(0.8), self._cand(0.7)]
+        out = _drop_non_plantable(cands, {0: True, 1: False, 2: True})
+        assert [c['score'] for c in out] == [0.9, 0.7]
+
+    def test_missing_index_is_dropped(self):
+        # sample ไม่คืนค่าให้จุดนั้น (pixel ขาด) → ต้องตัดทิ้ง ไม่ใช่ปล่อยผ่าน
+        cands = [self._cand(0.9), self._cand(0.8)]
+        out = _drop_non_plantable(cands, {0: True})
+        assert [c['score'] for c in out] == [0.9]
+
+    def test_all_failing_returns_empty(self):
+        cands = [self._cand(0.9), self._cand(0.8)]
+        assert _drop_non_plantable(cands, {0: False, 1: False}) == []
+
+    def test_empty_flags_drops_everything(self):
+        assert _drop_non_plantable([self._cand(0.9)], {}) == []
+
+    def test_empty_candidates_returns_empty(self):
+        assert _drop_non_plantable([], {0: True}) == []
+
+    def test_preserves_priority_order(self):
+        cands = [self._cand(0.9 - i * 0.1) for i in range(5)]
+        out = _drop_non_plantable(cands, {i: True for i in range(5)})
+        assert [c['score'] for c in out] == [c['score'] for c in cands]
+
+    def test_native_check_scale_matches_worldcover_resolution(self):
+        # ต้องตรวจที่ความละเอียด native ของ WorldCover ไม่ใช่สเกลที่ sample ใช้ (200 m)
+        assert NATIVE_CHECK_SCALE_M == 10
 
 
 # _validate_geojson_path

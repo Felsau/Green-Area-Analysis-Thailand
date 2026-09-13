@@ -323,6 +323,18 @@ TOP_SAMPLE_SEED = 42          # คงที่ → ผลซ้ำได้ท�
 TOP_MIN_SEPARATION_M = 750    # ระยะห่างขั้นต่ำระหว่างจุดแนะนำ (เมตร) — ~ระดับย่าน/ตำบลเมือง
 TOP_CANDIDATE_POOL = 300      # จำนวน pixel คะแนนสูงสุดที่ดึงมาคัดระยะห่าง (>> n)
 
+# ตรวจซ้ำที่ความละเอียดจริงของ ESA WorldCover ก่อนคืนจุด
+# updateMask(plantable) ตอน sample ทำงานบนกริด 200 m (สเกลที่ sample ใช้) — เซลล์
+# 200 m ที่ "ปลูกได้เป็นส่วนใหญ่" ผ่าน mask ได้ แต่พิกัดที่ sample คืนมาเป็น *จุดเดียว*
+# ในเซลล์นั้น ซึ่งอาจตกบนอาคารหรือป่าเดิมพอดี · วัดจริงที่ลำพูน ปี 2024 พบ 4 ใน 10 จุด
+# ตกบนคลาสที่ ESA_NON_PLANTABLE_CLASSES ห้ามไว้ (อาคาร 2 จุด ป่าเดิม 2 จุด) ทั้งที่
+# mask ที่พิกัดนั้นเป็น 0 ทุกสเกล → การันตี "ไม่แนะนำบนน้ำ/อาคาร/ป่าเดิม" จึงจริงแค่
+# ระดับเซลล์ ไม่จริงระดับพิกัดที่ผู้ใช้เห็นบนแผนที่
+# แก้: sample mask ซ้ำที่พิกัดของ candidate ทุกจุดที่ 10 m (roundtrip เดียว) แล้วตัด
+# จุดที่ไม่ผ่านทิ้งก่อน _space_out · ตรวจ *ก่อน* คัดระยะห่างเพื่อให้ยังได้ n จุดครบ
+# จาก candidate ที่เหลือ (pool 300 จุด เหลือผ่านราว 60% ยังพอ)
+NATIVE_CHECK_SCALE_M = 10     # native ของ ESA WorldCover (SRTM 30 m ถูก resample ตาม)
+
 
 def _haversine_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     """ระยะทางโดยประมาณ (เมตร) ระหว่างสองพิกัด lat/lng (องศา) — great-circle.
@@ -361,6 +373,36 @@ def _space_out(candidates: list[dict], n: int, min_sep_m: float) -> list[dict]:
     return selected[:n]
 
 
+def _drop_non_plantable(candidates: list[dict], plantable_flags: dict[int, bool],
+                        ) -> list[dict]:
+    """ตัด candidate ที่พิกัดจริงไม่ผ่านการตรวจ plantable ที่ความละเอียด native.
+
+    แยกจาก _plantable_at_points เพื่อทดสอบได้โดยไม่แตะ GEE (เหมือน _space_out) ·
+    index ที่ไม่มีใน plantable_flags = sample ไม่คืนค่า (pixel ขาด) → ถือว่าไม่ผ่าน
+    (conservative — ยอมทิ้งจุดดีกว่าแนะนำให้ปลูกบนที่ที่ปลูกไม่ได้)"""
+    return [c for i, c in enumerate(candidates) if plantable_flags.get(i) is True]
+
+
+def _plantable_at_points(candidates: list[dict], plantable: ee.Image,
+                         ) -> dict[int, bool]:
+    """sample mask plantable ที่พิกัดของ candidate ทุกจุด ที่ NATIVE_CHECK_SCALE_M.
+
+    roundtrip เดียวสำหรับทั้ง pool · unmask(0) ก่อน sample เพื่อให้ pixel ที่ถูก mask
+    คืนค่า 0 แทนที่จะหายไปจากผล (จะได้แยก "ปลูกไม่ได้" ออกจาก "ไม่มีข้อมูล" ไม่ได้ก็จริง
+    แต่ทั้งสองกรณีต้องถูกตัดทิ้งเหมือนกัน) · คืน {index: ผ่าน/ไม่ผ่าน}"""
+    if not candidates:
+        return {}
+    fc = ee.FeatureCollection([
+        ee.Feature(ee.Geometry.Point([c['lng'], c['lat']]), {'idx': i})
+        for i, c in enumerate(candidates)])
+    info = (plantable.unmask(0).rename('plantable_ok')
+            .sampleRegions(collection=fc, scale=NATIVE_CHECK_SCALE_M,
+                           geometries=False)
+            .getInfo())
+    return {int(f['properties']['idx']): bool(f['properties'].get('plantable_ok'))
+            for f in info.get('features', [])}
+
+
 def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
                       lst_heat: ee.Image, pop_need: ee.Image, access_need: ee.Image,
                       peri_need: ee.Image, feasibility_need: ee.Image,
@@ -370,8 +412,10 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
 
     sample แบบ multi-band (priority + 6 องค์ประกอบ) ที่จุดเดียวกัน → คืน `factors`
     ของแต่ละจุด (ขาดต้นไม้/ร้อน/คนหนาแน่น/เข้าถึงสีเขียวยาก/ขอบเมืองลดร้อนคุ้ม/ปลูกง่าย)
-    เพื่ออธิบายว่า "ทำไม" จุดนี้คะแนนสูง · updateMask(plantable) ก่อน sample →
-    ไม่คืนจุดบนน้ำ/อาคาร/ป่าเดิม/ที่ชัน
+    เพื่ออธิบายว่า "ทำไม" จุดนี้คะแนนสูง · updateMask(plantable) ก่อน sample กรอง
+    ระดับเซลล์ 200 m แล้วตรวจซ้ำที่พิกัดจริงที่ NATIVE_CHECK_SCALE_M อีกชั้น
+    (_plantable_at_points + _drop_non_plantable) → ไม่คืนจุดบนน้ำ/อาคาร/ป่าเดิม/ที่ชัน
+    *ที่พิกัดที่ผู้ใช้เห็น* ไม่ใช่แค่ระดับเซลล์ (ดูเหตุผลที่ NATIVE_CHECK_SCALE_M)
 
     landuse (optional): band ประเภทการใช้ที่ดิน 1–5 (unmask(0) มาแล้ว — ดู
     compute_priority ขั้น 8) sample ที่จุดเดียวกัน → ติดป้าย `landuse` ต่อจุด
@@ -381,8 +425,11 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
     เพื่อทุ่ม budget ลงโซน hotspot จริง — เดิมสุ่มทั่ว geom ทำให้จังหวัดใหญ่พลาด pixel
     สูงสุด (ดู comment บล็อกด้านบน)
 
-    จากนั้นดึง candidate pool (เรียง priority) แล้ว _space_out ให้ n จุดสุดท้ายห่างกัน
-    ≥ TOP_MIN_SEPARATION_M → หมุดไม่กระจุกซ้อนกัน
+    จากนั้นดึง candidate pool (เรียง priority) → ตรวจ plantable ที่พิกัดจริง → _space_out
+    ให้ n จุดสุดท้ายห่างกัน ≥ TOP_MIN_SEPARATION_M → หมุดไม่กระจุกซ้อนกัน
+
+    อาจคืนน้อยกว่า n จุดถ้า candidate ผ่านการตรวจพิกัดไม่พอ — ตั้งใจให้เป็นแบบนั้น
+    (คืนจุดน้อยกว่าที่ขอ ดีกว่าคืนจุดที่ปลูกจริงไม่ได้)
     """
     # priority เฉพาะ pixel ที่ปลูกได้ — reduceRegion ข้าม pixel ที่ถูก mask อยู่แล้ว
     # → percentile คิดบน distribution ของ "ที่ปลูกได้" เท่านั้น (ไม่ปนน้ำ/อาคาร/ป่าเดิม)
@@ -433,6 +480,10 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
             entry['landuse'] = {'code': cat['code'], 'name_th': cat['name_th'],
                                 'guidance': PLANTING_GUIDANCE.get(cat['value'])}
         candidates.append(entry)
+    # ตรวจซ้ำที่พิกัดจริง (10 m) ก่อน แล้วค่อยคัดระยะห่าง — ลำดับนี้สำคัญ: ถ้าคัด
+    # ระยะห่างก่อนแล้วค่อยตัด จะเหลือจุดน้อยกว่าที่ควรได้
+    candidates = _drop_non_plantable(
+        candidates, _plantable_at_points(candidates, plantable))
     # candidates เรียงตาม priority มาแล้ว → คัดให้กระจาย ≥ TOP_MIN_SEPARATION_M
     return _space_out(candidates, n, TOP_MIN_SEPARATION_M)
 
