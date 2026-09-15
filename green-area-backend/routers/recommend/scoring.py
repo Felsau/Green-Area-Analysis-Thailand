@@ -10,8 +10,8 @@ from fastapi import HTTPException
 
 from canopy import ESA_TREE_COVER_CLASS, WORLDCOVER_ASSET
 from dependencies import WORLDPOP_YEAR, worldpop_unavailable_error
-from gee_utils import (clean_s2_collection, get_lst_col, worldpop_pop_collection,
-                       dynamic_world_built)
+from gee_utils import (get_lst_col, worldpop_pop_collection, dynamic_world_built,
+                       s2_clean_collection, s2_scene_count)
 from impact import IMPACT_DEFAULTS
 from landuse import CATEGORY_BY_VALUE, PLANTING_GUIDANCE, landuse_image
 
@@ -195,11 +195,9 @@ def assert_imagery_available(geom: ee.Geometry, year: int) -> None:
 
     ตรง threshold ที่ใช้ filter ต้องตรงกับใน compute_priority + get_lst_col
     ไม่งั้น guard จะคลาดกับ compute จริง"""
-    s2_size = (ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
-               .filterBounds(geom)
-               .filterDate(f'{year}-01-01', f'{year + 1}-01-01')  # end exclusive — รวม 31 ธ.ค.
-               .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 80))
-               .size())
+    # นับที่เกณฑ์ *สำรอง* เพราะ compute จริงถอยไปใช้เกณฑ์นั้นเองเมื่อเกณฑ์หลักว่าง —
+    # ถ้า guard นับที่เกณฑ์เข้มจะปฏิเสธปีที่ยังคำนวณได้จริง (ดู gee_utils.s2_scene_count)
+    s2_size = s2_scene_count(geom, year)
     lst_size = get_lst_col(geom, year).size()
     # WorldPop: .first() คืน null ถ้าไม่เจอ THA+WORLDPOP_YEAR — pop_need กลายเป็น null
     # → ทั้ง priority image พัง getMapId ตอน 'Image.select: input may not be null'
@@ -226,11 +224,10 @@ def compute_priority(geom: ee.Geometry, year: int,
     """คำนวณ Priority Score image (100m resolution) สำหรับ geometry ที่ระบุ"""
 
     # 1. NDVI
-    s2 = clean_s2_collection(
-        ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
-        .filterBounds(geom)
-        .filterDate(f'{year}-01-01', f'{year + 1}-01-01')  # end exclusive — รวม 31 ธ.ค.
-        .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 80)))
+    # เกณฑ์เมฆเดียวกับค่า NDVI ที่หน้าเว็บแสดง (gee_utils.s2_clean_collection) —
+    # เดิมที่นี่ใช้ < 80% ส่วนค่าที่แสดงใช้ < 20% คะแนน "ขาดต้นไม้" จึงคิดจาก composite
+    # คนละชุดกับตัวเลขที่ผู้ใช้เห็น
+    s2, _ = s2_clean_collection(geom, year)
     ndvi = s2.median().normalizedDifference(['B8', 'B4']).rename('NDVI')
 
     # NDVI deficit: NDVI < 0.3 = ขาดต้นไม้ (clamp 0-1)

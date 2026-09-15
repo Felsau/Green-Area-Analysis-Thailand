@@ -33,7 +33,17 @@ WORLDPOP_YEAR = int(os.getenv("WORLDPOP_YEAR", "2020"))
 # _is_stale() จะถือว่า row ที่ cache_version < CURRENT_CACHE_VERSION = stale
 # v1 → v2: เปลี่ยน cloud masking จาก QA60 เป็น Cloud Score+ (gee_utils) → NDVI ทุกค่า
 #          ที่ cache ด้วย QA60 (โดยเฉพาะปี 2022–2024 ที่ QA60 ว่าง) ถือว่า stale
-CURRENT_CACHE_VERSION = 2
+# v2 → v3: สามเรื่องที่ทำให้ค่าที่ cache ไว้ไม่ตรงกับวิธีคำนวณปัจจุบัน
+#          (1) LST mask QA_PIXEL ครบ 4 bit (เพิ่ม Dilated Cloud + Cirrus) — เดิมขอบเมฆ
+#              กับเมฆบางรั่วเข้า median ทำให้ค่าต่ำกว่าจริง · วัด 4 จังหวัด ปี 2024
+#              ได้ +0.10 ถึง +0.43 °C โดยพื้นที่ที่มีข้อมูลไม่ลดลงเลย
+#          (2) เกณฑ์เมฆ Sentinel-2 รวมมาที่ gee_utils.s2_clean_collection ที่เดียว —
+#              เดิมกราฟรายเดือน/urban/tiles ใช้ < 80% ส่วนค่ารายปีใช้ < 20% ค่าที่
+#              cache ไว้จากเส้นทางเหล่านั้นจึงมาจาก composite คนละชุดกับค่ารายปี
+#          (3) urban subset อ่าน WorldCover แบบสัดส่วน (fractional) แทน mask ที่อ่าน
+#              ผ่าน pyramid MODE → ประชากรในเขตเมืองเปลี่ยน −2.8 ถึง −5.5%
+#              (กรุงเทพฯ ปี 2024: 30.64 → 32.25 m²/คน)
+CURRENT_CACHE_VERSION = 3
 
 # Recommend cache version — แยกจาก CURRENT_CACHE_VERSION (NDVI/LST/urban) เพราะ
 # compute logic ของ /recommend เปลี่ยนคนละจังหวะ · bump เมื่อแก้ priority/plantable/
@@ -67,7 +77,14 @@ CURRENT_CACHE_VERSION = 2
 #          top_locations ที่ cache ด้วย v9 มีจุดที่ปลูกจริงไม่ได้ปนอยู่
 #          (2) พันธุ์ไม้แต่ละชนิดแนบ `verification` (BGCI/Kew WCVP/GBIF) → row v9
 #          ไม่มีฟิลด์นี้ การ์ดพันธุ์ไม้จะไม่มีแหล่งอ้างอิงแสดง
-RECOMMEND_CACHE_VERSION = 10
+# v10 → v11: สองเรื่องที่เปลี่ยนทั้งคะแนนและพื้นที่ที่แนะนำ
+#          (1) ndvi_deficit ใช้เกณฑ์เมฆเดียวกับค่า NDVI ที่หน้าเว็บแสดง (เดิม < 80%
+#              ขณะที่ค่าที่แสดงใช้ < 20%) → คะแนน priority ทุกพิกเซลขยับ
+#          (2) เกณฑ์ "ควรปลูกจริง" 0.5 → 0.35 (impact.PRIORITY_THRESHOLD) — 0.5 สูงกว่า
+#              เปอร์เซ็นไทล์ที่ 99 ของจังหวัดชนบททุกแห่งที่วัด (ขอนแก่นปลูกได้ 7,420 km²
+#              แต่ผ่านเกณฑ์ 9.3 km² = 0.13%) → พื้นที่/จำนวนต้น/CO₂/มูลค่า เปลี่ยนทั้งชุด
+#              (กรุงเทพฯ ปี 2024: 14.30 → 74.44 km²)
+RECOMMEND_CACHE_VERSION = 11
 MONTH_NAMES = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
                'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
 

@@ -12,6 +12,13 @@ import ValidationNote from './stats/ValidationNote';
 import DataTrustSection from './stats/DataTrustSection';
 import LandusePanel from './stats/LandusePanel';
 
+/** อุณหภูมิเป็นข้อความ — null (ไม่มีภาพ Landsat ที่ใช้ได้) ต้องเป็น "—" ไม่ใช่ "null°C".
+ *
+ * backend คืน null ตรง ๆ แล้ว (gee_utils.reduce_lst) แทนที่จะกลบเป็น 0 °C ซึ่งหน้าเว็บ
+ * เคยแสดงเป็นค่าที่วัดได้จริง · ใช้สัญลักษณ์เดียวกับ reportPdf/stats/districtSummary.js
+ */
+export const degC = (v) => (v != null ? `${v}°C` : '—');
+
 /** ข้อความกำกับแถว "ต่อหัวประชากร (ทั้งจังหวัด)" ตอนที่ยังไม่มีค่าเขตเมืองให้ใช้.
  *
  * เดิมเช็ค `urbanStats === null` ตัวเดียว ซึ่งเป็นจริงทั้งตอนกำลังโหลดและตอนโหลด
@@ -132,12 +139,12 @@ export default function StatsTab({ data, handlers }) {
               ) : (
                 <>
                   <Figure
-                    value={`${districtLstStats.lst_mean}°C`}
+                    value={degC(districtLstStats.lst_mean)}
                     tag={getLstLabel(districtLstStats.lst_mean)}
                   />
                   <KVRow>
-                    <KV label="Min" value={`${districtLstStats.lst_min}°C`} />
-                    <KV label="Max" value={`${districtLstStats.lst_max}°C`} />
+                    <KV label="Min" value={degC(districtLstStats.lst_min)} />
+                    <KV label="Max" value={degC(districtLstStats.lst_max)} />
                   </KVRow>
                   <Note tone="warn">
                     LST คืออุณหภูมิผิวพื้น/พืช จากดาวเทียม สูงกว่าอุณหภูมิอากาศปกติ 5–20°C ·
@@ -279,12 +286,12 @@ export default function StatsTab({ data, handlers }) {
           ) : lstStats ? (
             <>
               <Figure
-                value={`${lstStats.lst_mean}°C`}
+                value={degC(lstStats.lst_mean)}
                 tag={getLstLabel(lstStats.lst_mean)}
               />
               <KVRow>
-                <KV label="Min" value={`${lstStats.lst_min}°C`} />
-                <KV label="Max" value={`${lstStats.lst_max}°C`} />
+                <KV label="Min" value={degC(lstStats.lst_min)} />
+                <KV label="Max" value={degC(lstStats.lst_max)} />
               </KVRow>
               <Note tone="warn">
                 LST คืออุณหภูมิผิวพื้น สูงกว่าอุณหภูมิอากาศ 5–20°C · Max = พิกเซลร้อนสุดในพื้นที่

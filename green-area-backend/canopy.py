@@ -89,10 +89,27 @@ def _fractional_area(mask: ee.Image, native_scale_m: int, name: str) -> ee.Image
     หมายเหตุ: band ของ DW ที่ใช้เป็น *ความน่าจะเป็น* (pyramid policy = MEAN) อ่านที่
     scale หยาบได้ค่าเฉลี่ยที่ถูกต้องอยู่แล้ว จึงไม่ต้องผ่านฟังก์ชันนี้
     """
-    frac = (mask.reproject(ee.Projection('EPSG:4326').atScale(native_scale_m))
+    return fractional_cover(mask, native_scale_m, name).multiply(
+        ee.Image.pixelArea()).rename(name)
+
+
+def fractional_cover(mask: ee.Image, native_scale_m: int, name: str) -> ee.Image:
+    """สัดส่วนพื้นที่ปกคลุม **0–1 ต่อ cell** ที่ไม่เพี้ยนตาม scale — แกนกลางของ `_fractional_area`.
+
+    แยกออกมาเพราะบาง caller ต้องการตัว *สัดส่วน* ไม่ใช่พื้นที่ เช่นการถ่วงน้ำหนัก
+    ค่าอื่นด้วยสัดส่วนนั้น (ประชากร/NDVI ภายในเขตสิ่งปลูกสร้าง — ดู analysis/urban.py)
+    เหตุผลว่าทำไมต้อง reproject ก่อน reduceResolution อยู่ใน docstring ของ
+    `_fractional_area` ทั้งหมด
+
+    ข้อจำกัด: ใช้ได้เฉพาะ mask ที่มาจากข้อมูล *คลาสความละเอียดสูง* ล้วน (WorldCover)
+    — ห้ามใช้กับ mask ที่พึ่ง composite Sentinel-2 เพราะ reproject จะบังคับให้ GEE
+    คำนวณ composite ทั้งจังหวัดที่ native scale แล้วชน 'User memory limit exceeded'
+    (เหตุผลเต็มอยู่ใน validation.py หัวข้อ "ข้อจำกัดสำคัญ")
+    """
+    return (mask.reproject(ee.Projection('EPSG:4326').atScale(native_scale_m))
             .reduceResolution(reducer=ee.Reducer.mean(), bestEffort=True,
-                              maxPixels=FRACTION_MAX_PIXELS))
-    return frac.multiply(ee.Image.pixelArea()).rename(name)
+                              maxPixels=FRACTION_MAX_PIXELS)
+            .rename(name))
 
 
 def _dw_trees_prob(geom: ee.Geometry, year: int) -> ee.Image:

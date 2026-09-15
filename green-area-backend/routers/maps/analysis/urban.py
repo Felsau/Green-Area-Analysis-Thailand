@@ -13,7 +13,8 @@ from dependencies import (supa_call, internal_error, worldpop_unavailable_error,
                           get_province_geom, get_district_geom, resolve_year,
                           CURRENT_CACHE_VERSION,
                           WORLDPOP_YEAR, OptionalYearParam)
-from gee_utils import clean_s2_collection, worldpop_pop_collection
+from canopy import WORLDCOVER_NATIVE_SCALE_M, fractional_cover
+from gee_utils import s2_clean_collection, worldpop_pop_collection
 from keyed_lock import COMPUTE_LOCK
 
 # ESA WorldCover v200 class code (Built-up = สิ่งปลูกสร้าง/พื้นที่ urban)
@@ -33,13 +34,15 @@ def _compute_urban_subset(geom: ee.Geometry, province_name: str,
     # ESA WorldCover v200 = single image, ปี 2021 — ใช้เป็น proxy ของ urban extent
     wc = ee.ImageCollection("ESA/WorldCover/v200").first().clip(geom)
     built_up = wc.eq(ESA_BUILTUP_CLASS)
+    # WorldCover เป็น band แบบ *คลาส* (pyramiding = MODE) — อ่านตรง ๆ ที่ scale หยาบ
+    # จะได้ "คลาสที่พบบ่อยสุดใน cell" ทำให้ขอบเขตเมืองที่แทรกตัวปะปนกับพืชพรรณหายไป
+    # อย่างเป็นระบบ (กับดักเดียวกับที่ canopy.py/validation.py เขียนเตือนและแก้ไปแล้ว
+    # แต่ตกหล่นที่นี่) · ใช้ *สัดส่วน* สิ่งปลูกสร้างต่อ cell คิดบนกริด native 10 ม.แทน
+    built_frac = fractional_cover(built_up, WORLDCOVER_NATIVE_SCALE_M, 'built_frac')
 
     # Sentinel-2 NDVI ของปีที่ขอ
-    s2 = clean_s2_collection(
-        ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
-        .filterBounds(geom)
-        .filterDate(f'{year}-01-01', f'{year + 1}-01-01')  # end exclusive — รวม 31 ธ.ค.
-        .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 80)))
+    # เกณฑ์เมฆเดียวกับ NDVI รายปี (gee_utils.s2_clean_collection ถอยไปเกณฑ์สำรองเอง)
+    s2, _ = s2_clean_collection(geom, year)
     if s2.size().getInfo() == 0:
         raise HTTPException(status_code=404,
             detail=f"ไม่พบภาพ Sentinel-2 สำหรับ {scope} ปี {year}")
@@ -50,11 +53,21 @@ def _compute_urban_subset(geom: ee.Geometry, province_name: str,
     pixel_area = ee.Image.pixelArea().clip(geom)
     scale = 30  # ความละเอียดที่ balance ระหว่างความเร็วและความแม่น (WorldCover = 10m)
 
-    # 1) sum: total/urban/green-in-urban areas
+    # 1) sum: total/urban/green-in-urban areas + ตัวถ่วงน้ำหนักของ NDVI ในเขตเมือง
+    # ทุกพจน์ที่มาจาก WorldCover ล้วนคูณด้วย built_frac (สัดส่วนจริงต่อ cell) ส่วน
+    # พจน์ที่ตัดกับ green_mask ยัง mask ตามปกติ — green_mask มาจาก composite S2
+    # จะ reproject ไป 10 ม.ไม่ได้ (ชน memory limit ทั้งจังหวัด ดู validation.py)
+    # จึงคิดเป็น "พื้นที่สิ่งปลูกสร้างภายใน cell ที่ NDVI > 0.3" ซึ่งเป็นคู่อนาล็อกที่
+    # ถูกต้องของเดิมโดยไม่ต้องดัน S2 ลง native scale
+    urban_area = pixel_area.multiply(built_frac).rename('urban_area')
     area_stack = (pixel_area.rename('total_area')
-                  .addBands(pixel_area.updateMask(built_up).rename('urban_area'))
-                  .addBands(pixel_area.updateMask(built_up.And(green_mask))
-                            .rename('green_urban_area')))
+                  .addBands(urban_area)
+                  .addBands(urban_area.updateMask(green_mask)
+                            .rename('green_urban_area'))
+                  # ค่าเฉลี่ย NDVI ในเขตเมืองต้องถ่วงด้วยสัดส่วนสิ่งปลูกสร้าง ไม่ใช่
+                  # เฉลี่ยเฉพาะ cell ที่ "ส่วนใหญ่เป็นเมือง" → เก็บทั้งตัวตั้งและตัวหาร
+                  .addBands(ndvi.multiply(built_frac).rename('ndvi_x_built'))
+                  .addBands(built_frac.rename('built_frac_sum')))
     area_sums = area_stack.reduceRegion(
         reducer=ee.Reducer.sum(),
         geometry=geom, scale=scale, maxPixels=1e10, bestEffort=True, tileScale=4,
@@ -63,12 +76,10 @@ def _compute_urban_subset(geom: ee.Geometry, province_name: str,
     urban_m2 = area_sums.get('urban_area') or 0
     green_in_urban_m2 = area_sums.get('green_urban_area') or 0
 
-    # 2) mean NDVI within built-up
-    ndvi_urban_mean = (ndvi.updateMask(built_up)
-                       .reduceRegion(reducer=ee.Reducer.mean(),
-                                     geometry=geom, scale=scale,
-                                     maxPixels=1e10, bestEffort=True, tileScale=4)
-                       .get('NDVI').getInfo())
+    # 2) mean NDVI within built-up = Σ(NDVI · สัดส่วนเมือง) / Σ(สัดส่วนเมือง)
+    built_weight = area_sums.get('built_frac_sum') or 0
+    ndvi_urban_mean = ((area_sums.get('ndvi_x_built') or 0) / built_weight
+                       if built_weight else None)
 
     # Population ภายใน built-up (WorldPop 100m, ปี WORLDPOP_YEAR)
     # ถ้าไม่มี image สำหรับ THA+ปีนี้ .first() = null → ee.Image(null) พังด้วย
@@ -77,8 +88,11 @@ def _compute_urban_subset(geom: ee.Geometry, province_name: str,
     pop_col = worldpop_pop_collection(WORLDPOP_YEAR)
     if pop_col.size().getInfo() == 0:
         raise worldpop_unavailable_error(WORLDPOP_YEAR)
+    # คูณด้วย *สัดส่วน* สิ่งปลูกสร้าง ไม่ใช่ mask ทั้ง pixel — WorldPop เป็นจำนวนคน
+    # ต่อ pixel 100 ม. ซึ่งใหญ่กว่า WorldCover 10 เท่า การ mask แบบ MODE จะนับ pixel
+    # ที่ "ส่วนใหญ่เป็นเมือง" เต็มจำนวน และทิ้งคนในย่านที่เมืองปนพืชพรรณทั้งก้อน
     pop_urban = (ee.Image(pop_col.first()).select('population')
-                 .updateMask(built_up)
+                 .multiply(built_frac)
                  .reduceRegion(reducer=ee.Reducer.sum(), geometry=geom,
                                scale=100, maxPixels=1e10, bestEffort=True)
                  .get('population').getInfo()) or 0

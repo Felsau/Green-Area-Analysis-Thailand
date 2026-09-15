@@ -10,7 +10,8 @@ import ee
 
 from canopy import build_canopy, canopy_area_bands
 from dependencies import CURRENT_CACHE_VERSION, WHO_STANDARD_M2, MONTH_NAMES
-from gee_utils import clean_s2_collection
+from gee_utils import (S2_CLOUD_FILTER_FALLBACK_PCT, S2_CLOUD_FILTER_PCT,
+                       s2_clean_collection)
 
 
 def _is_stale(row: dict, require_validation: bool = False) -> bool:
@@ -90,8 +91,8 @@ def compute_who_status(green_area_m2, population):
 # รายงาน 2 ตัวชี้วัดที่แยกจากกัน (ไม่เอามาถัวเฉลี่ยเป็นคะแนนเดียว):
 #   1. ความไม่แน่นอนเชิงปริมาณของค่ากลางรายปี → เทียบเกณฑ์ GCOS-245
 #   2. ความเป็นตัวแทนของฤดูกาล → เทียบนิยามฤดูของกรมอุตุนิยมวิทยา
-S2_CLOUD_FILTER_PCT = 20           # เกณฑ์หลัก — รับเฉพาะภาพที่เมฆทั้งภาพ < 20%
-S2_CLOUD_FILTER_FALLBACK_PCT = 80  # เกณฑ์สำรอง เมื่อทั้งปีไม่มีภาพผ่านเกณฑ์หลัก
+# เกณฑ์เมฆย้ายไปนิยามที่ gee_utils แล้ว (ใช้ร่วมกันทั้งระบบ) — re-export ชื่อเดิมไว้
+# เพราะ build_data_quality ด้านล่างและ tests อ้างถึงชื่อนี้อยู่
 
 # การจัดระดับใช้ "เกณฑ์ที่อ้างอิงได้" ไม่ใช่ตัวเลขที่ตั้งเอง (ดูรายละเอียดแต่ละค่า
 # ด้านล่าง) · หลักการมาจาก QA4EO (CEOS/GEO): ผลิตภัณฑ์ EO ทุกชิ้นต้องแนบ Quality
@@ -280,24 +281,20 @@ def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int,
     limit exceeded' — ให้ฝั่งนั้นตั้ง tileScale ของตัวเองได้
     · None (default) = production path เดิม ไม่มีต้นทุน compute เพิ่ม
     """
-    def s2_col(cloud_pct):
-        return clean_s2_collection(
-            ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
-            .filterBounds(geom)
-            .filterDate(f'{year}-01-01', f'{year + 1}-01-01')  # end exclusive — รวม 31 ธ.ค.
-            .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', cloud_pct)))
+    # เกณฑ์เมฆ + การถอยไปเกณฑ์สำรองอยู่ใน gee_utils.s2_clean_collection ที่เดียว
+    # (ตัวเดียวกับที่ ndvi_deficit ของคะแนนความสำคัญ/urban/tiles/กราฟรายเดือนใช้) —
+    # เดิมที่นี่ใช้ < 20% แต่ที่อื่นใช้ < 80% ค่าที่แสดงกับค่าที่ใช้ตัดสินจึงคนละ composite
+    col, used_cloud_pct = s2_clean_collection(geom, year)
 
-    # ดึง system:time_start ของทุกภาพในคราวเดียว — ได้ทั้งจำนวนภาพ (แทน size()
-    # ที่เดิมเรียก ไม่เพิ่ม round-trip) และช่วงวัน/เดือนที่ composite ครอบคลุม (NFR-07)
-    cloud_filter_pct = S2_CLOUD_FILTER_PCT
-    col = s2_col(cloud_filter_pct)
-    times_ms = col.aggregate_array('system:time_start').getInfo()
+    # ดึง system:time_start ของทุกภาพ + เกณฑ์เมฆที่ถูกเลือกจริง ในคราวเดียว — ได้ทั้ง
+    # จำนวนภาพ และช่วงวัน/เดือนที่ composite ครอบคลุม (NFR-07) · การถอยไปเกณฑ์สำรอง
+    # ตัดสินฝั่ง server แล้ว จึงเหลือ round-trip เดียว (เดิมต้องยิงซ้ำเมื่อรอบแรกว่าง)
+    info = ee.Dictionary({'times': col.aggregate_array('system:time_start'),
+                          'cloud_pct': used_cloud_pct}).getInfo()
+    times_ms = info.get('times') or []
+    cloud_filter_pct = int(info['cloud_pct'])
     if not times_ms:
-        cloud_filter_pct = S2_CLOUD_FILTER_FALLBACK_PCT
-        col = s2_col(cloud_filter_pct)
-        times_ms = col.aggregate_array('system:time_start').getInfo()
-        if not times_ms:
-            return None
+        return None
 
     median = col.median().clip(geom)
     ndvi_raw = median.normalizedDifference(['B8', 'B4']).rename('NDVI')
@@ -383,12 +380,10 @@ def _compute_ndvi_monthly(geom: ee.Geometry, year: int, scale: int):
     """NDVI 12 เดือน รวมใน 1 round-trip ด้วย ee.List.sequence(server-side map)."""
     def by_month(m):
         m_int = ee.Number(m).toInt()
-        col = clean_s2_collection(
-            ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
-            .filterBounds(geom)
-            .filter(ee.Filter.calendarRange(m_int, m_int, 'month'))
-            .filter(ee.Filter.calendarRange(year, year, 'year'))
-            .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 80)))
+        # เกณฑ์เมฆเดียวกับค่ารายปี (ถอยไปเกณฑ์สำรองรายเดือนเองถ้าเดือนนั้นไม่มีภาพ
+        # ผ่านเกณฑ์หลัก) — เดิมตรึง < 80% ตายตัว ทำให้กราฟรายเดือนกับค่ารายปีมาจาก
+        # ชุดภาพคนละเกณฑ์ โดยที่ data_quality รายงานเกณฑ์ของค่ารายปีอย่างเดียว
+        col, _ = s2_clean_collection(geom, year, m_int)
         # เติม B8/B4 placeholder กัน normalizedDifference พังตอน col ว่าง
         median = col.median().addBands(
             ee.Image.constant([0, 0]).rename(['B8', 'B4']).selfMask(),
