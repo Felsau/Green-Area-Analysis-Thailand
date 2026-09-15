@@ -184,3 +184,72 @@
   .account__control-row { flex-wrap: wrap; }
   .account__control { flex-basis: 100%; }
 }
+
+/* ---------- Admin console (AdminModal) ---------- */
+/* ตารางผู้ใช้ + บทบาท · อยู่ไฟล์เดียวกับ account เพราะใช้ .account__* ร่วมกันเกือบหมด */
+.admin-modal { width: min(760px, 100%); }
+
+.admin__hint {
+  margin: 0 0 var(--s-3);
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+
+/* ตารางกว้างกว่าจอมือถือ — ให้เลื่อนเฉพาะตาราง ไม่ให้ทั้งโมดัลเลื่อนแนวนอน */
+.admin__table-wrap { overflow-x: auto; }
+
+.admin__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.admin__table th,
+.admin__table td {
+  padding: var(--s-2) var(--s-3);
+  text-align: left;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: middle;
+}
+
+.admin__table th {
+  font-weight: 600;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.admin__name {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-weight: 600;
+}
+
+.admin__me-tag {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--accent-soft, rgba(27, 122, 70, 0.12));
+  color: var(--accent, #1b7a46);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.admin__email {
+  display: block;
+  color: var(--ink-4);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.admin__role-select {
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface, #fff);
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-sm);
+}
+
+.admin__role-select:disabled { opacity: 0.55; cursor: progress; }

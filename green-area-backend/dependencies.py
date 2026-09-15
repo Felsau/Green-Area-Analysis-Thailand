@@ -173,21 +173,31 @@ def require_user(authorization: str | None = Header(default=None)) -> dict:
     return {"id": user.id, "email": user.email}
 
 
-def require_admin_or_user(x_admin_token: str | None = Header(default=None),
-                          authorization: str | None = Header(default=None)) -> None:
+def current_admin(x_admin_token: str | None = Header(default=None),
+                  authorization: str | None = Header(default=None)) -> dict | None:
     """อนุญาตถ้า (1) X-Admin-Token ตรง ADMIN_TOKEN (script/CI) หรือ (2) ผู้ใช้
     ล็อกอินที่มี profiles.role = 'admin' (ใช้งานผ่านหน้าเว็บด้วยบัญชีตัวเอง โดย
     ไม่ต้องพก ADMIN_TOKEN แยก) — ใช้กับ endpoint admin ที่ควรกดได้จากในแอปด้วย
+
+    คืน {"id", "email"} ของแอดมินที่ล็อกอิน · คืน None เมื่อผ่านด้วย X-Admin-Token
+    (สคริปต์/CI ไม่มีตัวตนผู้ใช้) — endpoint ที่ต้องรู้ว่า "ใครกด" เช่น กันแอดมิน
+    ลดสิทธิ์ตัวเองจนไม่มีใครเข้าจัดการระบบได้ ให้ Depends ตัวนี้แทน
     """
     if x_admin_token and ADMIN_TOKEN and secrets.compare_digest(x_admin_token, ADMIN_TOKEN):
-        return
+        return None
     if authorization:
         user = require_user(authorization)
         result = supa_call(lambda s: s.table("profiles").select("role")
                            .eq("id", user["id"]).limit(1).execute())
         if result.data and result.data[0].get("role") == "admin":
-            return
+            return user
     raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+def require_admin_or_user(x_admin_token: str | None = Header(default=None),
+                          authorization: str | None = Header(default=None)) -> None:
+    """เหมือน current_admin แต่ไม่คืนตัวตน — ใช้เป็น dependency กั้น endpoint เฉย ๆ"""
+    current_admin(x_admin_token, authorization)
 
 
 @lru_cache(maxsize=1)

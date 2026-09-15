@@ -2,7 +2,7 @@ import UserMenu from './UserMenu';
 
 export default function AppHeader({
   loading, sidebarCollapsed, onToggleSidebar, theme, onToggleTheme, onShowAbout, onGoHome,
-  user, profile, onShowAccount, onSavedAreas, onSignOut,
+  user, profile, onShowAccount, onShowAdmin, onSavedAreas, onSignOut,
 }) {
   const isDark = theme === 'dark';
   return (
@@ -46,6 +46,7 @@ export default function AppHeader({
           isAdmin={profile?.role === 'admin'}
           onAccount={onShowAccount}
           onSavedAreas={onSavedAreas}
+          onAdmin={onShowAdmin}
           onSignOut={onSignOut}
         />
       )}

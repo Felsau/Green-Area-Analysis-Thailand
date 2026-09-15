@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 // User avatar + dropdown in the topbar — account settings, saved areas, sign out.
-export default function UserMenu({ displayName, email, isAdmin, onAccount, onSavedAreas, onSignOut }) {
+export default function UserMenu({ displayName, email, isAdmin, onAccount, onSavedAreas, onAdmin, onSignOut }) {
   const [open, setOpen] = useState(false);
   const initial = (displayName || email || '?').trim().charAt(0).toUpperCase();
 
@@ -35,7 +35,7 @@ export default function UserMenu({ displayName, email, isAdmin, onAccount, onSav
                 พื้นที่ที่บันทึกไว้
               </button>
               {isAdmin && (
-                <button role="menuitem" className="usermenu__item" onClick={() => setOpen(false)}>
+                <button role="menuitem" className="usermenu__item" onClick={pick(onAdmin)}>
                   จัดการระบบ<span>→</span>
                 </button>
               )}

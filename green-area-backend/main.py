@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 from dependencies import (supa_call, require_admin_or_user, require_user, ensure_province,
                           PROVINCE_GEOMETRIES, resolve_year,
                           YearParam, OptionalYearParam, WHO_STANDARD_M2)
-from routers import ndvi, lst, recommend, maps, saved, account
+from routers import ndvi, lst, recommend, maps, saved, account, admin
 from schemas import RankingResponse, TimelapseResponse
 
 GEE_PROJECT = os.getenv("GEE_PROJECT")
@@ -127,6 +127,9 @@ app.include_router(recommend.router, dependencies=[Depends(require_user)])
 app.include_router(maps.router, dependencies=[Depends(require_user)])
 app.include_router(saved.router, dependencies=[Depends(require_user)])
 app.include_router(account.router)
+# admin.router กั้นสิทธิ์เองรายรายการ (current_admin / require_admin_or_user)
+# จึงไม่ผูก require_user ระดับ router เหมือนตัวอื่น
+app.include_router(admin.router)
 
 
 @app.get("/health")

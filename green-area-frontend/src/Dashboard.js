@@ -40,6 +40,7 @@ import AboutModal from './components/AboutModal';
 import DrawControl from './components/DrawControl';
 import SavedAreasPanel from './components/SavedAreasPanel';
 import AccountModal from './components/AccountModal';
+import AdminModal from './components/AdminModal';
 
 // Sidebar tab ids — whitelist for the ?tab= deep-link param (mirrors Sidebar TABS)
 const TAB_IDS = ['stats', 'trend', 'cooling', 'compare', 'recommend'];
@@ -54,6 +55,7 @@ export default function Dashboard({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showAbout, setShowAbout]       = useState(false);
   const [showAccount, setShowAccount]   = useState(false);
+  const [showAdmin, setShowAdmin]       = useState(false);
 
   // The year every scope-bound view reads: country ranking, province/district
   // panels, the NDVI/LST raster overlay and the draw tool. The analysis tabs
@@ -432,6 +434,7 @@ export default function Dashboard({
         user={auth.user}
         profile={auth.profile}
         onShowAccount={() => setShowAccount(true)}
+        onShowAdmin={() => setShowAdmin(true)}
         onSavedAreas={toggleSavedPanel}
         onSignOut={auth.signOut}
       />
@@ -514,6 +517,9 @@ export default function Dashboard({
         onCookieSettings={() => { setShowAbout(false); onCookieSettings(); }}
         onOpenPolicy={(doc) => { setShowAbout(false); onOpenPolicy(doc); }} />
       <AccountModal open={showAccount} onClose={() => setShowAccount(false)} auth={auth} />
+      {/* เปิดได้เฉพาะบทบาทผู้ดูแลระบบ — UserMenu ซ่อนปุ่มไว้อยู่แล้ว
+          และ /admin/* ฝั่ง backend กั้นซ้ำด้วย current_admin */}
+      <AdminModal open={showAdmin} onClose={() => setShowAdmin(false)} />
     </div>
   );
 }
