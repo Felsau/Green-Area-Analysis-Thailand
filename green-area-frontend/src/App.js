@@ -11,12 +11,14 @@ import AuthGate from './components/auth/AuthGate';
 import CookieConsent from './components/CookieConsent';
 import LegalModal from './components/auth/LegalModal';
 import { pushError } from './utils/toast';
+import { useGisAccess } from './hooks/useGisAccess';
 
 // The dashboard carries deck.gl, maplibre, turf, recharts and every sidebar
 // tab. None of it renders on the landing page or the auth gate, so it loads on
 // demand instead of sitting in the entry chunk — a first-time visitor gets to
 // the marketing page without paying for the map engine first.
 const Dashboard = lazy(() => import('./Dashboard'));
+const GisManagement = lazy(() => import('./components/GisManagement'));
 
 // Brand splash — shared by the "resolving session" state and the Suspense
 // fallback while the dashboard chunk is in flight, so the handoff into the map
@@ -40,6 +42,19 @@ function App() {
   const [legalDoc, setLegalDoc]         = useState(null);
   const { theme, toggleTheme } = useTheme();
   const auth = useAuth();
+  const gisAccess = useGisAccess(auth.user?.id);
+  const [gisView, setGisView] = useState(() => new URLSearchParams(window.location.search).get('view') === 'gis');
+  useEffect(() => {
+    const update = () => setGisView(new URLSearchParams(window.location.search).get('view') === 'gis');
+    window.addEventListener('popstate', update);
+    return () => window.removeEventListener('popstate', update);
+  }, []);
+  const navigateGis = open => {
+    const url = new URL(window.location.href);
+    if (open) url.searchParams.set('view', 'gis'); else url.searchParams.delete('view');
+    window.history.pushState(null, '', url);
+    setGisView(open);
+  };
 
   // Landing gate — shown once per browser session. Shared deep-links
   // (?p= ?d= ?tab= ?year=) must keep opening the dashboard directly.
@@ -81,7 +96,7 @@ function App() {
   // Landing view — the dashboard (map, sidebar) isn't mounted yet, but the
   // effect above already prefetches /thailand.json so entry feels instant.
   // Skipped entirely for an already-signed-in visitor (auth.user).
-  const screen = showLanding && !auth.user ? (
+  const screen = showLanding && !auth.user && !gisView ? (
     <Landing
       onEnter={enterDashboard}
       theme={theme}
@@ -97,7 +112,7 @@ function App() {
     <AuthGate auth={auth} theme={theme} onToggleTheme={toggleTheme} />
   ) : (
     <Suspense fallback={<BrandSplash />}>
-      <Dashboard
+      {gisView ? <GisManagement access={gisAccess} userId={auth.user.id} onBack={() => navigateGis(false)} /> : <Dashboard
         thailandData={thailandData}
         loading={loading}
         theme={theme}
@@ -106,7 +121,8 @@ function App() {
         onGoHome={goToLanding}
         onCookieSettings={() => setCookieSettings(true)}
         onOpenPolicy={setLegalDoc}
-      />
+        onOpenGis={gisAccess.allowed ? () => navigateGis(true) : undefined}
+      />}
     </Suspense>
   );
 

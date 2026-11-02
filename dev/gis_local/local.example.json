@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "mode": "local",
+  "project": "green-area-gis-t0",
+  "api_url": "http://127.0.0.1:55421",
+  "database": {"host": "db", "port": 5432, "name": "postgres"},
+  "GIS_ENABLED": false
+}

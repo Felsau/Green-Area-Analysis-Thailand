@@ -5,7 +5,7 @@ import time
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
@@ -29,6 +29,7 @@ from dependencies import (supa_call, require_admin_or_user, require_user, ensure
                           YearParam, OptionalYearParam, WHO_STANDARD_M2)
 from routers import ndvi, lst, recommend, maps, saved, account
 from schemas import RankingResponse, TimelapseResponse
+from gis_app import mount_gis, gis_rate_limit_handler
 
 GEE_PROJECT = os.getenv("GEE_PROJECT")
 ALLOWED_ORIGINS = [o.strip() for o in os.getenv(
@@ -57,6 +58,9 @@ if not IS_PRODUCTION:
     logger.warning("⚠️  ALLOWED_ORIGINS = localhost · production ต้องเปลี่ยนเป็น URL ของ frontend")
 
 app = FastAPI()
+# GIS defaults disabled here; only the attested local factory supplies its runtime.
+# Register its body guard before CORS; GIS never inherits the legacy admin header.
+mount_gis(app)
 # CORS — จำกัดเฉพาะ method/header ที่ API ใช้จริง (least privilege)
 # ไม่เปิด allow_credentials เพราะ API ใช้ token header ไม่ใช่ cookie
 # POST ใช้สำหรับ /analysis/custom-area (ส่ง GeoJSON polygon ใน body)
@@ -65,7 +69,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["X-Admin-Token", "Authorization", "Content-Type"],
+    allow_headers=["X-Admin-Token", "Authorization", "Content-Type", "Idempotency-Key"],
 )
 
 # Rate limit แบบ global ต่อ IP — กันใช้ผิดประเภท + GEE quota หมด
@@ -77,7 +81,7 @@ app.add_middleware(
 _rate_limit = os.getenv("RATE_LIMIT", "60/minute")
 limiter = Limiter(key_func=get_remote_address, default_limits=[_rate_limit])
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, gis_rate_limit_handler)
 app.add_middleware(SlowAPIMiddleware)
 
 # Observability — log request ที่ช้าผิดปกติ (ส่วนใหญ่คือ GEE compute ที่ block .getInfo())

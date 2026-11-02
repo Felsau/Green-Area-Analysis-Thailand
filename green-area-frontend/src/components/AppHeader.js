@@ -2,7 +2,7 @@ import UserMenu from './UserMenu';
 
 export default function AppHeader({
   loading, sidebarCollapsed, onToggleSidebar, theme, onToggleTheme, onShowAbout, onGoHome,
-  user, profile, onShowAccount, onSavedAreas, onSignOut,
+  user, profile, onShowAccount, onSavedAreas, onSignOut, onOpenGis,
 }) {
   const isDark = theme === 'dark';
   return (
@@ -14,7 +14,9 @@ export default function AppHeader({
         </div>
       </button>
       <div className="topbar__meta">
-        <span className="topbar__source"><strong>Sentinel-2</strong> · Google Earth Engine</span>
+        {import.meta.env.VITE_LOCAL_DEMO === 'true'
+          ? <span className="topbar__source"><strong>Local Demo</strong> · อ่าน Cache ในเครื่อง · Live GEE ยังปิดอยู่</span>
+          : <span className="topbar__source"><strong>Sentinel-2</strong> · Google Earth Engine</span>}
       </div>
       <button
         className="topbar__icon-btn"
@@ -47,6 +49,7 @@ export default function AppHeader({
           onAccount={onShowAccount}
           onSavedAreas={onSavedAreas}
           onSignOut={onSignOut}
+          onOpenGis={onOpenGis}
         />
       )}
       {loading && <div className="loading-bar" />}

@@ -1,0 +1,11 @@
+{
+  "independent_review": true,
+  "unresolved_high_critical": 0,
+  "review_type": "independent_static_sql_security_review",
+  "reviewer": "t3_review",
+  "scope": "exact SQL bytes through attested local runner only",
+  "files": {
+    "031_gis_native_v2.sql": "85d345fa5b8dca615735618f7d9e689646dc4a286c285e0601b51f410192269c"
+  }
+}
+

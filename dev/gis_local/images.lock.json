@@ -1,0 +1,15 @@
+{
+  "upstream": "https://github.com/supabase/supabase/tree/self-hosted/v0.8.3/docker",
+  "images": {
+    "db": "supabase/postgres@sha256:f371b5f3f2ac0a05703f33d6e6134515fb2498cab708fb948a0aeb7481467c00",
+    "auth": "supabase/gotrue@sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b",
+    "rest": "postgrest/postgrest@sha256:c7cd7e265a85b05248abf53f4473fcec7e327c282d0bd0cf60f1551996d09fcf",
+    "gateway": "kong/kong@sha256:9a2ae6699a2ce0d60592eb176555d3594a22782c20cc6557a61ff3a7e8b559a3"
+  },
+  "tags_reviewed": {"db": "17.6.1.136", "auth": "v2.197.0", "rest": "v14.18", "gateway": "3.9.3"},
+  "bootstrap": {
+    "webhooks.sql": "05a61316b899374253891cbba66ce073d9273f33983c3f47961eda3aa26c2823",
+    "roles.sql": "3ad717b225daa38aa982da26750f35641eb404e1eb5e69a763c22236ab96c1b2",
+    "jwt.sql": "c1d3f5c01e44646c2e533c5a1c111821cc49cb5a4c2534e08cddad61d8fb0339"
+  }
+}

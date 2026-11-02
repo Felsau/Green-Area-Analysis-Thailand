@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 // User avatar + dropdown in the topbar — account settings, saved areas, sign out.
-export default function UserMenu({ displayName, email, isAdmin, onAccount, onSavedAreas, onSignOut }) {
+export default function UserMenu({ displayName, email, isAdmin, onAccount, onSavedAreas, onSignOut, onOpenGis }) {
   const [open, setOpen] = useState(false);
   const initial = (displayName || email || '?').trim().charAt(0).toUpperCase();
 
@@ -34,6 +34,7 @@ export default function UserMenu({ displayName, email, isAdmin, onAccount, onSav
               <button role="menuitem" className="usermenu__item" onClick={pick(onSavedAreas)}>
                 พื้นที่ที่บันทึกไว้
               </button>
+              {onOpenGis && <button role="menuitem" className="usermenu__item" onClick={pick(onOpenGis)}>จัดการข้อมูล GIS<span>→</span></button>}
               {isAdmin && (
                 <button role="menuitem" className="usermenu__item" onClick={() => setOpen(false)}>
                   จัดการระบบ<span>→</span>

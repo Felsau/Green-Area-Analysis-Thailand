@@ -46,7 +46,7 @@ const TAB_IDS = ['stats', 'trend', 'cooling', 'compare', 'recommend'];
 
 export default function Dashboard({
   thailandData, loading, theme, onToggleTheme, auth,
-  onGoHome, onCookieSettings, onOpenPolicy,
+  onGoHome, onCookieSettings, onOpenPolicy, onOpenGis,
 }) {
   const [viewState, setViewState]       = useState(INITIAL_VIEW_STATE);
   const [tooltip, setTooltip]           = useState(null);
@@ -434,13 +434,14 @@ export default function Dashboard({
         onShowAccount={() => setShowAccount(true)}
         onSavedAreas={toggleSavedPanel}
         onSignOut={auth.signOut}
+        onOpenGis={onOpenGis}
       />
 
       <aside className="side">
         <Sidebar data={sidebarData} handlers={sidebarHandlers} />
       </aside>
 
-      <div className="canvas" ref={canvasRef}>
+      <div className="canvas" ref={canvasRef} onMouseLeave={() => setTooltip(null)}>
         <DeckGL
           viewState={viewState}
           onViewStateChange={handleViewStateChange}

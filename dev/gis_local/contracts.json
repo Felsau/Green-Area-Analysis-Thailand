@@ -1,0 +1,78 @@
+{
+  "contract_version": "1.0.0-t0",
+  "implementation_status": "contracts_only_no_gis_implementation",
+  "phase1_default_environment": "local_synthetic",
+  "feature_defaults": {"GIS_ENABLED": false, "activation_enabled": false},
+  "dataset_identity": {
+    "unique_fields": ["province", "data_year", "month", "kind", "purpose"],
+    "province_reference": "public.provinces.name_en",
+    "year_calendar": "CE",
+    "year_bounds": "1980 through current calendar year plus one",
+    "month": {"annual": 0, "monthly_min": 1, "monthly_max": 12},
+    "kind_purpose_pairs": [["ldd_shapefile", "landuse"], ["geotiff", "ndvi"], ["geotiff", "lst"]],
+    "ldd_month_must_equal": 0
+  },
+  "edition": {
+    "stored_review_states": ["draft", "validating", "validated", "withdrawn"],
+    "effective_active_state": "derived_only_from_dataset_active_edition_id",
+    "phase1_validation_provider": "synthetic",
+    "metadata_only_real_data": "draft_only_no_validation_or_activation",
+    "immutable_after_validation": true,
+    "active_pointer_scope": "sandbox_catalog_only_not_analysis",
+    "activation_authority": "admin_and_backend_and_database_sandbox_gates"
+  },
+  "authorization": {
+    "legacy_profile_roles_unchanged": ["user", "admin"],
+    "gis_officer": "separate_database_grant",
+    "actor_source": "verified_user_jwt_not_request_body_or_user_metadata",
+    "officer_scope": "shared_internal_catalog",
+    "officer_actions": ["read_catalog", "create_dataset", "edit_draft", "clone_edition", "enqueue_validation", "eligible_retry"],
+    "admin_extra_actions": ["grant_officer", "revoke_officer", "sandbox_activate", "sandbox_withdraw", "sandbox_rollback"],
+    "worker_actions": ["claim", "heartbeat", "complete", "fail", "recover"],
+    "worker_forbidden": ["direct_table_write", "enqueue", "activate", "grant_officer", "service_role_key"]
+  },
+  "jobs": {
+    "states": ["queued", "running", "succeeded", "failed"],
+    "phase1_kind": "validate_synthetic_edition",
+    "active_job_limit_per_edition": 1,
+    "claim": "atomic_for_update_skip_locked",
+    "lock_order_when_both_needed": ["edition", "job"],
+    "lease_seconds": 60,
+    "heartbeat_seconds": 15,
+    "max_attempts_per_run": 3,
+    "retry_delays_seconds": [5, 20, 60],
+    "max_explicit_retry_runs_per_original_run": 1,
+    "max_total_attempts_per_fingerprint": 6,
+    "fingerprint": ["edition_id", "input_revision", "input_hash", "validator_version"],
+    "retry_requires_current_revision_and_hash": true,
+    "terminal_failure_returns_edition_to_draft_atomically": true,
+    "lease_check": "wall_clock_after_row_lock_and_owner_token_check",
+    "progress": "monotonic_within_attempt_may_reset_on_retry",
+    "auto_activate": false
+  },
+  "api": {
+    "prefix": "/gis",
+    "implemented_in_t0": false,
+    "id_format": "UUID",
+    "timestamps": "UTC_ISO8601",
+    "mutation_header": "Idempotency-Key",
+    "optimistic_lock": "expected_revision_in_request_body",
+    "pagination": {"default_limit": 20, "max_limit": 100, "sort": ["created_at", "id"], "response": ["data", "next_cursor", "has_more"]},
+    "status_codes": {"created": 201, "active_job": 202, "terminal_job_semantic_dedup": 200, "unauthenticated": 401, "forbidden": 403, "not_found": 404, "conflict": 409, "validation": 422, "rate_limit": 429, "not_ready": 503},
+    "receipt_replay": "original_status_and_sanitized_body_then_get_current_job",
+    "error_shape": "detail:{code,message,fields}; also accept standard FastAPI 422 detail arrays"
+  },
+  "database": {
+    "migration_system": "existing_sql_no_prisma",
+    "proposed_next_migrations": [27, 28, 29],
+    "private_schema": "gis",
+    "private_schema_exposed_to_postgrest": false,
+    "api_access": "public_service_role_only_rpc_wrappers",
+    "mutation_and_receipt_atomic": true,
+    "ddl_and_ledger_atomic": true,
+    "new_tables_direct_client_access": false,
+    "legacy_cache_writes_in_phase1": false,
+    "account_deletion": "grant_subject_cascade_actor_set_null_preserve_shared_datasets_jobs_audit"
+  },
+  "deferred": ["real_storage_upload", "gee_ingestion", "cloud_poc", "production_activation", "production_migrations", "paid_worker", "redis", "celery", "gcs", "gis_deep_links"]
+}

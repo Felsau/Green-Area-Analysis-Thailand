@@ -1,0 +1,155 @@
+# T0 core only. Always use manage.py, never the repository's existing Compose.
+# Image digests and fresh local values are supplied by its explicit env file.
+name: green-area-gis-t0
+x-labels: &labels
+  gis.t0.scope: gis-foundation-t0
+  gis.t0.instance: ${GIS_LOCAL_INSTANCE:?explicit isolated runtime required}
+x-service: &service
+  restart: "no"
+  networks: [isolated]
+  labels: *labels
+  security_opt: [no-new-privileges:true]
+  logging:
+    driver: local
+    options: {max-size: 5m, max-file: "2"}
+services:
+  db:
+    <<: *service
+    image: ${GIS_LOCAL_DB_IMAGE:?pinned image required}
+    container_name: green-area-gis-t0-db
+    mem_limit: 2g
+    memswap_limit: 2g
+    cpus: 2
+    pids_limit: 256
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_PORT: "5432"
+      PGPORT: "5432"
+      POSTGRES_DB: postgres
+      PGDATABASE: postgres
+      POSTGRES_PASSWORD: ${GIS_LOCAL_DB_PASSWORD:?fresh local value required}
+      PGPASSWORD: ${GIS_LOCAL_DB_PASSWORD:?fresh local value required}
+      JWT_EXP: "3600"
+    command: [postgres, -c, config_file=/etc/postgresql/postgresql.conf, -c, "cluster_name=green-area-gis-t0", -c, log_min_messages=fatal, -c, shared_buffers=128MB, -c, max_connections=40]
+    volumes:
+      - data:/var/lib/postgresql/data
+      - db-config:/etc/postgresql-custom
+      - ${GIS_LOCAL_RUNTIME:?explicit runtime required}/vendor/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:ro
+      - ${GIS_LOCAL_RUNTIME:?explicit runtime required}/vendor/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+      - ${GIS_LOCAL_RUNTIME:?explicit runtime required}/vendor/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:ro
+    healthcheck:
+      test: [CMD, pg_isready, -U, postgres, -h, localhost]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+  auth:
+    <<: *service
+    image: ${GIS_LOCAL_AUTH_IMAGE:?pinned image required}
+    container_name: green-area-gis-t0-auth
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    read_only: true
+    cap_drop: [ALL]
+    tmpfs: ["/tmp:size=16777216,mode=1777"]
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: "9999"
+      API_EXTERNAL_URL: http://127.0.0.1:55421
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${GIS_LOCAL_DB_PASSWORD:?fresh local value required}@db:5432/postgres
+      GOTRUE_SITE_URL: http://127.0.0.1:3000
+      GOTRUE_URI_ALLOW_LIST: http://127.0.0.1:3000/**,http://localhost:3000/**
+      GOTRUE_DISABLE_SIGNUP: "true"
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: "3600"
+      GOTRUE_JWT_ISSUER: http://127.0.0.1:55421/auth/v1
+      GOTRUE_JWT_SECRET: ${GIS_LOCAL_JWT_SECRET:?fresh local value required}
+    healthcheck:
+      test: [CMD, wget, --no-verbose, --tries=1, --spider, http://localhost:9999/health]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  rest:
+    <<: *service
+    image: ${GIS_LOCAL_REST_IMAGE:?pinned image required}
+    container_name: green-area-gis-t0-rest
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    read_only: true
+    cap_drop: [ALL]
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${GIS_LOCAL_DB_PASSWORD:?fresh local value required}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_MAX_ROWS: "100"
+      PGRST_DB_POOL: "5"
+      PGRST_ADMIN_SERVER_PORT: "3001"
+      PGRST_ADMIN_SERVER_HOST: localhost
+      PGRST_JWT_SECRET: ${GIS_LOCAL_JWT_SECRET:?fresh local value required}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+    healthcheck:
+      test: [CMD, postgrest, --ready]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  gateway:
+    <<: *service
+    networks: [isolated, ingress]
+    image: ${GIS_LOCAL_GATEWAY_IMAGE:?pinned image required}
+    container_name: green-area-gis-t0-gateway
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1
+    pids_limit: 256
+    read_only: true
+    cap_drop: [ALL]
+    ports: ["127.0.0.1:55421:8000"]
+    tmpfs: ["/tmp:size=67108864,mode=1777"]
+    environment:
+      KONG_DATABASE: "off"
+      KONG_ANONYMOUS_REPORTS: "off"
+      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      KONG_PREFIX: /tmp/kong
+      KONG_PROXY_LISTEN: 0.0.0.0:8000
+      KONG_ADMIN_LISTEN: "off"
+      KONG_STATUS_LISTEN: "off"
+      KONG_PROXY_ACCESS_LOG: "off"
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: cors,key-auth
+      KONG_NGINX_WORKER_PROCESSES: "1"
+    volumes:
+      - ${GIS_LOCAL_RUNTIME:?explicit runtime required}/kong.yml:/home/kong/kong.yml:ro
+    healthcheck:
+      test: [CMD, kong, health]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+networks:
+  isolated:
+    name: green-area-gis-t0-internal
+    internal: true
+    labels: *labels
+  ingress:
+    name: green-area-gis-t0-ingress
+    internal: false
+    labels: *labels
+volumes:
+  data:
+    name: green-area-gis-t0-data
+    labels: *labels
+  db-config:
+    name: green-area-gis-t0-db-config
+    labels: *labels

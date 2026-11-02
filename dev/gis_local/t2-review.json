@@ -1,0 +1,10 @@
+{
+  "independent_review": true,
+  "unresolved_high_critical": 0,
+  "review_type": "independent_static_sql_security_review",
+  "reviewer": "t2_review",
+  "scope": "exact SQL bytes through attested local runner only",
+  "files": {
+    "030_gis_api_reads.sql": "0c6cd4b6fb3fe964dfcba848bf392a9b93cea87be7c15fd214cfe5e435b6f113"
+  }
+}

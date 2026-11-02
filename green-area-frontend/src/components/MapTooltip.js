@@ -1,6 +1,6 @@
 export default function MapTooltip({ tooltip }) {
   return (
-    <div style={{
+    <div role="tooltip" style={{
       position: 'absolute',
       left: tooltip.x + 12, top: tooltip.y - 48,
       background: '#ffffff',

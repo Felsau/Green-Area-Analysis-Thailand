@@ -1,0 +1,623 @@
+{
+  "schema_version": 2,
+  "provider_build": "t3-native-v1",
+  "synthetic_only": true,
+  "source_code_sha256": "91c8604115b8c5c08d362127ed5fd2ded8c8259d82f088ed259dba87cce81480",
+  "source_manifest_sha256": "72a406b0291f3dcc553346def336c39f2a6f7e776c89e637c7e7372b3f86fcdf",
+  "aoi": [
+    660000,
+    1520000,
+    661000,
+    1521000
+  ],
+  "entries": {
+    "t3-ldd-valid-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-ldd-valid-v2",
+        "sha256": "6a6494c8b54d4db0304239727f1081403737746cf4094dd150f63fa34e0d6930",
+        "byte_size": 2370,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "polygon",
+        "profile": "LDD_SYNTHETIC",
+        "provider_build": "t3-native-v1",
+        "attributes": [
+          "LUL1_CODE",
+          "LU_CODE",
+          "Shape_Area",
+          "LU_DES_TH",
+          "LU_DES_EN"
+        ]
+      },
+      "path": "ldd_valid.zip",
+      "purpose": "landuse",
+      "expected": {
+        "valid": true,
+        "feature_count": 3,
+        "total_area_m2": 6400,
+        "unknown_area_m2": 0,
+        "area_U_m2": 3200,
+        "area_A_m2": 3200,
+        "thai": "พื้นที่จำลอง",
+        "composite": "U201/A401"
+      },
+      "behavior": "validate"
+    },
+    "t3-ldd-cp874-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-ldd-cp874-v2",
+        "sha256": "fcd596f1d57856a6b02f1fd8b2d6fb739cf8a9fb2e99e643e67655b87855eb44",
+        "byte_size": 2370,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "polygon",
+        "profile": "LDD_SYNTHETIC",
+        "provider_build": "t3-native-v1",
+        "attributes": [
+          "LUL1_CODE",
+          "LU_CODE",
+          "Shape_Area",
+          "LU_DES_TH",
+          "LU_DES_EN"
+        ]
+      },
+      "path": "ldd_cp874.zip",
+      "purpose": "landuse",
+      "expected": {
+        "valid": true,
+        "feature_count": 3,
+        "total_area_m2": 6400,
+        "unknown_area_m2": 0,
+        "area_U_m2": 3200,
+        "area_A_m2": 3200,
+        "thai": "พื้นที่จำลอง",
+        "composite": "U201/A401"
+      },
+      "behavior": "validate"
+    },
+    "t3-ldd-composite-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-ldd-composite-v2",
+        "sha256": "0a2d12576aa1ca121bc726dc46fb976454308a5e04e4210383d291a478135836",
+        "byte_size": 2370,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "polygon",
+        "profile": "LDD_SYNTHETIC",
+        "provider_build": "t3-native-v1",
+        "attributes": [
+          "LUL1_CODE",
+          "LU_CODE",
+          "Shape_Area",
+          "LU_DES_TH",
+          "LU_DES_EN"
+        ]
+      },
+      "path": "ldd_composite_a.zip",
+      "purpose": "landuse",
+      "expected": {
+        "valid": true,
+        "feature_count": 3,
+        "total_area_m2": 6400,
+        "unknown_area_m2": 0,
+        "area_U_m2": 3200,
+        "area_A_m2": 3200,
+        "thai": "พื้นที่จำลอง",
+        "composite": "A300/A400"
+      },
+      "behavior": "validate"
+    },
+    "t3-unknown-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-unknown-v2",
+        "sha256": "792ce3d907dacc83e0ef8db9fc8c0063b5edd22b1b12b75cf15a9f3c0a7c272b",
+        "byte_size": 2370,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "polygon",
+        "profile": "LDD_SYNTHETIC",
+        "provider_build": "t3-native-v1",
+        "attributes": [
+          "LUL1_CODE",
+          "LU_CODE",
+          "Shape_Area",
+          "LU_DES_TH",
+          "LU_DES_EN"
+        ]
+      },
+      "path": "ldd_unknown.zip",
+      "purpose": "landuse",
+      "expected": {
+        "valid": false,
+        "feature_count": 3,
+        "total_area_m2": 6400,
+        "unknown_area_m2": 1600,
+        "area_U_m2": 1600,
+        "area_A_m2": 3200,
+        "thai": "พื้นที่จำลอง",
+        "composite": "U201/A401",
+        "unknown_code": "U9999_UNKNOWN"
+      },
+      "behavior": "validate"
+    },
+    "t3-zip-unsafe-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-zip-unsafe-v2",
+        "sha256": "6265283fdab5bd8a21c727d3989e5123e2bbfab4d2390f4d5b38560605237501",
+        "byte_size": 135,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "polygon",
+        "profile": "LDD_SYNTHETIC",
+        "provider_build": "t3-native-v1",
+        "attributes": [
+          "LUL1_CODE",
+          "LU_CODE",
+          "Shape_Area",
+          "LU_DES_TH",
+          "LU_DES_EN"
+        ]
+      },
+      "path": "zip_traversal.zip",
+      "purpose": "landuse",
+      "expected": {
+        "valid": false,
+        "error_code": "ZIP_PATH_UNSAFE"
+      },
+      "behavior": "validate"
+    },
+    "t3-zip-symlink-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-zip-symlink-v2",
+        "sha256": "86cdbeb52e9a86be7bd7d4397148f7bf7e7646e0f833a9f3d08dd6a435b0b6df",
+        "byte_size": 115,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "polygon",
+        "profile": "LDD_SYNTHETIC",
+        "provider_build": "t3-native-v1",
+        "attributes": [
+          "LUL1_CODE",
+          "LU_CODE",
+          "Shape_Area",
+          "LU_DES_TH",
+          "LU_DES_EN"
+        ]
+      },
+      "path": "zip_symlink.zip",
+      "purpose": "landuse",
+      "expected": {
+        "valid": false,
+        "error_code": "ZIP_SYMLINK"
+      },
+      "behavior": "validate"
+    },
+    "t3-ldd-missing-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-ldd-missing-v2",
+        "sha256": "e89b6ca39a01bc42d4255e2bef5aaa90adeea45fdffe12566474e07e8f76019c",
+        "byte_size": 1444,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "polygon",
+        "profile": "LDD_SYNTHETIC",
+        "provider_build": "t3-native-v1",
+        "attributes": [
+          "LUL1_CODE",
+          "LU_CODE",
+          "Shape_Area",
+          "LU_DES_TH",
+          "LU_DES_EN"
+        ]
+      },
+      "path": "ldd_missing_dbf.zip",
+      "purpose": "landuse",
+      "expected": {
+        "valid": false,
+        "error_code": "MISSING_COMPONENT_DBF"
+      },
+      "behavior": "validate"
+    },
+    "t3-s2-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-s2-v2",
+        "sha256": "0df2fb44f202d28cc2bbac78c2f55c680a41bd9b2fbc033c4f2433f0c25d3930",
+        "byte_size": 1526,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "raster",
+        "profile": "S2_SR_DN",
+        "provider_build": "t3-native-v1",
+        "bands": [
+          "B8",
+          "B4",
+          "VALID_MASK"
+        ],
+        "units": "DN",
+        "nodata": 65535,
+        "resolution": 10,
+        "scales": [
+          0.0001,
+          0.0001,
+          1
+        ],
+        "offsets": [
+          0,
+          0,
+          0
+        ]
+      },
+      "path": "s2.tif",
+      "purpose": "ndvi",
+      "expected": {
+        "valid": true,
+        "values": [
+          [
+            0.6,
+            0,
+            -0.6,
+            null
+          ],
+          [
+            null,
+            null,
+            0.6,
+            0.6
+          ]
+        ],
+        "valid_pixels": 5
+      },
+      "behavior": "validate"
+    },
+    "t3-lst-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-lst-v2",
+        "sha256": "0687f39ab001add7a8b20391f78c1edeb9ebd7524f3e15beed8367a4e6846531",
+        "byte_size": 1357,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "raster",
+        "profile": "LANDSAT_C2_L2_ST_DN",
+        "provider_build": "t3-native-v1",
+        "bands": [
+          "ST_B10",
+          "QA_PIXEL"
+        ],
+        "units": "DN",
+        "nodata": 0,
+        "resolution": 30,
+        "scales": [
+          0.00341802,
+          1
+        ],
+        "offsets": [
+          149,
+          0
+        ]
+      },
+      "path": "landsat.tif",
+      "purpose": "lst",
+      "expected": {
+        "valid": true,
+        "values": [
+          [
+            29.6609,
+            29.47974494,
+            null
+          ],
+          [
+            null,
+            null,
+            29.6609
+          ]
+        ],
+        "valid_pixels": 3
+      },
+      "behavior": "validate"
+    },
+    "t3-ndvi-ready-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-ndvi-ready-v2",
+        "sha256": "53636d4a2f0e8f7aa61bd528b9e6c6251ff7cd26f79d81f6e3cfd1e3de9de565",
+        "byte_size": 1045,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "raster",
+        "profile": "NDVI_FLOAT",
+        "provider_build": "t3-native-v1",
+        "bands": [
+          "NDVI"
+        ],
+        "units": "1",
+        "nodata": -9999,
+        "resolution": 10,
+        "scales": [
+          1
+        ],
+        "offsets": [
+          0
+        ]
+      },
+      "path": "ndvi_ready.tif",
+      "purpose": "ndvi",
+      "expected": {
+        "valid": true,
+        "values": [
+          [
+            0.6,
+            0,
+            -0.6
+          ],
+          [
+            null,
+            0.2,
+            0.4
+          ]
+        ],
+        "valid_pixels": 5
+      },
+      "behavior": "validate"
+    },
+    "t3-lst-ready-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-lst-ready-v2",
+        "sha256": "3d0e2e98ab7e8e884d4e84cb9b0b8c3025ca77b4fa5fa24b7003f5cc580bcb6f",
+        "byte_size": 1048,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "raster",
+        "profile": "LST_CELSIUS",
+        "provider_build": "t3-native-v1",
+        "bands": [
+          "LST"
+        ],
+        "units": "degC",
+        "nodata": -9999,
+        "resolution": 10,
+        "scales": [
+          1
+        ],
+        "offsets": [
+          0
+        ]
+      },
+      "path": "lst_ready.tif",
+      "purpose": "lst",
+      "expected": {
+        "valid": true,
+        "values": [
+          [
+            29.6609,
+            0,
+            10
+          ],
+          [
+            null,
+            20,
+            30
+          ]
+        ],
+        "valid_pixels": 5
+      },
+      "behavior": "validate"
+    },
+    "t3-kelvin-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-kelvin-v2",
+        "sha256": "4b1302ac13a776fdad767d3b25304e5b43dbcf2b50524f7732a95f6f89a86920",
+        "byte_size": 1044,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "raster",
+        "profile": "LST_KELVIN",
+        "provider_build": "t3-native-v1",
+        "bands": [
+          "LST"
+        ],
+        "units": "K",
+        "nodata": -9999,
+        "resolution": 10,
+        "scales": [
+          1
+        ],
+        "offsets": [
+          0
+        ]
+      },
+      "path": "lst_kelvin.tif",
+      "purpose": "lst",
+      "expected": {
+        "valid": true,
+        "values": [
+          [
+            29.6609,
+            0,
+            10
+          ],
+          [
+            null,
+            20,
+            30
+          ]
+        ],
+        "valid_pixels": 5
+      },
+      "behavior": "validate"
+    },
+    "t3-nodata-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-nodata-v2",
+        "sha256": "5803272a9bc15c8029b4190a3568a75676595fb7da7ca17c16567f015fbb6c26",
+        "byte_size": 1357,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "raster",
+        "profile": "LANDSAT_C2_L2_ST_DN",
+        "provider_build": "t3-native-v1",
+        "bands": [
+          "ST_B10",
+          "QA_PIXEL"
+        ],
+        "units": "DN",
+        "nodata": 0,
+        "resolution": 30,
+        "scales": [
+          0.00341802,
+          1
+        ],
+        "offsets": [
+          149,
+          0
+        ]
+      },
+      "path": "landsat_all_nodata.tif",
+      "purpose": "lst",
+      "expected": {
+        "valid": false,
+        "values": [
+          [
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null
+          ]
+        ],
+        "valid_pixels": 0,
+        "error_code": "ALL_NODATA"
+      },
+      "behavior": "validate"
+    },
+    "t3-timeout-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-timeout-v2",
+        "sha256": "6a6494c8b54d4db0304239727f1081403737746cf4094dd150f63fa34e0d6930",
+        "byte_size": 2370,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "polygon",
+        "profile": "LDD_SYNTHETIC",
+        "provider_build": "t3-native-v1",
+        "attributes": [
+          "LUL1_CODE",
+          "LU_CODE",
+          "Shape_Area",
+          "LU_DES_TH",
+          "LU_DES_EN"
+        ]
+      },
+      "path": "ldd_valid.zip",
+      "purpose": "landuse",
+      "expected": {
+        "valid": true,
+        "feature_count": 3,
+        "total_area_m2": 6400,
+        "unknown_area_m2": 0,
+        "area_U_m2": 3200,
+        "area_A_m2": 3200,
+        "thai": "พื้นที่จำลอง",
+        "composite": "U201/A401"
+      },
+      "behavior": "timeout"
+    },
+    "t3-oom-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-oom-v2",
+        "sha256": "6a6494c8b54d4db0304239727f1081403737746cf4094dd150f63fa34e0d6930",
+        "byte_size": 2370,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "polygon",
+        "profile": "LDD_SYNTHETIC",
+        "provider_build": "t3-native-v1",
+        "attributes": [
+          "LUL1_CODE",
+          "LU_CODE",
+          "Shape_Area",
+          "LU_DES_TH",
+          "LU_DES_EN"
+        ]
+      },
+      "path": "ldd_valid.zip",
+      "purpose": "landuse",
+      "expected": {
+        "valid": true,
+        "feature_count": 3,
+        "total_area_m2": 6400,
+        "unknown_area_m2": 0,
+        "area_U_m2": 3200,
+        "area_A_m2": 3200,
+        "thai": "พื้นที่จำลอง",
+        "composite": "U201/A401"
+      },
+      "behavior": "oom"
+    },
+    "t3-transient-v2": {
+      "manifest": {
+        "schema_version": 2,
+        "provider": "synthetic",
+        "fixture_id": "t3-transient-v2",
+        "sha256": "6a6494c8b54d4db0304239727f1081403737746cf4094dd150f63fa34e0d6930",
+        "byte_size": 2370,
+        "provenance": "synthetic-local-poc-20261026",
+        "crs": "EPSG:32647",
+        "data_kind": "polygon",
+        "profile": "LDD_SYNTHETIC",
+        "provider_build": "t3-native-v1",
+        "attributes": [
+          "LUL1_CODE",
+          "LU_CODE",
+          "Shape_Area",
+          "LU_DES_TH",
+          "LU_DES_EN"
+        ]
+      },
+      "path": "ldd_valid.zip",
+      "purpose": "landuse",
+      "expected": {
+        "valid": true,
+        "feature_count": 3,
+        "total_area_m2": 6400,
+        "unknown_area_m2": 0,
+        "area_U_m2": 3200,
+        "area_A_m2": 3200,
+        "thai": "พื้นที่จำลอง",
+        "composite": "U201/A401"
+      },
+      "behavior": "transient"
+    }
+  }
+}

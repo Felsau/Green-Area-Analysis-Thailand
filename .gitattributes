@@ -1,0 +1,5 @@
+# Applied GIS migrations are checksum-bound by the local migration ledger and
+# independent review records. Preserve their exact bytes on every platform.
+# Keep legacy 000-026 under their existing Git behavior.
+/green-area-backend/migrations/02[7-9]_*.sql -text
+/green-area-backend/migrations/03[0-6]_*.sql -text
