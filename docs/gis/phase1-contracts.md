@@ -5,6 +5,12 @@ Contract version: `1.0.0-t0`. Machine-readable counterpart:
 the reviewed Phase 1 plan; it is **not an API, SQL migration or worker implementation**.
 Any semantic change in T1–T4 must update this document, JSON and relevant tests.
 
+Publication extension: [A1 contracts](publication-contracts.md) separately define
+artifact registration and fail-closed publication readiness. The T0 text below is
+the original baseline. In the later GeoTIFF contract, successful validation is a
+current successful report while the Edition remains draft; A1 preserves that
+behavior. Neither validation nor artifact registration authorizes publication.
+
 ## Boundary and identity
 
 - Default `GIS_ENABLED=false`, sandbox activation disabled. T0 starts only vendor

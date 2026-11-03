@@ -74,5 +74,21 @@
     "legacy_cache_writes_in_phase1": false,
     "account_deletion": "grant_subject_cascade_actor_set_null_preserve_shared_datasets_jobs_audit"
   },
+  "publication": {
+    "contract_version": "1.0.0-a1",
+    "scope": "province",
+    "source_namespaces": ["legacy", "published"],
+    "active_pointer": "gis.datasets.active_edition_id",
+    "artifact_registry": "gis.publication_artifacts",
+    "registration_authority": "verified_backend_actor_admin_service_rpc_only",
+    "declarations_are_verification": false,
+    "verification_available": false,
+    "ready_for_publication": false,
+    "geotiff_validation": "successful_current_native_report_preserve_draft_edition",
+    "withdrawn_state": "terminal_clone_to_reuse",
+    "superseded_artifacts": "retain_immutable_references_for_future_rollback",
+    "legacy_readers_or_cache_changed": false,
+    "deferred": ["trusted_artifact_verifier", "prepare_processing", "publication_execution", "dashboard_source_resolver", "live_gee"]
+  },
   "deferred": ["real_storage_upload", "gee_ingestion", "cloud_poc", "production_activation", "production_migrations", "paid_worker", "redis", "celery", "gcs", "gis_deep_links"]
 }
