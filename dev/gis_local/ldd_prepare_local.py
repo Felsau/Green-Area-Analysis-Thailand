@@ -133,11 +133,11 @@ class LddPrepareLocal(a1.PublicationLocal):
 
 
 class PrepareContainer(m.ContainerWorker):
-    def __init__(self, local, identity=None):
+    def __init__(self, local, identity=None, *, create_native=None):
         self.local=local
         self.identity=identity or m.identity_module.provision(local)
         self.events,self.errors=[],[]
-        self.cid,self.policy=local.create_native(verify=False)
+        self.cid,self.policy=(create_native or local.create_native)(verify=False)
         self.proc=subprocess.Popen(local.db.runtime.base+['start','-a','-i',self.cid],stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,cwd=local.db.runtime.root,env=local.db.runtime.env)
         identity=self.identity

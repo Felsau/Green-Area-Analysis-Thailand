@@ -14,6 +14,7 @@ from gis_ldd_storage import UPLOAD_PATH
 from gis_geotiff_storage import UPLOAD_PATH as GEOTIFF_UPLOAD_PATH
 from routers.ldd_prepare import router as ldd_prepare_router
 from routers.ldd_publication import router as ldd_publication_router
+from routers.geotiff_prepare import router as geotiff_prepare_router
 
 
 def gis_rate_limit_handler(request, exception):
@@ -63,6 +64,7 @@ def mount_gis(app: FastAPI, runtime: GISRuntime | None = None, *, ldd_store=None
     app.include_router(router)
     app.include_router(ldd_prepare_router)
     app.include_router(ldd_publication_router)
+    app.include_router(geotiff_prepare_router)
     app.add_middleware(GISBodyLimit)
 
 

@@ -8,6 +8,13 @@ const location = { hostname: '127.0.0.1', protocol: 'http:' };
 const client = (overrides = {}, values = claims) => createGisClient({ enabled: true,
   getSession: async () => ({ data: { session: { access_token: token(values), user: { id: subject } } } }), ...overrides });
 
+test.each(['geotiff-prepared','geotiff-prepare-jobs','geotiff-prepare-retry','geotiff-prepare-verification'])('GeoTIFF prepare route %s uses closed local client',async suffix=>{
+  const fetcher=vi.fn(async()=>({ok:true,json:async()=>({preview_only:true})}));
+  await client({fetcher})(`/editions/${subject}/${suffix}`,suffix==='geotiff-prepared'?{}:{method:'POST',key:subject,body:{job_id:subject}});
+  expect(fetcher.mock.calls[0][0]).toContain(`/editions/${subject}/${suffix}`);
+  expect(fetcher.mock.calls[0][1].cache).toBe('no-store');
+});
+
 test('GeoTIFF sends raw TIFF with exact local route, profile and idempotency', async () => {
   const fetcher = vi.fn(async () => ({ ok: true, json: async () => ({ upload_id: subject }) }));
   const body = new File(['II* test'], 'local.tif', { type: 'image/tiff' });

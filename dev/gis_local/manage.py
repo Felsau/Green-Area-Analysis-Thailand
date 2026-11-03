@@ -242,16 +242,18 @@ services:
         preparing = isinstance(approval, dict) and set(approval) == {"name", "run_id", "ldd_storage", "prepare_staging"}
         verifying = isinstance(approval, dict) and set(approval) == {"name", "run_id", "ldd_storage", "prepare_staging", "verify_only"} and approval['verify_only'] is True
         publishing = isinstance(approval, dict) and set(approval) == {"name", "run_id", "ldd_storage", "prepare_objects", "publication_only"} and approval['publication_only'] is True
-        isolated = verifying or publishing
+        geo_preparing = isinstance(approval, dict) and set(approval) == {'name','run_id','geotiff_storage','geotiff_staging'}
+        geo_verifying = isinstance(approval, dict) and set(approval) == {'name','run_id','geotiff_storage','geotiff_staging','verify_only'} and approval['verify_only'] is True
+        isolated = verifying or publishing or geo_verifying
         ldd = preparing or verifying or publishing or isinstance(approval, dict) and set(approval) == {"name", "run_id", "ldd_storage"}
         processing = isinstance(approval, dict) and set(approval) == {"name", "run_id", "processing_legacy"}
-        geotiff = isinstance(approval, dict) and set(approval) == {"name", "run_id", "geotiff_storage"}
+        geotiff = geo_preparing or geo_verifying or isinstance(approval, dict) and set(approval) == {"name", "run_id", "geotiff_storage"}
         if (not isinstance(container_id, str) or not re.fullmatch(r"[0-9a-f]{64}", container_id)
-                or not isinstance(approval, dict) or set(approval) != ({"name", "run_id", "ldd_storage", "prepare_objects", "publication_only"} if publishing else {"name", "run_id", "ldd_storage", "prepare_staging", "verify_only"} if verifying else {"name", "run_id", "ldd_storage", "prepare_staging"} if preparing else {"name", "run_id", "ldd_storage"} if ldd else {"name", "run_id", "geotiff_storage"} if geotiff else {"name", "run_id", "processing_legacy"} if processing else {"name", "run_id"})
+                or not isinstance(approval, dict) or set(approval) != ({'name','run_id','geotiff_storage','geotiff_staging','verify_only'} if geo_verifying else {'name','run_id','geotiff_storage','geotiff_staging'} if geo_preparing else {"name", "run_id", "ldd_storage", "prepare_objects", "publication_only"} if publishing else {"name", "run_id", "ldd_storage", "prepare_staging", "verify_only"} if verifying else {"name", "run_id", "ldd_storage", "prepare_staging"} if preparing else {"name", "run_id", "ldd_storage"} if ldd else {"name", "run_id", "geotiff_storage"} if geotiff else {"name", "run_id", "processing_legacy"} if processing else {"name", "run_id"})
                 or (processing and approval['processing_legacy'] is not True)
                 or not isinstance(approval["run_id"], str)
                 or not re.fullmatch(r"[0-9a-f]{32}", approval["run_id"])
-                or approval["name"] != ("gis-ldd-publication-verify-" if publishing else "gis-ldd-verify-" if verifying else "gis-ldd-prepare-worker-" if preparing else "gis-ldd-worker-" if ldd else "gis-geotiff-worker-" if geotiff else "gis-processing-worker-" if processing else "gis-t3-worker-") + approval["run_id"][:12]):
+                or approval["name"] != ("gis-geotiff-verify-" if geo_verifying else "gis-geotiff-prepare-worker-" if geo_preparing else "gis-ldd-publication-verify-" if publishing else "gis-ldd-verify-" if verifying else "gis-ldd-prepare-worker-" if preparing else "gis-ldd-worker-" if ldd else "gis-geotiff-worker-" if geotiff else "gis-processing-worker-" if processing else "gis-t3-worker-") + approval["run_id"][:12]):
             raise guard.SafetyError("WORKER_EXPLICIT_APPROVAL_REQUIRED")
         try:
             item = json.loads(self.docker(["inspect", "--format", WORKER_INSPECT, container_id]))
@@ -260,7 +262,9 @@ services:
             owner = self.owner()
             labels = {"gis.t3.scope": "gis-worker-t3", "gis.t3.instance": owner["instance"],
                 "gis.t3.run": approval["run_id"], "com.docker.compose.project": guard.PROJECT}
-            if publishing:
+            if geo_preparing or geo_verifying:
+                labels = {'gis.a4.scope':'geotiff-verify' if geo_verifying else 'geotiff-prepare','gis.a4.instance':owner['instance'],'gis.a4.run':approval['run_id'],'com.docker.compose.project':guard.PROJECT}
+            elif publishing:
                 labels = {"gis.a3.scope": "ldd-publication-verifier", "gis.a3.instance": owner["instance"],
                     "gis.a3.run": approval["run_id"], "com.docker.compose.project": guard.PROJECT}
             elif preparing or verifying:
@@ -279,7 +283,7 @@ services:
                     or item["labels"] != labels or item["image"] != WORKER_IMAGE
                     or item["image_id"] != WORKER_IMAGE):
                 raise guard.SafetyError("WORKER_IDENTITY_OR_IMAGE_REJECTED")
-            command = ["python3", "-I", "-B", "/app/gis_worker/ldd_publication_child.py"] if publishing else ["python3", "-I", "-B", "/app/gis_worker/ldd_prepare_child.py", "--verify"] if verifying else ["python3", "-I", "-B", "/app/gis_worker/ldd_prepare_worker.py"] if preparing else ["python3", "-I", "-B", "/app/gis_worker/ldd_worker.py"] if ldd else ["python3", "-I", "-B", "/app/gis_worker/geotiff_worker.py"] if geotiff else ["python3", "-I", "-B", "/app/gis_worker/processing_worker.py"] if processing else WORKER_COMMAND
+            command = ["python3","-I","-B","/app/gis_worker/geotiff_prepare_child.py","--verify"] if geo_verifying else ["python3","-I","-B","/app/gis_worker/geotiff_prepare_worker.py"] if geo_preparing else ["python3", "-I", "-B", "/app/gis_worker/ldd_publication_child.py"] if publishing else ["python3", "-I", "-B", "/app/gis_worker/ldd_prepare_child.py", "--verify"] if verifying else ["python3", "-I", "-B", "/app/gis_worker/ldd_prepare_worker.py"] if preparing else ["python3", "-I", "-B", "/app/gis_worker/ldd_worker.py"] if ldd else ["python3", "-I", "-B", "/app/gis_worker/geotiff_worker.py"] if geotiff else ["python3", "-I", "-B", "/app/gis_worker/processing_worker.py"] if processing else WORKER_COMMAND
             if (item["user"] != "65534:65534" or item["command"] != command
                     or item["entrypoint"] not in (None, []) or item["workdir"] != "/app/gis_worker"):
                 raise guard.SafetyError("WORKER_PROCESS_CONFIG_REJECTED")
@@ -348,6 +352,17 @@ services:
                         or prepared_owner != {**marker, 'scope': 'gis-ldd-prepared-v1'}):
                         raise guard.SafetyError('WORKER_PREPARE_STORAGE_REJECTED')
                     expected_binds.append((canonical_bind_path(str(staging)), '/data/prepare', not verifying))
+                if geo_preparing or geo_verifying:
+                    prepared = self.root / 'geotiff-prepared'
+                    staging = prepared / 'staging'
+                    for path in (prepared, staging, prepared / 'owner.json'):
+                        if (path.is_symlink() or getattr(path, 'is_junction', lambda: False)()
+                            or bool(getattr(path.lstat(), 'st_file_attributes', 0) & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0))):
+                            raise guard.SafetyError('WORKER_PREPARE_STORAGE_REJECTED')
+                    if (not staging.is_dir() or canonical_bind_path(str(staging)) != approval['geotiff_staging']
+                        or json.loads((prepared / 'owner.json').read_text(encoding='utf-8')) != {**marker, 'scope':'gis-geotiff-prepared-v1'}):
+                        raise guard.SafetyError('WORKER_PREPARE_STORAGE_REJECTED')
+                    expected_binds.append((canonical_bind_path(str(staging)), '/data/prepare', not geo_verifying))
                 if publishing:
                     prepared = self.root / 'ldd-prepared'
                     objects = prepared / 'objects'

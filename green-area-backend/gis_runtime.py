@@ -147,7 +147,8 @@ class GISRuntime:
     def rpc(self, name: str, params: dict):
         if name not in {"gis_command", "gis_read", "gis_ldd_command", "gis_ldd_read", "gis_processing_command", "gis_processing_read", "gis_geotiff_command", "gis_geotiff_read",
                 "gis_ldd_prepare_command", "gis_ldd_prepare_read", "gis_ldd_verify_complete", "gis_ldd_verify_revoke",
-                "gis_ldd_publication_command", "gis_ldd_published_read", "gis_ldd_published_unavailable"}:
+                "gis_ldd_publication_command", "gis_ldd_published_read", "gis_ldd_published_unavailable",
+                "gis_geotiff_prepare_command", "gis_geotiff_prepare_read", "gis_geotiff_verify_complete", "gis_geotiff_verify_revoke"}:
             raise unavailable()
         for attempt in range(2):
             self.require_ready()  # Repeat target check before a possible retry too.

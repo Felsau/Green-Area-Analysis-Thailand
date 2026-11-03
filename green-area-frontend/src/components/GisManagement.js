@@ -3,6 +3,7 @@ import { gisConfigured, gisRequest } from '../utils/gisClient';
 import '../styles/gis.css';
 import LddPreparedPreview from './LddPreparedPreview';
 import LddPublicationActions from './LddPublicationActions';
+import GeoTiffPreparedPreview from './GeoTiffPreparedPreview';
 
 const labels = { draft: 'ฉบับร่าง', validating: 'กำลังตรวจสอบ', validated: 'ตรวจผ่านแล้ว', withdrawn: 'ถอนแล้ว',
   queued: 'รอประมวลผล', running: 'กำลังประมวลผล', succeeded: 'สำเร็จ', failed: 'ไม่สำเร็จ', expired: 'Lease หมดอายุ',
@@ -361,6 +362,8 @@ function DatasetDetail({ id, version, access, form, prepare, pending, onLoad, on
         </div>{access.me.ldd_prepare_enabled && e.upload && e.manifest?.schema_version !== 4 && e.state === 'validated' && <LddPreparedPreview dataset={dataset} edition={e} version={version} pending={pending} onAction={prepare} />}
         {access.me.admin && access.me.ldd_publication_enabled && e.upload && e.manifest?.schema_version !== 4 && e.state === 'validated'
           && <LddPublicationActions dataset={dataset} edition={e} editions={page.data} pending={pending} onAction={prepare} />}
+        {access.me.geotiff_prepare_enabled && e.upload && e.manifest?.schema_version === 4 && e.state === 'draft'
+          && <GeoTiffPreparedPreview dataset={dataset} edition={e} version={version} pending={pending} onAction={prepare} />}
         {history === e.id && <EditionHistory key={history} id={history} version={version} />}</article>)}
       <PageControls page={page} />
     </>}
