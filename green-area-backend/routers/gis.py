@@ -75,6 +75,8 @@ def get_me(request: Request, actor: Actor, service: Service):
     result['processing_enabled'] = isinstance(ready, dict) and 35 in ready.get('migration_versions', [])
     result['gee_live_enabled'] = False
     result['geotiff_upload_enabled'] = getattr(request.app.state, 'gis_geotiff_store', None) is not None and 36 in ready.get('migration_versions', [])
+    if getattr(request.app.state, 'gis_prepared_store', None) is not None:
+        result['ldd_prepare_enabled'] = 38 in ready.get('migration_versions', [])
     return result
 
 

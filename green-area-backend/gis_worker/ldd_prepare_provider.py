@@ -1,0 +1,164 @@
+"""Credential-free LDD preparation and independent byte-for-byte verification.
+
+Method preserves source features and declared Shape_Area; no provincial clipping,
+simplification, legacy formula change or claim of a complete province inventory.
+"""
+from __future__ import annotations
+
+from collections import defaultdict
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import stat
+from uuid import UUID
+
+from gis_worker import ldd_provider as ldd
+
+METHOD = 'ldd-source-area-v1'
+VERIFIER = 'ldd-trusted-bytes-v1'
+MAX_ARTIFACT = 20 * 1024**2
+NAMES = {'ldd_geometry': 'geometry.json', 'ldd_summary': 'summary.json'}
+
+
+def require(ok, code):
+    if not ok:
+        raise ldd.LddError(code)
+
+
+def canonical(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False).encode('utf-8')
+
+
+def check_request(value):
+    require(isinstance(value, dict) and set(value) == {'validation', 'dataset_id', 'edition_id', 'validation_result_id',
+        'job_id', 'method_version'}, 'PREPARE_REQUEST_INVALID')
+    ldd.check_request(value['validation'])
+    for key in ('dataset_id', 'edition_id', 'validation_result_id', 'job_id'):
+        try:
+            require(str(UUID(value[key])) == value[key], 'PREPARE_REQUEST_INVALID')
+        except (ValueError, TypeError, AttributeError):
+            raise ldd.LddError('PREPARE_REQUEST_INVALID') from None
+    require(value['method_version'] == METHOD, 'PREPARE_METHOD_UNSUPPORTED')
+    return value
+
+
+def stage_key(request):
+    check_request(request)
+    return request['job_id'] + '-' + str(request['validation']['attempt_number'])
+
+
+def read_regular(path, maximum=MAX_ARTIFACT):
+    path = Path(path)
+    require(not any(p.is_symlink() for p in (path, *path.parents)), 'PREPARE_UNSAFE_PATH')
+    fd = os.open(path, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0))
+    with os.fdopen(fd, 'rb') as stream:
+        info = os.fstat(stream.fileno())
+        require(stat.S_ISREG(info.st_mode) and info.st_nlink == 1 and 0 < info.st_size <= maximum, 'PREPARE_FILE_LIMIT')
+        raw = stream.read(maximum + 1)
+        require(len(raw) == info.st_size, 'PREPARE_FILE_CHANGED')
+        return raw
+
+
+def build(request, *, source_root=ldd.STORAGE_ROOT):
+    """Reopen original ZIP and derive deterministic artifacts, never trust output."""
+    check_request(request)
+    validation = request['validation']
+    result = ldd.validate(validation, storage_root=source_root)
+    require(result['valid'], result.get('error_code') or 'PREPARE_INVALID_SOURCE')
+    raw = ldd._source_bytes(validation, source_root)
+    require(hashlib.sha256(raw).hexdigest() == validation['manifest']['sha256'], 'LDD_SHA256_MISMATCH')
+    name, parts = ldd._components(ldd.guarded_zip(raw))
+    import fiona
+    from fiona.io import ZipMemoryFile
+    from fiona.transform import transform_geom
+    from fiona.model import to_dict
+    from shapely.geometry import shape
+    legend = ldd._asset('ldd_codes.json', ldd.LEGEND_SHA256)['codes']
+    meta = {k: request[k] for k in ('dataset_id', 'edition_id', 'validation_result_id', 'method_version')}
+    meta.update(schema_version=1, province=validation['province'], data_year=validation['data_year'], month=0,
+        input_hash=validation['input_hash'], input_revision=validation['input_revision'],
+        source_sha256=validation['manifest']['sha256'], boundary_sha256=ldd.BOUNDARY_SHA256,
+        legend_sha256=ldd.LEGEND_SHA256, display_crs='EPSG:4326', area_units='m2',
+        coverage_mode='validated_source_footprint', complete_province_inventory=False,
+        warnings=['BOUNDARY_APPROXIMATE', 'DATA_YEAR_METADATA_DECLARED', 'NOT_COMPLETE_PROVINCE_INVENTORY'])
+    features = []
+    by_code, by_main = defaultdict(float), {key: 0.0 for key in 'UAFWM'}
+    total = 0.0
+    with fiona.Env(GDAL_PAM_ENABLED='NO', GDAL_VRT_ENABLE_PYTHON='NO', GDAL_DISABLE_READDIR_ON_OPEN='YES'):
+        with ZipMemoryFile(raw) as memory:
+            with memory.open(name, enabled_drivers=['ESRI Shapefile'], encoding=result['encoding']) as collection:
+                for number, feature in enumerate(collection):
+                    props = {k.casefold(): v for k, v in dict(feature['properties']).items()}
+                    code, main, area = props['lu_code'], props['lul1_code'], props['shape_area']
+                    classification = ldd._main_code(code, main, legend)
+                    require(classification is not None, 'UNKNOWN_CODE_REVIEW_REQUIRED')
+                    geometry = to_dict(transform_geom(validation['manifest']['crs'], 'EPSG:4326', feature['geometry']))
+                    geographic = shape(geometry)
+                    require(not geographic.is_empty and geographic.is_valid, 'PREPARE_GEOMETRY_INVALID')
+                    features.append({'type': 'Feature', 'id': number,
+                        'properties': {'LU_CODE': code, 'LUL1_CODE': main, 'Shape_Area': area}, 'geometry': geometry})
+                    by_code[code] += area
+                    by_main[classification] += area
+                    total += area
+    require(len(features) == result['statistics']['feature_count'], 'PREPARE_FEATURE_MISMATCH')
+    geometry = {'type': 'FeatureCollection', 'metadata': meta, 'features': features}
+    summary = {'schema_version': 1, 'metadata': meta, 'feature_count': len(features), 'total_area_m2': total,
+        'area_by_code_m2': dict(sorted(by_code.items())), 'area_by_main_m2': by_main}
+    outputs = {'ldd_geometry': canonical(geometry), 'ldd_summary': canonical(summary)}
+    require(all(0 < len(v) <= MAX_ARTIFACT for v in outputs.values()), 'PREPARE_ARTIFACT_LIMIT')
+    return outputs
+
+
+def descriptors(outputs):
+    return {kind: {'sha256': hashlib.sha256(raw).hexdigest(), 'byte_size': len(raw)} for kind, raw in outputs.items()}
+
+
+def failure(request, code):
+    check_request(request)
+    require(isinstance(code, str) and re.fullmatch('[A-Z][A-Z0-9_]{0,59}', code), 'PREPARE_REQUEST_INVALID')
+    return {'schema_version': 1, 'method_version': METHOD, 'valid': False, 'error_code': code,
+        'dataset_id': request['dataset_id'], 'edition_id': request['edition_id'], 'job_id': request['job_id'],
+        'validation_result_id': request['validation_result_id'], 'source_sha256': request['validation']['manifest']['sha256'],
+        'input_hash': request['validation']['input_hash'], 'input_revision': request['validation']['input_revision'], 'artifacts': {}}
+
+
+def prepare(request, *, source_root=ldd.STORAGE_ROOT, staging_root=Path('/data/prepare')):
+    check_request(request)
+    outputs = build(request, source_root=source_root)
+    root = Path(staging_root)
+    require(root.is_dir() and not root.is_symlink() and root.resolve() == root.absolute(), 'PREPARE_STORAGE_INVALID')
+    used, entries = 0, 0
+    for path in root.rglob('*'):
+        entries += 1
+        require(entries <= 4096 and not path.is_symlink(), 'PREPARE_STORAGE_LIMIT')
+        if path.is_file():
+            require(path.stat().st_nlink == 1, 'PREPARE_STORAGE_INVALID')
+            used += path.stat().st_size
+    require(used + sum(map(len, outputs.values())) <= 256 * 1024**2, 'PREPARE_STORAGE_LIMIT')
+    directory = root / stage_key(request)
+    if not directory.exists():
+        directory.mkdir(mode=0o700)
+    require(not directory.is_symlink() and directory.resolve().parent == root.resolve(), 'PREPARE_STORAGE_INVALID')
+    for kind, raw in outputs.items():
+        path = directory / NAMES[kind]
+        if path.exists():
+            require(read_regular(path) == raw, 'PREPARE_IMMUTABLE_CONFLICT')
+        else:
+            with path.open('xb') as stream:
+                stream.write(raw);stream.flush();os.fsync(stream.fileno())
+    report = failure(request, 'PREPARE_UNVERIFIED')
+    report.update(valid=True, error_code=None, artifacts=descriptors(outputs))
+    return report
+
+
+def verify(request, *, source_root=ldd.STORAGE_ROOT, staging_root=Path('/data/prepare')):
+    """Independent verifier recomputes ALL expected bytes from original source."""
+    expected = build(request, source_root=source_root)
+    directory = Path(staging_root) / stage_key(request)
+    actual = {kind: read_regular(directory / name) for kind, name in NAMES.items()}
+    require(actual == expected, 'PREPARE_ARTIFACT_MISMATCH')
+    result = failure(request, 'PREPARE_UNVERIFIED')
+    result.update(valid=True, error_code=None, artifacts=descriptors(actual), verifier_version=VERIFIER)
+    return result

@@ -85,8 +85,8 @@ class Demo:
         # or password is modified and no user-supplied actor/role is accepted.
         self.local.sql("UPDATE public.profiles SET role='admin' WHERE id="+m.t2.t1.literal(self.users['admin']['id'])+"::uuid AND role='user'",role='postgres')
 
-    def start(self):
-        launchers=(lambda:m.ContainerWorker(self.local,m.identity_module.provision(self.local)),
+    def start(self, launchers=None):
+        if launchers is None:launchers=(lambda:m.ContainerWorker(self.local,m.identity_module.provision(self.local)),
             lambda:p.p.m.LddContainer(self.local),lambda:p.GeoTiffContainer(self.local),
             lambda:p.p.ProcessingContainer(self.local))
         for launch in launchers:

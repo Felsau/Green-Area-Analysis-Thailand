@@ -1,6 +1,7 @@
 import { cloneElement, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { gisConfigured, gisRequest } from '../utils/gisClient';
 import '../styles/gis.css';
+import LddPreparedPreview from './LddPreparedPreview';
 
 const labels = { draft: 'ฉบับร่าง', validating: 'กำลังตรวจสอบ', validated: 'ตรวจผ่านแล้ว', withdrawn: 'ถอนแล้ว',
   queued: 'รอประมวลผล', running: 'กำลังประมวลผล', succeeded: 'สำเร็จ', failed: 'ไม่สำเร็จ', expired: 'Lease หมดอายุ',
@@ -356,7 +357,8 @@ function DatasetDetail({ id, version, access, form, prepare, pending, onLoad, on
           {canActivate && caps.includes('sandbox_withdraw') && ['draft', 'validated'].includes(e.state) && <button disabled={pending} onClick={() => form({ type: 'withdraw', title: 'ถอนฉบับใน Synthetic Sandbox', path: `/editions/${e.id}/withdrawal`, dataset, edition: e,
             replacements: page.data.filter(r => r.state === 'validated' && r.id !== e.id),
             body: { expected_revision: e.input_revision, expected_dataset_revision: dataset.revision, expected_active_edition_id: dataset.active_edition_id } })}>ถอนฉบับ</button>}
-        </div>{history === e.id && <EditionHistory key={history} id={history} version={version} />}</article>)}
+        </div>{access.me.ldd_prepare_enabled && e.upload && e.manifest?.schema_version !== 4 && e.state === 'validated' && <LddPreparedPreview dataset={dataset} edition={e} version={version} pending={pending} onAction={prepare} />}
+        {history === e.id && <EditionHistory key={history} id={history} version={version} />}</article>)}
       <PageControls page={page} />
     </>}
   </section>;

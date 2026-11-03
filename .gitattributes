@@ -4,3 +4,4 @@
 /green-area-backend/migrations/02[7-9]_*.sql -text
 /green-area-backend/migrations/03[0-6]_*.sql -text
 /green-area-backend/migrations/037_*.sql -text
+/green-area-backend/migrations/038_*.sql -text

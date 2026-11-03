@@ -1,0 +1,10 @@
+{
+  "independent_review": true,
+  "unresolved_high_critical": 0,
+  "reviewer": "a1_security_review",
+  "review_type": "independent_exact_a2_sql_security_review",
+  "scope": "A2, attested local sandbox only, no activation or production approval",
+  "files": {
+    "038_gis_ldd_prepare.sql": "e55344ef585e9c23c9269dae414ed73ba05fa508625fe6c6e7acf2e148795825"
+  }
+}

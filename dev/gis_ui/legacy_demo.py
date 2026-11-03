@@ -137,7 +137,8 @@ def create_app(local):
     if dependencies.SUPABASE_URL is not None or legacy.GEE_PROJECT is not None:
         raise RuntimeError("LOCAL_LEGACY_INHERITED_CONFIG_REJECTED")
     from gis_app import create_app as gis_app
-    app = gis_app(local.gis_runtime, ldd_store=local.store, geotiff_store=local.geotiff_store)
+    app = gis_app(local.gis_runtime, ldd_store=local.store, geotiff_store=local.geotiff_store,
+        prepared_store=getattr(local, 'prepared_store', None))
     mount_legacy(app, legacy, dependencies)
 
     previous_lifespan = app.router.lifespan_context
