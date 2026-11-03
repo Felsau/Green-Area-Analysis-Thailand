@@ -3,6 +3,7 @@ import { buildMapLayers }  from '../utils/mapLayers';
 import { swipeLayers }     from '../utils/mapLayers/swipeLayer';
 import { drawLayers }      from '../utils/mapLayers/drawLayer';
 import { recommendLayers } from '../utils/mapLayers/recommendLayers';
+import { publishedLddLayers } from '../utils/mapLayers/publishedLddLayer';
 
 // Stable empty layer array so panning while swipe is OFF doesn't churn the
 // combined `layers` memo.
@@ -16,6 +17,7 @@ export function useMapLayers({
   province, district, trend, recommend, raster, swipe, draw,
   showingDistricts, viewState, setViewState, setTooltip, setSidebarTab,
   selectProvince, viewportBounds, onSwipeTileLoad, satelliteBase, selectedYear,
+  publishedLdd,
 }) {
   const baseLayers = useMemo(() => buildMapLayers({
     thailandData, ndviCache: effectiveNdviCache, timelapseMetric,
@@ -91,7 +93,8 @@ export function useMapLayers({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [draw.recommendResult, draw.recommendVisible]);
 
+  const publishedLayers=useMemo(()=>publishedLddLayers(publishedLdd),[publishedLdd]);
   return useMemo(
-    () => [...baseLayers, ...swipeLayersMemo, ...drawRecommendLayersMemo, ...drawLayersMemo],
-    [baseLayers, swipeLayersMemo, drawRecommendLayersMemo, drawLayersMemo]);
+    () => [...baseLayers, ...publishedLayers, ...swipeLayersMemo, ...drawRecommendLayersMemo, ...drawLayersMemo],
+    [baseLayers, publishedLayers, swipeLayersMemo, drawRecommendLayersMemo, drawLayersMemo]);
 }

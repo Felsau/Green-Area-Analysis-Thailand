@@ -20,6 +20,7 @@ def gis_error(status: int, code: str, message: str, *, fields=None, headers=None
 
 
 _CONFLICTS = {
+    "GIS_LDD_PUBLISHED_UNAVAILABLE", "GIS_SOURCE_CHANGED", "GIS_PUBLICATION_NOT_READY", "GIS_LDD_PUBLICATION_UNSUPPORTED",
     "GIS_PREPARE_BUSY", "GIS_PREPARE_VALIDATION_REQUIRED", "GIS_PREPARE_CERTIFICATE_REVOKED", "GIS_PREPARE_PROOF_INVALID",
     "GIS_PREPARE_NOT_READY", "GIS_PREPARE_REPORT_INVALID", "GIS_ARTIFACT_INPUT_MISMATCH",
     "GIS_REVISION_CONFLICT", "GIS_IDEMPOTENCY_CONFLICT", "GIS_RETRY_INELIGIBLE",
@@ -63,7 +64,7 @@ def map_rpc_error(error: Exception) -> HTTPException:
     message = raw if isinstance(raw, str) and re.fullmatch(r"GIS_[A-Z0-9_]+", raw) else ""
     if message == "GIS_FORBIDDEN" or code == "42501":
         return gis_error(403, "GIS_FORBIDDEN", "ไม่มีสิทธิ์ดำเนินการนี้")
-    if message == "GIS_NOT_FOUND":
+    if message in {"GIS_NOT_FOUND", "GIS_LDD_NOT_PUBLISHED"}:
         return gis_error(404, message, "ไม่พบข้อมูล GIS ที่ระบุ")
     if message in _CONFLICTS:
         return gis_error(409, message, "ข้อมูลหรือสถานะเปลี่ยนแล้ว กรุณาอ่านข้อมูลล่าสุดก่อนลองใหม่")
@@ -75,7 +76,7 @@ def map_rpc_error(error: Exception) -> HTTPException:
         return gis_error(422, "GIS_INVALID_INPUT", "ข้อมูลคำขอหรือข้อมูลอ้างอิงไม่ถูกต้อง")
     if code == "429":
         return gis_error(429, "GIS_RATE_LIMITED", "คำขอมากเกินไป กรุณาลองใหม่ภายหลัง", headers={"Retry-After": "1"})
-    if message in _NOT_READY:
+    if message in _NOT_READY or message == 'GIS_LDD_PUBLICATION_DISABLED':
         return gis_error(503, message, "ระบบ GIS หรือ Sandbox Gate ยังไม่พร้อมใช้งาน")
     return gis_error(503, "GIS_UNAVAILABLE", "บริการ GIS ยังไม่พร้อมใช้งาน กรุณาลองใหม่ภายหลัง")
 

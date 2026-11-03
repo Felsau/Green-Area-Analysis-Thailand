@@ -1,5 +1,7 @@
 import Accordion from '../../ui/Accordion';
 import { AVAILABLE_YEARS, LANDUSE_SOURCES, LDD_PROVINCES } from '../../../constants';
+import { gisConfigured } from '../../../utils/gisClient';
+import PublishedLddSummary from '../../PublishedLddSummary';
 
 // สัดส่วนการใช้ที่ดิน 5 ประเภทหลัก (ชุมชน/เกษตร/ป่า/น้ำ/เบ็ดเตล็ด — จัดกลุ่มตาม
 // นิยามกรมพัฒนาที่ดิน) เป็น stacked bar + แถวต่อประเภท · fetch-on-demand เพราะเป็น
@@ -8,7 +10,7 @@ import { AVAILABLE_YEARS, LANDUSE_SOURCES, LDD_PROVINCES } from '../../../consta
 // สลับแหล่งข้อมูล Dynamic World ↔ LDD ได้ที่ toggle (โผล่เฉพาะจังหวัดที่มีข้อมูล LDD)
 // แหล่ง LDD แนบ `detail` รหัสละเอียด 96 ประเภท → แสดงต่อท้าย 5 ประเภทหลัก
 export default function LandusePanel({
-  scopeLabel, provinceEN, landuseData, landuseLoading, landuseYear, landuseSource,
+  scopeLabel, provinceEN, districtEN, landuseData, landuseLoading, landuseYear, landuseSource, landuseError,
   setLanduseYear, setLanduseSource, onAnalyze,
 }) {
   const classes = landuseData?.classes || [];
@@ -17,11 +19,25 @@ export default function LandusePanel({
 
   const canUseLdd = LDD_PROVINCES.includes(provinceEN);
   const isLdd = landuseSource === 'ldd';
+  const published = landuseSource === 'published';
 
   return (
     <Accordion title="การใช้ที่ดิน · 5 ประเภทหลัก"
-               meta={isLdd ? 'LDD 1:25,000' : 'Dynamic World / 10m'}
+               meta={published ? 'Published LDD / Local' : isLdd ? 'LDD 1:25,000' : 'Dynamic World / 10m'}
                defaultOpen={false}>
+      {gisConfigured() && <div className="gis-actions" role="group" aria-label="Legacy หรือ Published LDD">
+        <button aria-pressed={!published} onClick={()=>setLanduseSource('dynamic_world')}>Legacy (ค่าเริ่มต้น)</button>
+        <button aria-pressed={published} disabled={!provinceEN || !!districtEN} onClick={()=>setLanduseSource('published')}>Published LDD (Local)</button>
+        {districtEN && <p>Published รองรับเฉพาะจังหวัด ไม่ตัดขอบอำเภอ</p>}
+      </div>}
+      {published ? <>
+        <label>ปี Published (ค.ศ.) <input aria-label="ปี Published (ค.ศ.)" type="number" min="1980" max={new Date().getFullYear()+1}
+          value={landuseYear} onChange={e=>setLanduseYear(Number(e.target.value))} /></label>
+        <button className="btn btn--primary" disabled={landuseLoading || !!districtEN} onClick={onAnalyze}>โหลด Published LDD</button>
+        {landuseLoading && <p role="status">กำลังตรวจ Snapshot และไฟล์จริง…</p>}
+        {landuseError && <p role="alert">{landuseError}</p>}
+        {!landuseLoading && landuseData?.source_identity?.namespace==='published' && <PublishedLddSummary bundle={landuseData} />}
+      </> : <>
       {/* Source toggle — โผล่เฉพาะจังหวัดที่มีข้อมูล LDD (ไม่งั้นคงไว้ที่ Dynamic World) */}
       {canUseLdd && (
         <div role="group" aria-label="แหล่งข้อมูลการใช้ที่ดิน"
@@ -158,6 +174,7 @@ export default function LandusePanel({
           </div>
         </>
       )}
+      </>}
     </Accordion>
   );
 }

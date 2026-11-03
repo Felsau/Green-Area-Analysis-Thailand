@@ -39,9 +39,12 @@ class LocalGISSettings:
     runtime_instance: str = ""
     baseline_fingerprint: str = ""
     sandbox_activation_enabled: bool = False
+    ldd_publication_enabled: bool = False
 
     def validate(self):
         if (type(self.enabled) is not bool or type(self.sandbox_activation_enabled) is not bool
+                or type(self.ldd_publication_enabled) is not bool
+                or (self.ldd_publication_enabled and self.sandbox_activation_enabled)
                 or self.api_url != LOCAL_URL or self.database != "postgres"
                 or self.cluster != "green-area-gis-t0" or self.mode != "local_synthetic"
                 or not re.fullmatch(r"[a-f0-9]{32}", self.runtime_instance)
@@ -54,6 +57,7 @@ class GISRuntime:
                  clients: Callable | None = None):
         self.settings = settings or LocalGISSettings()
         self.sandbox_activation_enabled = self.settings.sandbox_activation_enabled
+        self.ldd_publication_enabled = self.settings.ldd_publication_enabled
         self._attest = attest
         self._auth = self._service = None
         if self.settings.enabled:
@@ -142,7 +146,8 @@ class GISRuntime:
 
     def rpc(self, name: str, params: dict):
         if name not in {"gis_command", "gis_read", "gis_ldd_command", "gis_ldd_read", "gis_processing_command", "gis_processing_read", "gis_geotiff_command", "gis_geotiff_read",
-                "gis_ldd_prepare_command", "gis_ldd_prepare_read", "gis_ldd_verify_complete", "gis_ldd_verify_revoke"}:
+                "gis_ldd_prepare_command", "gis_ldd_prepare_read", "gis_ldd_verify_complete", "gis_ldd_verify_revoke",
+                "gis_ldd_publication_command", "gis_ldd_published_read", "gis_ldd_published_unavailable"}:
             raise unavailable()
         for attempt in range(2):
             self.require_ready()  # Repeat target check before a possible retry too.

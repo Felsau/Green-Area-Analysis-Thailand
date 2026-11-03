@@ -139,6 +139,7 @@ def create_app(local):
     from gis_app import create_app as gis_app
     app = gis_app(local.gis_runtime, ldd_store=local.store, geotiff_store=local.geotiff_store,
         prepared_store=getattr(local, 'prepared_store', None))
+    app.state.gis_ldd_publication = getattr(local, 'publication', None)
     mount_legacy(app, legacy, dependencies)
 
     previous_lifespan = app.router.lifespan_context

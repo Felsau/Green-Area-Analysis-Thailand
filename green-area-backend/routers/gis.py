@@ -77,6 +77,9 @@ def get_me(request: Request, actor: Actor, service: Service):
     result['geotiff_upload_enabled'] = getattr(request.app.state, 'gis_geotiff_store', None) is not None and 36 in ready.get('migration_versions', [])
     if getattr(request.app.state, 'gis_prepared_store', None) is not None:
         result['ldd_prepare_enabled'] = 38 in ready.get('migration_versions', [])
+    result['ldd_publication_enabled'] = (getattr(request.app.state, 'gis_ldd_publication', None) is not None
+        and getattr(service.runtime, 'ldd_publication_enabled', False) is True
+        and 39 in ready.get('migration_versions', []) and result.get('database_activation_enabled') is False)
     return result
 
 

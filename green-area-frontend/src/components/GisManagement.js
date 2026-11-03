@@ -2,6 +2,7 @@ import { cloneElement, useCallback, useEffect, useId, useRef, useState } from 'r
 import { gisConfigured, gisRequest } from '../utils/gisClient';
 import '../styles/gis.css';
 import LddPreparedPreview from './LddPreparedPreview';
+import LddPublicationActions from './LddPublicationActions';
 
 const labels = { draft: 'ฉบับร่าง', validating: 'กำลังตรวจสอบ', validated: 'ตรวจผ่านแล้ว', withdrawn: 'ถอนแล้ว',
   queued: 'รอประมวลผล', running: 'กำลังประมวลผล', succeeded: 'สำเร็จ', failed: 'ไม่สำเร็จ', expired: 'Lease หมดอายุ',
@@ -358,6 +359,8 @@ function DatasetDetail({ id, version, access, form, prepare, pending, onLoad, on
             replacements: page.data.filter(r => r.state === 'validated' && r.id !== e.id),
             body: { expected_revision: e.input_revision, expected_dataset_revision: dataset.revision, expected_active_edition_id: dataset.active_edition_id } })}>ถอนฉบับ</button>}
         </div>{access.me.ldd_prepare_enabled && e.upload && e.manifest?.schema_version !== 4 && e.state === 'validated' && <LddPreparedPreview dataset={dataset} edition={e} version={version} pending={pending} onAction={prepare} />}
+        {access.me.admin && access.me.ldd_publication_enabled && e.upload && e.manifest?.schema_version !== 4 && e.state === 'validated'
+          && <LddPublicationActions dataset={dataset} edition={e} editions={page.data} pending={pending} onAction={prepare} />}
         {history === e.id && <EditionHistory key={history} id={history} version={version} />}</article>)}
       <PageControls page={page} />
     </>}
@@ -493,6 +496,10 @@ function Workspace({ access, pendingCommand, setPendingCommand }) {
     lock.current = true; setBusy(true); setError(null);
     try {
       const result = await gisRequest(command.path, { method: command.method || 'POST', body: command.body, key: command.key, query: command.query });
+      if (command.path.includes('/ldd-publication/')) {
+        window.dispatchEvent(new Event('gis-ldd-publication-change'));
+        if (typeof BroadcastChannel==='function') { const c=new BroadcastChannel('gis-ldd-publication');c.postMessage('changed');c.close(); }
+      }
       if (mounted.current) {
         if (command.path === '/datasets' && uuid.test(result?.id || '')) { selectDataset(result); setView('datasets'); }
         if (command.path.endsWith('/validation-jobs')) { setJob(null); setView('jobs'); }

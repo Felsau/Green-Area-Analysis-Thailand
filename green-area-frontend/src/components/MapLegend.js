@@ -15,7 +15,12 @@ const LST_STOPS = [
   { color: '#60a5fa', label: 'เย็น',     range: '< 28°C' },
 ];
 
-export default function MapLegend({ overlay = 'none', tileInfo = null, choropleth = 'ndvi' }) {
+export default function MapLegend({ overlay = 'none', tileInfo = null, choropleth = 'ndvi', published = null }) {
+  if(published) return <div className="legend-card" aria-label="คำอธิบาย Published LDD" data-source-snapshot={published.snapshot_id}>
+    <div className="legend-card__title">Published LDD · Local / ขอบเขตไฟล์</div>
+    {published.legend.map(c=><div className="legend-card__row" key={c.code}><span className="legend-card__swatch" style={{background:`#${c.color}`}} />{c.name_th}</div>)}
+    <div>Edition {published.source_identity.edition_id.slice(0,8)} · ปี {published.source_identity.data_year}</div>
+  </div>;
   // Land use overlay is categorical (5 ประเภทหลักตามนิยาม LDD) — swatch rows per
   // category instead of a gradient. Checked before the gradient branch because
   // the landuse tile response also carries a palette.

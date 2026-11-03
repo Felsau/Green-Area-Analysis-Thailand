@@ -73,6 +73,21 @@ export default function Dashboard({
   const timelapse = useTimelapseData();
   const cooling = useCoolingData();
   const landuse = useLanduseData();
+  // One atomic bundle drives map, legend and summary; reject scope/year mismatch
+  // during the render itself, before asynchronous reset effects can run.
+  const publishedLdd = landuse.landuseSource==='published' && !district.selectedDistrictEN
+    && landuse.landuseData?.source_identity?.province===province.selectedProvinceEN
+    && landuse.landuseData?.source_identity?.data_year===landuse.landuseYear ? landuse.landuseData : null;
+  const publishedFit=useRef(null);
+  const lddSourceRef=useRef(landuse.landuseSource);lddSourceRef.current=landuse.landuseSource;
+  useEffect(()=>{
+    if(landuse.landuseSource!=='published'){publishedFit.current=null;return;}
+    if(!publishedLdd || publishedFit.current===publishedLdd.source_identity.edition_id)return;
+    const [west,south,east,north]=turf.bbox(publishedLdd.geometry);
+    publishedFit.current=publishedLdd.source_identity.edition_id;
+    setViewState(v=>({...v,longitude:(west+east)/2,latitude:(south+north)/2,
+      zoom:Math.min(17,Math.max(5,Math.log2(360/Math.max(east-west,north-south,.0001))-2)),pitch:0,bearing:0}));
+  },[publishedLdd,landuse.landuseSource]);
   const coverage = useCoverageCompute();
   const raster = useRasterOverlay();
   const swipe = useSwipeCompare();
@@ -284,6 +299,7 @@ export default function Dashboard({
   // Single raster overlay — exit swipe + flatten to top-down so the pixel data
   // reads cleanly (3D extrusion is for the choropleth, not the raster).
   const enableOverlay = useCallback((kind) => {
+    if(lddSourceRef.current==='published')landuse.setLanduseSource('dynamic_world');
     swipe.reset();
     raster.setOverlay(kind);
     setViewState(vs => ({
@@ -329,6 +345,7 @@ export default function Dashboard({
     selectProvince, viewportBounds, onSwipeTileLoad,
     satelliteBase: basemap === 'satellite',
     selectedYear,
+    publishedLdd,
   });
 
   const sidebarData = {
@@ -380,10 +397,11 @@ export default function Dashboard({
     coolingData:    cooling.coolingData,
     coolingLoading: cooling.coolingLoading,
     coolingYear:    cooling.coolingYear,
-    landuseData:    landuse.landuseData,
+    landuseData:    landuse.landuseSource==='published' ? publishedLdd : landuse.landuseData,
     landuseLoading: landuse.landuseLoading,
     landuseYear:    landuse.landuseYear,
     landuseSource:  landuse.landuseSource,
+    landuseError:   landuse.landuseError,
     computing:        coverage.computing,
     computeProgress:  coverage.computeProgress,
   };
@@ -414,7 +432,7 @@ export default function Dashboard({
                        district.selectedDistrictEN || null, landuse.landuseYear,
                        landuse.landuseSource),
     setLanduseYear:  landuse.setLanduseYear,
-    setLanduseSource: landuse.setLanduseSource,
+    setLanduseSource: source => { if(source==='published') { raster.clearOverlay();swipe.reset(); } landuse.setLanduseSource(source); },
     onComputeMissing: coverage.computeMissing,
     onCancelCompute:  coverage.cancelCompute,
   };
@@ -455,6 +473,7 @@ export default function Dashboard({
         </DeckGL>
         {tooltip && <MapTooltip tooltip={tooltip} />}
         <MapLegend
+          published={publishedLdd}
           overlay={swipe.active ? swipe.metric : raster.overlay}
           tileInfo={swipe.active
             ? (swipe.mode === 'diff' ? swipe.diffTile : swipe.tileA)

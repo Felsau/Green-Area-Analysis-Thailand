@@ -38,7 +38,7 @@ export default function StatsTab({ data, handlers }) {
     lstStats, lstMonthly, lstLoading,
     districtNdviStats, districtNdviMonthly, districtNdviLoading,
     districtLstStats, districtLstMonthly, districtLstLoading,
-    landuseData, landuseLoading, landuseYear, landuseSource,
+    landuseData, landuseLoading, landuseYear, landuseSource, landuseError,
   } = data;
   const { onClearDistrict, onFetchLanduse, setLanduseYear, setLanduseSource } = handlers;
 
@@ -262,10 +262,12 @@ export default function StatsTab({ data, handlers }) {
         scopeLabel={selectedDistrict ? `อำเภอ${selectedDistrict}`
                     : selectedProvince ? `จังหวัด${selectedProvince}` : 'พื้นที่'}
         provinceEN={selectedProvinceEN}
+        districtEN={selectedDistrictEN}
         landuseData={landuseData}
         landuseLoading={landuseLoading}
         landuseYear={landuseYear}
         landuseSource={landuseSource}
+        landuseError={landuseError}
         setLanduseYear={setLanduseYear}
         setLanduseSource={setLanduseSource}
         onAnalyze={onFetchLanduse}
