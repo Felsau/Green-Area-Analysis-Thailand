@@ -18,6 +18,7 @@ class NoRedirect(http.HTTPRedirectHandler):
 
 class LocalWorkerClient:
     RPC_NAMES=('gis_worker_v2','gis_worker_readiness_v2')
+    JWT_ROLE='gis_native_worker'
     def __init__(self,b):
         keys={'api_url','subject','anon_key','access_token','refresh_token','runtime_instance','baseline_fingerprint'}
         if not isinstance(b,dict) or set(b)!=keys or b['api_url']!=LOCAL_URL: raise WorkerError('WORKER_TARGET_REJECTED')
@@ -31,7 +32,7 @@ class LocalWorkerClient:
     def _claims(self,token):
         try:
             part=token.split('.')[1]; c=json.loads(base64.urlsafe_b64decode(part+'='*(-len(part)%4)))
-            if c['sub']!=self.subject or c['role']!='gis_native_worker' or c['iss']!=ISSUER or type(c['exp']) is not int: raise ValueError()
+            if c['sub']!=self.subject or c['role']!=self.JWT_ROLE or c['iss']!=ISSUER or type(c['exp']) is not int: raise ValueError()
             return c
         except Exception: raise WorkerError('WORKER_IDENTITY_REJECTED') from None
     def _request(self,path,payload,access):

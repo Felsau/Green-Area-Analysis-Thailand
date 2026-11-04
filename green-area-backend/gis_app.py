@@ -16,6 +16,7 @@ from routers.ldd_prepare import router as ldd_prepare_router
 from routers.ldd_publication import router as ldd_publication_router
 from routers.geotiff_prepare import router as geotiff_prepare_router
 from routers.geotiff_publication import router as geotiff_publication_router
+from routers.gee_mock import router as gee_mock_router
 
 
 def gis_rate_limit_handler(request, exception):
@@ -57,25 +58,30 @@ class GISBodyLimit:
         return await self.app(scope, replay, send)
 
 
-def mount_gis(app: FastAPI, runtime: GISRuntime | None = None, *, ldd_store=None, geotiff_store=None, prepared_store=None):
+def mount_gis(app: FastAPI, runtime: GISRuntime | None = None, *, ldd_store=None, geotiff_store=None, prepared_store=None, gee_mock_catalog=None):
     app.state.gis_service = GisService(runtime or GISRuntime())
     app.state.gis_ldd_store = ldd_store
     app.state.gis_geotiff_store = geotiff_store
     app.state.gis_prepared_store = prepared_store
+    app.state.gis_gee_mock = None
+    if gee_mock_catalog is not None:
+        from gis_gee_mock import LocalGeeMock
+        app.state.gis_gee_mock = LocalGeeMock(app.state.gis_service, gee_mock_catalog)
     app.include_router(router)
     app.include_router(ldd_prepare_router)
     app.include_router(ldd_publication_router)
     app.include_router(geotiff_prepare_router)
     app.include_router(geotiff_publication_router)
+    app.include_router(gee_mock_router)
     app.add_middleware(GISBodyLimit)
 
 
-def create_app(runtime: GISRuntime | None = None, *, rate_limit="60/minute", ldd_store=None, geotiff_store=None, prepared_store=None) -> FastAPI:
+def create_app(runtime: GISRuntime | None = None, *, rate_limit="60/minute", ldd_store=None, geotiff_store=None, prepared_store=None, gee_mock_catalog=None) -> FastAPI:
     app = FastAPI(title="Local synthetic GIS API", docs_url=None, redoc_url=None)
     app.state.limiter = Limiter(key_func=get_remote_address, default_limits=[rate_limit])
     app.add_exception_handler(RateLimitExceeded, gis_rate_limit_handler)
     app.add_middleware(SlowAPIMiddleware)
-    mount_gis(app, runtime, ldd_store=ldd_store, geotiff_store=geotiff_store, prepared_store=prepared_store)
+    mount_gis(app, runtime, ldd_store=ldd_store, geotiff_store=geotiff_store, prepared_store=prepared_store, gee_mock_catalog=gee_mock_catalog)
     app.add_middleware(CORSMiddleware,
         allow_origins=["http://127.0.0.1:3000", "http://localhost:3000"],
         allow_methods=["GET", "POST", "PATCH", "OPTIONS"],

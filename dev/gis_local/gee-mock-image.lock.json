@@ -1,0 +1,44 @@
+{
+  "base_image": "sha256:fca4560d8a0d0198c0eb75fbf6598314cd8ed4a5e8bafa00e1d7298126aa04c9",
+  "wheels": [
+    {
+      "package": "pydantic",
+      "version": "2.13.4",
+      "filename": "pydantic-2.13.4-py3-none-any.whl",
+      "sha256": "45a282cde31d808236fd7ea9d919b128653c8b38b393d1c4ab335c62924d9aba",
+      "bytes": 472262
+    },
+    {
+      "package": "pydantic-core",
+      "version": "2.46.4",
+      "filename": "pydantic_core-2.46.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "sha256": "f9fa868638bf362d3d138ea55829cefb3d5f4b0d7f142234382a15e2485dbec4",
+      "bytes": 2089685
+    },
+    {
+      "package": "annotated-types",
+      "version": "0.7.0",
+      "filename": "annotated_types-0.7.0-py3-none-any.whl",
+      "sha256": "1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53",
+      "bytes": 13643
+    },
+    {
+      "package": "typing-extensions",
+      "version": "4.15.0",
+      "filename": "typing_extensions-4.15.0-py3-none-any.whl",
+      "sha256": "f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548",
+      "bytes": 44614
+    },
+    {
+      "package": "typing-inspection",
+      "version": "0.4.2",
+      "filename": "typing_inspection-0.4.2-py3-none-any.whl",
+      "sha256": "4ed1cacbdc298c220f1bd249ed5287caa16f34d44ef4e9c3d0cbad5b521545e7",
+      "bytes": 14611
+    }
+  ],
+  "requirements_sha256_lf": "545053e9586116a45a45f101300b16d2d098762b1391a8585f32a9ff8b6d10ad",
+  "dockerfile_sha256_lf": "4511c368c8b7f45afc96f97e0cf60584f132b50acf7fb3ca1a58fd106fd62222",
+  "image_id": "sha256:7557955c9e2c8611ea1396ddef6d8629c2ee1e7f193e85f0c65bcf5db9566674",
+  "scope": "Local A6.3 Mock-only; original Native Worker image unchanged"
+}
