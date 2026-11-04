@@ -1,0 +1,13 @@
+{
+  "independent_review": true,
+  "unresolved_high_critical": 0,
+  "reviewer": "a62_sql_security_review",
+  "scope": "A6.2 local mock-only SQL, worker hooks and exact-reviewed operator; no live execution or publication",
+  "files": {
+    "043_gis_gee_mock_candidates.sql": "cc8d9fe7bd7163dd307a2f944614116bccd6460a50314d108cecc242320563b1"
+  },
+  "source_files": {
+    "green-area-backend/gis_worker/gee_mock_queue.py": "dd3895325aaca91fe0fbb6d70dae182c990152535fb0f55539f73587bca83449",
+    "dev/gis_local/gee_mock_local.py": "0c9e0ec2816fe8a45b778f5b366f0a08d55bb1210ea074f48d42104ae3f6b232"
+  }
+}
