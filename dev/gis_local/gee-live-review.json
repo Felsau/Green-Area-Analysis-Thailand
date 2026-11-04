@@ -1,0 +1,15 @@
+{
+  "independent_review": true,
+  "unresolved_high_critical": 0,
+  "reviewer": "a63_security_review",
+  "scope": "A6.4b Local injected-only exact SQL/authority/contracts/operator; no actual Google runtime or network approval",
+  "files": {
+    "044_gis_live_foundation.sql": "874919e286d7870e61f0374502a513a53ca06d6085fd9ba0b2e17df329a08a9a"
+  },
+  "source_files": {
+    "green-area-backend/gis_worker/gee_live_contracts.py": "045d00a474b9cec317e08ab08dffc3ca3104600b0615f49a7973d500fe576779",
+    "green-area-backend/gis_worker/gee_live_bridge.py": "b26ce041d54a4f773858909d53082352ad3c938b3da5ed896aaa08ce6849e1a9",
+    "green-area-backend/gis_worker/gee_live_worker.py": "1d80e0e49e3cd36de4708beb28f68f8f914e6138a5ed9455c32e26da11187703",
+    "dev/gis_local/gee_live_local.py": "9c9aed58901fb66a8241591bfa87ae715ba9bd0368e0fe58bdc9423f2b9cd4d7"
+  }
+}
