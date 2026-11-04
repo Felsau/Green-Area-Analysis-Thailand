@@ -4,6 +4,7 @@ import '../styles/gis.css';
 import LddPreparedPreview from './LddPreparedPreview';
 import LddPublicationActions from './LddPublicationActions';
 import GeoTiffPreparedPreview from './GeoTiffPreparedPreview';
+import GeoTiffPublicationActions from './GeoTiffPublicationActions';
 
 const labels = { draft: 'ฉบับร่าง', validating: 'กำลังตรวจสอบ', validated: 'ตรวจผ่านแล้ว', withdrawn: 'ถอนแล้ว',
   queued: 'รอประมวลผล', running: 'กำลังประมวลผล', succeeded: 'สำเร็จ', failed: 'ไม่สำเร็จ', expired: 'Lease หมดอายุ',
@@ -364,6 +365,8 @@ function DatasetDetail({ id, version, access, form, prepare, pending, onLoad, on
           && <LddPublicationActions dataset={dataset} edition={e} editions={page.data} pending={pending} onAction={prepare} />}
         {access.me.geotiff_prepare_enabled && e.upload && e.manifest?.schema_version === 4 && e.state === 'draft'
           && <GeoTiffPreparedPreview dataset={dataset} edition={e} version={version} pending={pending} onAction={prepare} />}
+        {access.me.geotiff_publication_enabled && e.upload && e.manifest?.schema_version===4
+          && <GeoTiffPublicationActions dataset={dataset} edition={e} editions={page.data} version={version} pending={pending} admin={access.me.admin} onAction={prepare}/>}
         {history === e.id && <EditionHistory key={history} id={history} version={version} />}</article>)}
       <PageControls page={page} />
     </>}
@@ -502,6 +505,10 @@ function Workspace({ access, pendingCommand, setPendingCommand }) {
       if (command.path.includes('/ldd-publication/')) {
         window.dispatchEvent(new Event('gis-ldd-publication-change'));
         if (typeof BroadcastChannel==='function') { const c=new BroadcastChannel('gis-ldd-publication');c.postMessage('changed');c.close(); }
+      }
+      if(command.path.includes('/geotiff-publication/')){
+        window.dispatchEvent(new Event('gis-geotiff-publication-change'));
+        if(typeof BroadcastChannel==='function'){const c=new BroadcastChannel('gis-geotiff-publication');c.postMessage('changed');c.close();}
       }
       if (mounted.current) {
         if (command.path === '/datasets' && uuid.test(result?.id || '')) { selectDataset(result); setView('datasets'); }

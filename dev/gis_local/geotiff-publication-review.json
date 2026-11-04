@@ -1,0 +1,10 @@
+{
+  "independent_review": true,
+  "unresolved_high_critical": 0,
+  "reviewer": "local_integration_security_review",
+  "review_type": "exact_a4_2_sql_before_local_application",
+  "scope": "Local declared-period uploaded GeoTIFF publication only; broad gate closed; LDD branches preserved",
+  "files": {
+    "042_gis_geotiff_publication.sql": "dfb9adf5b36b290f715165a57905373df1226ab52c539cd93ff79da6a0c86946"
+  }
+}

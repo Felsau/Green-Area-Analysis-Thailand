@@ -47,7 +47,7 @@ export function gisConfigured(env = import.meta.env, location = window.location,
 }
 
 const id = '[0-9a-fA-F-]{36}';
-const route = new RegExp(`^/(published-ldd|me|provinces|datasets|officers|processing-options|processing-jobs|processing-jobs/${id}(?:/attempts|/result|/history|/retry)?|ldd-uploads/${id}|geotiff-uploads/${id}|datasets/${id}(?:/ldd-publication/(?:activation|rollback|withdrawal)|/editions|/activation|/rollback|/ldd-uploads|/geotiff-uploads)?|editions/${id}(?:/clone|/validation-jobs|/history|/withdrawal|/prepare-jobs|/prepare-retry|/prepare-verification|/prepared|/geotiff-prepare-jobs|/geotiff-prepare-retry|/geotiff-prepare-verification|/geotiff-prepared)?|jobs|jobs/${id}(?:/attempts|/result|/retry)?|officers/${id}/revocation)$`);
+const route = new RegExp(`^/(published-ldd|published-geotiff|me|provinces|datasets|officers|processing-options|processing-jobs|processing-jobs/${id}(?:/attempts|/result|/history|/retry)?|ldd-uploads/${id}|geotiff-uploads/${id}|datasets/${id}(?:/geotiff-publication/(?:activation|rollback|withdrawal)|/ldd-publication/(?:activation|rollback|withdrawal)|/editions|/activation|/rollback|/ldd-uploads|/geotiff-uploads)?|editions/${id}(?:/geotiff-publication|/clone|/validation-jobs|/history|/withdrawal|/prepare-jobs|/prepare-retry|/prepare-verification|/prepared|/geotiff-prepare-jobs|/geotiff-prepare-retry|/geotiff-prepare-verification|/geotiff-prepared)?|jobs|jobs/${id}(?:/attempts|/result|/retry)?|officers/${id}/revocation)$`);
 
 export function createGisClient({ enabled = gisConfigured(), getSession = () => supabase.auth.getSession(), fetcher = fetch } = {}) {
   return async function request(path, { method = 'GET', body, key, query = {}, signal } = {}) {
@@ -58,7 +58,7 @@ export function createGisClient({ enabled = gisConfigured(), getSession = () => 
     const controller = new AbortController();
     const abort = () => controller.abort();
     signal?.addEventListener('abort', abort, { once: true });
-    const timer = setTimeout(abort, binary || path === '/published-ldd' || path.endsWith('/geotiff-prepared') || (path.endsWith('/prepare-verification') || path.endsWith('/geotiff-prepare-verification')) || path.includes('/ldd-publication/') ? 90000 : 20000);
+    const timer = setTimeout(abort, binary || path === '/published-ldd' || path === '/published-geotiff' || path.endsWith('/geotiff-prepared') || (path.endsWith('/prepare-verification') || path.endsWith('/geotiff-prepare-verification')) || path.includes('/ldd-publication/') || path.includes('/geotiff-publication/') ? 90000 : 20000);
     try {
       if (signal?.aborted) controller.abort();
       const { data, error } = await getSession();

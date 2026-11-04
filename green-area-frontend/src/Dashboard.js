@@ -30,6 +30,9 @@ import { useSwipeCompare } from './hooks/useSwipeCompare';
 import { useAreaTools }   from './hooks/useAreaTools';
 import { useCanvasViewport } from './hooks/useCanvasViewport';
 import { useMapLayers }      from './hooks/useMapLayers';
+import {usePublishedGeoTiff} from './hooks/usePublishedGeoTiff';
+import PublishedGeoTiffPanel from './components/PublishedGeoTiffPanel';
+import {publishedGeoTiffLayers} from './utils/mapLayers/publishedGeoTiffLayer';
 import Sidebar    from './components/Sidebar';
 import AppHeader  from './components/AppHeader';
 import MapTooltip from './components/MapTooltip';
@@ -90,6 +93,13 @@ export default function Dashboard({
   },[publishedLdd,landuse.landuseSource]);
   const coverage = useCoverageCompute();
   const raster = useRasterOverlay();
+  const publishedGeo=usePublishedGeoTiff();
+  const geoMode=publishedGeo.source==='published';
+  useEffect(()=>{
+    const b=publishedGeo.bundle?.raster?.bounds;if(!b)return;
+    setViewState(v=>({...v,longitude:(b[0]+b[2])/2,latitude:(b[1]+b[3])/2,
+      zoom:Math.min(17,Math.max(5,Math.log2(360/Math.max(b[2]-b[0],b[3]-b[1],.0001))-2)),pitch:0,bearing:0}));
+  },[publishedGeo.bundle]);
   const swipe = useSwipeCompare();
   // วาดพื้นที่เอง + บันทึกพื้นที่ — orchestration อยู่ใน useAreaTools
   const {
@@ -338,7 +348,7 @@ export default function Dashboard({
 
   // All Deck.GL layers (province choropleth + swipe rasters + draw overlay),
   // memoised in independent groups — see useMapLayers.
-  const layers = useMapLayers({
+  const legacyLayers = useMapLayers({
     thailandData, effectiveNdviCache, timelapseMetric,
     province, district, trend, recommend, raster, swipe, draw,
     showingDistricts, viewState, setViewState, setTooltip, setSidebarTab,
@@ -347,6 +357,7 @@ export default function Dashboard({
     selectedYear,
     publishedLdd,
   });
+  const layers=useMemo(()=>geoMode?publishedGeoTiffLayers(publishedGeo.bundle):legacyLayers,[geoMode,publishedGeo.bundle,legacyLayers]);
 
   const sidebarData = {
     provinceList,
@@ -438,7 +449,7 @@ export default function Dashboard({
   };
 
   return (
-    <div className="App" data-sidebar={sidebarCollapsed ? 'collapsed' : 'open'}>
+    <div className="App" data-published-geotiff={geoMode ? 'true' : undefined} data-sidebar={sidebarCollapsed||geoMode ? 'collapsed' : 'open'}>
       <AppHeader
         loading={loading}
         sidebarCollapsed={sidebarCollapsed}
@@ -455,7 +466,7 @@ export default function Dashboard({
         onOpenGis={onOpenGis}
       />
 
-      <aside className="side">
+      <aside className="side" style={geoMode?{display:'none'}:undefined}>
         <Sidebar data={sidebarData} handlers={sidebarHandlers} />
       </aside>
 
@@ -463,7 +474,7 @@ export default function Dashboard({
         <DeckGL
           viewState={viewState}
           onViewStateChange={handleViewStateChange}
-          onClick={handleMapClick}
+          onClick={geoMode?undefined:handleMapClick}
           controller={true}
           layers={layers}
           getCursor={getCursor}
@@ -471,17 +482,18 @@ export default function Dashboard({
         >
           <Map mapStyle={mapStyle} preserveDrawingBuffer={true} />
         </DeckGL>
-        {tooltip && <MapTooltip tooltip={tooltip} />}
-        <MapLegend
+        {!geoMode && tooltip && <MapTooltip tooltip={tooltip} />}
+        <PublishedGeoTiffPanel view={{...publishedGeo,setSource:value=>{if(value==='published')timelapse.setPlaying(false);publishedGeo.setSource(value);}}}/>
+        {!geoMode && <MapLegend
           published={publishedLdd}
           overlay={swipe.active ? swipe.metric : raster.overlay}
           tileInfo={swipe.active
             ? (swipe.mode === 'diff' ? swipe.diffTile : swipe.tileA)
             : raster.tileInfo}
           choropleth={timelapseMetric === 'lst' ? 'lst' : 'ndvi'}
-        />
+        />}
 
-        <MapOverlayControls
+        {!geoMode && <MapOverlayControls
           selectedProvinceEN={province.selectedProvinceEN}
           swipe={swipe}
           raster={raster}
@@ -491,7 +503,7 @@ export default function Dashboard({
           canvasRef={canvasRef}
           basemap={basemap}
           setBasemap={setBasemap}
-        />
+        />}
 
         <div className="map-controls">
           <button
@@ -509,6 +521,7 @@ export default function Dashboard({
             data-active={draw.drawActive || !!draw.result}
             onClick={() => (draw.drawActive || draw.result ? draw.reset() : draw.startDraw())}
             aria-label="วาดพื้นที่วิเคราะห์เอง"
+            disabled={geoMode}
             title="วาดพื้นที่วิเคราะห์เอง"
           >✏️</button>
           <button
@@ -516,18 +529,19 @@ export default function Dashboard({
             data-active={savedPanelOpen}
             onClick={toggleSavedPanel}
             aria-label="พื้นที่ที่บันทึกไว้"
+            disabled={geoMode}
             title="พื้นที่ที่บันทึกไว้"
           >📁</button>
         </div>
 
-        <DrawControl draw={draw} year={selectedYear}
+        {!geoMode && <DrawControl draw={draw} year={selectedYear}
           resolveProvince={resolveProvince}
-          onSave={handleSaveArea} saving={savedAreas.saving} />
+          onSave={handleSaveArea} saving={savedAreas.saving} />}
 
-        <SavedAreasPanel open={savedPanelOpen} onClose={() => setSavedPanelOpen(false)}
+        <SavedAreasPanel open={savedPanelOpen&&!geoMode} onClose={() => setSavedPanelOpen(false)}
           saved={savedAreas} onLoad={handleLoadSaved} />
 
-        <TimelapsePlayer timelapse={timelapse} />
+        {!geoMode && <TimelapsePlayer timelapse={timelapse} />}
       </div>
 
       <AboutModal open={showAbout} onClose={() => setShowAbout(false)}

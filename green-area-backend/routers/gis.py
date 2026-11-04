@@ -81,6 +81,9 @@ def get_me(request: Request, actor: Actor, service: Service):
         and getattr(service.runtime, 'ldd_publication_enabled', False) is True
         and 39 in ready.get('migration_versions', []) and result.get('database_activation_enabled') is False)
     result['geotiff_prepare_enabled'] = getattr(request.app.state, 'gis_geotiff_prepared_store', None) is not None and 41 in ready.get('migration_versions', [])
+    result['geotiff_publication_enabled'] = (getattr(request.app.state,'gis_geotiff_publication',None) is not None
+        and getattr(service.runtime,'geotiff_publication_enabled',False) is True and 42 in ready.get('migration_versions',[])
+        and result.get('database_activation_enabled') is False)
     return result
 
 

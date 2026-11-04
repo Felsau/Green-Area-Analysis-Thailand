@@ -1,0 +1,9 @@
+.published-geotiff-panel { position:absolute;top:16px;left:16px;z-index:20;max-width:360px;max-height:80%;overflow:auto;background:var(--card,#fff);color:var(--text,#173b2a);padding:12px;border:1px solid #b7c9bd;border-radius:10px;font-size:13px;box-sizing:border-box; }
+.published-geotiff-panel label { display:block;margin-bottom:8px; }
+.published-geotiff-panel select,.published-geotiff-panel input { display:block;width:100%;box-sizing:border-box; }
+.published-geotiff-panel p { margin:8px 0;overflow-wrap:anywhere; }
+.published-geotiff-panel img { object-fit:contain;image-rendering:pixelated; }
+.published-geotiff-panel code { overflow-wrap:anywhere; }
+.published-geotiff-gradient { width:100%;height:12px; }
+@media(max-width:600px) { .published-geotiff-panel { top:8px;left:8px;max-width:calc(100% - 64px);max-height:50%; } }
+@media(max-width:900px) { .App[data-published-geotiff="true"] { grid-template-columns:1fr;grid-template-rows:40px minmax(0,1fr);grid-template-areas:"header" "map"; } }
