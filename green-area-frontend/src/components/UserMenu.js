@@ -31,7 +31,7 @@ export default function UserMenu({ displayName, email, isAdmin, onAccount, onSav
               <button role="menuitem" className="usermenu__item usermenu__item--active" onClick={pick(onAccount)}>
                 บัญชีผู้ใช้<span>→</span>
               </button>
-              <button role="menuitem" className="usermenu__item" onClick={pick(onSavedAreas)}>
+              <button role="menuitem" className="usermenu__item" disabled={!onSavedAreas} title={!onSavedAreas?'กลับไป Legacy เพื่อเปิดพื้นที่ที่บันทึกไว้':undefined} onClick={pick(onSavedAreas)}>
                 พื้นที่ที่บันทึกไว้
               </button>
               {onOpenGis && <button role="menuitem" className="usermenu__item" onClick={pick(onOpenGis)}>จัดการข้อมูล GIS<span>→</span></button>}

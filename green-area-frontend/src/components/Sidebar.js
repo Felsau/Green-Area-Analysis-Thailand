@@ -7,6 +7,7 @@ import CoolingTab   from './tabs/CoolingTab';
 import ProvinceSearch from './ProvinceSearch';
 import ErrorBoundary from './ErrorBoundary';
 import { AVAILABLE_YEARS } from '../constants';
+import PublishedAnalysisAvailability from './PublishedAnalysisAvailability';
 
 const TABS = [
   { id: 'stats',     label: 'ข้อมูล' },
@@ -27,10 +28,11 @@ export default function Sidebar({ data, handlers }) {
   const { onReset, setSidebarTab, onSelectProvince, setSelectedYear } = handlers;
 
   const hasProvince = !!selectedProvince;
-  const dataReady   = !!(ndviStats || districtNdviStats);
-  const isLoading   = ndviLoading || districtNdviLoading;
+  const published=data.landuseSource==='published';
+  const dataReady   = published?!!data.landuseData:!!(ndviStats || districtNdviStats);
+  const isLoading   = published?data.landuseLoading:ndviLoading || districtNdviLoading;
 
-  const statusLabel = isLoading ? 'กำลังโหลดข้อมูล GEE'
+  const statusLabel = published?(isLoading?'กำลังตรวจ Published Snapshot':dataReady?'Published LDD · ขอบเขตไฟล์':'Published LDD · ยังไม่มี Snapshot'):isLoading ? 'กำลังโหลดข้อมูล GEE'
                     : dataReady ? 'ข้อมูลสด · Sentinel-2'
                     : 'ยังไม่มีข้อมูล';
   const statusState = isLoading ? 'loading' : dataReady ? 'ready' : 'empty';
@@ -41,7 +43,7 @@ export default function Sidebar({ data, handlers }) {
         <ProvinceSearch
           provinces={provinceList}
           onSelect={onSelectProvince}
-          ndviCache={ndviCache}
+          ndviCache={published?{}:ndviCache}
         />
       </div>
 
@@ -76,7 +78,7 @@ export default function Sidebar({ data, handlers }) {
               {/* The year lives here, not only on the country overview: every
                   number below is computed for it, and without a control in this
                   scope you'd have to leave the province to change year. */}
-              <label className="context__year">
+              {!published&&<label className="context__year">
                 ปีข้อมูล
                 <select
                   className="field"
@@ -86,7 +88,8 @@ export default function Sidebar({ data, handlers }) {
                 >
                   {AVAILABLE_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
                 </select>
-              </label>
+              </label>}
+              {published&&<span>ปีที่ระบุใน Published: {data.landuseYear} · ไม่ใช่ค่า NDVI ทั้งจังหวัด</span>}
             </div>
           </div>
 
@@ -99,11 +102,17 @@ export default function Sidebar({ data, handlers }) {
               tabIndex={0}
             >
               <ErrorBoundary resetKey={`${selectedProvince}:${selectedDistrict}:${sidebarTab}`}>
-                {sidebarTab === 'stats'     && <StatsTab     data={data} handlers={handlers} />}
-                {sidebarTab === 'trend'     && <TrendTab     data={data} handlers={handlers} />}
-                {sidebarTab === 'cooling'   && <CoolingTab   data={data} handlers={handlers} />}
-                {sidebarTab === 'compare'   && <CompareTab   data={data} handlers={handlers} />}
-                {sidebarTab === 'recommend' && <RecommendTab data={data} handlers={handlers} />}
+                {published&&sidebarTab!=='stats'?<>
+                  <PublishedAnalysisAvailability bundle={data.landuseData} kind="landuse" feature={sidebarTab}/>
+                  <button onClick={()=>setSidebarTab('stats')}>เลือกแหล่งข้อมูล / ปี</button>
+                  <button onClick={()=>handlers.setLanduseSource('dynamic_world')}>กลับไป Legacy</button>
+                </>:<>
+                  {sidebarTab === 'stats'     && <StatsTab     data={data} handlers={handlers} />}
+                  {sidebarTab === 'trend'     && <TrendTab     data={data} handlers={handlers} />}
+                  {sidebarTab === 'cooling'   && <CoolingTab   data={data} handlers={handlers} />}
+                  {sidebarTab === 'compare'   && <CompareTab   data={data} handlers={handlers} />}
+                  {sidebarTab === 'recommend' && <RecommendTab data={data} handlers={handlers} />}
+                </>}
               </ErrorBoundary>
             </div>
           </div>
@@ -117,16 +126,19 @@ export default function Sidebar({ data, handlers }) {
       ) : (
         <>
           <div className="context">
-            <div className="context__crumb">ประเทศไทย</div>
-            <div className="context__title">ดัชนีพื้นที่สีเขียว</div>
+            <div className="context__crumb">{published?'Published LDD':'ประเทศไทย'}</div>
+            <div className="context__title">{published?'ยังไม่ได้เลือกจังหวัด':'ดัชนีพื้นที่สีเขียว'}</div>
             <div className="context__status">
-              <span className="helper">คลิกจังหวัดบนแผนที่เพื่อดูข้อมูลเชิงลึก</span>
+              <span className="helper">{published?'ค้นหาจังหวัดเพื่อโหลด Published หรือเลือกกลับไป Legacy':'คลิกจังหวัดบนแผนที่เพื่อดูข้อมูลเชิงลึก'}</span>
             </div>
           </div>
           <div className="panel">
             <div className="panel__inner">
-              <ErrorBoundary resetKey="overview">
-                <OverviewPanel data={data} handlers={handlers} />
+              <ErrorBoundary resetKey={`overview:${published}`}>
+                {published?<>
+                  <PublishedAnalysisAvailability kind="landuse" feature="ranking"/>
+                  <button onClick={()=>handlers.setLanduseSource('dynamic_world')}>กลับไป Legacy</button>
+                </>:<OverviewPanel data={data} handlers={handlers} />}
               </ErrorBoundary>
             </div>
           </div>

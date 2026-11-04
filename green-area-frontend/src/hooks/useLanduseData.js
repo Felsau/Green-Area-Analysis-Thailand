@@ -3,6 +3,7 @@ import { API_BASE, CURRENT_YEAR, API_COMPUTE_TIMEOUT_MS } from '../constants';
 import { pushError } from '../utils/toast';
 import { fetchWithRetry } from '../utils/fetchRetry';
 import { gisRequest } from '../utils/gisClient';
+import {publishedSnapshotMatches} from '../utils/publishedAnalysis';
 
 // สัดส่วนการใช้ที่ดิน 5 ประเภทหลัก (จัดกลุ่มตามนิยามกรมพัฒนาที่ดิน — LDD) ของ
 // จังหวัด/อำเภอ · fetch-on-demand แบบ useCoolingData (GEE compute หนัก ไม่ auto-fetch
@@ -32,6 +33,7 @@ export function useLanduseData() {
       if (source === 'published') {
         if (districtEN) throw new Error('Published LDD รองรับเฉพาะจังหวัด กรุณายกเลิกการเลือกอำเภอ');
         const bundle = await gisRequest('/published-ldd', { query: { province: provinceEN, data_year: year }, signal });
+        if(!publishedSnapshotMatches(bundle,{province:provinceEN,data_year:year,month:0,product:'landuse'}))throw new Error('Published Snapshot หรือขอบเขตไม่ตรงกัน');
         if (!signal.aborted) setLanduseData({ ...bundle, checked_at: Date.now() });
         return;
       }
@@ -48,7 +50,7 @@ export function useLanduseData() {
         pushError(`วิเคราะห์การใช้ที่ดินไม่สำเร็จ — ${json.detail || 'ลองอีกครั้ง'}`);
       }
     } catch (err) {
-      if (err?.name === 'AbortError') return;
+      if (signal.aborted || err?.name === 'AbortError') return;
       if (source === 'published') {
         setLanduseError('Published ไม่พร้อมใช้งานหรือเปลี่ยนฉบับ กรุณาตรวจใหม่ ไม่มีการใช้ Legacy แทน');
         return;
@@ -95,16 +97,17 @@ export function useLanduseData() {
       document.removeEventListener('visibilitychange',visible); };
   }, [landuseSource,fetchLanduse]);
 
-  const resetLanduse = useCallback(() => {
+  const clearLanduseScope = useCallback(() => {
     abortRef.current?.abort();
+    abortRef.current=null;
     setLanduseData(null);
     setLanduseError(null);lastScope.current=null;
     setLanduseLoading(false);
-    setLanduseSourceRaw('dynamic_world');  // เปลี่ยนจังหวัด → กลับ default (LDD gate ราย จว.)
   }, []);
+  const resetLanduse = useCallback(() => {clearLanduseScope();setLanduseSourceRaw('dynamic_world');},[clearLanduseScope]);
 
   return {
     landuseData, landuseLoading, landuseYear, landuseSource, landuseError,
-    setLanduseYear, setLanduseSource, fetchLanduse, resetLanduse,
+    setLanduseYear, setLanduseSource, fetchLanduse, resetLanduse,clearLanduseScope,
   };
 }

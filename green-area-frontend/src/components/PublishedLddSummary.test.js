@@ -8,7 +8,7 @@ const bundle={snapshot_id:'snapshot-a',source_identity:identity,geometry:{type:'
   summary:{feature_count:3,total_area_m2:6400,area_by_code_m2:{'U201/A401':1600,A101:3200,U101:1600}}};
 test('provenance identifies partial source footprint and original area method',()=>{
   render(<PublishedLddSummary bundle={bundle}/>);
-  expect(screen.getByRole('region').getAttribute('data-source-snapshot')).toBe('snapshot-a');
+  expect(screen.getByRole('region',{name:'สรุป Published LDD'}).getAttribute('data-source-snapshot')).toBe('snapshot-a');
   expect(screen.getByText(/ไม่ใช่พื้นที่ครบทั้งจังหวัด/)).toBeInTheDocument();
   expect(screen.getByText('U201/A401')).toBeInTheDocument();expect(screen.getByText('edition-a')).toBeInTheDocument();
 });

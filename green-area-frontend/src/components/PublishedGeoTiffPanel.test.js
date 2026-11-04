@@ -21,3 +21,8 @@ test('Source and period controls expose exact accessible labels',()=>{
  render(<PublishedGeoTiffPanel view={{source:'published',scope:{province:'',data_year:2026,month:0,product:'ndvi'},setSource:vi.fn(),setScope:vi.fn(),load:vi.fn()}}/>);
  for(const label of ['แหล่งข้อมูล Raster','จังหวัด Published','ผลิตภัณฑ์ Published','ปี Published (ค.ศ.)','เดือน Published'])expect(screen.getByLabelText(label,{exact:true})).toBeInTheDocument();
 });
+test('active Published LDD is not mislabeled as an active Legacy raster',()=>{
+ render(<PublishedGeoTiffPanel view={{source:'legacy',otherPublished:true,setSource:vi.fn(),scope:{}}}/>);
+ expect(screen.getByRole('option',{name:'ใช้ Published LDD (ไม่มี Raster)'})).toBeInTheDocument();
+ expect(screen.queryByRole('option',{name:'Legacy GEE (ค่าเริ่มต้น)'})).not.toBeInTheDocument();
+});

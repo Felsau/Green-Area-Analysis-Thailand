@@ -4,7 +4,8 @@ import {usePublishedGeoTiff} from './usePublishedGeoTiff';
 import {gisRequest} from '../utils/gisClient';
 vi.mock('../utils/gisClient',()=>({gisRequest:vi.fn()}));
 const target={province:'Bangkok Metropolis',data_year:2026,month:0,product:'ndvi'};
-const bundle={snapshot_id:'c'.repeat(64),source_identity:{...target,namespace:'published',scope:'province'},raster:{artifact_sha256:'a'.repeat(64)},publication_identity:{artifacts:{ndvi_raster:{sha256:'a'.repeat(64)}}}};
+import {publishedGeoFixture} from '../testFixtures/publishedSnapshots';
+const bundle=publishedGeoFixture('c');
 beforeEach(()=>gisRequest.mockReset());
 test('Legacy stays default and no Published request runs until explicitly selected',()=>{
  const {result}=renderHook(()=>usePublishedGeoTiff());expect(result.current.source).toBe('legacy');expect(result.current.bundle).toBeNull();expect(gisRequest).not.toHaveBeenCalled();

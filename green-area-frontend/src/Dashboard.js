@@ -33,6 +33,8 @@ import { useMapLayers }      from './hooks/useMapLayers';
 import {usePublishedGeoTiff} from './hooks/usePublishedGeoTiff';
 import PublishedGeoTiffPanel from './components/PublishedGeoTiffPanel';
 import {publishedGeoTiffLayers} from './utils/mapLayers/publishedGeoTiffLayer';
+import {publishedLddLayers} from './utils/mapLayers/publishedLddLayer';
+import {publishedSnapshotMatches} from './utils/publishedAnalysis';
 import Sidebar    from './components/Sidebar';
 import AppHeader  from './components/AppHeader';
 import MapTooltip from './components/MapTooltip';
@@ -78,16 +80,16 @@ export default function Dashboard({
   const landuse = useLanduseData();
   // One atomic bundle drives map, legend and summary; reject scope/year mismatch
   // during the render itself, before asynchronous reset effects can run.
-  const publishedLdd = landuse.landuseSource==='published' && !district.selectedDistrictEN
-    && landuse.landuseData?.source_identity?.province===province.selectedProvinceEN
-    && landuse.landuseData?.source_identity?.data_year===landuse.landuseYear ? landuse.landuseData : null;
+  const lddMode=landuse.landuseSource==='published';
+  const publishedLdd = lddMode && !district.selectedDistrictEN
+    &&publishedSnapshotMatches(landuse.landuseData,{province:province.selectedProvinceEN,data_year:landuse.landuseYear,month:0,product:'landuse'})?landuse.landuseData:null;
   const publishedFit=useRef(null);
   const lddSourceRef=useRef(landuse.landuseSource);lddSourceRef.current=landuse.landuseSource;
   useEffect(()=>{
     if(landuse.landuseSource!=='published'){publishedFit.current=null;return;}
-    if(!publishedLdd || publishedFit.current===publishedLdd.source_identity.edition_id)return;
+    if(!publishedLdd || publishedFit.current===publishedLdd.snapshot_id)return;
     const [west,south,east,north]=turf.bbox(publishedLdd.geometry);
-    publishedFit.current=publishedLdd.source_identity.edition_id;
+    publishedFit.current=publishedLdd.snapshot_id;
     setViewState(v=>({...v,longitude:(west+east)/2,latitude:(south+north)/2,
       zoom:Math.min(17,Math.max(5,Math.log2(360/Math.max(east-west,north-south,.0001))-2)),pitch:0,bearing:0}));
   },[publishedLdd,landuse.landuseSource]);
@@ -95,6 +97,7 @@ export default function Dashboard({
   const raster = useRasterOverlay();
   const publishedGeo=usePublishedGeoTiff();
   const geoMode=publishedGeo.source==='published';
+  const publishedMode=geoMode||lddMode;
   useEffect(()=>{
     const b=publishedGeo.bundle?.raster?.bounds;if(!b)return;
     setViewState(v=>({...v,longitude:(b[0]+b[2])/2,latitude:(b[1]+b[3])/2,
@@ -244,24 +247,24 @@ export default function Dashboard({
   // land use composition is scope-bound (province OR district) — clear on either change
   // so the card never shows the previous scope's proportions.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { landuse.resetLanduse(); }, [province.selectedProvinceEN, district.selectedDistrictEN]);
+  useEffect(() => { if(lddSourceRef.current==='published')landuse.clearLanduseScope();else landuse.resetLanduse(); }, [province.selectedProvinceEN, district.selectedDistrictEN]);
 
   // Raster overlay: (re)fetch NDVI/LST tiles when the overlay or scope changes.
   // fetchTiles is a stable useCallback; province/district/overlay drive the refetch.
   useEffect(() => {
-    if (raster.overlay === 'none' || !province.selectedProvinceEN) return;
+    if (publishedMode || raster.overlay === 'none' || !province.selectedProvinceEN) return;
     raster.fetchTiles(raster.overlay, province.selectedProvinceEN,
                       district.selectedDistrictEN || null, selectedYear);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [raster.overlay, province.selectedProvinceEN, district.selectedDistrictEN, selectedYear]);
+  }, [publishedMode,raster.overlay, province.selectedProvinceEN, district.selectedDistrictEN, selectedYear]);
 
   // Swipe compare: (re)fetch both years when active / scope / metric / years change.
   useEffect(() => {
-    if (!swipe.active || !province.selectedProvinceEN) return;
+    if (publishedMode || !swipe.active || !province.selectedProvinceEN) return;
     setSwipeTilesReady({ a: false, b: false });  // new tiles incoming → not ready
     swipe.load(province.selectedProvinceEN, district.selectedDistrictEN || null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [swipe.active, swipe.mode, swipe.metric, swipe.yearA, swipe.yearB,
+  }, [publishedMode,swipe.active, swipe.mode, swipe.metric, swipe.yearA, swipe.yearB,
       province.selectedProvinceEN, district.selectedDistrictEN]);
 
   const showingDistricts = !!(province.selectedProvinceEN && district.districtsData);
@@ -357,7 +360,7 @@ export default function Dashboard({
     selectedYear,
     publishedLdd,
   });
-  const layers=useMemo(()=>geoMode?publishedGeoTiffLayers(publishedGeo.bundle):legacyLayers,[geoMode,publishedGeo.bundle,legacyLayers]);
+  const layers=useMemo(()=>geoMode?publishedGeoTiffLayers(publishedGeo.bundle):lddMode?publishedLddLayers(publishedLdd):legacyLayers,[geoMode,lddMode,publishedGeo.bundle,publishedLdd,legacyLayers]);
 
   const sidebarData = {
     provinceList,
@@ -443,7 +446,7 @@ export default function Dashboard({
                        district.selectedDistrictEN || null, landuse.landuseYear,
                        landuse.landuseSource),
     setLanduseYear:  landuse.setLanduseYear,
-    setLanduseSource: source => { if(source==='published') { raster.clearOverlay();swipe.reset(); } landuse.setLanduseSource(source); },
+    setLanduseSource: source => { if(source==='published') { timelapse.setPlaying(false);raster.clearOverlay();swipe.reset(); } landuse.setLanduseSource(source); },
     onComputeMissing: coverage.computeMissing,
     onCancelCompute:  coverage.cancelCompute,
   };
@@ -461,7 +464,8 @@ export default function Dashboard({
         user={auth.user}
         profile={auth.profile}
         onShowAccount={() => setShowAccount(true)}
-        onSavedAreas={toggleSavedPanel}
+        onSavedAreas={publishedMode?undefined:toggleSavedPanel}
+        publishedSource={geoMode?'Published GeoTIFF':lddMode?'Published LDD':undefined}
         onSignOut={auth.signOut}
         onOpenGis={onOpenGis}
       />
@@ -474,7 +478,7 @@ export default function Dashboard({
         <DeckGL
           viewState={viewState}
           onViewStateChange={handleViewStateChange}
-          onClick={geoMode?undefined:handleMapClick}
+          onClick={publishedMode?undefined:handleMapClick}
           controller={true}
           layers={layers}
           getCursor={getCursor}
@@ -482,9 +486,9 @@ export default function Dashboard({
         >
           <Map mapStyle={mapStyle} preserveDrawingBuffer={true} />
         </DeckGL>
-        {!geoMode && tooltip && <MapTooltip tooltip={tooltip} />}
-        <PublishedGeoTiffPanel view={{...publishedGeo,setSource:value=>{if(value==='published')timelapse.setPlaying(false);publishedGeo.setSource(value);}}}/>
-        {!geoMode && <MapLegend
+        {!publishedMode && tooltip && <MapTooltip tooltip={tooltip} />}
+        <PublishedGeoTiffPanel view={{...publishedGeo,otherPublished:lddMode,setSource:value=>{if(value==='published'){timelapse.setPlaying(false);landuse.setLanduseSource('dynamic_world');}publishedGeo.setSource(value);}}}/>
+        {!geoMode && (!lddMode||publishedLdd) && <MapLegend
           published={publishedLdd}
           overlay={swipe.active ? swipe.metric : raster.overlay}
           tileInfo={swipe.active
@@ -493,7 +497,7 @@ export default function Dashboard({
           choropleth={timelapseMetric === 'lst' ? 'lst' : 'ndvi'}
         />}
 
-        {!geoMode && <MapOverlayControls
+        {!publishedMode && <MapOverlayControls
           selectedProvinceEN={province.selectedProvinceEN}
           swipe={swipe}
           raster={raster}
@@ -521,7 +525,7 @@ export default function Dashboard({
             data-active={draw.drawActive || !!draw.result}
             onClick={() => (draw.drawActive || draw.result ? draw.reset() : draw.startDraw())}
             aria-label="วาดพื้นที่วิเคราะห์เอง"
-            disabled={geoMode}
+            disabled={publishedMode}
             title="วาดพื้นที่วิเคราะห์เอง"
           >✏️</button>
           <button
@@ -529,19 +533,19 @@ export default function Dashboard({
             data-active={savedPanelOpen}
             onClick={toggleSavedPanel}
             aria-label="พื้นที่ที่บันทึกไว้"
-            disabled={geoMode}
+            disabled={publishedMode}
             title="พื้นที่ที่บันทึกไว้"
           >📁</button>
         </div>
 
-        {!geoMode && <DrawControl draw={draw} year={selectedYear}
+        {!publishedMode && <DrawControl draw={draw} year={selectedYear}
           resolveProvince={resolveProvince}
           onSave={handleSaveArea} saving={savedAreas.saving} />}
 
-        <SavedAreasPanel open={savedPanelOpen&&!geoMode} onClose={() => setSavedPanelOpen(false)}
+        <SavedAreasPanel open={savedPanelOpen&&!publishedMode} onClose={() => setSavedPanelOpen(false)}
           saved={savedAreas} onLoad={handleLoadSaved} />
 
-        {!geoMode && <TimelapsePlayer timelapse={timelapse} />}
+        {!publishedMode && <TimelapsePlayer timelapse={timelapse} />}
       </div>
 
       <AboutModal open={showAbout} onClose={() => setShowAbout(false)}

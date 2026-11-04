@@ -1,14 +1,15 @@
 import {gisConfigured} from '../utils/gisClient';
 import {PROVINCE_TH} from '../constants';
 import '../styles/published-geotiff.css';
+import PublishedAnalysisAvailability from './PublishedAnalysisAvailability';
 
 export default function PublishedGeoTiffPanel({view}){
   if(!gisConfigured())return null;
-  const {source,setSource,scope,setScope,bundle,error,loading,load}=view;
+  const {source,setSource,scope,setScope,bundle,error,loading,load,otherPublished}=view;
   const png=bundle?.raster?.png_base64;
   const safePng=typeof png==='string'&&png.length<=64000&&/^[A-Za-z0-9+/]+={0,2}$/.test(png);
   return <section className="published-geotiff-panel" aria-label="แหล่งข้อมูล Raster Dashboard" data-source-snapshot={bundle?.snapshot_id||''}>
-    <label>แหล่งข้อมูล Raster <select aria-label="แหล่งข้อมูล Raster" value={source} onChange={e=>setSource(e.target.value)}><option value="legacy">Legacy GEE (ค่าเริ่มต้น)</option><option value="published">Published GeoTIFF (Local / ขอบเขตไฟล์)</option></select></label>
+    <label>แหล่งข้อมูล Raster <select aria-label="แหล่งข้อมูล Raster" value={source} onChange={e=>setSource(e.target.value)}><option value="legacy">{otherPublished?'ใช้ Published LDD (ไม่มี Raster)':'Legacy GEE (ค่าเริ่มต้น)'}</option><option value="published">Published GeoTIFF (Local / ขอบเขตไฟล์)</option></select></label>
     {source==='published'&&<>
       <p><strong>ข้อมูลอัปโหลด Ready Profile ไม่ใช่ GEE</strong> · ไม่แทนค่า Ranking, จุดแนะนำ หรือสถิติจังหวัดเดิม</p>
       <label>จังหวัด Published <select aria-label="จังหวัด Published" value={scope.province} onChange={e=>setScope({province:e.target.value})}><option value="">เลือกจังหวัด</option>{Object.entries(PROVINCE_TH).sort((a,b)=>a[1].localeCompare(b[1],'th')).map(([en,th])=><option key={en} value={en}>{th}</option>)}</select></label>
@@ -30,6 +31,7 @@ export default function PublishedGeoTiffPanel({view}){
         </div>
         <p>Snapshot <code>{bundle.snapshot_id}</code> · ตรวจใหม่ทุก 10 วินาทีเมื่อเปิดหน้า และเมื่อกลับมาที่แท็บ</p>
       </div>}
+      <PublishedAnalysisAvailability bundle={bundle} kind="raster"/>
     </>}
   </section>;
 }

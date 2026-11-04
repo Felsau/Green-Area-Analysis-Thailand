@@ -42,6 +42,14 @@ export default function StatsTab({ data, handlers }) {
   } = data;
   const { onClearDistrict, onFetchLanduse, setLanduseYear, setLanduseSource } = handlers;
 
+  if(landuseSource==='published')return <div id="export-stats">
+    {selectedDistrict&&<p role="status">Published LDD ไม่รองรับอำเภอ <button onClick={onClearDistrict}>ล้างอำเภอ</button></p>}
+    <LandusePanel scopeLabel={selectedProvince} provinceEN={selectedProvinceEN} districtEN={selectedDistrictEN}
+      landuseData={landuseData} landuseLoading={landuseLoading} landuseYear={landuseYear} landuseSource={landuseSource} landuseError={landuseError}
+      setLanduseYear={setLanduseYear} setLanduseSource={setLanduseSource}
+      onAnalyze={()=>onFetchLanduse(selectedProvinceEN,selectedDistrictEN,landuseYear,landuseSource)}/>
+  </div>;
+
   return (
     <div id="export-stats" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 

@@ -1,3 +1,5 @@
+import PublishedAnalysisAvailability from './PublishedAnalysisAvailability';
+
 export default function PublishedLddSummary({ bundle }) {
   const source=bundle.source_identity,summary=bundle.summary;
   return <section aria-label="สรุป Published LDD" data-source-snapshot={bundle.snapshot_id}>
@@ -11,5 +13,6 @@ export default function PublishedLddSummary({ bundle }) {
         {Object.entries(summary.area_by_code_m2).map(([code,area])=><tr key={code}><td>{code}</td><td>{area.toLocaleString()}</td></tr>)}
       </tbody></table>
     <p>ไม่เปลี่ยนผล NDVI/LST, Ranking หรือจุดแนะนำ · ตรวจใหม่ทุก 10 วินาทีขณะที่เปิดหน้านี้ และเมื่อกลับมาที่แท็บ</p>
+    <PublishedAnalysisAvailability bundle={bundle} kind="landuse"/>
   </section>;
 }

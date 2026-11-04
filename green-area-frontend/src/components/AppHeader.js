@@ -2,7 +2,7 @@ import UserMenu from './UserMenu';
 
 export default function AppHeader({
   loading, sidebarCollapsed, onToggleSidebar, theme, onToggleTheme, onShowAbout, onGoHome,
-  user, profile, onShowAccount, onSavedAreas, onSignOut, onOpenGis,
+  user, profile, onShowAccount, onSavedAreas, onSignOut, onOpenGis,publishedSource,
 }) {
   const isDark = theme === 'dark';
   return (
@@ -14,7 +14,7 @@ export default function AppHeader({
         </div>
       </button>
       <div className="topbar__meta">
-        {import.meta.env.VITE_LOCAL_DEMO === 'true'
+        {publishedSource?<span className="topbar__source"><strong>{publishedSource}</strong> · Local · ขอบเขตไฟล์</span>:import.meta.env.VITE_LOCAL_DEMO === 'true'
           ? <span className="topbar__source"><strong>Local Demo</strong> · อ่าน Cache ในเครื่อง · Live GEE ยังปิดอยู่</span>
           : <span className="topbar__source"><strong>Sentinel-2</strong> · Google Earth Engine</span>}
       </div>

@@ -2,6 +2,7 @@ import Accordion from '../../ui/Accordion';
 import { AVAILABLE_YEARS, LANDUSE_SOURCES, LDD_PROVINCES } from '../../../constants';
 import { gisConfigured } from '../../../utils/gisClient';
 import PublishedLddSummary from '../../PublishedLddSummary';
+import PublishedAnalysisAvailability from '../../PublishedAnalysisAvailability';
 
 // สัดส่วนการใช้ที่ดิน 5 ประเภทหลัก (ชุมชน/เกษตร/ป่า/น้ำ/เบ็ดเตล็ด — จัดกลุ่มตาม
 // นิยามกรมพัฒนาที่ดิน) เป็น stacked bar + แถวต่อประเภท · fetch-on-demand เพราะเป็น
@@ -24,7 +25,7 @@ export default function LandusePanel({
   return (
     <Accordion title="การใช้ที่ดิน · 5 ประเภทหลัก"
                meta={published ? 'Published LDD / Local' : isLdd ? 'LDD 1:25,000' : 'Dynamic World / 10m'}
-               defaultOpen={false}>
+               defaultOpen={published}>
       {gisConfigured() && <div className="gis-actions" role="group" aria-label="Legacy หรือ Published LDD">
         <button aria-pressed={!published} onClick={()=>setLanduseSource('dynamic_world')}>Legacy (ค่าเริ่มต้น)</button>
         <button aria-pressed={published} disabled={!provinceEN || !!districtEN} onClick={()=>setLanduseSource('published')}>Published LDD (Local)</button>
@@ -37,6 +38,7 @@ export default function LandusePanel({
         {landuseLoading && <p role="status">กำลังตรวจ Snapshot และไฟล์จริง…</p>}
         {landuseError && <p role="alert">{landuseError}</p>}
         {!landuseLoading && landuseData?.source_identity?.namespace==='published' && <PublishedLddSummary bundle={landuseData} />}
+        {!landuseData&&<PublishedAnalysisAvailability kind="landuse"/>}
       </> : <>
       {/* Source toggle — โผล่เฉพาะจังหวัดที่มีข้อมูล LDD (ไม่งั้นคงไว้ที่ Dynamic World) */}
       {canUseLdd && (
