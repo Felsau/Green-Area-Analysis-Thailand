@@ -1,0 +1,16 @@
+{
+  "independent_review": true,
+  "reviewer": "independent a63_security_review",
+  "unresolved_high_critical": 0,
+  "scope": "Reviewed fresh offline COPY-only image build and exact one-shot probe image/command. Actual Google credentials, SDK transport, selective egress and live startup remain blocked.",
+  "source_files": {
+    "green-area-backend/gis_worker/gee_runtime_identity.py": "20806e7a5acb0e5b2afc4a9147251f84a5ca3505dbdb0c320648048c65fe12fe",
+    "green-area-backend/gis_worker/gee_runtime_transport.py": "36fdeaa2b243118206232a3d0587fcde445a0d0cab8f2eed06b2724f82437673",
+    "green-area-backend/gis_worker/gee_runtime_probe.py": "0375f87f6988f953c4ca2a442b19d1a08497bef5309b4100674ba710c8bf7a39",
+    "dev/gis_local/gee_runtime_policy.py": "a0029db9f6544a0e9db386ab4fed6b30f63f28d0929feefc6d08415f8d5734c1",
+    "dev/gis_local/gee_runtime_local.py": "33ed613c320e1d86ff7db7e2876fd1c9fdfd51022d1708e5c985c0ddf0320795",
+    "dev/gis_local/gee_live_runtime.Dockerfile": "4ab40a08b18979db4086145cec7939f861832d888b65c5bb91f0b544f6a731ff"
+  },
+  "approved_probe_image_id": "sha256:9e4cea21aa365fe4b648221d1617769a788d623910b134f83c7cd2436721df16",
+  "actual_live_approved": false
+}

@@ -21,3 +21,11 @@
 /dev/gis_local/gee-safety-review.json -text
 /docs/gis/a6-4d1-contracts.md -text
 /docs/gis/a6-4d1-handoff.md -text
+# A6.4d-2 reviewed runtime/image and evidence bindings also preserve exact bytes.
+/green-area-backend/gis_worker/gee_runtime_*.py -text
+/green-area-backend/tests/test_gee_runtime_preparation.py -text
+/dev/gis_local/gee_runtime_*.py -text
+/dev/gis_local/tests/test_gee_runtime_policy.py -text
+/dev/gis_local/gee_live_runtime.Dockerfile -text
+/dev/gis_local/gee-runtime-*.json -text
+/docs/gis/a6-4d2-*.md -text

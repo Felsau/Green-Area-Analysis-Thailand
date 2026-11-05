@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "mode": "offline-probe-only",
+  "live_enabled": false,
+  "base_image": "sha256:7557955c9e2c8611ea1396ddef6d8629c2ee1e7f193e85f0c65bcf5db9566674",
+  "image_id": "sha256:9e4cea21aa365fe4b648221d1617769a788d623910b134f83c7cd2436721df16",
+  "tag": "gis-gee-runtime:offline-a64d2-b7ea6627b56d",
+  "network_policy": "gee-live-deny-external-v1",
+  "source_tree_sha256": "96d294abee7b0c559333c2f56a236c7647b5cdfc3dc294210f37d43ffaaad7ca",
+  "source_files": {
+    "green-area-backend/gis_worker/__init__.py": "bb9ee399aad4567ebf562f986fff50b4fbed418f832c2bd5e5c68f72ad25810f",
+    "green-area-backend/gis_worker/gee_adapter.py": "b046e74ef45cf486ffe2cf14c91601809c428224ad4169c7a237e730332ebdee",
+    "green-area-backend/gis_worker/gee_contracts.py": "f63e00027460fc3b10d75e5b0ae95755e01f97010726d42072da41b94dddfbbd",
+    "green-area-backend/gis_worker/gee_execution_safety.py": "b7b7436def144a44cf3d360a0dfca330b53177d8e9a5ce57956354d313ba573c",
+    "green-area-backend/gis_worker/gee_live_bridge.py": "b26ce041d54a4f773858909d53082352ad3c938b3da5ed896aaa08ce6849e1a9",
+    "green-area-backend/gis_worker/gee_live_contracts.py": "045d00a474b9cec317e08ab08dffc3ca3104600b0615f49a7973d500fe576779",
+    "green-area-backend/gis_worker/gee_live_injected.py": "1ec46d08b5ca2b340dca9f0025766d54f8cf94b1240241f0ed66c36f50f89c3e",
+    "green-area-backend/gis_worker/gee_live_worker.py": "1d80e0e49e3cd36de4708beb28f68f8f914e6138a5ed9455c32e26da11187703",
+    "green-area-backend/gis_worker/gee_mock_child.py": "ca9c9806b03531f42fe124e4a86edd67d93bedf7d10943e609a0451eb6d89462",
+    "green-area-backend/gis_worker/gee_mock_fixtures.py": "8d2a350363243d5ded88653969d881655f91aebbc387479be42e2e25e7dc0005",
+    "green-area-backend/gis_worker/gee_mock_queue.py": "dd3895325aaca91fe0fbb6d70dae182c990152535fb0f55539f73587bca83449",
+    "green-area-backend/gis_worker/gee_mock_worker.py": "5fc587ad997d58762f7139512594590212f27ec415d15759289d6ad7ba02af33",
+    "green-area-backend/gis_worker/gee_runtime_identity.py": "20806e7a5acb0e5b2afc4a9147251f84a5ca3505dbdb0c320648048c65fe12fe",
+    "green-area-backend/gis_worker/gee_runtime_probe.py": "0375f87f6988f953c4ca2a442b19d1a08497bef5309b4100674ba710c8bf7a39",
+    "green-area-backend/gis_worker/gee_runtime_transport.py": "36fdeaa2b243118206232a3d0587fcde445a0d0cab8f2eed06b2724f82437673",
+    "green-area-backend/gis_worker/gee_safety_child.py": "3013641ffe71cee4418f5c8af826cc8e678d8007d55fbc849cee16bf40acfc89",
+    "green-area-backend/gis_worker/gee_safety_worker.py": "03dbc36b05815bb606279e83da4db42f962621397902b46c49e025f8d93b32b4",
+    "green-area-backend/gis_worker/geotiff_child.py": "1f3b56b19d7affd85194530789f0eb9d0e2731ac1766976c72a73a043ca68978",
+    "green-area-backend/gis_worker/geotiff_prepare_child.py": "1439c7f511b1fa314b2f31071989fac793a518890b45fc5ea4616c4f307a54bd",
+    "green-area-backend/gis_worker/geotiff_prepare_provider.py": "1a0af31101318cd1d5e52dd89fb4bf59d31fd3610e56f5d135a981cc5af90443",
+    "green-area-backend/gis_worker/geotiff_prepare_worker.py": "b7c0e6481ba063ac03296c518442010635bad36aa653e092431c2dc3e4bb72dd",
+    "green-area-backend/gis_worker/geotiff_provider.py": "34c09acdb74be716e0f7ad7e3cd7f3a10fc4e9b11964a9573a62226a08c806fd",
+    "green-area-backend/gis_worker/geotiff_publication_child.py": "23d0af0276c86cd3c0507c42163940b2f888a386595387bfc492d2e232d000db",
+    "green-area-backend/gis_worker/geotiff_worker.py": "2fb0d09540e5bcb0aa81cb729f3011daab00d8a8bde6cafb50d7aea07e064998",
+    "green-area-backend/gis_worker/ldd_child.py": "44a424fb83f0a63000cd8e77586c2f17b5c87ee4709a8d7575136f7ed69515a5",
+    "green-area-backend/gis_worker/ldd_prepare_child.py": "c8f3a3a1973ce6004c01c0e7e95b3998848f7cffb19f30af10333fd15deb4099",
+    "green-area-backend/gis_worker/ldd_prepare_provider.py": "ada3e932f56d685939a1efeab58d24c6b767dc58fe7f23c510e6420ae2920e04",
+    "green-area-backend/gis_worker/ldd_prepare_worker.py": "2519afa2f448ad78c5390122dcaad067a8b72a53978e20061144b88625a9f493",
+    "green-area-backend/gis_worker/ldd_provider.py": "8999818bb2b8e1ca525a3b31b015bcfc367146c0a1210b52bb0c9a2b80bf1af6",
+    "green-area-backend/gis_worker/ldd_publication_child.py": "182810272af1ec7c3d04d1bae9312600c8a21102f6abf05a53badf27006bdd73",
+    "green-area-backend/gis_worker/ldd_worker.py": "0857f609dfff0c228379bc14d83352238b841974e5de526107e381d1403b08cb",
+    "green-area-backend/gis_worker/native_child.py": "e6f4cfec70aa33e66b08dbbfdb1bf1a71ea12b0efe7f89f86386538820a5fb58",
+    "green-area-backend/gis_worker/poc_validation.py": "91c8604115b8c5c08d362127ed5fd2ded8c8259d82f088ed259dba87cce81480",
+    "green-area-backend/gis_worker/processing_child.py": "5d9cda3958f46bfe148a92f1eedb09707d957e1a9a88dd830fa10e91de17c4bd",
+    "green-area-backend/gis_worker/processing_provider.py": "75bf21c03bb8fb846305482cda6bde54b18dee26be04c4e867817f7688210b3b",
+    "green-area-backend/gis_worker/processing_worker.py": "e7824c015720b2a43aef66ed6375bb6345883ed8a1dbe0f9f63ec91225164f99",
+    "green-area-backend/gis_worker/provider.py": "64ffde0b17bafe3e15db1d73a1a32c196f07b8f5aa1a7de19fc6e3e44d3621cf",
+    "green-area-backend/gis_worker/worker.py": "8335a3f3deff48ecaeabbe6e2bcf264244c3775e90e899283b6675169e6f911d"
+  },
+  "reviewed_sources": {
+    "green-area-backend/gis_worker/gee_runtime_identity.py": "20806e7a5acb0e5b2afc4a9147251f84a5ca3505dbdb0c320648048c65fe12fe",
+    "green-area-backend/gis_worker/gee_runtime_transport.py": "36fdeaa2b243118206232a3d0587fcde445a0d0cab8f2eed06b2724f82437673",
+    "green-area-backend/gis_worker/gee_runtime_probe.py": "0375f87f6988f953c4ca2a442b19d1a08497bef5309b4100674ba710c8bf7a39",
+    "dev/gis_local/gee_runtime_policy.py": "a0029db9f6544a0e9db386ab4fed6b30f63f28d0929feefc6d08415f8d5734c1",
+    "dev/gis_local/gee_runtime_local.py": "33ed613c320e1d86ff7db7e2876fd1c9fdfd51022d1708e5c985c0ddf0320795",
+    "dev/gis_local/gee_live_runtime.Dockerfile": "4ab40a08b18979db4086145cec7939f861832d888b65c5bb91f0b544f6a731ff"
+  },
+  "image_labels": {
+    "gis.a6.4d2.egress": "gee-live-deny-external-v1",
+    "gis.a6.4d2.scope": "offline-runtime-probe",
+    "gis.a6.4d2.source": "96d294abee7b0c559333c2f56a236c7647b5cdfc3dc294210f37d43ffaaad7ca"
+  },
+  "environment_sha256": "ff61ce8e1256bd8b1383c9c979480884ac8f6b69d18cee776d8ab330bf6210b0",
+  "entrypoint": [
+    "/usr/local/bin/python3",
+    "-I",
+    "-B",
+    "/app/gis_worker/gee_runtime_probe.py"
+  ],
+  "command": [
+    "--offline-probe"
+  ],
+  "actual_sdk_integration": "blocked-not-tested-or-approved",
+  "dependencies": [
+    {
+      "package": "pydantic",
+      "version": "2.13.4",
+      "filename": "pydantic-2.13.4-py3-none-any.whl",
+      "sha256": "45a282cde31d808236fd7ea9d919b128653c8b38b393d1c4ab335c62924d9aba",
+      "bytes": 472262
+    },
+    {
+      "package": "pydantic-core",
+      "version": "2.46.4",
+      "filename": "pydantic_core-2.46.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "sha256": "f9fa868638bf362d3d138ea55829cefb3d5f4b0d7f142234382a15e2485dbec4",
+      "bytes": 2089685
+    },
+    {
+      "package": "annotated-types",
+      "version": "0.7.0",
+      "filename": "annotated_types-0.7.0-py3-none-any.whl",
+      "sha256": "1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53",
+      "bytes": 13643
+    },
+    {
+      "package": "typing-extensions",
+      "version": "4.15.0",
+      "filename": "typing_extensions-4.15.0-py3-none-any.whl",
+      "sha256": "f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548",
+      "bytes": 44614
+    },
+    {
+      "package": "typing-inspection",
+      "version": "0.4.2",
+      "filename": "typing_inspection-0.4.2-py3-none-any.whl",
+      "sha256": "4ed1cacbdc298c220f1bd249ed5287caa16f34d44ef4e9c3d0cbad5b521545e7",
+      "bytes": 14611
+    }
+  ]
+}
