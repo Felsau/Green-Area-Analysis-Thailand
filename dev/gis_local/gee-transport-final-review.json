@@ -1,0 +1,46 @@
+{
+  "independent_review": true,
+  "reviewer": "a6_transport_security_review",
+  "overall_status": "PARTIAL",
+  "fake_http_subscope": "PASS",
+  "unresolved_high_critical_implemented_scope": 0,
+  "genuine_authority_implemented": false,
+  "actual_live_approved": false,
+  "commit_authorized_at_partial": false,
+  "historical_apply_review": "dev/gis_local/gee-transport-review.json",
+  "source_files": {
+    "green-area-backend/migrations/046_gis_gee_live_authority.sql": "bd4d94a0b993aa7d037f14f6957451052707b4af1cb614d9d45ae42c03cbe23c",
+    "green-area-backend/gis_worker/gee_sdk_transport.py": "17c189296adbe618ccea1effb316f31da3704ac3ec91398528933e14dd606e42",
+    "green-area-backend/tests/test_gee_sdk_transport.py": "c610dd75be38837c008d491836acfb94740fd11b49586ca46c4db1ad28758b09",
+    "dev/gis_local/gee_transport_local.py": "6bc94609c375b5dc2fab33f235257c1235de59582ad091532a5d1b1b64c02ee8",
+    "dev/gis_local/gee_transport_checks.py": "c65b348136f4fc25bb8682e6b70b4d8d5b1685c78c72c10e927e6929a1a9641f",
+    "dev/gis_local/gee_transport_extra_checks.py": "1f399abfb5a6252fcd5336fa5190cd2593f8c6ade09487131525b5fd71788f22",
+    "dev/gis_local/tests/test_gee_transport_local.py": "376a89fc5391444741ebe1d0f76f0419a251ccae91c7399c2dc994de2133d098",
+    "docs/gis/a6-sdk-http-handoff.md": "527d0ca8e902e97e4ed94c1dd4241e03af5a0765521900ecf7bd2a9cc3891a6c"
+  },
+  "evidence": {
+    "windows_units": {
+      "passed": 130,
+      "skipped": 12
+    },
+    "linux_units": {
+      "passed": 137
+    },
+    "actual_auth_sdk_sql": {
+      "passed": 40
+    },
+    "extra_auth_sql": {
+      "passed": 16
+    },
+    "preservation": {
+      "passed": 11
+    }
+  },
+  "limitations": [
+    "No positive genuine approval/completion authority",
+    "No Google credentials or HTTP used",
+    "No selective egress or approved live image",
+    "No live scientific parity or hard EECU/cost cap",
+    "No commit while overall status is PARTIAL"
+  ]
+}

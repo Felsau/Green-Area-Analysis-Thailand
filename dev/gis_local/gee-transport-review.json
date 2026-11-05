@@ -1,0 +1,19 @@
+{
+  "independent_review": true,
+  "reviewer": "a6_transport_security_review",
+  "unresolved_high_critical": 0,
+  "approval": "local_apply_after_rollback_review",
+  "files": {
+    "046_gis_gee_live_authority.sql": "bd4d94a0b993aa7d037f14f6957451052707b4af1cb614d9d45ae42c03cbe23c"
+  },
+  "source_files": {
+    "green-area-backend/gis_worker/gee_sdk_transport.py": "17c189296adbe618ccea1effb316f31da3704ac3ec91398528933e14dd606e42",
+    "dev/gis_local/gee_transport_local.py": "6bc94609c375b5dc2fab33f235257c1235de59582ad091532a5d1b1b64c02ee8",
+    "dev/gis_local/gee_transport_checks.py": "5c7bfe5193b903c915a991f50835b78fc68b037c77219a83572d7c96766bde38"
+  },
+  "actual_live_approved": false,
+  "rollback_probes": {
+    "postgres": "rolled_back_lifecycle",
+    "gis_t1_upgrade": "rolled_back_lifecycle"
+  }
+}

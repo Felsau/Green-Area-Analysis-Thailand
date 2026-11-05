@@ -11,6 +11,11 @@
 /green-area-backend/migrations/042_*.sql -text
 # Preserve reviewed/applied foundation hashes and source-bound test evidence.
 /green-area-backend/migrations/04[3-5]_*.sql -text
+/green-area-backend/migrations/046_gis_gee_live_authority.sql -text
+/green-area-backend/gis_worker/gee_sdk_transport.py -text
+/green-area-backend/tests/test_gee_sdk_transport.py -text
+/dev/gis_local/gee_transport_local.py -text
+/dev/gis_local/gee_transport_checks.py -text
 /green-area-backend/gis_worker/gee_execution_safety.py -text
 /green-area-backend/gis_worker/gee_safety_worker.py -text
 /green-area-backend/gis_worker/gee_safety_child.py -text
