@@ -20,7 +20,7 @@ class Project(Contract):
     project_id: Annotated[str, StringConstraints(strict=True, pattern=r'^[a-z][a-z0-9-]{4,28}[a-z0-9]$')]
     project_number: Annotated[str, StringConstraints(strict=True, pattern=r'^[0-9]{6,30}$')]
     principal: Annotated[str, StringConstraints(strict=True, pattern=r'^[a-z0-9-]+@[a-z][a-z0-9-]+\.iam\.gserviceaccount\.com$')]
-    readiness: Literal['not_verified'] = 'not_verified'
+    readiness: Literal['not_verified', 'verified_sandbox'] = 'not_verified'
 
     @model_validator(mode='after')
     def principal_project(self):
