@@ -19,6 +19,27 @@ import time
 from gis_worker.gee_genuine_identity import GenuineBoundaryError
 
 HOSTS = ('earthengine.googleapis.com', 'storage.googleapis.com')
+# Local SQL047 gateway: one fixed port on an RFC1918 IP literal. Never a hostname
+# (no DNS inside the Recorder netns), loopback, link-local/metadata or public IP.
+GATEWAY_PORT = 8000
+GATEWAY_NETWORKS = tuple(ipaddress.ip_network(n) for n in ('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'))
+
+
+def validate_gateway_endpoint(endpoint):
+    try:
+        if type(endpoint) is not tuple or len(endpoint) != 2:
+            raise ValueError()
+        host, port = endpoint
+        if type(host) is not str or type(port) is not int or port != GATEWAY_PORT:
+            raise ValueError()
+        ip = ipaddress.IPv4Address(host)  # rejects names, IPv6, octal and padded forms
+        if (str(ip) != host or not any(ip in n for n in GATEWAY_NETWORKS)
+            or ip.is_loopback or ip.is_link_local or ip.is_multicast
+            or ip.is_unspecified or ip.is_reserved):
+            raise ValueError()
+    except Exception:
+        raise GenuineBoundaryError('GEE_EGRESS_GATEWAY_REJECTED') from None
+    return endpoint
 
 
 @dataclass(frozen=True)
@@ -26,6 +47,7 @@ class PinnedDestinations:
     # Supervisor-supplied authenticated DNS snapshot. Never accepted from jobs.
     addresses: tuple
     expires_at: float
+    gateway_endpoint: tuple | None = None
 
     def validate(self, *, wall=time.time):
         if (type(self.expires_at) not in (int, float)
@@ -44,6 +66,8 @@ class PinnedDestinations:
                         raise ValueError()
                 except Exception:
                     raise GenuineBoundaryError('GEE_EGRESS_IP_REJECTED') from None
+        if self.gateway_endpoint is not None:
+            validate_gateway_endpoint(self.gateway_endpoint)
         return self
 
     def address(self, host, *, wall=time.time):
@@ -56,18 +80,32 @@ class PinnedDestinations:
         """For a NEW isolated Recorder netns, never the host/existing namespace.
 
         Drops IPv6, UDP, DNS53, non443, localhost and all other destinations.
+        Optionally permits one validated RFC1918 SQL gateway IP:8000 (gateway_endpoint).
         No broad established-flow exception; no hostname/DNS at packet time.
         IP list is short-lived; expiry must also be enforced by supervisor.
         """
         self.validate(wall=wall)
         ips = ', '.join(sorted({ip for _, ips in self.addresses for ip in ips}))
-        return ('table inet gee_recorder {\n'
-            ' set approved4 { type ipv4_addr; elements = { ' + ips + ' }; }\n'
-            ' chain output { type filter hook output priority -100; policy drop;\n'
-            '  ip daddr @approved4 tcp dport 443 accept\n }\n'
-            ' chain input { type filter hook input priority -100; policy drop;\n'
-            '  ip saddr @approved4 tcp sport 443 ct state established accept\n }\n'
-            ' chain forward { type filter hook forward priority -100; policy drop; }\n}\n')
+        rules = ('table inet gee_recorder {\n'
+            ' set approved4 { type ipv4_addr; elements = { ' + ips + ' }; }\n')
+        if self.gateway_endpoint is not None:
+            gw_ip, gw_port = self.gateway_endpoint
+            rules += (' set approved_sql { type ipv4_addr; elements = { ' + gw_ip + ' }; }\n'
+                ' chain output { type filter hook output priority -100; policy drop;\n'
+                '  ip daddr @approved4 tcp dport 443 accept\n'
+                f'  ip daddr @approved_sql tcp dport {gw_port} accept\n'
+                ' }\n'
+                ' chain input { type filter hook input priority -100; policy drop;\n'
+                '  ip saddr @approved4 tcp sport 443 ct state established accept\n'
+                f'  ip saddr @approved_sql tcp sport {gw_port} ct state established accept\n'
+                ' }\n')
+        else:
+            rules += (' chain output { type filter hook output priority -100; policy drop;\n'
+                '  ip daddr @approved4 tcp dport 443 accept\n }\n'
+                ' chain input { type filter hook input priority -100; policy drop;\n'
+                '  ip saddr @approved4 tcp sport 443 ct state established accept\n }\n')
+        rules += ' chain forward { type filter hook forward priority -100; policy drop; }\n}\n'
+        return rules
 
 
 class PinnedHTTPSConnection(http.client.HTTPSConnection):

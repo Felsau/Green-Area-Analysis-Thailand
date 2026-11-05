@@ -29,10 +29,13 @@ def channel_pair():
     return pair
 
 
-def receive(endpoint, *, pid, uid, timeout):
+def receive(endpoint, *, pid, uid, timeout, allow_root=False):
+    """Peers are non-root by default. Only the explicit supervisor->Recorder credential
+    path passes allow_root=True, and then only for the authenticated supervisor peer."""
     try:
         if (endpoint.family != socket.AF_UNIX or endpoint.type != socket.SOCK_SEQPACKET
-            or type(pid) is not int or pid <= 0 or type(uid) is not int or uid <= 0
+            or type(pid) is not int or pid <= 0 or type(uid) is not int
+            or not (uid > 0 or (uid == 0 and allow_root is True))
             or not 0 < timeout <= 180):
             raise ValueError()
         endpoint.settimeout(timeout)

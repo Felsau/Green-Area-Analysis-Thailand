@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import re
+import secrets
 import time
 
 from gis_worker.gee_genuine_identity import (CredentialDelivery, ExplicitGoogleCredentials,
@@ -106,3 +107,139 @@ class OperatorDelivery:
 def observe_real_mint(*args, **kwargs):
     # No IAM call, OAuth, ADC or impersonation implementation is authorized here.
     raise GenuineBoundaryError('GEE_REAL_MINT_OBSERVER_NOT_VERIFIED')
+
+
+HELLO_KEYS = {'version', 'action', 'binding', 'nonce', 'sent_at'}
+CREDENTIAL_KEYS = {'version', 'action', 'nonce', 'token', 'project_id', 'project_number',
+    'principal', 'principal_id', 'issued_at', 'expires_at', 'binding_sha256', 'signature'}
+HELLO_TOLERANCE = 30
+_SEEN_HELLOS: dict = {}
+
+
+def _hex(value, length):
+    return (type(value) is str and len(value) == length
+        and all(c in '0123456789abcdef' for c in value))
+
+
+def _consume_hello(nonce, now):
+    # Replay ledger for the supervisor process: a hello nonce is single-use.
+    for old in [k for k, expiry in _SEEN_HELLOS.items() if expiry <= now]:
+        del _SEEN_HELLOS[old]
+    if nonce in _SEEN_HELLOS or len(_SEEN_HELLOS) >= 256:
+        raise ValueError()
+    _SEEN_HELLOS[nonce] = now + 2 * HELLO_TOLERANCE
+
+
+def deliver_credential(endpoint, delivery, *, binding, recorder_pid: int, recorder_uid: int,
+    timeout: float = 30, wall=time.time):
+    """Supervisor side. The token is sent only after the Recorder proved itself.
+
+    A socketpair has no meaningful SO_PEERCRED for the remote end, so identity is
+    established by a Recorder-initiated hello whose kernel SCM_CREDENTIALS must equal
+    the pinned non-root (recorder_pid, recorder_uid). The hello is bound to this
+    binding, fresh (+-30 s) and single-use; its nonce is echoed inside the credential
+    packet. Any failure sends nothing and closes the endpoint; errors never carry
+    token material and are raised outside the handler, so no exception context or
+    frame chain is attached. Memory-only; the endpoint is always closed.
+    """
+    delivered = False
+    try:
+        if (type(delivery) is not CredentialDelivery or type(delivery.token) is not bytes
+            or not 16 <= len(delivery.token) <= 8192 or any(c <= 32 or c >= 127 for c in delivery.token)
+            or type(recorder_pid) is not int or recorder_pid <= 0
+            or type(recorder_uid) is not int or recorder_uid <= 0
+            or delivery.binding_sha256 != binding.fingerprint()):
+            raise ValueError()
+        from gis_worker.gee_recorder_channel import receive, send
+        hello = receive(endpoint, pid=recorder_pid, uid=recorder_uid, timeout=timeout)
+        now = wall()
+        if (set(hello) != HELLO_KEYS or hello['version'] != 1
+            or hello['action'] != 'credential_hello'
+            or hello['binding'] != binding.fingerprint() or not _hex(hello['nonce'], 64)
+            or type(hello['sent_at']) is not int
+            or abs(now - hello['sent_at']) > HELLO_TOLERANCE):
+            raise ValueError()
+        _consume_hello(hello['nonce'], now)
+        send(endpoint, {
+            'version': 1,
+            'action': 'deliver_credential',
+            'nonce': hello['nonce'],
+            'token': delivery.token.decode('ascii'),
+            'project_id': delivery.project_id,
+            'project_number': delivery.project_number,
+            'principal': delivery.principal,
+            'principal_id': delivery.principal_id,
+            'issued_at': delivery.issued_at,
+            'expires_at': delivery.expires_at,
+            'binding_sha256': delivery.binding_sha256,
+            'signature': delivery.signature.hex(),
+        })
+        delivered = True
+    except Exception:
+        delivered = False
+    finally:
+        endpoint.close()
+    if not delivered:
+        raise GenuineBoundaryError('GEE_CREDENTIAL_DELIVERY_REJECTED')
+
+
+def receive_credential(endpoint, *, supervisor_pid: int, supervisor_uid: int, binding,
+    issuer_key: bytes, timeout: float = 30, wall=time.time):
+    """Recorder side. Sends a fresh hello, then accepts exactly one matching packet.
+
+    The only path that may accept a root peer (the supervisor), and only when the
+    kernel-reported (pid, uid) equals the pinned supervisor identity. The packet must
+    have exactly the CREDENTIAL_KEYS, echo this hello's nonce and match the binding
+    and pinned sandbox identity; the broker signature is then verified by
+    ExplicitGoogleCredentials. The endpoint is closed on every outcome, and a
+    rejection carries no exception context or token-bearing locals.
+    """
+    from gis_worker.gee_recorder_channel import receive, send
+    from gis_worker.gee_genuine_identity import ExplicitGoogleCredentials
+    credentials = value = delivery = None
+    try:
+        if type(supervisor_uid) is not int or supervisor_uid < 0:
+            raise ValueError()
+        nonce = secrets.token_hex(32)
+        send(endpoint, {'version': 1, 'action': 'credential_hello', 'binding': binding.fingerprint(),
+            'nonce': nonce, 'sent_at': int(wall())})
+        value = receive(endpoint, pid=supervisor_pid, uid=supervisor_uid, timeout=timeout,
+            allow_root=True)
+        now = wall()
+        if (set(value) != CREDENTIAL_KEYS or value['version'] != 1
+            or value['action'] != 'deliver_credential' or value['nonce'] != nonce
+            or value['project_id'] != binding.project.project_id
+            or value['project_id'] != PROJECT_ID
+            or value['project_number'] != PROJECT_NUMBER
+            or value['principal'] != binding.project.principal
+            or value['principal'] != PRINCIPAL
+            or value['principal_id'] != binding.principal_id
+            or value['principal_id'] != PRINCIPAL_ID
+            or value['binding_sha256'] != binding.fingerprint()
+            or type(value['token']) is not str or not 16 <= len(value['token']) <= 8192
+            or any(not 33 <= ord(c) <= 126 for c in value['token'])
+            or type(value['issued_at']) is not int or value['issued_at'] > now
+            or type(value['expires_at']) is not int or value['expires_at'] <= now
+            or not 0 <= now - value['issued_at'] <= 300
+            or not _hex(value['signature'], 128)):
+            raise ValueError()
+        delivery = CredentialDelivery(
+            value['token'].encode('ascii'),
+            value['project_id'],
+            value['project_number'],
+            value['principal'],
+            value['principal_id'],
+            value['issued_at'],
+            value['expires_at'],
+            value['binding_sha256'],
+            bytes.fromhex(value['signature'])
+        )
+        credentials = ExplicitGoogleCredentials(delivery, binding, issuer_key=issuer_key, wall=wall)
+    except Exception:
+        credentials = None
+    finally:
+        value = delivery = None  # drop token-bearing locals before any raise
+        endpoint.close()
+    if credentials is None:
+        raise GenuineBoundaryError('GEE_CREDENTIAL_DELIVERY_REJECTED')
+    return credentials
