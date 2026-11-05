@@ -1,0 +1,45 @@
+{
+  "independent_review": true,
+  "reviewer": "genuine_security_review",
+  "baseline": "8f4a2ba066658064708a8b454cb8fb2bc44eeeca",
+  "decision": "PASS_closed_offline_boundary",
+  "unresolved_high_critical": 0,
+  "live_authorized": false,
+  "source_files": {
+    "green-area-backend/gis_worker/gee_operator_delivery.py": "5da407af27dbed12e325ae0dd4ba7471360d465f8be48599b3ae541af4b393b5",
+    "green-area-backend/gis_worker/gee_restricted_network.py": "c9cbe9a1a0e9284cc2eacf329e4f06c19b16f8e8f020012760c1e47b44f48689",
+    "green-area-backend/gis_worker/gee_recorder_channel.py": "46ef69225cd8e0f590232b879b7bfbb7f4c3b8126cf43eed00117cd8343f4664",
+    "green-area-backend/gis_worker/gee_genuine_worker.py": "d0a4ab47857da5d3c0ed2b2a148f662683de723610cc56a2d2f02eab95d98701",
+    "green-area-backend/gis_worker/gee_genuine_transport.py": "8ebfda2c1e6e2dddf2d99010c95522e802ae31a0a263bf6408c77c2534023dad",
+    "dev/gis_local/gee_boundary_local.py": "e5689e7141f7258f5f3b1fa7e7a4327c74fb7b85b61d37ba709a536921af81ee",
+    "dev/gis_local/gee_boundary_entry.py": "a303d3bd8f15316c10909bbdfef2a2b043e63dee829bd798799326d7fee319c0",
+    "dev/gis_local/gee_boundary.Dockerfile": "c43e31df7fc8ee08a7adbac88988edaf05d8f6cdf350677a6e971a6598d05e60",
+    "green-area-backend/tests/test_gee_credential_boundary.py": "70ebea19cd47ef4f95b4ec843575f42b257f1638c4d2726591faeb3f953ed5b4",
+    "green-area-backend/tests/test_gee_genuine_foundation.py": "48bbb7aab3681a2dfbbd07f34ee442bbf22ff844c06ef3169606134b8c86dd44"
+  },
+  "image_id": "sha256:3a83338c1263d85d4eb155ce3d0ad4cd5b4cfca245db5bf7704a1bc3b61ea159",
+  "results": {
+    "linux": {
+      "network": "none",
+      "passed": 117,
+      "oom": false,
+      "exit": 0
+    },
+    "windows": {
+      "skipped": 15,
+      "passed": 102
+    },
+    "read_only_preservation": {
+      "passed": 12,
+      "failed": 0
+    }
+  },
+  "evidence_scope": "Synthetic observations/tokens/TLS only. Reviewer read source and evidence; did not execute tests. Platform counts overlap.",
+  "migration_changes": false,
+  "limitations": [
+    "Real mint observer and issuer trust NOT VERIFIED",
+    "nft rules generated only; installation and expiry enforcement NOT VERIFIED",
+    "Selective allowed Google egress NOT VERIFIED; network none is deny-all proof only",
+    "No Genuine Google observations or Smoke Test authorization"
+  ]
+}

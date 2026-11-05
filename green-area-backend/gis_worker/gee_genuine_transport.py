@@ -23,6 +23,7 @@ from gis_worker.gee_genuine_runtime import require_selective_egress
 from gis_worker.gee_live_bridge import _build_expression, observation_output
 from gis_worker.gee_live_contracts import Request, canonical
 from gis_worker.gee_sdk_transport import PhysicalHTTP, SDK_VERSION, _SDK_LOCK
+from gis_worker.gee_restricted_network import PinnedDestinations, PinnedHTTPSConnection
 
 MAX_HTTP_BYTES = 1024 * 1024
 
@@ -33,6 +34,10 @@ class GenuineHTTPSWire:
         if type(credentials) is not ExplicitGoogleCredentials:
             raise GenuineBoundaryError('GEE_EXPLICIT_CREDENTIALS_REQUIRED')
         credentials.authorize(binding)
+        if type(egress) is not PinnedDestinations:
+            raise GenuineBoundaryError('GEE_EGRESS_PINS_REQUIRED')
+        egress.validate()
+        self.egress = egress
         self.binding, self.credentials = binding, credentials
         self.deadline, self.clock = deadline, clock
         self.evidence = None
@@ -59,7 +64,8 @@ class GenuineHTTPSWire:
         context.minimum_version = ssl.TLSVersion.TLSv1_2
         # No proxy env, custom CA files, ADC, redirects, connection pool or
         # hidden HTTP retries. Actual egress must ALSO be network-layer enforced.
-        connection = http.client.HTTPSConnection(u.hostname, port=443, timeout=remaining, context=context)
+        connection = PinnedHTTPSConnection(u.hostname, pins=self.egress,
+            port=443, timeout=remaining, context=context)
         timer = None
         def expire():
             try:

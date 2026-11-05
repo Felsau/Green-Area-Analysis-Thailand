@@ -7,6 +7,7 @@ from dataclasses import replace
 from datetime import date
 import hashlib
 import json
+import time
 from types import SimpleNamespace
 from unittest.mock import patch
 from uuid import uuid4, UUID
@@ -21,6 +22,7 @@ from gis_worker.gee_genuine_transport import GenuineHTTPSWire, GenuinePhysicalHT
 from gis_worker.gee_live_contracts import Request, canonical, digest
 from gis_worker.gee_live_injected import fixture
 from gis_worker.gee_sdk_transport import FakeHTTPWire
+from gis_worker.gee_restricted_network import PinnedDestinations
 
 
 def packet(product='ndvi', scenario='candidate'):
@@ -147,8 +149,10 @@ def run_sdk(product='ndvi', scenario='candidate', statuses=(), budget=32):
         def getresponse(self):
             return SimpleNamespace(status=self.status,getheader=lambda *a:'identity',read=lambda n:self.body)
     with patch('gis_worker.gee_genuine_transport.require_selective_egress',lambda *a:None), \
-        patch('gis_worker.gee_genuine_transport.http.client.HTTPSConnection',Connection), patch('time.sleep',lambda *a:None):
-        wire=GenuineHTTPSWire(binding=b,credentials=creds,egress=None,deadline=10**20)
+        patch('gis_worker.gee_genuine_transport.PinnedHTTPSConnection',Connection), patch('time.sleep',lambda *a:None):
+        pins=PinnedDestinations((('earthengine.googleapis.com',('8.8.8.8',)),
+            ('storage.googleapis.com',('8.8.4.4',))),time.time()+600)
+        wire=GenuineHTTPSWire(binding=b,credentials=creds,egress=pins,deadline=10**20)
         http=GenuinePhysicalHTTP(recorder,j,wire,binding=b)
         result=GenuineSDKAdapter(http,credentials=creds).compute(req,geom,as_of=date(2026,1,1))
     return result,recorder,fake

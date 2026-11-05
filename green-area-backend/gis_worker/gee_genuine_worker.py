@@ -9,6 +9,7 @@ from datetime import date
 from gis_worker.worker import GisWorker, LocalWorkerClient, WorkerError
 from gis_worker.gee_genuine_identity import GenuineBoundaryError
 from gis_worker.gee_genuine_runtime import GenuineWorkerRuntime
+from gis_worker.gee_recorder_channel import RecorderWorkerRuntime
 from gis_worker.gee_live_contracts import Request
 from gis_worker.gee_live_contracts import queue_report
 
@@ -20,7 +21,7 @@ class GenuineQueueClient(LocalWorkerClient):
 
 class GenuineQueueWorker(GisWorker):
     def __init__(self, client, *, runtime):
-        if type(runtime) is not GenuineWorkerRuntime:
+        if type(runtime) not in (GenuineWorkerRuntime, RecorderWorkerRuntime):
             raise GenuineBoundaryError('GEE_GENUINE_RUNTIME_REQUIRED')
         super().__init__(client)
         self.runtime = runtime
