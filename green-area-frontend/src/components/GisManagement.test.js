@@ -49,6 +49,24 @@ test('GeoTIFF upload requires confirmation and retains binary profile/revision',
   expect(writes()[0][1].query).toEqual({ expected_revision: 3, crs: 'EPSG:32647', profile: 'ndvi_ready' });
 });
 
+const lddReport = (errors, warnings, valid) => ({ provider_build: 'ldd-local-v1', upload_id: '40000000-0000-4000-8000-000000000004',
+  valid, error_code: errors[0]?.code ?? null, errors, checks: [], province: ds.province, data_year: 2025, crs: 'EPSG:32647',
+  encoding: 'utf-8', statistics: { feature_count: 2 },
+  warnings: [{ code: 'BOUNDARY_APPROXIMATE', count: 1 }, { code: 'LDD_POLICY_V2', count: 1 }, ...warnings] });
+
+test.each([
+  [[], [], true, 'ผ่าน (Accepted)'],
+  [[], [{ code: 'GEOMETRY_REPAIRED', count: 6 }, { code: 'BOUNDARY_OUTSIDE_MINOR', count: 3 }], true, 'ผ่านพร้อมข้อสังเกต (Accepted with Warnings)'],
+  [[{ code: 'UNKNOWN_CODE_REVIEW_REQUIRED', count: 2 }], [], false, 'ต้องตรวจสอบก่อนใช้ (Review Required)'],
+  [[{ code: 'OUTSIDE_PROVINCE', count: 1 }, { code: 'UNKNOWN_CODE_REVIEW_REQUIRED', count: 2 }], [], false, 'ไม่ผ่าน (Rejected)'],
+])('LDD report separates accepted, warnings, review and rejected (%#)', async (errors, warnings, valid, label) => {
+  const report = lddReport(errors, warnings, valid);
+  gisRequest.mockImplementation((path, options) => path === `/jobs/${job.id}` ? Promise.resolve({ ...job, state: 'succeeded', result: { report } }) : respond(path, options));
+  show(); await openJob();
+  expect(await screen.findByText(`จำแนกผล: ${label}`)).toBeInTheDocument();
+  if (warnings.length) expect(screen.getByText(/ซ่อมรูปร่างที่ผิดรูปเล็กน้อยแล้ว/)).toHaveTextContent('(6)');
+});
+
 test('GeoTIFF report separates file validation from analysis and activation', async () => {
   const report = { provider_build: 'geotiff-local-v1', valid: true, metadata: { profile: 'ndvi_ready',
     crs: 'EPSG:32647', bands: ['NDVI'], resolution: [10,10], dtype: 'float32', nodata: -9999,

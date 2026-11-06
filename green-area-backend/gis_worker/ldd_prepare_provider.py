@@ -1,7 +1,16 @@
 """Credential-free LDD preparation and independent byte-for-byte verification.
 
-Method preserves source features and declared Shape_Area; no provincial clipping,
-simplification, legacy formula change or claim of a complete province inventory.
+ldd-source-area-v1 (pinned by migrations 038/039) preserves source features and
+declared Shape_Area. It is kept byte-for-byte and gated by the frozen legacy
+validator it was reviewed with, so editions prepared earlier still re-verify.
+A dataset that only ldd-policy-v2 accepts (repaired geometry, normalised codes,
+...) fails closed with PREPARE_METHOD_V2_REQUIRED instead of mixing policies.
+
+ldd-geometry-area-v2 uses the validator's own derived geometry and geometry
+area (one policy for validation, preparation and summary) and keeps the source
+geometry of every repaired parcel. The queue cannot request it until a forward
+migration allows it (docs/gis/ldd-field-policy.md). No clipping, simplification,
+dropped parcel or claim of a complete province inventory in either method.
 """
 from __future__ import annotations
 
@@ -17,6 +26,8 @@ from uuid import UUID
 from gis_worker import ldd_provider as ldd
 
 METHOD = 'ldd-source-area-v1'
+METHOD_V2 = 'ldd-geometry-area-v2'
+METHODS = (METHOD, METHOD_V2)
 VERIFIER = 'ldd-trusted-bytes-v1'
 MAX_ARTIFACT = 20 * 1024**2
 NAMES = {'ldd_geometry': 'geometry.json', 'ldd_summary': 'summary.json'}
@@ -40,7 +51,7 @@ def check_request(value):
             require(str(UUID(value[key])) == value[key], 'PREPARE_REQUEST_INVALID')
         except (ValueError, TypeError, AttributeError):
             raise ldd.LddError('PREPARE_REQUEST_INVALID') from None
-    require(value['method_version'] == METHOD, 'PREPARE_METHOD_UNSUPPORTED')
+    require(value['method_version'] in METHODS, 'PREPARE_METHOD_UNSUPPORTED')
     return value
 
 
@@ -65,8 +76,14 @@ def build(request, *, source_root=ldd.STORAGE_ROOT):
     """Reopen original ZIP and derive deterministic artifacts, never trust output."""
     check_request(request)
     validation = request['validation']
-    result = ldd.validate(validation, storage_root=source_root)
-    require(result['valid'], result.get('error_code') or 'PREPARE_INVALID_SOURCE')
+    if request['method_version'] == METHOD_V2:
+        result, details = ldd.assess(validation, storage_root=source_root, collect=True)
+        require(result['valid'], result.get('error_code') or 'PREPARE_INVALID_SOURCE')
+        return _build_v2(request, result, details)
+    result = ldd.validate_legacy_v1(validation, storage_root=source_root)
+    if not result['valid']:
+        require(not ldd.validate(validation, storage_root=source_root)['valid'], 'PREPARE_METHOD_V2_REQUIRED')
+        raise ldd.LddError(result.get('error_code') or 'PREPARE_INVALID_SOURCE')
     raw = ldd._source_bytes(validation, source_root)
     require(hashlib.sha256(raw).hexdigest() == validation['manifest']['sha256'], 'LDD_SHA256_MISMATCH')
     name, parts = ldd._components(ldd.guarded_zip(raw))
@@ -111,6 +128,54 @@ def build(request, *, source_root=ldd.STORAGE_ROOT):
     return outputs
 
 
+def _build_v2(request, result, details):
+    from fiona.model import to_dict
+    from fiona.transform import transform_geom
+    from shapely.geometry import shape
+    validation = request['validation']
+    source_crs = validation['manifest']['crs']
+    meta = {k: request[k] for k in ('dataset_id', 'edition_id', 'validation_result_id', 'method_version')}
+    meta.update(schema_version=2, province=validation['province'], data_year=validation['data_year'], month=0,
+        input_hash=validation['input_hash'], input_revision=validation['input_revision'],
+        source_sha256=validation['manifest']['sha256'], boundary_sha256=ldd.BOUNDARY_SHA256,
+        legend_sha256=ldd.LEGEND_SHA256, display_crs='EPSG:4326', area_units='m2',
+        area_method=ldd.policy.AREA_METHOD, policy=details['policy'], validation_outcome=details['outcome'],
+        field_profile=details['field_profile'], field_mapping=details['field_mapping'],
+        declared_area_units=details['declared_area_units'], repairs=details['repairs'],
+        repaired_feature_count=sum(1 for f in details['features'] if f['repair']),
+        boundary=details['boundary'], source_geometry_preserved='source_zip_and_repaired_parcels',
+        coverage_mode='validated_source_footprint', complete_province_inventory=False,
+        warnings=[w['code'] for w in result['warnings']] + ['NOT_COMPLETE_PROVINCE_INVENTORY'])
+    features, by_code, by_main, total = [], defaultdict(float), {key: 0.0 for key in 'UAFWM'}, 0.0
+    for f in details['features']:
+        require(f['classification'] is not None and f['derived'] is not None, 'PREPARE_FEATURE_MISMATCH')
+        properties = {'LU_CODE': f['lu_code'], 'LUL1_CODE': f['main_code'], 'declared_area': f['declared_area'],
+                      'area_m2': f['area_m2'], 'classification': f['classification'], 'repaired': f['repair'] is not None}
+        output = to_dict(transform_geom(f['metric_crs'], 'EPSG:4326', f['derived']))
+        check = shape(output)
+        require(not check.is_empty and check.is_valid and check.geom_type in ('Polygon', 'MultiPolygon'),
+                'PREPARE_GEOMETRY_INVALID')
+        feature = {'type': 'Feature', 'id': f['index'], 'properties': properties, 'geometry': output}
+        if f['repair']:
+            feature['source_geometry'] = to_dict(transform_geom(source_crs, 'EPSG:4326', f['source']))
+            feature['repair'] = f['repair']
+        features.append(feature)
+        by_code[f['code_key']] += f['area_m2']
+        by_main[f['classification']] += f['area_m2']
+        total += f['area_m2']
+    stats = result['statistics']
+    require(len(features) == stats['feature_count'], 'PREPARE_FEATURE_MISMATCH')
+    require(abs(total - stats['total_area_m2']) <= 1e-6 * max(1.0, total)
+            and all(abs(by_main[k] - stats['area_by_main_m2'][k]) <= 1e-6 * max(1.0, total) for k in by_main),
+            'PREPARE_AREA_POLICY_MISMATCH')
+    geometry = {'type': 'FeatureCollection', 'metadata': meta, 'features': features}
+    summary = {'schema_version': 2, 'metadata': meta, 'feature_count': len(features), 'total_area_m2': total,
+        'area_by_code_m2': dict(sorted(by_code.items())), 'area_by_main_m2': by_main}
+    outputs = {'ldd_geometry': canonical(geometry), 'ldd_summary': canonical(summary)}
+    require(all(0 < len(v) <= MAX_ARTIFACT for v in outputs.values()), 'PREPARE_ARTIFACT_LIMIT')
+    return outputs
+
+
 def descriptors(outputs):
     return {kind: {'sha256': hashlib.sha256(raw).hexdigest(), 'byte_size': len(raw)} for kind, raw in outputs.items()}
 
@@ -118,7 +183,7 @@ def descriptors(outputs):
 def failure(request, code):
     check_request(request)
     require(isinstance(code, str) and re.fullmatch('[A-Z][A-Z0-9_]{0,59}', code), 'PREPARE_REQUEST_INVALID')
-    return {'schema_version': 1, 'method_version': METHOD, 'valid': False, 'error_code': code,
+    return {'schema_version': 1, 'method_version': request['method_version'], 'valid': False, 'error_code': code,
         'dataset_id': request['dataset_id'], 'edition_id': request['edition_id'], 'job_id': request['job_id'],
         'validation_result_id': request['validation_result_id'], 'source_sha256': request['validation']['manifest']['sha256'],
         'input_hash': request['validation']['input_hash'], 'input_revision': request['validation']['input_revision'], 'artifacts': {}}

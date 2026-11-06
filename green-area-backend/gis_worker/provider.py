@@ -11,8 +11,17 @@ import math
 from pathlib import Path
 import re
 
+from gis_worker import source_integrity as si
+
 ROOT = Path(__file__).resolve().parent
-REGISTRY_SHA256 = "a03a1fade69c0ca4df8d7ac7ad63c3b3c6af31444ef65f5773e5de7f56715cb9"
+# registry.json and poc_validation.py are reviewed *text*: verified under
+# source-text-lf-sha256-v1 so a CRLF (Windows) and LF (Linux) checkout agree.
+# The fixtures they list are raw artifacts and stay raw-bytes-sha256.
+REGISTRY_HASH_SCHEME = si.SOURCE_TEXT_SCHEME
+REGISTRY_SHA256 = "a314c72775ade5806c1cc9e53faeacd6ab5f308ac8bce1984b9e5921e1da6490"
+# Historical value reviewed on the Windows CRLF checkout (raw-crlf-sha256-v0).
+REGISTRY_LEGACY_CRLF_SHA256 = "a03a1fade69c0ca4df8d7ac7ad63c3b3c6af31444ef65f5773e5de7f56715cb9"
+SOURCE_HASH_SCHEME = si.SOURCE_TEXT_SCHEME
 PROVIDER_BUILD = "t3-native-v1"
 MAX_REPORT_BYTES = 16384
 HASH = re.compile(r"^[0-9a-f]{64}$")
@@ -41,11 +50,12 @@ def _safe_file(path: Path, root: Path) -> Path:
 def load_registry() -> dict:
     _require(not ROOT.is_symlink(), "ARTIFACT_INTEGRITY")
     raw = _safe_file(ROOT / "registry.json", ROOT).read_bytes()
-    _require(hashlib.sha256(raw).hexdigest() == REGISTRY_SHA256, "REGISTRY_INTEGRITY")
+    _require(si.verify(raw, REGISTRY_SHA256, REGISTRY_HASH_SCHEME)
+             and si.verify(raw, REGISTRY_LEGACY_CRLF_SHA256, si.LEGACY_CRLF_SCHEME), "REGISTRY_INTEGRITY")
     result = json.loads(raw)
     _require(result["provider_build"] == PROVIDER_BUILD, "REGISTRY_INTEGRITY")
     source = _safe_file(ROOT / "poc_validation.py", ROOT).read_bytes()
-    _require(hashlib.sha256(source).hexdigest() == result["source_code_sha256"], "REGISTRY_INTEGRITY")
+    _require(si.verify(source, result["source_code_sha256"], SOURCE_HASH_SCHEME), "REGISTRY_INTEGRITY")
     fixtures = ROOT / "fixtures"
     _require(fixtures.is_dir() and not fixtures.is_symlink(), "ARTIFACT_INTEGRITY")
     expected = {entry["path"] for entry in result["entries"].values()}

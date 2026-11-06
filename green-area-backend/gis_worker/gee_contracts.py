@@ -10,14 +10,15 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
+from gis_worker.method_registry import LEGACY_V1, MethodError, definition_for_version
+
 Hash = Annotated[str, StringConstraints(strict=True, pattern=r'^[0-9a-f]{64}$')]
 Name = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1,
                                       pattern=r'^[^\x00-\x1f\x7f]{1,120}$')]
 Version = Annotated[str, StringConstraints(strict=True, pattern=r'^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$')]
 Count = Annotated[int, Field(strict=True, ge=0, le=10**12)]
 Product = Literal['ndvi', 'lst']
-METHODS = ('ndvi-annual-legacy-v1', 'ndvi-monthly-legacy-v1',
-           'lst-annual-legacy-v1', 'lst-monthly-legacy-v1')
+METHODS = LEGACY_V1.method_versions
 
 
 def digest(value) -> str:
@@ -113,7 +114,12 @@ def method_for(product: Product, month: int) -> Method:
         raise ValueError('GEE_METHOD_INVALID')
     annual = month == 0
     ndvi = product == 'ndvi'
-    return Method(version=f'{product}-{"annual" if annual else "monthly"}-legacy-v1',
+    version = f'{product}-{"annual" if annual else "monthly"}-legacy-v1'
+    try:
+        definition_for_version(version)  # only reviewed definitions are ever built
+    except MethodError:
+        raise ValueError('GEE_METHOD_INVALID') from None
+    return Method(version=version,
         product=product, frequency='annual' if annual else 'monthly',
         collections=('COPERNICUS/S2_SR_HARMONIZED', 'GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED') if ndvi else
                     ('LANDSAT/LC08/C02/T1_L2', 'LANDSAT/LC09/C02/T1_L2'),
@@ -125,9 +131,9 @@ def method_for(product: Product, month: int) -> Method:
         celsius_subtract=None if ndvi else 273.15,
         composite='median_bands_then_normalized_difference' if ndvi else 'scale_then_median',
         mask_negative_ndvi=ndvi and annual, tile_scale=4 if ndvi and annual else None,
-        legacy_sources=(('gee_utils.py', 'd1f25fdca1c0562379d5f98002e9bea0a3c94d36f71df6bea45ec6bf94a9a175'),
-            ('routers/ndvi/compute.py', '87b22a35e9dd610e6359f375de5dd9cfebd666bdcee28a22363179155b1febcd'),
-            ('routers/lst.py', '748dcc2d6cc33108bdb7f07effadc2bcbb202e6436703fec68d7d0017004176f')))
+        # v0 (raw-crlf-sha256-v0) identity of the reviewed legacy-v1 text; bound by
+        # migration 044. Unchanged values, now sourced from the approved definition.
+        legacy_sources=LEGACY_V1.legacy_identity)
 
 
 class LiveRequest(Contract):

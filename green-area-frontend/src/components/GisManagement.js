@@ -226,15 +226,38 @@ function NativeReport({ report }) {
     SOURCE_HASH_MISMATCH: 'SHA256 ของไฟล์ไม่ตรงกับต้นฉบับ', LDD_SHA256_MISMATCH: 'SHA256 ของไฟล์ไม่ตรงกับต้นฉบับ',
     NATIVE_MEMORY_LIMIT: 'ไฟล์นี้ใช้หน่วยความจำเกินขีดจำกัดการประมวลผล ยังไม่ได้รับการยืนยันว่าข้อมูล GIS ผิด',
     NATIVE_TIMEOUT: 'ประมวลผลนานเกินเวลาที่กำหนด ยังไม่ได้รับการยืนยันว่าข้อมูล GIS ผิด',
-    ATTRIBUTES_MISSING: 'ขาด Attributes ที่จำเป็น' };
+    ATTRIBUTES_MISSING: 'ขาด Attributes ที่จำเป็นตาม Field Profile ที่อนุมัติ',
+    FIELD_NAME_AMBIGUOUS: 'มีชื่อ Field ซ้ำกันเมื่อไม่สนตัวพิมพ์ ระบบไม่เลือกให้เอง',
+    FIELD_MAPPING_AMBIGUOUS: 'ไฟล์ตรงกับ Field Profile มากกว่าหนึ่งแบบ ระบบไม่เลือกให้เอง',
+    BOUNDARY_OUTSIDE_REVIEW_REQUIRED: 'บางแปลงมีส่วนเกินเขตจังหวัดมากกว่าเกณฑ์ ต้องตรวจสอบ',
+    BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED: 'พื้นที่ส่วนที่เกินเขตจังหวัดรวมเกินเกณฑ์ ต้องตรวจสอบ',
+    AREA_DECLARED_MISMATCH_REVIEW_REQUIRED: 'พื้นที่ที่บันทึกในไฟล์ต่างจากพื้นที่ที่คำนวณจากรูปแปลงเกินเกณฑ์ ต้องตรวจสอบ',
+    GEOMETRY_REPAIR_LIMIT_REVIEW_REQUIRED: 'จำนวนแปลงที่ต้องซ่อมรูปร่างเกินเกณฑ์ ต้องตรวจสอบ',
+    GEOMETRY_REPAIR_AREA_CHANGED: 'ซ่อมรูปร่างแล้วพื้นที่เปลี่ยนเกินเกณฑ์ จึงไม่รับ',
+    GEOMETRY_REPAIR_TYPE_CHANGED: 'ซ่อมรูปร่างแล้วไม่ใช่ Polygon จึงไม่รับ',
+    GEOMETRY_TYPE: 'พบแปลงที่ไม่มีรูปร่างหรือไม่ใช่ Polygon', GEOMETRY_EMPTY: 'พบแปลงที่รูปร่างว่าง' };
+  const notes = { GEOMETRY_REPAIRED: 'ซ่อมรูปร่างที่ผิดรูปเล็กน้อยแล้ว (เก็บรูปต้นฉบับไว้)',
+    BOUNDARY_OUTSIDE_MINOR: 'แปลงเกินเขตจังหวัดเล็กน้อยภายในเกณฑ์ (เส้นเขตเป็นค่าประมาณ)',
+    AREA_DECLARED_MINOR_DIFF: 'พื้นที่ที่บันทึกต่างจากที่คำนวณเล็กน้อย ใช้พื้นที่จากรูปแปลง',
+    DECLARED_AREA_UNITS_UNVERIFIED: 'ยืนยันหน่วยของพื้นที่ที่บันทึกไม่ได้ จึงไม่นำมาเทียบ',
+    NUMERIC_MAIN_CODE_NORMALISED: 'แปลงรหัสหลักแบบตัวเลขตาม Legend ที่อนุมัติ' };
+  const reviewCodes = ['UNKNOWN_CODE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED',
+    'AREA_DECLARED_MISMATCH_REVIEW_REQUIRED', 'GEOMETRY_REPAIR_LIMIT_REVIEW_REQUIRED'];
+  const errorCodes = (Array.isArray(report.errors) ? report.errors : []).map(e => String(e?.code || ''));
+  const outcome = report.provider_build !== 'ldd-local-v1' || typeof report.valid !== 'boolean' ? null
+    : errorCodes.some(c => !reviewCodes.includes(c)) ? 'ไม่ผ่าน (Rejected)'
+    : errorCodes.length ? 'ต้องตรวจสอบก่อนใช้ (Review Required)'
+    : (Array.isArray(report.warnings) ? report.warnings : []).some(w => notes[w?.code]) ? 'ผ่านพร้อมข้อสังเกต (Accepted with Warnings)'
+    : 'ผ่าน (Accepted)';
   return <div className="gis-report"><h4>รายงานการตรวจ</h4>
     <p>ผล: {report.valid === true ? 'ผ่าน' : report.valid === false ? 'ไม่ผ่าน' : 'ยังไม่ระบุ'} · {report.upload_id ? `ไฟล์อัปโหลด: ${String(report.upload_id).slice(0, 36)}` : `Fixture: ${String(report.fixture_id || '—').slice(0, 60)}`}</p>
+    {outcome && <p>จำแนกผล: {outcome}</p>}
     {report.error_code && <p>รหัสผลตรวจ: {errors[report.error_code] || String(report.error_code).slice(0, 60)}</p>}
     <ul>{(Array.isArray(report.checks) ? report.checks : []).slice(0, 12).filter(x => typeof x === 'string').map(x => <li key={x}>{x.slice(0, 60)}</li>)}</ul>
     {(Array.isArray(report.errors) ? report.errors : []).slice(0, 20).map((e, i) => <p key={i}>ปัญหา: {errors[e.code] || String(e.code || '').slice(0, 60)} ({Number(e.count) || 0})</p>)}
     {report.upload_id && <p>จังหวัด: {String(report.province || '').slice(0, 120)} · ปี {report.data_year} · {String(report.crs || '').slice(0, 20)} · Encoding {String(report.encoding || '').slice(0, 20)}</p>}
     {stats.filter(key => typeof report.statistics?.[key] === 'number').map(key => <p key={key}>{key}: {report.statistics[key]}</p>)}
-    {(Array.isArray(report.warnings) ? report.warnings : []).slice(0, 16).map((w, i) => <p key={i}>ข้อสังเกต: {String(w.code || '').slice(0, 60)} ({Number(w.count) || 0})</p>)}
+    {(Array.isArray(report.warnings) ? report.warnings : []).slice(0, 16).map((w, i) => <p key={i}>ข้อสังเกต: {notes[w.code] || String(w.code || '').slice(0, 60)} ({Number(w.count) || 0})</p>)}
     {Array.isArray(report.values) && <details><summary>ค่าคำนวณจากข้อมูลจำลอง</summary><pre>{JSON.stringify(report.values.slice(0, 8).map(row => Array.isArray(row) ? row.slice(0, 16).map(v => typeof v === 'number' ? v : null) : null), null, 2)}</pre></details>}
   </div>;
 }

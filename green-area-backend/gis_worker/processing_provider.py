@@ -18,16 +18,18 @@ import time
 from statistics import mean, median
 from uuid import UUID
 
+from gis_worker import method_registry as methods
+from gis_worker import source_integrity as si
+
 ROOT = Path(__file__).resolve().parent
 FIXTURE_ROOT = ROOT / 'processing_fixtures'
 LEGACY_ROOT = Path('/app/legacy')
 BUILD = 'gee-offline-v1'
 OFFLINE_BOUNDARY_WAIT_SECONDS = 12
-LEGACY_SHA = {
-    'gee_utils.py': 'd1f25fdca1c0562379d5f98002e9bea0a3c94d36f71df6bea45ec6bf94a9a175',
-    'ndvi_compute.py': '87b22a35e9dd610e6359f375de5dd9cfebd666bdcee28a22363179155b1febcd',
-    'lst.py': '748dcc2d6cc33108bdb7f07effadc2bcbb202e6436703fec68d7d0017004176f',
-}
+# v0 identity of the reviewed legacy-v1 sources, exactly as pinned in manifests
+# by applied migration 035. Derived from the approved method definition; the
+# files themselves are verified under source-text-lf-sha256-v1 (LF/CRLF safe).
+LEGACY_SHA = methods.legacy_identity_map(methods.LEGACY_V1)
 CATALOG = {
     ('ndvi', 'standard'): ('67d90bb99607073a2fcd61455c2b2bd13c98e0e53df6ada6bf4793f4830caabf', 2904),
     ('ndvi', 'no_data'): ('c15d94ae4183bbcdfa322245ae90598c9d527db5a9bce5b858dbf6a2c86c6a25', 2711),
@@ -124,18 +126,34 @@ def _filters(function, field):
         and isinstance(call.args[1], ast.Constant)]
 
 
-def legacy_spec(legacy_root=LEGACY_ROOT):
-    """Read fixed, hash-bound calculation specifications as AST *data* only."""
-    trees = {}
-    for name, sha in LEGACY_SHA.items():
-        path = Path(legacy_root) / name
-        require(path.is_file() and not path.is_symlink(), 'PROCESSING_LEGACY_SOURCE_CHANGED')
-        raw = path.read_bytes()
-        require(len(raw) <= 200000 and hashlib.sha256(raw).hexdigest() == sha, 'PROCESSING_LEGACY_SOURCE_CHANGED')
-        trees[name] = ast.parse(raw.decode('utf-8-sig'))
+def _legacy_sources(legacy_root):
+    """Raw bytes of the fixed legacy files and the one approved definition they match."""
+    raw = {}
+    for path, container_name in methods.LEGACY_FILE_NAMES.items():
+        file = Path(legacy_root) / container_name
+        require(file.is_file() and not file.is_symlink(), 'PROCESSING_LEGACY_SOURCE_CHANGED')
+        data = file.read_bytes()
+        require(len(data) <= 200000, 'PROCESSING_LEGACY_SOURCE_CHANGED')
+        raw[path] = data
+    try:
+        return methods.match_sources(raw), raw
+    except (methods.MethodError, si.SourceIntegrityError):
+        raise ProcessingError('PROCESSING_LEGACY_SOURCE_CHANGED') from None
+
+
+def legacy_spec(legacy_root=LEGACY_ROOT, *, with_definition=False):
+    """Read fixed, hash-bound calculation specifications as AST *data* only.
+
+    The sources must match an approved method definition (hash scheme
+    source-text-lf-sha256-v1) before any parsing, and the parsed values must
+    equal that definition's reviewed scientific expectations.
+    """
+    defn, raw = _legacy_sources(legacy_root)
+    want = defn.scientific_expected
+    trees = {methods.LEGACY_FILE_NAMES[path]: ast.parse(data.decode('utf-8-sig')) for path, data in raw.items()}
     g, n, l = (trees[name] for name in ('gee_utils.py','ndvi_compute.py','lst.py'))
     score = _constant(g, '_CS_CLEAR_THRESHOLD')
-    require(type(score) in (int,float) and 0 <= score <= 1, 'PROCESSING_LEGACY_SPEC_INVALID')
+    require(type(score) in (int,float) and 0 <= score <= 1 and score == want['cs_threshold'], 'PROCESSING_LEGACY_SPEC_INVALID')
     annual = _function(n, '_compute_ndvi_annual')
     monthly = _function(n, '_compute_ndvi_monthly')
     band_orders = []
@@ -145,7 +163,7 @@ def legacy_spec(legacy_root=LEGACY_ROOT):
                 require(len(call.args) == 1 and isinstance(call.args[0], ast.List), 'PROCESSING_LEGACY_SPEC_INVALID')
                 require(all(isinstance(v, ast.Constant) and isinstance(v.value, str) for v in call.args[0].elts), 'PROCESSING_LEGACY_SPEC_INVALID')
                 band_orders.append([v.value for v in call.args[0].elts])
-    require(band_orders and all(v == ['B8','B4'] for v in band_orders), 'PROCESSING_LEGACY_SPEC_INVALID')
+    require(band_orders and all(v == list(want['ndvi_bands']) for v in band_orders), 'PROCESSING_LEGACY_SPEC_INVALID')
     scale_function = _function(g, 'scale_lst')
     assignment = next((v for v in scale_function.body if isinstance(v, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'lst' for t in v.targets)), None)
     require(assignment is not None, 'PROCESSING_LEGACY_SPEC_INVALID')
@@ -154,7 +172,8 @@ def legacy_spec(legacy_root=LEGACY_ROOT):
         require(len(node.args) == 1 and isinstance(node.args[0], ast.Constant), 'PROCESSING_LEGACY_SPEC_INVALID')
         chain.append((node.func.attr, node.args[0].value))
         node = node.func.value
-    require(chain == [('rename','LST'),('subtract',273.15),('add',149.0),('multiply',0.00341802),('select','ST_B10')], 'PROCESSING_LEGACY_SPEC_INVALID')
+    expected_chain = [('rename','LST'), *reversed(want['lst_operations']), ('select','ST_B10')]
+    require(chain == expected_chain, 'PROCESSING_LEGACY_SPEC_INVALID')
     bits = []
     for call in ast.walk(_function(g, '_mask_landsat_clouds')):
         if isinstance(call, ast.Call) and isinstance(call.func, ast.Attribute) and call.func.attr == 'bitwiseAnd':
@@ -163,17 +182,21 @@ def legacy_spec(legacy_root=LEGACY_ROOT):
             require(isinstance(expr.op, ast.LShift) and isinstance(expr.left, ast.Constant) and expr.left.value == 1
                 and isinstance(expr.right, ast.Constant) and type(expr.right.value) is int, 'PROCESSING_LEGACY_SPEC_INVALID')
             bits.append(expr.right.value)
-    require(sorted(bits) == [3,4] and _filters(_function(g, 'get_lst_col'),'CLOUD_COVER') == [40]
-        and _filters(_function(l, '_compute_lst_monthly'),'CLOUD_COVER') == [40], 'PROCESSING_LEGACY_SPEC_INVALID')
-    require(_filters(monthly,'CLOUDY_PIXEL_PERCENTAGE') == [80], 'PROCESSING_LEGACY_SPEC_INVALID')
+    require(sorted(bits) == list(want['lst_mask_bits'])
+        and _filters(_function(g, 'get_lst_col'),'CLOUD_COVER') == [want['lst_cloud']]
+        and _filters(_function(l, '_compute_lst_monthly'),'CLOUD_COVER') == [want['lst_cloud']], 'PROCESSING_LEGACY_SPEC_INVALID')
+    require(_filters(monthly,'CLOUDY_PIXEL_PERCENTAGE') == [want['monthly_cloud']], 'PROCESSING_LEGACY_SPEC_INVALID')
     divide = [c.args[0].value for c in ast.walk(_function(g,'_mask_s2_csplus')) if isinstance(c,ast.Call)
         and isinstance(c.func,ast.Attribute) and c.func.attr=='divide' and len(c.args)==1 and isinstance(c.args[0],ast.Constant)]
-    require(divide == [10000], 'PROCESSING_LEGACY_SPEC_INVALID')
-    return {'ndvi_bands': band_orders[0], 'cs_threshold': score, 'reflectance_divisor': divide[0],
+    require(divide == [want['reflectance_divisor']], 'PROCESSING_LEGACY_SPEC_INVALID')
+    require(_constant(n,'S2_CLOUD_FILTER_PCT') == want['annual_cloud']
+        and _constant(n,'S2_CLOUD_FILTER_FALLBACK_PCT') == want['annual_cloud_fallback'], 'PROCESSING_LEGACY_SPEC_INVALID')
+    spec = {'ndvi_bands': band_orders[0], 'cs_threshold': score, 'reflectance_divisor': divide[0],
         'annual_cloud': _constant(n,'S2_CLOUD_FILTER_PCT'), 'annual_cloud_fallback': _constant(n,'S2_CLOUD_FILTER_FALLBACK_PCT'),
         'monthly_cloud': _filters(monthly,'CLOUDY_PIXEL_PERCENTAGE')[0],
         'lst_cloud': _filters(_function(g,'get_lst_col'),'CLOUD_COVER')[0],
         'lst_mask_bits': sorted(bits), 'lst_operations': list(reversed(chain))[1:-1]}
+    return (spec, defn) if with_definition else spec
 
 
 class LiveGeeAdapter:
@@ -198,7 +221,9 @@ class OfflineProcessingAdapter:
         require(fixture.get('schema_version') == 1 and fixture.get('metric') == m['metric'] and fixture.get('scenario') == m['scenario']
             and fixture.get('synthetic_year_template') is True and fixture.get('spatially_representative') is False,
             'PROCESSING_FIXTURE_INVALID')
-        spec = legacy_spec(self.legacy_root)
+        spec, defn = legacy_spec(self.legacy_root, with_definition=True)
+        # The request's pinned identity must be that of the definition matched on disk.
+        require(m['legacy_pipeline_sha256'] == methods.legacy_identity_map(defn), 'PROCESSING_METHOD_UNREVIEWED')
         if m['scenario'] == 'transient_once' and request['attempt_number'] == 1:
             # Explicit synthetic cloud-boundary scenario: a fixed, bounded wait
             # followed by an outage. No delay/command is accepted in API input.

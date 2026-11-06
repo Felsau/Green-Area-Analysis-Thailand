@@ -19,6 +19,8 @@ import unicodedata
 from uuid import UUID
 import zipfile
 
+from gis_worker import ldd_policy as policy
+
 ROOT = Path(__file__).resolve().parent
 STORAGE_ROOT = Path('/data/ldd')
 BUILD = 'ldd-local-v1'
@@ -29,6 +31,8 @@ MAX_EXPANDED_BYTES = 80 * 1024**2
 MAX_MEMBER_BYTES = 20 * 1024**2
 MAX_FEATURES = 100000
 MAX_COORDINATES = 1000000
+# Logical attribute roles bound into the upload manifest by migration 034. The
+# actual source field names come from an approved ldd_policy field profile.
 REQUIRED_FIELDS = ('LUL1_CODE', 'LU_CODE', 'Shape_Area')
 CHECKS = ('source_hash_match', 'archive_safety', 'components', 'crs', 'geometry',
           'attributes', 'encoding', 'ldd_codes', 'province_bounds', 'dataset_association')
@@ -277,7 +281,268 @@ def _coordinates(value, depth=0):
     return total
 
 
+def _fixed_main_code(main):
+    """Legacy fixed LUL1 integer pairing; must equal the legend-derived pairing."""
+    return {1: 'U', 2: 'A', 3: 'F', 4: 'W', 5: 'M'}.get(main) if type(main) is int else main
+
+
+def _repair(geometry):
+    from shapely import make_valid
+    try:
+        return make_valid(geometry, method='structure', keep_collapsed=False)
+    except TypeError:  # shapely < 2.1: never fall back to a different repair method
+        raise LddError('GEOMETRY_ENGINE_UNSUPPORTED') from None
+
+
+def _reason(geometry):
+    from shapely.validation import explain_validity
+    text = explain_validity(geometry)
+    return re.sub(r'[^A-Za-z ]', '', text.split('[', 1)[0]).strip()[:40] or 'Invalid'
+
+
 def validate(request, *, storage_root=STORAGE_ROOT):
+    return assess(request, storage_root=storage_root)[0]
+
+
+def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
+    """Validate under ldd-policy-v2 and return (SQL 034 report, audit details).
+
+    The report keeps the exact migration-034 shape. Field mapping, policy
+    versions, repairs, unknown-code samples and per-feature derived geometry
+    are in ``details`` (used by preparation and the local inventory tool).
+    """
+    check_request(request)
+    report = report_failure(request, 'VALIDATION_FAILED')
+    report['errors'] = []
+    errors, warnings = {}, {}
+    details = {'policy': policy.policy_summary(), 'outcome': 'rejected', 'field_profile': None,
+               'field_mapping': None, 'source_fields': None, 'declared_area_units': None,
+               'repairs': [], 'unknown_samples': {}, 'boundary': {'minor': 0, 'review': 0, 'fatal': 0,
+               'outside_area_m2': 0.0}, 'features': [] if collect else None,
+               'feature_outcomes': {k: 0 for k in ('accepted', 'accepted_with_warnings', 'review_required', 'rejected')}}
+
+    def error(code, count=1):
+        if code in errors or len(errors) < 20:
+            errors[code] = errors.get(code, 0) + count
+
+    def warn(code, count=1):
+        if code in warnings or len(warnings) < 16:
+            warnings[code] = warnings.get(code, 0) + count
+
+    try:
+        raw = _source_bytes(request, storage_root)
+        observed = hashlib.sha256(raw).hexdigest()
+        report['observed_sha256'] = observed
+        require(observed == request['manifest']['sha256'], 'LDD_SHA256_MISMATCH')
+        report['checks'].append('source_hash_match')
+        files = guarded_zip(raw)
+        report['checks'].append('archive_safety')
+        name, parts = _components(files)
+        count, header_len, record_len = _record_count(parts['.shp'], parts['.shx'], parts['.dbf'])
+        report['checks'].append('components')
+        encoding = _encoding(parts, request['encoding'], count, header_len, record_len)
+        report['encoding'] = encoding
+        report['checks'].append('encoding')
+        # Import native dependencies only inside the resource-limited child.
+        import fiona
+        from fiona.io import ZipMemoryFile
+        from fiona.transform import transform_geom
+        from rasterio.crs import CRS
+        from shapely.geometry import mapping, shape
+        from shapely import prepare as prepare_geometry
+        try:
+            crs = CRS.from_wkt(parts['.prj'].decode('utf-8-sig', errors='strict'))
+        except Exception:
+            raise LddError('CRS_INVALID') from None
+        source_crs = request['manifest']['crs']
+        require(crs.to_epsg() in (32647, 32648, 4326) and crs.to_string() == source_crs, 'CRS_MISMATCH')
+        report['checks'].append('crs')
+        boundaries = _asset('province_boundaries.json', BOUNDARY_SHA256)
+        boundary = next((f for f in boundaries['features'] if f['properties']['name'] == request['province']), None)
+        require(boundary is not None, 'PROVINCE_UNKNOWN')
+        legend = _asset('ldd_codes.json', LEGEND_SHA256)['codes']
+        try:
+            classes = policy.main_classes(legend)
+        except policy.PolicyError:
+            raise LddError('VALIDATION_ASSET_INVALID') from None
+        require(all(_fixed_main_code(v) == k for k, v in classes.items()), 'VALIDATION_ASSET_INVALID')
+        report['checks'].append('dataset_association')
+        zones = {}
+
+        def zone(name_):
+            # Approximate repository boundary, measured in metres in the parcel's
+            # UTM zone; never an arbitrary user-provided AOI or remote shape.
+            if name_ not in zones:
+                exact = shape(transform_geom('EPSG:4326', name_, boundary['geometry']))
+                require(not exact.is_empty and exact.is_valid, 'VALIDATION_ASSET_INVALID')
+                minor, review = exact.buffer(policy.BOUNDARY_MINOR_M), exact.buffer(policy.BOUNDARY_REVIEW_M)
+                for g in (exact, minor, review):
+                    prepare_geometry(g)
+                zones[name_] = (exact, minor, review)
+            return zones[name_]
+
+        stats = report['statistics']
+        coordinate_count = 0
+        repaired_change = 0.0
+        with fiona.Env(GDAL_PAM_ENABLED='NO', GDAL_VRT_ENABLE_PYTHON='NO', GDAL_DISABLE_READDIR_ON_OPEN='YES'):
+            with ZipMemoryFile(raw) as memory:
+                with memory.open(name, enabled_drivers=['ESRI Shapefile'], encoding=encoding) as collection:
+                    schema = dict(collection.schema['properties'])
+                    try:
+                        profile_id, mapping_ = policy.resolve_profile(schema)
+                    except policy.PolicyError as exc:
+                        raise LddError(str(exc)) from None
+                    details['field_profile'] = profile_id
+                    details['field_mapping'] = mapping_
+                    details['source_fields'] = {k: str(v)[:20] for k, v in list(schema.items())[:64]}
+                    units = policy.declared_area_units(profile_id, source_crs)
+                    details['declared_area_units'] = units
+                    report['checks'].append('attributes')
+                    for feature in collection:
+                        index = stats['feature_count']
+                        stats['feature_count'] += 1
+                        require(stats['feature_count'] <= MAX_FEATURES, 'FEATURE_COUNT_LIMIT')
+                        props = dict(feature['properties'])
+                        require(all(not isinstance(v, bytes) and not (isinstance(v, str) and '\ufffd' in v) for v in props.values()), 'ENCODING_INVALID')
+                        geom_json = feature['geometry']
+                        issues, area, derived, repair, notes = [], 0.0, None, None, set()
+                        if geom_json is None or geom_json['type'] not in ('Polygon', 'MultiPolygon'):
+                            issues.append('GEOMETRY_TYPE')
+                        else:
+                            coordinate_count += _coordinates(geom_json['coordinates'])
+                            require(coordinate_count <= MAX_COORDINATES, 'COORDINATE_COUNT_LIMIT')
+                            geom = shape(geom_json)
+                            if geom.is_empty:
+                                issues.append('GEOMETRY_EMPTY')
+                            else:
+                                minx, _, maxx, _ = geom.bounds
+                                metric = policy.metric_crs(source_crs, (minx + maxx) / 2)
+                                projected = geom if metric == source_crs else shape(transform_geom(source_crs, metric, geom_json))
+                                if not geom.is_valid or not projected.is_valid:
+                                    fixed = _repair(projected)
+                                    code = policy.repair_accepted(projected.area, fixed.area, fixed.geom_type,
+                                                                  fixed.is_valid, fixed.is_empty)
+                                    if code:
+                                        issues.append(code)
+                                    else:
+                                        repair = {'feature': index, 'method': 'shapely.make_valid(structure)',
+                                                  'reason': _reason(projected), 'area_before_m2': round(projected.area, 3),
+                                                  'area_after_m2': round(fixed.area, 3),
+                                                  'type_before': projected.geom_type, 'type_after': fixed.geom_type}
+                                        repaired_change += abs(fixed.area - projected.area)
+                                        warn('GEOMETRY_REPAIRED'); notes.add('GEOMETRY_REPAIRED')
+                                        if len(details['repairs']) < 50:
+                                            details['repairs'].append(repair)
+                                        projected = fixed
+                                if not issues:
+                                    area = projected.area
+                                    if not (math.isfinite(area) and 0 < area <= 1e12):
+                                        issues.append('AREA_INVALID'); area = 0.0
+                                if not issues:
+                                    exact, minor, review = zone(metric)
+                                    inside = exact.covers(projected)
+                                    tier = None
+                                    if not inside:
+                                        within_minor = minor.covers(projected)
+                                        within_review = within_minor or review.covers(projected)
+                                        beyond = 0.0 if within_minor else projected.difference(minor).area / area
+                                        tier = policy.boundary_tier(False, within_minor, within_review, beyond)
+                                        details['boundary']['outside_area_m2'] += projected.difference(exact).area
+                                    if tier == 'BOUNDARY_OUTSIDE_MINOR':
+                                        details['boundary']['minor'] += 1
+                                        warn(tier); notes.add(tier)
+                                    elif tier:
+                                        details['boundary']['review' if tier in policy.REVIEW else 'fatal'] += 1
+                                        issues.append(tier)
+                                    derived = projected
+                        for code in issues:
+                            error(code)
+                        problems = set(issues)
+                        if any(code in policy.GEOMETRY_CODES for code in issues):
+                            stats['geometry_error_count'] += 1
+                        declared = props[mapping_['declared_area']]
+                        if type(declared) not in (int, float) or not math.isfinite(declared) or declared < 0:
+                            error('AREA_INVALID'); problems.add('AREA_INVALID')
+                        elif derived is not None:
+                            # Without stated units the value is still checked as m2: a match
+                            # shows the units, a mismatch is flagged (never silently ignored).
+                            tier = policy.declared_area_tier(declared, area)
+                            if tier and units != 'm2':
+                                warn('DECLARED_AREA_UNITS_UNVERIFIED'); notes.add('DECLARED_AREA_UNITS_UNVERIFIED')
+                            if tier == 'AREA_DECLARED_MINOR_DIFF':
+                                warn(tier); notes.add(tier)
+                            elif tier:
+                                error(tier); problems.add(tier)
+                        stats['total_area_m2'] += area
+                        require(stats['total_area_m2'] <= 1e12, 'AREA_LIMIT')
+                        code_value, main_value = props[mapping_['lu_code']], props[mapping_['main_code']]
+                        result = policy.classify(code_value, main_value, legend, classes)
+                        if result['composite']:
+                            stats['composite_feature_count'] += 1
+                        if result['normalised']:
+                            warn('NUMERIC_MAIN_CODE_NORMALISED'); notes.add('NUMERIC_MAIN_CODE_NORMALISED')
+                        if result['classification'] is None:
+                            stats['unknown_code_count'] += 1
+                            stats['unknown_area_m2'] += area
+                            error('UNKNOWN_CODE_REVIEW_REQUIRED'); problems.add('UNKNOWN_CODE_REVIEW_REQUIRED')
+                            key = result['code_key'] + '|' + result['reason']
+                            samples = details['unknown_samples']
+                            if key in samples or len(samples) < 10:
+                                entry = samples.setdefault(key, {'value': result['code_key'], 'main': policy._code_key(main_value),
+                                                                 'reason': result['reason'], 'count': 0, 'area_m2': 0.0})
+                                entry['count'] += 1
+                                entry['area_m2'] += area
+                        else:
+                            stats['area_by_main_m2'][result['classification']] += area
+                        details['feature_outcomes'][policy.outcome(problems, notes)] += 1
+                        if collect:
+                            details['features'].append({'index': index, 'classification': result['classification'],
+                                'code_key': result['code_key'], 'lu_code': code_value, 'main_code': main_value,
+                                'declared_area': declared, 'area_m2': area, 'metric_crs': None if derived is None else metric,
+                                'derived': None if derived is None else mapping(derived),
+                                'source': geom_json if repair else None, 'repair': repair})
+        require(stats['feature_count'] == count, 'FEATURE_COUNT_MISMATCH')
+        total = stats['total_area_m2']
+        outside = details['boundary']['outside_area_m2']
+        if total > 0 and outside > total * policy.DATASET_OUTSIDE_SHARE_MAX and outside > policy.DATASET_OUTSIDE_MIN_M2:
+            error('BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED')
+        if policy.repair_limit_exceeded(warnings.get('GEOMETRY_REPAIRED', 0), stats['feature_count'], repaired_change, total):
+            error('GEOMETRY_REPAIR_LIMIT_REVIEW_REQUIRED')
+        if not stats['geometry_error_count'] and not (set(errors) & {'BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED',
+                'GEOMETRY_REPAIR_LIMIT_REVIEW_REQUIRED'}):
+            report['checks'].extend(('geometry', 'province_bounds'))
+        if not stats['unknown_code_count']:
+            report['checks'].append('ldd_codes')
+    except LddError as exc:
+        error(str(exc))
+    except MemoryError:
+        return report_failure(request, 'NATIVE_MEMORY_LIMIT'), details
+    except Exception as exc:
+        # GDAL/OGR/GEOS/PROJ failures describe the file; anything else is our fault.
+        native = type(exc).__module__.split('.')[0] in ('fiona', 'rasterio', 'shapely', 'pyproj')
+        error('SHAPEFILE_READ_ERROR' if native else 'NATIVE_PROCESS_FAILED')
+    ordered = sorted(errors.items(), key=lambda item: item[0] in policy.REVIEW)  # fatal first, stable
+    report['errors'] = [{'code': code, 'count': n} for code, n in ordered]
+    base = [{'code': 'BOUNDARY_APPROXIMATE', 'count': 1}, {'code': 'DATA_YEAR_METADATA_DECLARED', 'count': 1}]
+    markers = [{'code': 'LDD_POLICY_V2', 'count': 1}]
+    if details['field_profile']:
+        markers.append({'code': 'FIELD_PROFILE_' + details['field_profile'].upper().replace('-', '_'), 'count': 1})
+    report['warnings'] = base + markers + [{'code': code, 'count': n} for code, n in warnings.items()]
+    details['outcome'] = policy.outcome(errors, warnings)
+    report['valid'] = not errors
+    report['error_code'] = ordered[0][0] if ordered else None
+    if len(json.dumps(report, allow_nan=False).encode()) > 16384:
+        return report_failure(request, 'NATIVE_OUTPUT_LIMIT'), details
+    return report, details
+
+
+def validate_legacy_v1(request, *, storage_root=STORAGE_ROOT):
+    """Frozen pre-policy-v2 validator, kept verbatim for ldd-source-area-v1.
+
+    Used only to rebuild/verify v1 preparation artifacts, so editions prepared
+    before ldd-policy-v2 keep re-verifying byte-for-byte under the rules they
+    were produced with. New validation results always come from assess().
+    """
     check_request(request)
     report = report_failure(request, 'VALIDATION_FAILED')
     report['errors'] = []

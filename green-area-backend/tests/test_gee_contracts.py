@@ -2,7 +2,6 @@
 from copy import deepcopy
 from datetime import date
 from pathlib import Path
-import hashlib
 from uuid import UUID
 
 import pytest
@@ -100,9 +99,17 @@ def test_offline_reference_still_uses_original_validator():
 
 
 def test_methods_bind_current_legacy_source_bytes_without_runtime_file_reads():
+    # Same pinned v0 identities as before; verified under the declared schemes so
+    # a CRLF (Windows) and an LF (Linux) checkout of the same text both pass.
+    from gis_worker.method_registry import definition_for_version
+    from gis_worker.source_integrity import legacy_crlf_sha256, source_text_sha256
     root = Path(__file__).resolve().parents[1]
-    for name, expected in method_for('ndvi', 0).legacy_sources:
-        assert hashlib.sha256((root / name).read_bytes()).hexdigest() == expected
+    method = method_for('ndvi', 0)
+    approved = dict(definition_for_version(method.version).approved_sources)
+    for name, expected in method.legacy_sources:
+        raw = (root / name).read_bytes()
+        assert source_text_sha256(raw) == approved[name]
+        assert legacy_crlf_sha256(raw) == expected
 
 
 def test_output_hash_cannot_be_replaced():
