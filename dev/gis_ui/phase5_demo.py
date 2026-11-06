@@ -21,6 +21,7 @@ import socket
 import subprocess
 import sys
 import threading
+import time
 from uuid import uuid4
 
 HERE=Path(__file__).resolve().parent
@@ -152,6 +153,18 @@ class Demo:
         except subprocess.TimeoutExpired:
             proc.kill();proc.communicate();self.smoke_exit=2
 
+    def closing_baseline(self):
+        """Read-only proof after shutdown. A failure is reported, never treated as a pass.
+
+        Ctrl+C reaches every process in this console, so a docker client running at that
+        moment can exit non-zero: try once more before reporting the check as failed.
+        """
+        for attempt in (1,2):
+            try:return self.local.baseline()
+            except Exception:
+                if attempt==1:time.sleep(1)
+        return None
+
     def close(self):
         errors=[]
         if self.vite is not None:
@@ -164,13 +177,16 @@ class Demo:
         for worker in reversed(self.workers):
             try:worker.close()
             except Exception:errors.append('OWNED_WORKER_STOP_FAILED')
-        after=self.local.baseline()
+        after=self.closing_baseline()
         checks={}
-        for database,before in self.before.items():
-            now=after[database]
-            checks[database]={'ledger_unchanged':before['ledger']==now['ledger'],
-                'old_profiles_unchanged':all(now['profiles'].get(k)==v for k,v in before['profiles'].items()),
-                'public_legacy_unchanged':all(now['tables'].get(k)==v for k,v in before['tables'].items() if k!='profiles')}
+        if after is None:
+            errors.append('BASELINE_CHECK_FAILED');checks['baseline_checked']=False
+        else:
+            for database,before in self.before.items():
+                now=after[database]
+                checks[database]={'ledger_unchanged':before['ledger']==now['ledger'],
+                    'old_profiles_unchanged':all(now['profiles'].get(k)==v for k,v in before['profiles'].items()),
+                    'public_legacy_unchanged':all(now['tables'].get(k)==v for k,v in before['tables'].items() if k!='profiles')}
         checks.update(source_unchanged=self.initial_source==source(),owned_workers_removed=not self.local.approved)
         report={'run':self.run,'smoke_exit':self.smoke_exit,'checks':checks,'cleanup_errors':errors,
             'source':self.initial_source,'passwords_or_tokens_persisted':False,'cloud_access':False,
@@ -178,6 +194,18 @@ class Demo:
         (self.output/'local-results.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
         print(json.dumps({'evidence':str(self.output),'smoke_exit':self.smoke_exit,'checks':checks,'cleanup_errors':errors}),flush=True)
         return not errors and all(all(v.values()) if isinstance(v,dict) else v for v in checks.values())
+
+
+def wait_until_stopped(demo,stopped,grace=2):
+    """Return on Ctrl+C; raise only if a component died and no Ctrl+C follows.
+
+    Ctrl+C also reaches the UI and workers in this console, and they can exit before this
+    process handles its own signal.
+    """
+    while not stopped.wait(.5):
+        if demo.vite.poll() is not None or any(w.proc.poll() is not None for w in demo.workers):
+            if stopped.wait(grace):return
+            raise RuntimeError('DEMO_COMPONENT_STOPPED')
 
 
 def main():
@@ -207,9 +235,7 @@ def main():
             print(json.dumps({'local_test_accounts':{role:{'email':u['email'],'id':u['id']} for role,u in demo.users.items()},
                 'password':'Use the password entered above; it is never displayed or stored'}),flush=True)
             print('Ctrl+C: stop owned API/UI/workers; keep all data and core services.',flush=True)
-            while not stopped.wait(.5):
-                if demo.vite.poll() is not None or any(w.proc.poll() is not None for w in demo.workers):
-                    raise RuntimeError('DEMO_COMPONENT_STOPPED')
+            wait_until_stopped(demo,stopped)
     finally:
         safe=demo.close()
     return 0 if safe and (args.action!='smoke' or demo.smoke_exit==0) else 1

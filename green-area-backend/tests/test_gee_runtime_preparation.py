@@ -52,7 +52,19 @@ def test_real_credentials_and_live_egress_cannot_be_enabled(monkeypatch):
     for method in ('issue','renew','revoke','authorize'):
         with pytest.raises(CredentialBoundaryError,match='DISABLED'):
             getattr(channel,method)(project='payload-approval', verified=True)
-    assert 'ee' not in sys.modules and 'google.auth' not in sys.modules
+    # Other tests in this process may import ee, so prove it in a clean interpreter.
+    backend = Path(__file__).resolve().parents[1]
+    code = ('import sys;sys.path.insert(0,' + repr(str(backend)) + ')\n'
+        'from gis_worker.gee_runtime_identity import CredentialBoundaryError,DisabledGoogleCredentials\n'
+        'channel=DisabledGoogleCredentials()\n'
+        'for method in ("issue","renew","revoke","authorize"):\n'
+        ' try:getattr(channel,method)(project="payload-approval",verified=True)\n'
+        ' except CredentialBoundaryError:pass\n'
+        ' else:raise SystemExit("credential channel was not disabled")\n'
+        'loaded=[n for n in ("ee","google.auth") if n in sys.modules]\n'
+        'raise SystemExit(str(loaded) if loaded else 0)\n')
+    result = subprocess.run([sys.executable,'-I','-B','-c',code],capture_output=True,text=True,timeout=30)
+    assert result.returncode == 0, result.stderr[-800:]
 
 
 @pytest.mark.parametrize('arguments',[[],['--live'],['--unknown']])
