@@ -6,6 +6,7 @@ import hashlib
 from io import BytesIO
 import json
 from pathlib import Path
+import re
 import stat
 import zipfile
 
@@ -103,6 +104,50 @@ def test_size_limit_corruption_missing_components_and_sidecars():
         ldd._components({'a.shp': b'a'})
     files = ldd.guarded_zip(archive([(f'a.{ext}', b'x') for ext in ('shp', 'shx', 'dbf', 'prj', 'sbn', 'sbx', 'qix')]))
     assert len(ldd._components(files)[1]) == 7
+
+
+@pytest.mark.parametrize('fixture,outcome,accepted,review', [
+    ('ldd_valid.zip', 'accepted', 3, 0), ('ldd_unknown.zip', 'review_required', None, None), ('ldd_missing_dbf.zip', 'rejected', 0, 0),
+])
+def test_report_audit_matches_the_rules_in_migration_050(tmp_path, fixture, outcome, accepted, review):
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    result = ldd.validate(store(tmp_path, (FIXTURES / fixture).read_bytes()), storage_root=tmp_path)
+    audit = result['audit']
+    assert set(audit) == {'policy_version', 'outcome', 'field_profile', 'field_mapping', 'declared_area_units', 'feature_outcomes',
+                          'boundary', 'unknown_samples', 'repairs', 'repairs_total'}
+    assert audit['outcome'] == outcome and audit['policy_version'] == 'ldd-policy-v2'
+    assert set(audit['feature_outcomes']) == {'accepted', 'accepted_with_warnings', 'review_required', 'rejected'}
+    assert set(audit['boundary']) == {'minor', 'review', 'fatal', 'outside_area_m2'}
+    total = sum(audit['feature_outcomes'].values())
+    if result['valid']:
+        assert total == result['statistics']['feature_count'] and audit['field_mapping'] == {
+            'main_code': 'LUL1_CODE', 'lu_code': 'LU_CODE', 'declared_area': 'Shape_Area'}
+    else:
+        assert total <= result['statistics']['feature_count']
+    if accepted is not None:
+        assert audit['feature_outcomes']['accepted'] == accepted and audit['feature_outcomes']['review_required'] == review
+    if outcome == 'review_required':
+        assert audit['feature_outcomes']['review_required'] > 0 and 0 < len(audit['unknown_samples']) <= 10
+        assert {e['code'] for e in result['errors']} == {'UNKNOWN_CODE_REVIEW_REQUIRED'}
+        sample = audit['unknown_samples'][0]
+        assert set(sample) == {'value', 'main', 'reason', 'count', 'area_m2'} and re.fullmatch('[A-Z][A-Z0-9_]{0,59}', sample['reason'])
+    assert len(json.dumps(result, allow_nan=False).encode()) <= 16384
+
+
+def test_audit_is_dropped_rather_than_failing_when_the_report_would_be_too_large(tmp_path, monkeypatch):
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    monkeypatch.setattr(ldd, 'audit_summary', lambda details, total: {'padding': 'x' * 20000})
+    result = ldd.validate(store(tmp_path, (FIXTURES / 'ldd_valid.zip').read_bytes()), storage_root=tmp_path)
+    assert result['valid'] is True and 'audit' not in result
+
+
+def test_resource_failures_carry_no_audit(tmp_path, monkeypatch):
+    req = request((FIXTURES / 'ldd_valid.zip').read_bytes())
+    failure = ldd.report_failure(req, 'NATIVE_MEMORY_LIMIT')
+    monkeypatch.setattr(ldd, 'assess', lambda request, storage_root: (failure, {}))
+    assert 'audit' not in ldd.validate(req, storage_root=tmp_path)
 
 
 def test_native_hash_mismatch_and_missing_file_fail_safely(tmp_path):

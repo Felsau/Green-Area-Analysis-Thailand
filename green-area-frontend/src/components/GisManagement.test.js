@@ -282,6 +282,33 @@ test('enqueue is confirmed with immutable revision; no optimistic succeeded', as
   expect(writes()[0]).toEqual([`/editions/${ed.id}/validation-jobs`, expect.objectContaining({ body: { expected_revision: 4 } })]);
   expect(screen.queryByText('สำเร็จ', { selector: '.gis-status' })).not.toBeInTheDocument();
 });
+test('LDD report shows audit details and that a Review Required edition cannot be used yet', async () => {
+  const report = { ...lddReport([{ code: 'UNKNOWN_CODE_REVIEW_REQUIRED', count: 1 }], [], false), audit: {
+    policy_version: 'ldd-policy-v2', outcome: 'review_required', field_profile: 'ldd-lu-text-v1', declared_area_units: 'm2',
+    field_mapping: { main_code: 'LUL1_CODE', lu_code: 'LU_CODE', declared_area: 'Shape_Area' },
+    feature_outcomes: { accepted: 2, accepted_with_warnings: 1, review_required: 3, rejected: 0 },
+    boundary: { minor: 4, review: 5, fatal: 0, outside_area_m2: 12.5 },
+    unknown_samples: [{ value: 'X999', main: 'U', reason: 'LU_CODE_NOT_IN_LEGEND', count: 7, area_m2: 88 }],
+    repairs: [{ feature: 9, reason: 'Self-intersection', area_before_m2: 10, area_after_m2: 11, type_before: 'Polygon', type_after: 'MultiPolygon' }], repairs_total: 30 } };
+  gisRequest.mockImplementation((path, options) => path === `/jobs/${job.id}` ? Promise.resolve({ ...job, state: 'failed', result: { report } }) : respond(path, options));
+  show(); await openJob();
+  expect(await screen.findByText(/แปลงที่ผ่าน 2 · ผ่านพร้อมข้อสังเกต 1 · ต้องตรวจสอบ 3 · ไม่ผ่าน 0/)).toBeInTheDocument();
+  expect(screen.getByRole('note')).toHaveTextContent('ยังนำเข้าหรือเปิดใช้ไม่ได้');
+  expect(screen.getByText('รหัสการใช้ที่ดิน: LU_CODE')).toBeInTheDocument();
+  expect(screen.getByText(/เล็กน้อย 4 · ต้องตรวจสอบ 5 · ไม่รับ 0 แปลง · พื้นที่นอกเขต 12.5/)).toBeInTheDocument();
+  expect(screen.getByText(/X999 · รหัสหลัก U · LU_CODE_NOT_IN_LEGEND · 7 แปลง · 88/)).toBeInTheDocument();
+  expect(screen.getByText(/ทั้งหมด 30 แปลง/)).toBeInTheDocument();
+  expect(screen.getByText(/แปลงที่ 9 · Self-intersection · 10 → 11/)).toBeInTheDocument();
+});
+
+test('LDD report without audit keeps rendering for results stored earlier', async () => {
+  const report = lddReport([], [], true);
+  gisRequest.mockImplementation((path, options) => path === `/jobs/${job.id}` ? Promise.resolve({ ...job, state: 'succeeded', result: { report } }) : respond(path, options));
+  show(); await openJob();
+  expect(await screen.findByText(/จำแนกผล:/)).toBeInTheDocument();
+  expect(screen.queryByText(/แปลงที่ผ่าน/)).not.toBeInTheDocument();
+});
+
 test('sending an edition whose earlier job failed says no new job was created', async () => {
   gisRequest.mockImplementation((path, options) => options?.method ? Promise.resolve({ ...job, state: 'failed', error_code: 'attempts_exhausted' }) : respond(path, options));
   show(); await openDataset(); fireEvent.click(screen.getByRole('button', { name: 'ส่งตรวจสอบ', exact: true })); await confirm();

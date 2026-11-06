@@ -216,6 +216,29 @@ function FormDialog({ form, prepare, close, provinces }) {
   </Modal>;
 }
 
+function LddAuditDetails({ audit }) {
+  if (!audit || typeof audit !== 'object') return null;
+  const outcomes = audit.feature_outcomes || {};
+  const boundary = audit.boundary || {};
+  const mapping = audit.field_mapping || {};
+  const roles = { main_code: 'รหัสหลัก', lu_code: 'รหัสการใช้ที่ดิน', declared_area: 'พื้นที่ในไฟล์' };
+  const unknown = Array.isArray(audit.unknown_samples) ? audit.unknown_samples.slice(0, 10) : [];
+  const repairs = Array.isArray(audit.repairs) ? audit.repairs.slice(0, 20) : [];
+  return <div className="gis-report-audit">
+    <p>แปลงที่ผ่าน {Number(outcomes.accepted) || 0} · ผ่านพร้อมข้อสังเกต {Number(outcomes.accepted_with_warnings) || 0} · ต้องตรวจสอบ {Number(outcomes.review_required) || 0} · ไม่ผ่าน {Number(outcomes.rejected) || 0}</p>
+    {audit.outcome === 'review_required' && <p role="note">ฉบับนี้ต้องตรวจสอบก่อนใช้ ระบบยังไม่มีขั้นอนุมัติ จึงยังนำเข้าหรือเปิดใช้ไม่ได้ ให้แก้ไฟล์แล้วอัปโหลดใหม่</p>}
+    <details><summary>รายละเอียดการตรวจ</summary>
+      <p>นโยบาย: {String(audit.policy_version || '—').slice(0, 40)} · Field Profile: {String(audit.field_profile || 'ยังไม่จับคู่').slice(0, 40)} · หน่วยพื้นที่ในไฟล์: {audit.declared_area_units === 'm2' ? 'ตารางเมตร' : 'ยืนยันไม่ได้'}</p>
+      {Object.keys(roles).filter(key => typeof mapping[key] === 'string').map(key => <p key={key}>{roles[key]}: {mapping[key].slice(0, 40)}</p>)}
+      <p>เกินเขตจังหวัด: เล็กน้อย {Number(boundary.minor) || 0} · ต้องตรวจสอบ {Number(boundary.review) || 0} · ไม่รับ {Number(boundary.fatal) || 0} แปลง · พื้นที่นอกเขต {Number(boundary.outside_area_m2) || 0} ตร.ม. (เส้นเขตเป็นค่าประมาณ)</p>
+      {unknown.length > 0 && <><h5>รหัสที่ไม่รู้จัก (แสดงไม่เกิน 10 รายการ)</h5>
+        <ul>{unknown.map((u, i) => <li key={i}>{String(u.value ?? '').slice(0, 40)} · รหัสหลัก {String(u.main ?? '').slice(0, 40)} · {String(u.reason ?? '').slice(0, 60)} · {Number(u.count) || 0} แปลง · {Number(u.area_m2) || 0} ตร.ม.</li>)}</ul></>}
+      {repairs.length > 0 && <><h5>แปลงที่ซ่อมรูปทรง (ทั้งหมด {Number(audit.repairs_total) || repairs.length} แปลง แสดงไม่เกิน 20)</h5>
+        <ul>{repairs.map((r, i) => <li key={i}>แปลงที่ {Number(r.feature) || 0} · {String(r.reason ?? '').slice(0, 40)} · {Number(r.area_before_m2) || 0} → {Number(r.area_after_m2) || 0} ตร.ม. · {String(r.type_before ?? '').slice(0, 40)} → {String(r.type_after ?? '').slice(0, 40)}</li>)}</ul></>}
+    </details>
+  </div>;
+}
+
 function NativeReport({ report }) {
   if (!report) return null;
   if (report.mode === 'offline_synthetic') return <ProcessingReport report={report} />;
@@ -256,6 +279,7 @@ function NativeReport({ report }) {
   return <div className="gis-report"><h4>รายงานการตรวจ</h4>
     <p>ผล: {report.valid === true ? 'ผ่าน' : report.valid === false ? 'ไม่ผ่าน' : 'ยังไม่ระบุ'} · {report.upload_id ? `ไฟล์อัปโหลด: ${String(report.upload_id).slice(0, 36)}` : `Fixture: ${String(report.fixture_id || '—').slice(0, 60)}`}</p>
     {outcome && <p>จำแนกผล: {outcome}</p>}
+    <LddAuditDetails audit={report.audit} />
     {report.error_code && <p>รหัสผลตรวจ: {errors[report.error_code] || String(report.error_code).slice(0, 60)}</p>}
     <ul>{(Array.isArray(report.checks) ? report.checks : []).slice(0, 12).filter(x => typeof x === 'string').map(x => <li key={x}>{x.slice(0, 60)}</li>)}</ul>
     {(Array.isArray(report.errors) ? report.errors : []).slice(0, 20).map((e, i) => <p key={i}>ปัญหา: {errors[e.code] || String(e.code || '').slice(0, 60)} ({Number(e.count) || 0})</p>)}

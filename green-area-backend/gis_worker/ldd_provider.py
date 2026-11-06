@@ -37,6 +37,7 @@ REQUIRED_FIELDS = ('LUL1_CODE', 'LU_CODE', 'Shape_Area')
 CHECKS = ('source_hash_match', 'archive_safety', 'components', 'crs', 'geometry',
           'attributes', 'encoding', 'ldd_codes', 'province_bounds', 'dataset_association')
 HASH = re.compile(r'^[0-9a-f]{64}$')
+AUDIT_MAX_SAMPLES, AUDIT_MAX_REPAIRS = 10, 20
 ENCODINGS = ('auto', 'utf-8', 'cp874', 'tis-620')
 
 
@@ -300,8 +301,30 @@ def _reason(geometry):
     return re.sub(r'[^A-Za-z ]', '', text.split('[', 1)[0]).strip()[:40] or 'Invalid'
 
 
+def audit_summary(details, repairs_total):
+    """Closed, bounded projection of ``details`` for the stored report (migration 050)."""
+    repair_keys = ('feature', 'reason', 'area_before_m2', 'area_after_m2', 'type_before', 'type_after')
+    return {'policy_version': details['policy']['policy_version'], 'outcome': details['outcome'],
+            'field_profile': details['field_profile'], 'field_mapping': details['field_mapping'],
+            'declared_area_units': details['declared_area_units'],
+            'feature_outcomes': dict(details['feature_outcomes']),
+            'boundary': {'minor': details['boundary']['minor'], 'review': details['boundary']['review'],
+                         'fatal': details['boundary']['fatal'],
+                         'outside_area_m2': round(details['boundary']['outside_area_m2'], 3)},
+            'unknown_samples': [{**entry, 'area_m2': round(entry['area_m2'], 3)}
+                                for entry in details['unknown_samples'].values()][:AUDIT_MAX_SAMPLES],
+            'repairs': [{key: repair[key] for key in repair_keys} for repair in details['repairs'][:AUDIT_MAX_REPAIRS]],
+            'repairs_total': repairs_total}
+
+
 def validate(request, *, storage_root=STORAGE_ROOT):
-    return assess(request, storage_root=storage_root)[0]
+    report, details = assess(request, storage_root=storage_root)
+    # A resource or output failure says nothing about the file, so it carries no audit.
+    if report.get('error_code') in ('NATIVE_MEMORY_LIMIT', 'NATIVE_OUTPUT_LIMIT', 'NATIVE_PROCESS_FAILED'):
+        return report
+    repairs_total = next((w['count'] for w in report['warnings'] if w['code'] == 'GEOMETRY_REPAIRED'), len(details['repairs']))
+    audited = {**report, 'audit': audit_summary(details, repairs_total)}
+    return audited if len(json.dumps(audited, allow_nan=False).encode()) <= 16384 else report
 
 
 def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
