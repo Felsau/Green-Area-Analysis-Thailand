@@ -23,7 +23,7 @@ $gisRuntime = 'C:\Users\chaya\.codex\visualizations\2026\10\04\01a107d9-ff44-773
 
 ตัวเปิดเดโมเชื่อม Router เดิมแบบอ่านอย่างเดียวจาก Local Supabase: โปรไฟล์, Cache, Ranking, Compare, Timelapse, Context, District Summary, Cooling, Timeseries และพื้นที่ที่บันทึกของเจ้าของ ใช้ “กลับแผนที่” หรือเมนูผู้ใช้ “จัดการข้อมูล GIS” สลับหน้าได้ โดยรักษาลิงก์จังหวัด/อำเภอเดิม
 
-หัว Dashboard แสดง **Local Demo · อ่าน Cache ในเครื่อง · Live GEE ยังปิดอยู่** ข้อมูล Cache ว่างจะยังว่าง ไม่มีการเติมตัวเลขจำลอง งาน NDVI/LST สด, จุดแนะนำ, Raster จาก GEE และการวิเคราะห์พื้นที่สดตอบ `503 LOCAL_GEE_BLOCKED` แทน 404; การแก้บัญชี/ลบ Cache/เขียนข้อมูล Legacy ตอบ `503 LOCAL_READ_ONLY` ไม่เปลี่ยน Auth หรือ API ของ Deployment ปกติ
+หัว Dashboard แสดง **Local Demo · อ่าน Cache ในเครื่อง · Live GEE ยังปิดอยู่** ข้อมูล Cache ว่างจะยังว่าง ไม่มีการเติมตัวเลขจำลอง `GET /ndvi/{จังหวัด}` ในเดโมอ่านแถวจาก Cache ใน Local อย่างเดียวเพื่อให้แท็บแนวโน้มทำงาน ไม่เช็กอายุข้อมูล ไม่ลบแถว และไม่เรียก GEE ถ้าไม่มีแถวที่เชื่อถือได้ตอบ `503 LOCAL_GEE_BLOCKED` เหมือนเดิม; งาน NDVI/LST สด, จุดแนะนำ, Raster จาก GEE และการวิเคราะห์พื้นที่สดตอบ `503 LOCAL_GEE_BLOCKED` แทน 404; การแก้บัญชี/ลบ Cache/เขียนข้อมูล Legacy ตอบ `503 LOCAL_READ_ONLY` ไม่เปลี่ยน Auth หรือ API ของ Deployment ปกติ
 
 แผนที่ฐาน/ภาพถ่ายภายนอกยังเป็นแหล่งเดิม จึงต้องมีเครือข่ายของบริการนั้น การทดสอบที่ปิดเครือข่ายภายนอกยืนยันได้เฉพาะขอบเขตและการเลือกพื้นที่จากไฟล์ Local ไม่ใช่การโหลด Basemap/GEE จริง
 

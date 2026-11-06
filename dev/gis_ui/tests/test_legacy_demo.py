@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 import subprocess
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
@@ -92,6 +92,74 @@ def test_mount_is_read_only_default_closed_and_preserves_auth():
         assert c.delete('/cache', headers={'Authorization': 'Bearer synthetic'}).json()['detail']['code'] == 'LOCAL_READ_ONLY'
         assert c.get('/future-read', headers={'Authorization': 'Bearer synthetic'}).status_code == 503
     assert not called
+
+
+def cached_ndvi_client(rows):
+    """The real route identity mounted over an original endpoint that must never run."""
+    legacy, app, called, chains = FastAPI(), FastAPI(), [], []
+    def get_ndvi(province_name: str):
+        called.append(province_name)
+        raise AssertionError('the original endpoint deletes stale rows and calls GEE')
+    get_ndvi.__module__ = 'routers.ndvi.endpoints'
+    legacy.add_api_route('/ndvi/{province_name}', get_ndvi, methods=['GET'])
+    def auth(value):
+        if value != 'Bearer synthetic':
+            raise HTTPException(401)
+    def ensure_province(name):
+        if name != 'Bangkok Metropolis':
+            raise HTTPException(404)
+    def supa_call(builder):
+        client = MagicMock()
+        table = client.table.return_value
+        table.select.return_value = table.eq.return_value = table.limit.return_value = table
+        table.execute.return_value = SimpleNamespace(data=rows)
+        chains.append(client)
+        return builder(client)
+    deps = SimpleNamespace(require_user=auth, ensure_province=ensure_province, supa_call=supa_call,
+        resolve_year=lambda year: 2026 if year is None else year, YEAR_MIN=1980, YEAR_MAX=2027, CURRENT_CACHE_VERSION=2)
+    m.mount_legacy(app, SimpleNamespace(app=legacy), deps)
+    return app, called, chains
+
+
+AUTH = {'Authorization': 'Bearer synthetic'}
+ROW = {'id': 9, 'province': 'Bangkok Metropolis', 'year': 2024, 'ndvi_mean': 0.3754, 'ndvi_min': 0.0015, 'ndvi_max': 0.8295,
+    'green_area_pct': 62, 'validation': None, 'cache_version': 2, 'created_at': '2026-11-06T10:52:56+00:00'}
+
+
+def test_cached_ndvi_returns_a_row_the_original_would_treat_as_stale_without_touching_it():
+    app, called, chains = cached_ndvi_client([ROW])
+    with TestClient(app) as c:
+        response = c.get('/ndvi/Bangkok Metropolis?year=2024', headers=AUTH)
+    body = response.json()
+    assert response.status_code == 200 and body['ndvi_mean'] == 0.3754 and body['green_area_pct'] == 62
+    assert body['from_cache'] is True and body['cached_at'] == ROW['created_at'] and body['year'] == 2024
+    assert not {'id', 'created_at', 'cache_version'} & set(body)
+    assert not called
+    table = chains[0].table.return_value
+    chains[0].table.assert_called_once_with('ndvi_annual')
+    assert not table.delete.called and not table.insert.called and not table.update.called and not table.upsert.called
+
+
+@pytest.mark.parametrize('rows', [[], [{**ROW, 'cache_version': 1}], [{k: v for k, v in ROW.items() if k != 'cache_version'}]])
+def test_cached_ndvi_without_a_trusted_row_stays_blocked(rows):
+    app, called, _ = cached_ndvi_client(rows)
+    with TestClient(app) as c:
+        response = c.get('/ndvi/Bangkok Metropolis?year=2024', headers=AUTH)
+    assert response.status_code == 503 and response.json()['detail']['code'] == 'LOCAL_GEE_BLOCKED'
+    assert not called
+
+
+@pytest.mark.parametrize('path,headers,status', [
+    ('/ndvi/Bangkok Metropolis?year=2024', {}, 401),
+    ('/ndvi/Unknown?year=2024', AUTH, 404),
+    ('/ndvi/Bangkok Metropolis?year=abc', AUTH, 422),
+    ('/ndvi/Bangkok Metropolis?year=1979', AUTH, 422),
+])
+def test_cached_ndvi_rejects_before_reading(path, headers, status):
+    app, called, chains = cached_ndvi_client([ROW])
+    with TestClient(app) as c:
+        assert c.get(path, headers=headers).status_code == status
+    assert not called and not chains
 
 
 def test_clean_factory_import_suppresses_app_environment_and_gee():

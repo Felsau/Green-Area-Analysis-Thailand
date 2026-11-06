@@ -52,6 +52,9 @@ READ_ROUTES = frozenset({
     ("/analysis/cooling/{province_name}", "routers.maps.analysis.cooling", "get_cooling_analysis"),
     ("/analysis/timeseries/{province_name}", "routers.maps.analysis.timeseries", "get_timeseries"),
 })
+# Served by cached_ndvi_handler, never by the original endpoint: that one deletes rows it
+# considers stale and computes through GEE. The Trend tab reads this route year by year.
+CACHED_NDVI_ROUTE = ("/ndvi/{province_name}", "routers.ndvi.endpoints", "get_ndvi")
 
 
 def dependency_error(code="LOCAL_GEE_BLOCKED"):
@@ -86,6 +89,39 @@ def _fresh_import_required():
         raise RuntimeError("LOCAL_LEGACY_REQUIRES_FRESH_PROCESS")
 
 
+def cached_ndvi_handler(dependencies):
+    """Read one annual row from the local cache: no GEE, no write, no staleness delete.
+
+    A row this version would not trust (older cache_version, such as fixtures) or a missing
+    row would need GEE, so both keep the demo's existing LOCAL_GEE_BLOCKED answer.
+    """
+    async def handler(request):
+        await run_in_threadpool(dependencies.require_user, request.headers.get("authorization"))
+        province = request.path_params["province_name"]
+        raw_year = request.query_params.get("year")
+        try:
+            year = dependencies.resolve_year(int(raw_year) if raw_year is not None else None)
+        except ValueError:
+            raise HTTPException(422, detail="year ต้องเป็นตัวเลข") from None
+        if not dependencies.YEAR_MIN <= year <= dependencies.YEAR_MAX:
+            raise HTTPException(422, detail=f"year ต้องอยู่ใน {dependencies.YEAR_MIN}–{dependencies.YEAR_MAX}")
+
+        def read():
+            dependencies.ensure_province(province)
+            return dependencies.supa_call(lambda s: s.table("ndvi_annual").select("*")
+                .eq("province", province).eq("year", year).limit(1).execute()).data
+
+        rows = await run_in_threadpool(read)
+        row = rows[0] if rows else None
+        if row is None or row.get("cache_version", 1) < dependencies.CURRENT_CACHE_VERSION:
+            error = dependency_error()
+            return JSONResponse({"detail": error.detail}, status_code=error.status_code)
+        body = {k: v for k, v in row.items() if k not in {"id", "created_at", "cache_version"}}
+        return JSONResponse({**body, "province": province, "year": year,
+            "from_cache": True, "cached_at": row.get("created_at")})
+    return handler
+
+
 def mount_legacy(app, legacy, dependencies):
     mounted = []
     for route in legacy.app.routes:
@@ -93,8 +129,11 @@ def mount_legacy(app, legacy, dependencies):
             continue
         item = copy.copy(route)
         identity = (route.path, route.endpoint.__module__, route.endpoint.__name__)
+        cached = route.methods == {"GET"} and identity == CACHED_NDVI_ROUTE
         allowed = route.methods == {"GET"} and identity in READ_ROUTES
-        if not allowed:
+        if cached:
+            item.app = request_response(cached_ndvi_handler(dependencies))
+        elif not allowed:
             async def blocked(request):
                 # Same original Auth verification; no header/body actor authority.
                 await run_in_threadpool(dependencies.require_user, request.headers.get("authorization"))
@@ -105,7 +144,7 @@ def mount_legacy(app, legacy, dependencies):
             item.app = request_response(blocked)
         app.router.routes.append(item)
         mounted.append({"path": route.path, "methods": sorted(route.methods),
-            "mode": "read_only" if allowed else "blocked_local_dependency"})
+            "mode": "read_only_cache" if cached else "read_only" if allowed else "blocked_local_dependency"})
     app.state.local_legacy_routes = mounted
 
 
