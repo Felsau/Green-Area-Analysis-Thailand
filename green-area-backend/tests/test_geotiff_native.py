@@ -70,6 +70,14 @@ def stored(tmp_path, raw, profile='ndvi_ready', crs='EPSG:32647'):
     return req
 
 
+@pytest.mark.parametrize('value', [0.1, 0.3, 0.7])
+def test_uniform_ready_file_mean_stays_inside_extrema(tmp_path, value):
+    raw = write_tiff(tmp_path / 'source.tif', values=np.full((64, 64), value), dtype='float64')
+    report = gt.validate(stored(tmp_path, raw), storage_root=tmp_path)
+    stats = report['statistics']
+    assert report['valid'] is True and stats['min'] <= stats['mean'] <= stats['max']
+
+
 @pytest.mark.parametrize('profile,expected', [('ndvi_ready', 0), ('lst_celsius_ready', 30), ('lst_kelvin_ready', 30)])
 def test_real_profiles_and_expected_numeric_results(tmp_path, profile, expected):
     raw = write_tiff(tmp_path / 'source.tif', profile)

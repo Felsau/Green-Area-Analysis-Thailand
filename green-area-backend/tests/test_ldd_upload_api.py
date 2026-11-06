@@ -129,7 +129,7 @@ def api(runtime, store):
 
 
 def upload(api, raw, **kwargs):
-    return api.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3', content=raw,
+    return api.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3&source_label=synthetic-test-source', content=raw,
         headers={'Content-Type': 'application/zip', **kwargs.pop('headers', {})}, **kwargs)
 
 
@@ -350,7 +350,7 @@ def test_api_auth_dataset_revision_guards_before_store_consumes_stream(api, stor
 
 def test_api_upload_disabled_by_default(runtime):
     with TestClient(create_app(runtime)) as client:
-        response = client.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3', content=b'raw',
+        response = client.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3&source_label=synthetic-test-source', content=b'raw',
             headers={'Authorization': 'Bearer mock-user-token', 'Idempotency-Key': KEY, 'Content-Type': 'application/zip'})
     assert response.status_code == 503 and response.json()['detail']['code'] == 'GIS_LDD_STORAGE_UNAVAILABLE'
 
@@ -379,7 +379,7 @@ def test_upload_stream_bypasses_only_json_limit(api, store):
 def test_api_rejects_invalid_zip_and_unrecognized_query(api):
     response = upload(api, b'has zip extension but no structure')
     assert response.status_code == 422 and response.json()['detail']['code'] == 'GIS_LDD_ZIP_INVALID'
-    response = api.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3&actor_id={ACTOR}',
+    response = api.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3&source_label=synthetic-test-source&actor_id={ACTOR}',
         content=b'x', headers={'Content-Type': 'application/zip'})
     assert response.status_code == 422
 

@@ -37,6 +37,9 @@ test('GeoTIFF upload requires confirmation and retains binary profile/revision',
   fireEvent.click(screen.getByRole('button', { name: 'อัปโหลด GeoTIFF', exact: true }));
   const file = new File(['II* mock'], 'synthetic.tif', { type: 'image/tiff' });
   fireEvent.change(screen.getByLabelText('ไฟล์ GeoTIFF'), { target: { files: [file] } });
+  expect(screen.getByLabelText('Scientific Profile')).toHaveValue('ndvi_bands');
+  fireEvent.change(screen.getByLabelText('แหล่งที่มาของข้อมูล'), { target: { value: '  Sentinel-2 ส่งออกจาก GEE  ' } });
+  fireEvent.change(screen.getByLabelText('วันที่ข้อมูลดาวเทียม'), { target: { value: '2025-03-01' } });
   // jsdom does not include programmatically supplied files in FormData.
   const NativeFormData = globalThis.FormData;
   const spy = vi.spyOn(globalThis, 'FormData').mockImplementation(function(form) {
@@ -46,7 +49,22 @@ test('GeoTIFF upload requires confirmation and retains binary profile/revision',
   spy.mockRestore(); expect(writes()).toHaveLength(0); await confirm();
   expect(writes()[0][0]).toBe(`/datasets/${ds.id}/geotiff-uploads`);
   expect(writes()[0][1].body).toBe(file);
-  expect(writes()[0][1].query).toEqual({ expected_revision: 3, crs: 'EPSG:32647', profile: 'ndvi_ready' });
+  expect(writes()[0][1].query).toEqual({ expected_revision: 3, crs: 'EPSG:32647', profile: 'ndvi_bands',
+    source_label: 'Sentinel-2 ส่งออกจาก GEE', acquisition_date: '2025-03-01' });
+});
+
+test('GeoTIFF band report shows the computed area and partial coverage', async () => {
+  const report = { provider_build: 'geotiff-local-v1', valid: true, province: ds.province, metadata: { profile: 'ndvi_bands',
+    crs: 'EPSG:4326', bands: ['B4', 'B8'], resolution: [0.001, 0.001], dtype: 'uint16', nodata: 0,
+    units: 'reflectance', output_units: 'unitless', scales: [1, 1], offsets: [0, 0] },
+    warnings: [{ code: 'GEOTIFF_PARTIAL_PROVINCE_COVERAGE', count: 1 }],
+    coverage: { mode: 'province_boundary_clip', fraction_of_province: 0.25, fraction_of_file: 0.5 },
+    statistics: { valid_pixels: 3, outside_area_pixels: 5, mean: 0.5 } };
+  gisRequest.mockImplementation((path, options) => path === `/jobs/${job.id}` ? Promise.resolve({ ...job, state: 'succeeded', result: { report } }) : respond(path, options));
+  show(); await openJob();
+  expect(await screen.findByText(/ครอบคลุมจังหวัด 25\.0% · ใช้พิกเซลของไฟล์ 50\.0%/)).toBeInTheDocument();
+  expect(screen.getByRole('note')).toHaveTextContent('เพียงบางส่วน');
+  expect(screen.getByText('outside_area_pixels: 5')).toBeInTheDocument();
 });
 
 const lddReport = (errors, warnings, valid) => ({ provider_build: 'ldd-local-v1', upload_id: '40000000-0000-4000-8000-000000000004',
@@ -263,6 +281,12 @@ test('enqueue is confirmed with immutable revision; no optimistic succeeded', as
   expect(screen.getByRole('dialog')).toHaveTextContent(ed.id); await confirm(); await waitFor(() => expect(writes()).toHaveLength(1));
   expect(writes()[0]).toEqual([`/editions/${ed.id}/validation-jobs`, expect.objectContaining({ body: { expected_revision: 4 } })]);
   expect(screen.queryByText('สำเร็จ', { selector: '.gis-status' })).not.toBeInTheDocument();
+});
+test('sending an edition whose earlier job failed says no new job was created', async () => {
+  gisRequest.mockImplementation((path, options) => options?.method ? Promise.resolve({ ...job, state: 'failed', error_code: 'attempts_exhausted' }) : respond(path, options));
+  show(); await openDataset(); fireEvent.click(screen.getByRole('button', { name: 'ส่งตรวจสอบ', exact: true })); await confirm();
+  expect(await screen.findByText(/ระบบไม่ได้สร้างงานใหม่/)).toBeInTheDocument();
+  expect(screen.queryByText(/Backend ยืนยันบันทึกคำสั่งแล้ว/)).not.toBeInTheDocument();
 });
 test('ambiguous server failure retains same command and key; double click blocked', async () => {
   let done; gisRequest.mockImplementation((path, options) => options?.method ? new Promise(resolve => { done = resolve; }) : respond(path, options));

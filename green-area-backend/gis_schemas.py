@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_vali
 Label = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=200)]
 Province = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=120)]
 Reason = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=500)]
+SourceLabel = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=255, pattern=r"^[^\x00-\x1f\x7f]+$")]
 Hash = Annotated[str, StringConstraints(strict=True, pattern=r"^[0-9a-f]{64}$")]
 Revision = Annotated[int, Field(strict=True, ge=1, le=2147483647)]
 Month = Annotated[int, Field(strict=True, ge=0, le=12)]
@@ -182,12 +183,15 @@ class LddUploadQuery(GisInput):
     expected_revision: Annotated[int, Field(ge=1, le=2147483647)]
     crs: Literal['EPSG:32647', 'EPSG:32648', 'EPSG:4326'] = 'EPSG:32647'
     encoding: Literal['auto', 'utf-8', 'cp874', 'tis-620'] = 'auto'
+    source_label: SourceLabel
 
 
 class GeoTiffUploadQuery(GisInput):
     expected_revision: Annotated[int, Field(ge=1, le=2147483647)]
     crs: Literal['EPSG:32647', 'EPSG:32648', 'EPSG:4326']
-    profile: Literal['ndvi_ready', 'lst_celsius_ready', 'lst_kelvin_ready']
+    profile: Literal['ndvi_ready', 'lst_celsius_ready', 'lst_kelvin_ready', 'ndvi_bands', 'lst_st_b10']
+    source_label: SourceLabel
+    acquisition_date: date
 
 
 class ProcessingCreate(GisInput):

@@ -53,7 +53,7 @@ def raw_tiff():
 
 def send(client,raw=None,**options):
     return client.post('/gis/datasets/'+DATASET+'/geotiff-uploads',
-        params={'expected_revision':3,'crs':'EPSG:32647','profile':'ndvi_ready',**options.pop('params',{})},
+        params={'expected_revision':3,'crs':'EPSG:32647','profile':'ndvi_ready','source_label':'synthetic-test-source','acquisition_date':'2025-03-01',**options.pop('params',{})},
         headers={'Authorization':'Bearer mock-user-token','Idempotency-Key':KEY,'Content-Type':'image/tiff',**options.pop('headers',{})},
         content=raw if raw is not None else raw_tiff(),**options)
 

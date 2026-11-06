@@ -152,7 +152,7 @@ class DashboardLocal(g.GenuineLocal):
             'baseline_fingerprint': _t1().legacy_fingerprint()}
 
     def worker(self):
-        self.proof(allow=(48,))
+        self.proof(allow=(48, 49))
         bootstrap = self.provision_worker()
         env = worker_env(self.local_keys()[1])
         flags = getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0)

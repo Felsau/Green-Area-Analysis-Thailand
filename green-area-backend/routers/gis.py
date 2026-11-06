@@ -231,7 +231,8 @@ async def upload_ldd(dataset_id: UUID, request: Request, actor: Actor, service: 
     # arbitrary object name ever enters storage or the native worker.
     upload_id = uuid5(UUID('3ab9bdd7-4f76-42d8-a092-b3bb55154187'), f'{actor}:{dataset_id}:{key}')
     return service.ldd_command(actor, key, 'upload', {'dataset_id': str(dataset_id), 'expected_revision': query.expected_revision,
-        'upload_id': str(upload_id), **stored, 'crs': query.crs, 'encoding': query.encoding})
+        'upload_id': str(upload_id), **stored, 'crs': query.crs, 'encoding': query.encoding,
+        'source_label': query.source_label})
 
 
 @router.get('/ldd-uploads/{upload_id}')
@@ -244,7 +245,7 @@ async def upload_geotiff(dataset_id: UUID, request: Request, actor: Actor, servi
                          query: Annotated[GeoTiffUploadQuery, Query()]):
     from gis_geotiff_storage import MAX_UPLOAD, storage_error
     dataset = service.read(actor, 'dataset', {'id': str(dataset_id)})
-    metric = 'ndvi' if query.profile == 'ndvi_ready' else 'lst'
+    metric = 'ndvi' if query.profile in ('ndvi_ready', 'ndvi_bands') else 'lst'
     if dataset.get('kind') != 'geotiff' or dataset.get('purpose') != metric:
         raise gis_error(422, 'GIS_GEOTIFF_DATASET_REQUIRED', 'ต้องเลือก Dataset NDVI/LST ให้ตรงกับ Profile')
     if dataset.get('revision') != query.expected_revision:
@@ -267,7 +268,8 @@ async def upload_geotiff(dataset_id: UUID, request: Request, actor: Actor, servi
     upload_id = uuid5(UUID('552c32ce-226a-4306-99d3-d940a8234f8a'), f'{actor}:{dataset_id}:{key}')
     return service.geotiff_command(actor, key, 'upload', {'dataset_id': str(dataset_id),
         'expected_revision': query.expected_revision, 'upload_id': str(upload_id), **stored,
-        'crs': query.crs, 'profile': query.profile})
+        'crs': query.crs, 'profile': query.profile, 'source_label': query.source_label,
+        'acquisition_date': query.acquisition_date.isoformat()})
 
 
 @router.get('/geotiff-uploads/{upload_id}')
