@@ -97,6 +97,16 @@ function ProcessingFields({ provinces }) {
   const [districts, setDistricts] = useState([]);
   const [metric, setMetric] = useState('ndvi');
   const [error, setError] = useState(null);
+  const [modes, setModes] = useState(['offline_synthetic']);
+  const [mode, setMode] = useState('offline_synthetic');
+  useEffect(() => {
+    const abort = new AbortController();
+    // Only the backend (migration 048 readiness) can offer the GEE source.
+    gisRequest('/processing-options', { signal: abort.signal })
+      .then(value => { if (!abort.signal.aborted && Array.isArray(value.modes) && value.modes.includes('gee_dashboard')) setModes(['offline_synthetic', 'gee_dashboard']); })
+      .catch(() => {});
+    return () => abort.abort();
+  }, []);
   useEffect(() => {
     const abort = new AbortController();
     setDistricts([]); setError(null);
@@ -105,15 +115,19 @@ function ProcessingFields({ provinces }) {
       .catch(err => { if (!abort.signal.aborted) setError(err); });
     return () => abort.abort();
   }, [province]);
+  const gee = mode === 'gee_dashboard';
   return <>
-    <p role="note">Offline Synthetic เท่านั้น: ใช้พิกเซลจำลอง ไม่ใช่ภาพดาวเทียมหรือค่าของพื้นที่ที่เลือก ไม่มีการเรียก Live GEE</p>
+    {modes.length > 1 && <Field label="แหล่งข้อมูล"><select name="mode" value={mode} onChange={e => setMode(e.target.value)}>
+      <option value="offline_synthetic">ข้อมูลจำลอง (Offline Synthetic)</option><option value="gee_dashboard">Google Earth Engine (ภาพดาวเทียมจริง)</option></select></Field>}
+    {gee && <p role="note">ประมวลผลจากภาพดาวเทียมจริงใน Google Earth Engine ด้วยวิธีเดียวกับ Dashboard ผลจะเพิ่มหรือปรับปรุงจุดข้อมูลของช่วงเวลาที่เลือกในอนุกรมเวลา โดยไม่ลบข้อมูลช่วงเวลาอื่น ใช้เวลาประมาณ 1 นาที และใช้โควตา GEE ของโครงการ</p>}
+    {!gee && <p role="note">Offline Synthetic เท่านั้น: ใช้พิกเซลจำลอง ไม่ใช่ภาพดาวเทียมหรือค่าของพื้นที่ที่เลือก ไม่มีการเรียก Live GEE</p>}
     <Field label="ดัชนีประมวลผล"><select name="metric" value={metric} onChange={e => setMetric(e.target.value)}><option value="ndvi">NDVI</option><option value="lst">LST</option></select></Field>
     <Field label="จังหวัดประมวลผล"><select name="province" required value={province} onChange={e => setProvince(e.target.value)}><option value="">เลือกจังหวัด</option>{provinces.map(p => <option key={p.name_en} value={p.name_en}>{p.name_th || p.name_en}</option>)}</select></Field>
     <Field label="ระดับพื้นที่"><select name="scope" value={scope} onChange={e => setScope(e.target.value)}><option value="province">จังหวัด</option><option value="district">อำเภอ</option></select></Field>
     {scope === 'district' && <Field label="อำเภอประมวลผล"><select key={province} name="district" required disabled={!districts.length}><option value="">เลือกอำเภอ</option>{districts.map(d => <option key={d.name_en} value={d.name_en}>{d.name_th || d.name_en}</option>)}</select></Field>}
     <Field label="ปีประมวลผล (ค.ศ.)" name="data_year" type="number" required min={metric === 'ndvi' ? 2017 : 2013} max={new Date().getFullYear()} defaultValue={new Date().getFullYear()} />
     <Field label="ช่วงเวลาประมวลผล"><select name="month"><option value="0">รายปี</option>{Array.from({ length: 12 }, (_, i) => <option key={i + 1} value={i + 1}>เดือน {i + 1}</option>)}</select></Field>
-    <Field label="ชุดข้อมูลจำลอง"><select name="scenario"><option value="standard">ข้อมูลทดสอบปกติ</option><option value="no_data">ไม่มีพิกเซลที่ใช้ได้</option><option value="transient_once">จำลองบริการขัดข้องครั้งแรก</option></select></Field>
+    {!gee && <Field label="ชุดข้อมูลจำลอง"><select name="scenario"><option value="standard">ข้อมูลทดสอบปกติ</option><option value="no_data">ไม่มีพิกเซลที่ใช้ได้</option><option value="transient_once">จำลองบริการขัดข้องครั้งแรก</option></select></Field>}
     <ErrorNote error={error} />
   </>;
 }
@@ -131,7 +145,8 @@ function FormDialog({ form, prepare, close, provinces }) {
           if (values.scope === 'district' && !values.district) throw new Error('กรุณาเลือกอำเภอที่โหลดจากจังหวัด');
           body = { province: values.province, district: values.scope === 'district' ? values.district : null,
             metric: values.metric, data_year: Number(values.data_year), month: Number(values.month),
-            mode: 'offline_synthetic', scenario: values.scenario, expected_revision: 1 };
+            mode: values.mode === 'gee_dashboard' ? 'gee_dashboard' : 'offline_synthetic',
+            scenario: values.mode === 'gee_dashboard' ? 'standard' : values.scenario, expected_revision: 1 };
         } else if (form.type === 'dataset') {
           const [kind, purpose] = values.profile.split(':');
           body = { title: values.title.trim(), province: values.province, kind, purpose,
@@ -200,6 +215,7 @@ function FormDialog({ form, prepare, close, provinces }) {
 function NativeReport({ report }) {
   if (!report) return null;
   if (report.mode === 'offline_synthetic') return <ProcessingReport report={report} />;
+  if (report.mode === 'gee_dashboard') return <DashboardProcessingReport report={report} />;
   if (report.provider_build === 'geotiff-local-v1') return <GeoTiffReport report={report} />;
   // Render a closed projection. Never dump raw responses, tokens or diagnostics.
   const stats = ['feature_count','total_area_m2','unknown_area_m2','area_U_m2','area_A_m2','unknown_code_count','composite_feature_count','geometry_error_count','valid_pixels','mean','min','max'];
@@ -393,6 +409,27 @@ function ProcessingReport({ report }) {
   </div>;
 }
 
+function DashboardProcessingReport({ report }) {
+  if (!report) return null;
+  if (report.mode !== 'gee_dashboard' || report.synthetic !== false) return <p role="alert">ผลนี้ไม่ตรงกับโหมด Google Earth Engine ที่อนุญาต</p>;
+  const m = report.metadata || {};
+  const o = report.observation || {};
+  const errors = { PROCESSING_NO_VALID_PIXELS: 'ไม่พบภาพดาวเทียมที่ใช้ได้ในช่วงเวลานี้ จึงไม่มีจุดข้อมูลใหม่',
+    PROCESSING_RESULT_IMPLAUSIBLE: 'ค่าที่คำนวณได้อยู่นอกช่วงที่เป็นไปได้ จึงไม่บันทึกเป็นผลสำเร็จ',
+    NATIVE_PROCESS_FAILED: 'เชื่อมต่อ Google Earth Engine ไม่สำเร็จชั่วคราว ระบบจะลองใหม่ตามงบ Retry',
+    NATIVE_TIMEOUT: 'ประมวลผลเกินเวลาที่อนุญาต', WORKER_SHUTDOWN: 'Worker หยุดทำงานระหว่างประมวลผล' };
+  const unit = m.metric === 'lst' ? ' °C' : '';
+  return <div className="gis-report"><h4>ผลประมวลผล Google Earth Engine</h4>
+    <p>{report.valid ? `บันทึกจุดข้อมูลลงอนุกรมเวลาของ Dashboard แล้ว (${report.cache?.table || m.cache_table})` : 'ยังไม่มีผลสำเร็จ'}</p>
+    {report.error_code && <p>{errors[report.error_code] || String(report.error_code).slice(0, 60)}</p>}
+    <p>{String(m.metric || '').toUpperCase()} · {m.province} {m.district || 'ระดับจังหวัด'} · {m.month ? `เดือน ${m.month}/${m.data_year}` : `รายปี ${m.data_year}`}</p>
+    {['mean', 'min', 'max'].map(key => <p key={key}>{key}: {Number.isFinite(report.statistics?.[key]) ? `${report.statistics[key]}${unit}` : 'ไม่มีข้อมูล'}</p>)}
+    {report.valid && <p>{o.from_cache ? `มีข้อมูลช่วงนี้อยู่แล้วตั้งแต่ ${o.cached_at || 'ก่อนหน้า'} จึงไม่ได้เรียก GEE ซ้ำ` : 'คำนวณใหม่จาก Google Earth Engine'}{Number.isFinite(o.image_count) ? ` · จำนวนภาพ ${o.image_count}` : ''}</p>}
+    <details><summary>แหล่งข้อมูลและรุ่นประมวลผล</summary><p>Version: {m.processing_version}</p><p>Cloud Mask: {m.cloud_mask}</p>
+      <p>Collection: {(m.source_collections || []).join(', ')}</p><p>Scale {m.scale_m} m · ขอเมื่อ {m.requested_on}</p></details>
+  </div>;
+}
+
 function ProcessingDetail({ id, version, retry }) {
   const [tick, setTick] = useState(0);
   const [job, setJob] = useState(null);
@@ -409,8 +446,8 @@ function ProcessingDetail({ id, version, retry }) {
     <details className="gis-technical"><summary>รหัสงานประมวลผล</summary>{id}</details>
     <button onClick={() => setTick(n => n + 1)}>รีเฟรชงานประมวลผล</button><ErrorNote error={error} />
     {job && <><p><Status value={job.state} /> · {job.progress}% · ครั้งที่ {job.attempt_count}</p>
-      <p>Offline Synthetic / รอตรวจทาน ไม่มีการเปิดใช้ผลอัตโนมัติ</p>
-      <ProcessingReport report={job.result?.report} />
+      <p>{job.mode === 'gee_dashboard' ? 'Google Earth Engine / ผลสำเร็จบันทึกเป็นจุดข้อมูลของ Dashboard ไม่มีการเปิดใช้ฉบับ GIS' : 'Offline Synthetic / รอตรวจทาน ไม่มีการเปิดใช้ผลอัตโนมัติ'}</p>
+      {job.result?.report?.mode === 'gee_dashboard' ? <DashboardProcessingReport report={job.result.report} /> : <ProcessingReport report={job.result?.report} />}
       {job.state === 'failed' && ['transient','attempts_exhausted'].includes(job.error_code) && !job.parent_job_id
         && <button onClick={() => retry(job)}>ขอลองประมวลผลใหม่</button>}</>}
     <h4>ประวัติการประมวลผล</h4><PageState page={attempts} />
@@ -425,15 +462,15 @@ function ProcessingPanel({ version, form, pending, provinces }) {
   const jobs = usePage('/processing-jobs', {}, version);
   const [selected, setSelected] = useState(null);
   return <section className="gis-card"><h2>ประมวลผล NDVI/LST</h2>
-    <p>Offline Synthetic เท่านั้น · ใช้พิกเซลทดสอบ 4 จุด ไม่ใช่ค่าของพื้นที่จริง · Live GEE ยังไม่ได้รับอนุมัติ</p>
-    <button disabled={pending || provinces.length === 0} onClick={() => form({ type: 'processing', title: 'สร้างงาน NDVI/LST — Offline Synthetic', path: '/processing-jobs' })}>สร้างงานประมวลผล NDVI/LST</button>
+    <p>เลือกแหล่งข้อมูลได้เมื่อ Backend พร้อม: Offline Synthetic ใช้พิกเซลทดสอบ 4 จุด ไม่ใช่ค่าของพื้นที่จริง ส่วน Google Earth Engine ใช้ภาพดาวเทียมจริงผ่านวิธีเดียวกับ Dashboard</p>
+    <button disabled={pending || provinces.length === 0} onClick={() => form({ type: 'processing', title: 'สร้างงานประมวลผล NDVI/LST', path: '/processing-jobs' })}>สร้างงานประมวลผล NDVI/LST</button>
     <p>Worker ทำงานต่อเมื่อปิดหน้าเว็บ ใช้ปุ่มรีเฟรชเพื่อติดตามสถานะ</p><PageState page={jobs} />
     <div className="gis-table-wrap"><table><thead><tr><th>งาน / ขอบเขต</th><th>สถานะ</th><th>ความคืบหน้า</th></tr></thead>
       <tbody>{jobs.data.map((j,index) => <tr key={j.id}><td><button data-processing-id={j.id} onClick={() => setSelected(j.id)}>ดูงานประมวลผล {index + 1}</button>
-        <p>Offline Synthetic · {j.metadata?.metric?.toUpperCase()} · {j.metadata?.province} {j.metadata?.district || ''} · {j.metadata?.data_year}/{j.metadata?.month || 'รายปี'}</p></td>
+        <p>{j.mode === 'gee_dashboard' ? 'Google Earth Engine' : 'Offline Synthetic'} · {j.metadata?.metric?.toUpperCase()} · {j.metadata?.province} {j.metadata?.district || ''} · {j.metadata?.data_year}/{j.metadata?.month || 'รายปี'}</p></td>
         <td><Status value={j.state} /></td><td>{j.progress}%</td></tr>)}</tbody></table></div><PageControls page={jobs} />
     {selected && <ProcessingDetail key={selected} id={selected} version={version} retry={job => form({ type: 'reason',
-      title: 'ลองประมวลผล Offline Synthetic ใหม่', path: `/processing-jobs/${job.id}/retry`,
+      title: job.mode === 'gee_dashboard' ? 'ลองประมวลผล Google Earth Engine ใหม่' : 'ลองประมวลผล Offline Synthetic ใหม่', path: `/processing-jobs/${job.id}/retry`,
       body: { expected_revision: job.input_revision, input_hash: job.input_hash } })} />}
   </section>;
 }

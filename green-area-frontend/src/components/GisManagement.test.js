@@ -82,6 +82,64 @@ test('offline processing requires backend readiness and confirmation; district/m
     data_year: 2025, month: 2, mode: 'offline_synthetic', scenario: 'standard', expected_revision: 1 });
 });
 
+test('GEE source appears only when the backend offers it and sends the gee_dashboard body', async () => {
+  gisRequest.mockImplementation((path, options) => path === '/processing-options'
+    ? Promise.resolve({ districts: [], live_enabled: false, modes: ['offline_synthetic', 'gee_dashboard'] }) : respond(path, options));
+  show({ ...officer, processing_enabled: true }); switchTab('ประมวลผล NDVI/LST');
+  fireEvent.click(await screen.findByRole('button', { name: 'สร้างงานประมวลผล NDVI/LST' }));
+  fireEvent.change(await screen.findByLabelText('แหล่งข้อมูล'), { target: { value: 'gee_dashboard' } });
+  expect(screen.getByRole('note')).toHaveTextContent('ภาพดาวเทียมจริงใน Google Earth Engine');
+  expect(screen.queryByLabelText('ชุดข้อมูลจำลอง')).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('จังหวัดประมวลผล'), { target: { value: ds.province } });
+  fireEvent.change(screen.getByLabelText('ปีประมวลผล (ค.ศ.)'), { target: { value: '2024' } });
+  fireEvent.click(screen.getByRole('button', { name: 'ตรวจทานคำสั่ง' }));
+  expect(writes()).toHaveLength(0);
+  await confirm();
+  expect(writes()[0][1].body).toEqual({ province: ds.province, district: null, metric: 'ndvi',
+    data_year: 2024, month: 0, mode: 'gee_dashboard', scenario: 'standard', expected_revision: 1 });
+});
+
+test('without backend GEE readiness there is no source selector and the body stays offline', async () => {
+  gisRequest.mockImplementation((path, options) => path === '/processing-options'
+    ? Promise.resolve({ districts: [], live_enabled: false }) : respond(path, options));
+  show({ ...officer, processing_enabled: true }); switchTab('ประมวลผล NDVI/LST');
+  fireEvent.click(await screen.findByRole('button', { name: 'สร้างงานประมวลผล NDVI/LST' }));
+  expect(screen.queryByLabelText('แหล่งข้อมูล')).not.toBeInTheDocument();
+  expect(screen.getByLabelText('ชุดข้อมูลจำลอง')).toBeInTheDocument();
+});
+
+test('GEE result shows the Dashboard time-series point and rejects a synthetic-flagged report', async () => {
+  const metadata = { metric: 'lst', province: ds.province, district: null, data_year: 2023, month: 4,
+    cache_table: 'province_lst_monthly', processing_version: 'gee-dashboard-v1', source_collections: [], requested_on: '2026-11-06', scale_m: 500 };
+  const report = { mode: 'gee_dashboard', synthetic: false, valid: true, error_code: null, metadata,
+    statistics: { valid_pixels: null, mean: 31.27, min: null, max: null },
+    observation: { from_cache: false, cached_at: null, image_count: 3, data_quality: null },
+    cache: { table: 'province_lst_monthly', province: ds.province, district: null, year: 2023, month: 4, written: true } };
+  const processing = { ...job, mode: 'gee_dashboard', state: 'succeeded', progress: 100, metadata, result: { report } };
+  gisRequest.mockImplementation((path, options) => path === '/processing-jobs' ? Promise.resolve(page([processing]))
+    : path === `/processing-jobs/${job.id}` ? Promise.resolve(processing)
+      : path.startsWith('/processing-jobs/') ? Promise.resolve(page([])) : respond(path, options));
+  show({ ...officer, processing_enabled: true }); switchTab('ประมวลผล NDVI/LST');
+  expect(await screen.findByText(/Google Earth Engine · LST/)).toBeInTheDocument();
+  fireEvent.click(await screen.findByRole('button', { name: 'ดูงานประมวลผล 1' }));
+  expect(await screen.findByText('ผลประมวลผล Google Earth Engine')).toBeInTheDocument();
+  expect(screen.getByText(/บันทึกจุดข้อมูลลงอนุกรมเวลาของ Dashboard แล้ว \(province_lst_monthly\)/)).toBeInTheDocument();
+  expect(screen.getByText('mean: 31.27 °C')).toBeInTheDocument();
+  expect(screen.getByText(/จำนวนภาพ 3/)).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'เปิดใช้ฉบับ' })).not.toBeInTheDocument();
+});
+
+test('a gee_dashboard report claiming synthetic data is refused', async () => {
+  const report = { mode: 'gee_dashboard', synthetic: true, valid: true, metadata: {}, statistics: {} };
+  const processing = { ...job, mode: 'gee_dashboard', state: 'succeeded', progress: 100, metadata: {}, result: { report } };
+  gisRequest.mockImplementation((path, options) => path === '/processing-jobs' ? Promise.resolve(page([processing]))
+    : path === `/processing-jobs/${job.id}` ? Promise.resolve(processing)
+      : path.startsWith('/processing-jobs/') ? Promise.resolve(page([])) : respond(path, options));
+  show({ ...officer, processing_enabled: true }); switchTab('ประมวลผล NDVI/LST');
+  fireEvent.click(await screen.findByRole('button', { name: 'ดูงานประมวลผล 1' }));
+  expect(await screen.findByText('ผลนี้ไม่ตรงกับโหมด Google Earth Engine ที่อนุญาต')).toBeInTheDocument();
+});
+
 test('offline candidate cannot be presented as live GEE or automatically published', async () => {
   const report = { mode: 'offline_synthetic', synthetic: true, valid: true, error_code: null,
     metadata: { metric: 'ndvi', province: ds.province, start_date: '2025-01-01', end_date: '2026-01-01',

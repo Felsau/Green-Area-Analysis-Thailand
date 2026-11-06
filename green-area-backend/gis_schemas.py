@@ -196,7 +196,9 @@ class ProcessingCreate(GisInput):
     metric: Literal['ndvi', 'lst']
     data_year: Annotated[int, Field(strict=True)]
     month: Month = 0
-    mode: Literal['offline_synthetic'] = 'offline_synthetic'
+    # gee_dashboard (migration 048): real GEE through the existing Dashboard backend
+    # path; it has no synthetic scenarios, so only 'standard' is accepted for it.
+    mode: Literal['offline_synthetic', 'gee_dashboard'] = 'offline_synthetic'
     scenario: Literal['standard', 'no_data', 'transient_once'] = 'standard'
     expected_revision: Literal[1] = 1
 
@@ -212,6 +214,8 @@ class ProcessingCreate(GisInput):
         earliest = 2017 if self.metric == 'ndvi' else 2013
         if not earliest <= self.data_year <= date.today().year:
             raise ValueError('year outside supported source range')
+        if self.mode == 'gee_dashboard' and self.scenario != 'standard':
+            raise ValueError('Google Earth Engine processing has no synthetic scenarios')
         return self
 
 
