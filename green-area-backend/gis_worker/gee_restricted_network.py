@@ -17,6 +17,7 @@ import ssl
 import time
 
 from gis_worker.gee_genuine_identity import GenuineBoundaryError
+from gis_worker.gee_egress_relay import ROUTES as RELAY_PORTS
 
 HOSTS = ('earthengine.googleapis.com', 'storage.googleapis.com')
 # Local SQL047 gateway: one fixed port on an RFC1918 IP literal. Never a hostname
@@ -25,21 +26,36 @@ GATEWAY_PORT = 8000
 GATEWAY_NETWORKS = tuple(ipaddress.ip_network(n) for n in ('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'))
 
 
+def _rfc1918_literal(host):
+    if type(host) is not str:
+        raise ValueError()
+    ip = ipaddress.IPv4Address(host)  # rejects names, IPv6, octal and padded forms
+    if (str(ip) != host or not any(ip in n for n in GATEWAY_NETWORKS)
+        or ip.is_loopback or ip.is_link_local or ip.is_multicast
+        or ip.is_unspecified or ip.is_reserved):
+        raise ValueError()
+    return host
+
+
 def validate_gateway_endpoint(endpoint):
     try:
         if type(endpoint) is not tuple or len(endpoint) != 2:
             raise ValueError()
         host, port = endpoint
-        if type(host) is not str or type(port) is not int or port != GATEWAY_PORT:
+        if type(port) is not int or port != GATEWAY_PORT:
             raise ValueError()
-        ip = ipaddress.IPv4Address(host)  # rejects names, IPv6, octal and padded forms
-        if (str(ip) != host or not any(ip in n for n in GATEWAY_NETWORKS)
-            or ip.is_loopback or ip.is_link_local or ip.is_multicast
-            or ip.is_unspecified or ip.is_reserved):
-            raise ValueError()
+        _rfc1918_literal(host)
     except Exception:
         raise GenuineBoundaryError('GEE_EGRESS_GATEWAY_REJECTED') from None
     return endpoint
+
+
+def validate_relay_ip(value):
+    """The Docker-internal egress relay (gee_egress_relay): an RFC1918 IP literal."""
+    try:
+        return _rfc1918_literal(value)
+    except Exception:
+        raise GenuineBoundaryError('GEE_EGRESS_RELAY_REJECTED') from None
 
 
 @dataclass(frozen=True)
@@ -48,6 +64,9 @@ class PinnedDestinations:
     addresses: tuple
     expires_at: float
     gateway_endpoint: tuple | None = None
+    # When set, TLS is dialed through the fixed-route relay (RELAY_PORTS[host]) on the
+    # Recorder's Docker internal network instead of the pinned IP directly.
+    relay_ip: str | None = None
 
     def validate(self, *, wall=time.time):
         if (type(self.expires_at) not in (int, float)
@@ -68,6 +87,8 @@ class PinnedDestinations:
                     raise GenuineBoundaryError('GEE_EGRESS_IP_REJECTED') from None
         if self.gateway_endpoint is not None:
             validate_gateway_endpoint(self.gateway_endpoint)
+        if self.relay_ip is not None:
+            validate_relay_ip(self.relay_ip)
         return self
 
     def address(self, host, *, wall=time.time):
@@ -127,10 +148,14 @@ class PinnedHTTPSConnection(http.client.HTTPSConnection):
             or ctx.keylog_filename is not None):
             raise GenuineBoundaryError('GEE_EGRESS_TLS_REJECTED')
         ip = self.pins.address(self.host)
+        # Relay mode: same pinned-host allowlist and hostname TLS, but the TCP hop is
+        # the Docker-internal relay, which alone can reach the pinned IPs on 443.
+        target = ((self.pins.relay_ip, RELAY_PORTS[self.host]) if self.pins.relay_ip is not None
+            else (ip, 443))
         raw = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             raw.settimeout(self.timeout)
-            raw.connect((ip, 443))
+            raw.connect(target)
             self.sock = ctx.wrap_socket(raw, server_hostname=self.host)
         except Exception:
             raw.close()
