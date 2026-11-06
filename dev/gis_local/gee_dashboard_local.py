@@ -40,6 +40,21 @@ ENV_KEYS = {'PATH', 'SYSTEMROOT', 'SYSTEMDRIVE', 'TEMP', 'TMP', 'LOCALAPPDATA', 
     'WINDIR', 'NUMBER_OF_PROCESSORS', 'PROCESSOR_ARCHITECTURE', 'HOME'}
 
 
+def worker_env(service_key, source=None):
+    """Worker environment: the Dashboard backend's Supabase client must be the local T0.
+
+    The backend's load_dotenv() does not override variables that are already set, so
+    these two values keep the Cloud project named in green-area-backend/.env out of reach
+    while GEE_PROJECT still comes from that file.
+    """
+    if not isinstance(service_key, str) or not service_key:
+        raise RuntimeError('WORKER_LOCAL_KEY_REQUIRED')
+    env = {k: v for k, v in (os.environ if source is None else source).items() if k.upper() in ENV_KEYS}
+    env['SUPABASE_URL'] = HOST_URL
+    env['SUPABASE_KEY'] = service_key
+    return env
+
+
 def _t1():
     return g.p.p.p.p.p.m.t2.t1
 
@@ -139,7 +154,7 @@ class DashboardLocal(g.GenuineLocal):
     def worker(self):
         self.proof(allow=(48,))
         bootstrap = self.provision_worker()
-        env = {k: v for k, v in os.environ.items() if k.upper() in ENV_KEYS}
+        env = worker_env(self.local_keys()[1])
         flags = getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0)
         proc = subprocess.Popen([sys.executable, '-I', '-B', str(WORKER)], cwd=str(WORKER.parents[1]),
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env=env, creationflags=flags)
