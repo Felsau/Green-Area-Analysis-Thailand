@@ -255,6 +255,19 @@ def _build_validation(result: dict, wc_ref_pct: float | None, year: int) -> dict
                             breakdown=breakdown)
 
 
+def _validation_for_cache(result: dict, wc_ref_pct: float | None, year: int) -> dict:
+    """ค่า `validation` ที่จะ insert ลง ndvi_annual — ไม่เป็น None เสมอ.
+
+    `_is_stale(require_validation=True)` ถือว่า None = row ก่อนยุค NFR-08 ถ้าเก็บ None
+    สำหรับจังหวัดที่ยังไม่ได้ backfill ค่าอ้างอิง ทุกการเปิดจะลบ row แล้วคำนวณ GEE ใหม่
+    จึงเก็บ dict available=false แทน (ดูเงื่อนไขใน `_is_stale`)
+    """
+    validation = _build_validation(result, wc_ref_pct, year)
+    if validation is not None:
+        return validation
+    return build_validation(result.get("green_area_pct"), wc_ref_pct, year)
+
+
 # Province NDVI annual
 @router.get("/ndvi/{province_name}", response_model=NDVIResponse)
 def get_ndvi(province_name: str, year: OptionalYearParam = None):
@@ -312,7 +325,7 @@ def get_ndvi(province_name: str, year: OptionalYearParam = None):
             green_area_m2 = result.pop('green_area_m2_raw', None)
             population, population_year = get_population(province_name, year)
             m2_per_person, _who_status = compute_who_status(green_area_m2, population)
-            validation = _build_validation(result, wc_ref_pct, year)
+            validation = _validation_for_cache(result, wc_ref_pct, year)
 
             full = {**result,
                     "green_area_m2_per_person": m2_per_person,

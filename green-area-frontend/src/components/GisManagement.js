@@ -443,7 +443,7 @@ function DashboardProcessingReport({ report }) {
     NATIVE_TIMEOUT: 'ประมวลผลเกินเวลาที่อนุญาต', WORKER_SHUTDOWN: 'Worker หยุดทำงานระหว่างประมวลผล' };
   const unit = m.metric === 'lst' ? ' °C' : '';
   return <div className="gis-report"><h4>ผลประมวลผล Google Earth Engine</h4>
-    <p>{report.valid ? `บันทึกจุดข้อมูลลงอนุกรมเวลาของ Dashboard แล้ว (${report.cache?.table || m.cache_table})` : 'ยังไม่มีผลสำเร็จ'}</p>
+    <p>{report.valid ? `${o.from_cache ? 'มีจุดข้อมูลนี้ในอนุกรมเวลาของ Dashboard อยู่แล้ว ไม่ได้บันทึกใหม่' : 'บันทึกจุดข้อมูลลงอนุกรมเวลาของ Dashboard แล้ว'} (${report.cache?.table || m.cache_table})` : 'ยังไม่มีผลสำเร็จ'}</p>
     {report.error_code && <p>{errors[report.error_code] || String(report.error_code).slice(0, 60)}</p>}
     <p>{String(m.metric || '').toUpperCase()} · {m.province} {m.district || 'ระดับจังหวัด'} · {m.month ? `เดือน ${m.month}/${m.data_year}` : `รายปี ${m.data_year}`}</p>
     {['mean', 'min', 'max'].map(key => <p key={key}>{key}: {Number.isFinite(report.statistics?.[key]) ? `${report.statistics[key]}${unit}` : 'ไม่มีข้อมูล'}</p>)}

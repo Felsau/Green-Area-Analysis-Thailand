@@ -147,6 +147,23 @@ test('GEE result shows the Dashboard time-series point and rejects a synthetic-f
   expect(screen.queryByRole('button', { name: 'เปิดใช้ฉบับ' })).not.toBeInTheDocument();
 });
 
+test('a GEE result read from the cache does not claim it saved a new point', async () => {
+  const metadata = { metric: 'ndvi', province: ds.province, district: null, data_year: 2025, month: 0,
+    cache_table: 'ndvi_annual', processing_version: 'gee-dashboard-v1', source_collections: [], requested_on: '2026-11-06', scale_m: 500 };
+  const report = { mode: 'gee_dashboard', synthetic: false, valid: true, error_code: null, metadata,
+    statistics: { valid_pixels: null, mean: 0.3963, min: 0.0008, max: 0.9011 },
+    observation: { from_cache: true, cached_at: '2026-08-05T07:25:38', image_count: null, data_quality: null },
+    cache: { table: 'ndvi_annual', province: ds.province, district: null, year: 2025, month: 0, written: true } };
+  const processing = { ...job, mode: 'gee_dashboard', state: 'succeeded', progress: 100, metadata, result: { report } };
+  gisRequest.mockImplementation((path, options) => path === '/processing-jobs' ? Promise.resolve(page([processing]))
+    : path === `/processing-jobs/${job.id}` ? Promise.resolve(processing)
+      : path.startsWith('/processing-jobs/') ? Promise.resolve(page([])) : respond(path, options));
+  show({ ...officer, processing_enabled: true }); switchTab('ประมวลผล NDVI/LST');
+  fireEvent.click(await screen.findByRole('button', { name: 'ดูงานประมวลผล 1' }));
+  expect(await screen.findByText(/มีจุดข้อมูลนี้ในอนุกรมเวลาของ Dashboard อยู่แล้ว ไม่ได้บันทึกใหม่ \(ndvi_annual\)/)).toBeInTheDocument();
+  expect(screen.queryByText(/บันทึกจุดข้อมูลลงอนุกรมเวลาของ Dashboard แล้ว/)).not.toBeInTheDocument();
+});
+
 test('a gee_dashboard report claiming synthetic data is refused', async () => {
   const report = { mode: 'gee_dashboard', synthetic: true, valid: true, metadata: {}, statistics: {} };
   const processing = { ...job, mode: 'gee_dashboard', state: 'succeeded', progress: 100, metadata: {}, result: { report } };

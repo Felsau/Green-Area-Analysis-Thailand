@@ -181,6 +181,8 @@ def compute(request, endpoints):
             return report_failure(request, IMPLAUSIBLE)
         stats = {'mean': value, 'min': None, 'max': None}
         observation = {'from_cache': from_cache, 'cached_at': cached_at, 'image_count': count, 'data_quality': None}
+    # 'written' means the point is in the cache table, whether this run inserted it or found
+    # it there: migration 048 requires true. observation.from_cache says which of the two.
     cache = {'table': m['cache_table'], 'province': m['province'], 'district': m['district'],
         'year': m['data_year'], 'month': month, 'written': True}
     report = _report(request, valid=True, error_code=None, stats=stats, observation=observation, cache=cache)
