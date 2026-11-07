@@ -27,6 +27,22 @@ test('Published bundle is cleared immediately for failed rechecks',async()=>{
   expect(result.current.landuseData).toBeNull();expect(result.current.landuseError).toContain('ไม่มีการใช้ Legacy แทน');
   expect(fetchWithRetry).not.toHaveBeenCalled();
 });
+test('Published geometry is fetched once per snapshot and merged into the bundle',async()=>{
+  const split=seed=>{const {geometry,...summary}=data(seed);return {summary:{...summary,geometry_artifact:{sha256:seed.repeat(64),byte_size:1}},geometry};};
+  const a=split('a'),b=split('b');
+  const calls=()=>gisRequest.mock.calls.filter(call=>call[0]==='/published-ldd/geometry');
+  gisRequest.mockImplementation(path=>Promise.resolve(path==='/published-ldd/geometry'?a.geometry:a.summary));
+  const {result}=renderHook(()=>useLanduseData());act(()=>result.current.setLanduseSource('published'));
+  await act(()=>result.current.fetchLanduse('Bangkok Metropolis',null,2026,'published'));
+  expect(result.current.landuseData.geometry).toEqual(a.geometry);
+  expect(calls()).toHaveLength(1);
+  expect(calls()[0][1].query).toEqual({province:'Bangkok Metropolis',data_year:2026,snapshot_id:a.summary.snapshot_id});
+  await act(()=>result.current.fetchLanduse('Bangkok Metropolis',null,2026,'published'));   // same snapshot: no second download
+  expect(calls()).toHaveLength(1);expect(result.current.landuseData.geometry).toEqual(a.geometry);
+  gisRequest.mockImplementation(path=>Promise.resolve(path==='/published-ldd/geometry'?b.geometry:b.summary));
+  await act(()=>result.current.fetchLanduse('Bangkok Metropolis',null,2026,'published'));   // new snapshot: downloaded again
+  expect(calls()).toHaveLength(2);expect(result.current.landuseData.snapshot_id).toBe(b.summary.snapshot_id);
+});
 test('switching source ignores a delayed old Published response',async()=>{
   const {result}=renderHook(()=>useLanduseData());let resolve;
   act(()=>result.current.setLanduseSource('published'));

@@ -47,7 +47,7 @@ export default function LddPreparedPreview({ dataset, edition, version, pending,
           <p>Method: <code>{data.method_version}</code> · {data.summary.feature_count} Features · พื้นที่รวม {data.summary.total_area_m2.toLocaleString()} m²</p>
           <GeometryPreview geometry={data.geometry} />
           {data.preview_truncated && <p>Preview แสดงบาง Feature ตามขีดจำกัดการแสดงผล ไฟล์ที่จัดเก็บและตรวจสอบยังคงครบ</p>}
-          <table><caption>พื้นที่ตามรหัส LDD — Shape_Area เดิม ไม่ตัดขอบจังหวัด</caption><thead><tr><th>LU_CODE</th><th>พื้นที่ m²</th></tr></thead>
+          <table><caption>{data.method_version === 'ldd-geometry-area-v2' ? 'พื้นที่ตามรหัส LDD — คำนวณจากรูปแปลง (UTM) ไม่ตัดขอบจังหวัด' : 'พื้นที่ตามรหัส LDD — Shape_Area เดิม ไม่ตัดขอบจังหวัด'}</caption><thead><tr><th>LU_CODE</th><th>พื้นที่ m²</th></tr></thead>
             <tbody>{Object.entries(data.summary.area_by_code_m2).map(([code, area]) => <tr key={code}><td>{code}</td><td>{area.toLocaleString()}</td></tr>)}</tbody></table>
           <details><summary>ข้อมูลอ้างอิงผลที่เตรียมไว้</summary><pre>{JSON.stringify(data.summary.metadata, null, 2)}</pre></details>
         </>}

@@ -39,21 +39,35 @@ class LocalLddPublication:
         meta=files['ldd_summary']['metadata']
         identity=SourceIdentity(namespace='published',product='landuse',**{k:meta[k] for k in (
             'dataset_id','edition_id','validation_result_id','input_hash','source_sha256','province','data_year','month','method_version')})
-        # Admission checks the same complete DTO shape used by the Dashboard.
-        # A verified but unsupported-size artifact must not replace a good pointer.
-        self.display_bundle(files,identity,'0'*64,2147483647)
+        # Admission checks the same DTO shapes the Dashboard reads: the polled bundle within 2 MiB, and a
+        # geometry layer with one feature per counted parcel (its size is bounded by the 20 MiB artifact limit).
+        # A verified but unsupported artifact must not replace a good pointer.
+        self.display_bundle(files,identity,'0'*64,2147483647,candidate['artifacts']['ldd_geometry'])
+        self.display_geometry(files)
         return {'certificate_id':info['certificate']['id'],'report':report}
 
-    def display_bundle(self,files,identity,snapshot,revision):
+    def display_bundle(self,files,identity,snapshot,revision,geometry_artifact):
+        # The geometry is not in the polled bundle: the Dashboard fetches it once per snapshot from
+        # /published-ldd/geometry. Real provinces are 7-17 MB of geometry; the bundle is re-read every 10 s.
         bundle={'snapshot_id':snapshot,'dataset_revision':revision,'source_identity':identity.model_dump(mode='json'),
             'cache_namespace':identity.cache_namespace(),'coverage_mode':'validated_source_footprint',
-            'complete_province_inventory':False,'local_only':True,'geometry':deepcopy(files['ldd_geometry']),
+            'complete_province_inventory':False,'local_only':True,
+            'geometry_artifact':{'sha256':geometry_artifact.get('sha256'),'byte_size':geometry_artifact.get('byte_size')},
             'summary':files['ldd_summary'],'legend':[{'code':c,'name_th':n,'color':color} for c,n,color in MAIN]}
         if len(json.dumps(bundle,ensure_ascii=False).encode())>2*1024**2:
             raise gis_error(413,'GIS_LDD_DISPLAY_LIMIT','Published เกินขนาด Local MVP ไม่มีการตัด Geometry เงียบ ๆ')
         return bundle
 
-    def bundle(self,service,actor,province,year):
+    @staticmethod
+    def display_geometry(files):
+        geometry=files['ldd_geometry']
+        if (not isinstance(geometry,dict) or geometry.get('type')!='FeatureCollection' or not isinstance(geometry.get('features'),list)
+                or len(geometry['features'])!=files['ldd_summary']['feature_count']):
+            raise gis_error(413,'GIS_LDD_DISPLAY_LIMIT','Geometry ไม่ครบตามจำนวนแปลง ไม่มีการตัด Geometry เงียบ ๆ')
+        return deepcopy(geometry)
+
+    def _published(self,service,actor,province,year):
+        """Current packet plus verified files. Any byte/lineage failure revokes and fails closed."""
         self.attest();args={'p_actor':actor,'p_province':province,'p_year':year,'p_expected':None}
         info=service._rpc('gis_ldd_published_read',args)
         try:
@@ -69,6 +83,10 @@ class LocalLddPublication:
             service._rpc('gis_ldd_published_unavailable',{'p_actor':actor,'p_province':province,'p_year':year,
                 'p_snapshot':info['snapshot_id'],'p_certificate':info['certificate_id']})
             raise gis_error(409,'GIS_LDD_PUBLISHED_UNAVAILABLE','ไฟล์ Published หายหรือเสียหาย ไม่มีการใช้ Legacy แทน') from None
+        return args,info,files,identity,meta
+
+    def bundle(self,service,actor,province,year):
+        args,info,files,identity,meta=self._published(service,actor,province,year)
         cache_key=(identity.cache_namespace(),info['snapshot_id'],meta['input_revision'],
             *(info['candidate']['artifacts'][k]['sha256'] for k in ('ldd_geometry','ldd_summary')))
         cached=self.summary_cache.get(cache_key)
@@ -76,6 +94,16 @@ class LocalLddPublication:
             cached=json.dumps({'summary':files['ldd_summary'],'legend':[{'code':c,'name_th':n,'color':color} for c,n,color in MAIN]},ensure_ascii=False)
             self.summary_cache.set(cache_key,cached)
         projection=json.loads(cached)
-        bundle=self.display_bundle({**files,'ldd_summary':projection['summary']},identity,info['snapshot_id'],info['dataset']['revision'])
+        bundle=self.display_bundle({**files,'ldd_summary':projection['summary']},identity,info['snapshot_id'],info['dataset']['revision'],
+            info['candidate']['artifacts']['ldd_geometry'])
         service._rpc('gis_ldd_published_read',{**args,'p_expected':info['snapshot_id']})
         return safe_output(bundle)
+
+    def geometry(self,service,actor,province,year,snapshot):
+        """The geometry layer of exactly the snapshot the caller holds; never another one, never cached."""
+        args,info,files,_,_=self._published(service,actor,province,year)
+        if info['snapshot_id']!=snapshot:
+            raise gis_error(409,'GIS_SOURCE_CHANGED','Published เปลี่ยนฉบับแล้ว กรุณาโหลดใหม่')
+        geometry=self.display_geometry(files)
+        service._rpc('gis_ldd_published_read',{**args,'p_expected':snapshot})
+        return safe_output(geometry),info['candidate']['artifacts']['ldd_geometry']['sha256']

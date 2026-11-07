@@ -128,6 +128,21 @@ def build(request, *, source_root=ldd.STORAGE_ROOT):
     return outputs
 
 
+# v2 display coordinates (EPSG:4326) are rounded to 6 decimals (about 0.11 m): every vertex is kept, the file is
+# about 40 % smaller and fits the 20 MiB artifact limit to about 25,000 parcels. Areas still come from the
+# unrounded geometry that validation measured. A parcel that rounding would make invalid (7 to 32 per real
+# central-region province) keeps full precision, so no parcel is altered beyond rounding or dropped.
+DISPLAY_DECIMALS = 6
+
+
+def _rounded(value, digits):
+    if isinstance(value, float):
+        return round(value, digits)
+    if isinstance(value, (list, tuple)):
+        return [_rounded(v, digits) for v in value]
+    return value
+
+
 def _build_v2(request, result, details):
     from fiona.model import to_dict
     from fiona.transform import transform_geom
@@ -147,6 +162,7 @@ def _build_v2(request, result, details):
         coverage_mode='validated_source_footprint', complete_province_inventory=False,
         warnings=[w['code'] for w in result['warnings']] + ['NOT_COMPLETE_PROVINCE_INVENTORY'])
     features, by_code, by_main, total = [], defaultdict(float), {key: 0.0 for key in 'UAFWM'}, 0.0
+    full_precision = []
     for f in details['features']:
         require(f['classification'] is not None and f['derived'] is not None, 'PREPARE_FEATURE_MISMATCH')
         properties = {'LU_CODE': f['lu_code'], 'LUL1_CODE': f['main_code'], 'declared_area': f['declared_area'],
@@ -155,6 +171,12 @@ def _build_v2(request, result, details):
         check = shape(output)
         require(not check.is_empty and check.is_valid and check.geom_type in ('Polygon', 'MultiPolygon'),
                 'PREPARE_GEOMETRY_INVALID')
+        rounded = {'type': output['type'], 'coordinates': _rounded(output['coordinates'], DISPLAY_DECIMALS)}
+        kept = shape(rounded)
+        if not kept.is_empty and kept.is_valid and kept.geom_type == check.geom_type:
+            output = rounded
+        else:
+            full_precision.append(f['index'])
         feature = {'type': 'Feature', 'id': f['index'], 'properties': properties, 'geometry': output}
         if f['repair']:
             feature['source_geometry'] = to_dict(transform_geom(source_crs, 'EPSG:4326', f['source']))
@@ -163,6 +185,9 @@ def _build_v2(request, result, details):
         by_code[f['code_key']] += f['area_m2']
         by_main[f['classification']] += f['area_m2']
         total += f['area_m2']
+    meta['display_coordinates'] = {'crs': 'EPSG:4326', 'decimals': DISPLAY_DECIMALS,
+                                   'full_precision_feature_count': len(full_precision),
+                                   'full_precision_features': full_precision[:100]}
     stats = result['statistics']
     require(len(features) == stats['feature_count'], 'PREPARE_FEATURE_MISMATCH')
     require(abs(total - stats['total_area_m2']) <= 1e-6 * max(1.0, total)

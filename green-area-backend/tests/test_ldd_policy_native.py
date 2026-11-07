@@ -509,6 +509,45 @@ def test_v2_preparation_uses_the_same_derived_geometry_and_area_as_validation(tm
     assert candidate['method_version'] == prep.METHOD_V2
 
 
+def _coordinates(value):
+    if isinstance(value, (list, tuple)) and value and isinstance(value[0], (int, float)):
+        yield from value
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            yield from _coordinates(item)
+
+
+def test_v2_display_coordinates_are_rounded_and_areas_still_come_from_validation(tmp_path, bkk):
+    raw = make_zip([parcel(inside_square(bkk)), parcel(inside_square(bkk, 400), 'A', 'A101')])
+    source, staging = stage(tmp_path, raw)
+    packet = prepare_request(raw, prep.METHOD_V2)
+    outputs = prep.build(packet, source_root=source)
+    summary, geometry = json.loads(outputs['ldd_summary']), json.loads(outputs['ldd_geometry'])
+    display = summary['metadata']['display_coordinates']
+    assert display == {'crs': 'EPSG:4326', 'decimals': 6, 'full_precision_feature_count': 0, 'full_precision_features': []}
+    assert geometry['metadata'] == summary['metadata']
+    for feature in geometry['features']:
+        assert all(round(x, 6) == x for x in _coordinates(feature['geometry']['coordinates']))
+        assert shape(feature['geometry']).is_valid and feature['properties']['area_m2'] == pytest.approx(10000)
+    assert summary['total_area_m2'] == pytest.approx(20000)        # measured on the unrounded geometry
+
+
+def test_a_parcel_that_rounding_would_break_keeps_full_precision(tmp_path, bkk, monkeypatch):
+    # 0 decimals collapse a 100 m square to a point: both parcels must keep their full coordinates.
+    monkeypatch.setattr(prep, 'DISPLAY_DECIMALS', 0)
+    raw = make_zip([parcel(inside_square(bkk)), parcel(inside_square(bkk, 400), 'A', 'A101')])
+    source, staging = stage(tmp_path, raw)
+    packet = prepare_request(raw, prep.METHOD_V2)
+    candidate = prep.prepare(packet, source_root=source, staging_root=staging)
+    verified = prep.verify(packet, source_root=source, staging_root=staging)
+    assert candidate['valid'] and verified['artifacts'] == candidate['artifacts']   # the rule is deterministic
+    geometry = json.loads(prep.build(packet, source_root=source)['ldd_geometry'])
+    display = geometry['metadata']['display_coordinates']
+    assert display['decimals'] == 0 and display['full_precision_feature_count'] == 2
+    assert sorted(display['full_precision_features']) == [0, 1]
+    assert all(shape(f['geometry']).is_valid and shape(f['geometry']).area > 0 for f in geometry['features'])
+
+
 def test_v1_artifacts_of_existing_fixtures_are_byte_identical():
     from tests.test_ldd_prepare_native import ROOT as fixtures, request as packet
     expected = {

@@ -17,6 +17,8 @@ export function useLanduseData() {
   const [landuseError, setLanduseError] = useState(null);
   const abortRef = useRef(null);
   const lastScope = useRef(null);
+  // Published LDD geometry is fetched once per snapshot (the polled bundle only names it).
+  const geometryRef = useRef(null);
 
   const fetchLanduse = useCallback(async (provinceEN, districtEN, year, source) => {
     if (!provinceEN) return;
@@ -32,7 +34,17 @@ export function useLanduseData() {
     try {
       if (source === 'published') {
         if (districtEN) throw new Error('Published LDD รองรับเฉพาะจังหวัด กรุณายกเลิกการเลือกอำเภอ');
-        const bundle = await gisRequest('/published-ldd', { query: { province: provinceEN, data_year: year }, signal });
+        const summary = await gisRequest('/published-ldd', { query: { province: provinceEN, data_year: year }, signal });
+        let geometry = summary?.geometry;
+        if (!geometry && summary?.geometry_artifact) {
+          const cached = geometryRef.current, sha = summary.geometry_artifact.sha256;
+          if (cached && cached.snapshot === summary.snapshot_id && cached.sha === sha) geometry = cached.geometry;
+          else {
+            geometry = await gisRequest('/published-ldd/geometry', { query: { province: provinceEN, data_year: year, snapshot_id: summary.snapshot_id }, signal });
+            geometryRef.current = { snapshot: summary.snapshot_id, sha, geometry };
+          }
+        }
+        const bundle = geometry ? { ...summary, geometry } : summary;
         if(!publishedSnapshotMatches(bundle,{province:provinceEN,data_year:year,month:0,product:'landuse'}))throw new Error('Published Snapshot หรือขอบเขตไม่ตรงกัน');
         if (!signal.aborted) setLanduseData({ ...bundle, checked_at: Date.now() });
         return;

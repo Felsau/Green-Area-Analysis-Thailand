@@ -12,6 +12,15 @@ test('provenance identifies partial source footprint and original area method',(
   expect(screen.getByText(/ไม่ใช่พื้นที่ครบทั้งจังหวัด/)).toBeInTheDocument();
   expect(screen.getByText('U201/A401')).toBeInTheDocument();expect(screen.getByText('edition-a')).toBeInTheDocument();
 });
+test('a v2 snapshot names geometry areas, the producer outline and the validation outcome',()=>{
+  const v2={...bundle,source_identity:{...identity,method_version:'ldd-geometry-area-v2'},
+    summary:{...bundle.summary,metadata:{validation_outcome:'accepted_with_warnings',warnings:['BOUNDARY_FROM_DATA_PRODUCER']}}};
+  render(<PublishedLddSummary bundle={v2}/>);
+  expect(screen.getByText(/คำนวณจากรูปแปลงในระบบพิกัด UTM/)).toBeInTheDocument();
+  expect(screen.getByText(/ขอบเขตจังหวัดในแพ็กเกจของผู้ผลิตข้อมูล \(ไม่ใช่แหล่งอิสระ\)/)).toBeInTheDocument();
+  expect(screen.getByText(/ผลตรวจไฟล์: ผ่านพร้อมข้อสังเกต/)).toBeInTheDocument();
+  expect(screen.queryByText(/Shape_Area เดิม/)).toBeNull();
+});
 test('map layer binds exactly the same snapshot and preserves picking below',()=>{
   const layer=publishedLddLayers(bundle)[0];expect(layer.id).toContain(bundle.snapshot_id);
   expect(layer.props.data).toBe(bundle.geometry);expect(layer.props.pickable).toBe(false);

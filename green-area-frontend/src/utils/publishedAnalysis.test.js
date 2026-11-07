@@ -12,6 +12,13 @@ test('LDD remains code/Shape_Area data and never becomes an NDVI measurement',()
   expect(publishedAvailability(b,'landuse').features.find(f=>f.key==='summary').reason).toContain('ไม่ใช่ค่า NDVI');
   expect(publishedAvailability(b,'raster').features.some(f=>f.status==='supported')).toBe(false);
 });
+test('LDD prepared by the policy-v2 method passes the same checks, and every part must name it',()=>{
+  const b=publishedLddFixture();
+  for(const part of [b.source_identity,b.summary.metadata,b.geometry.metadata])part.method_version='ldd-geometry-area-v2';
+  expect(publishedSnapshotMatches(b)).toBe(true);
+  b.geometry.metadata.method_version='ldd-source-area-v1';
+  expect(publishedSnapshotMatches(b)).toBe(false);
+});
 test.each(['province','data_year','month','product'])('requested %s mismatch rejects the entire snapshot',key=>{
   const b=publishedGeoFixture();const wrong={province:'Chiang Mai',data_year:2025,month:1,product:'lst'};
   expect(publishedSnapshotMatches(b,{[key]:wrong[key]})).toBe(false);

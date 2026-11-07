@@ -17,7 +17,7 @@ def body():return {'edition_id':ID,'expected_dataset_revision':1,'expected_activ
 
 class Runtime:
     sandbox_activation_enabled=False;ldd_publication_enabled=True
-    def __init__(self):self.admin=True;self.replay=False;self.calls=[]
+    def __init__(self):self.admin=True;self.replay=False;self.calls=[];self.prepared={'candidate':{'valid':True}}
     def require_ready(self):return {'migration_versions':list(range(27,40))}
     def verify_user_token(self,token):
         if token!='mock':raise HTTPException(401)
@@ -25,7 +25,7 @@ class Runtime:
     def rpc(self,name,params):
         self.calls.append((name,params))
         if name=='gis_read':return {'admin':self.admin,'capabilities':['read_catalog']}
-        if name=='gis_ldd_prepare_read':return {'candidate':{'valid':True}}
+        if name=='gis_ldd_prepare_read':return self.prepared
         if name=='gis_ldd_publication_command':return {'status':200,'body':{'receipt_exists':self.replay or not params['p_probe'],'replayed':self.replay}}
         raise AssertionError(name)
 
@@ -90,6 +90,46 @@ def test_read_scope_closed(api,query):
     assert client.get('/gis/published-ldd',params=query).status_code==422
     provider.bundle.assert_not_called()
 
+@pytest.mark.parametrize('sent',['ldd-source-area-v1','ldd-geometry-area-v2'])
+def test_the_method_sent_to_sql_is_the_editions_own(api,sent):
+    client,runtime,_=api
+    runtime.prepared={'candidate':{'valid':True},'prepare_request':{'method_version':'ldd-geometry-area-v2'}}
+    assert client.post(f'/gis/datasets/{ID}/ldd-publication/activation',json={**body(),'method_version':sent},
+        headers={'Idempotency-Key':str(uuid4())}).status_code==200
+    sent_to_sql={p['p_payload']['method_version'] for n,p in runtime.calls if n=='gis_ldd_publication_command'}
+    assert sent_to_sql=={'ldd-geometry-area-v2'}
+
+def test_without_a_preparation_the_clients_method_is_kept_and_sql_decides(api):
+    client,runtime,_=api
+    client.post(f'/gis/datasets/{ID}/ldd-publication/activation',json=body(),headers={'Idempotency-Key':str(uuid4())})
+    assert {p['p_payload']['method_version'] for n,p in runtime.calls if n=='gis_ldd_publication_command'}=={'ldd-source-area-v1'}
+
+def test_unknown_method_is_refused_before_native_access(api):
+    client,_,provider=api
+    assert client.post(f'/gis/datasets/{ID}/ldd-publication/activation',json={**body(),'method_version':'ldd-other-v9'},
+        headers={'Idempotency-Key':str(uuid4())}).status_code==422
+    provider.fresh_proof.assert_not_called()
+
+def test_geometry_is_read_per_snapshot_and_sent_compressed(api):
+    client,runtime,provider=api;runtime.admin=False
+    provider.geometry.return_value=({'type':'FeatureCollection','features':[{'type':'Feature','properties':{'LU_CODE':'U101'},'geometry':None}]},'d'*64)
+    query={'province':'Bangkok Metropolis','data_year':2026,'snapshot_id':'c'*64}
+    result=client.get('/gis/published-ldd/geometry',params=query,headers={'Accept-Encoding':'gzip'})
+    assert result.status_code==200 and result.headers['content-encoding']=='gzip' and result.headers['cache-control']=='no-store'
+    assert result.headers['x-artifact-sha256']=='d'*64 and result.json()['features'][0]['properties']['LU_CODE']=='U101'
+    provider.geometry.assert_called_once()
+    assert provider.geometry.call_args.args[2:]==('Bangkok Metropolis',2026,'c'*64)
+    plain=client.get('/gis/published-ldd/geometry',params=query,headers={'Accept-Encoding':'identity'})
+    assert plain.status_code==200 and 'content-encoding' not in plain.headers
+
+@pytest.mark.parametrize('query',[{'province':'Bangkok Metropolis','data_year':2026},
+ {'province':'Bangkok Metropolis','data_year':2026,'snapshot_id':'C'*64},{'province':'Bangkok Metropolis','data_year':2026,'snapshot_id':'c'*63},
+ {'province':'Bangkok Metropolis','data_year':2026,'snapshot_id':'c'*64,'edition_id':ID}])
+def test_geometry_scope_closed(api,query):
+    client,_,provider=api
+    assert client.get('/gis/published-ldd/geometry',params=query).status_code==422
+    provider.geometry.assert_not_called()
+
 def packet():
     identity={'namespace':'published','scope':'province','product':'landuse','province':'Bangkok Metropolis',
         'data_year':2026,'month':0,'method_version':'ldd-source-area-v1','dataset_id':ID,'edition_id':ID,
@@ -98,7 +138,7 @@ def packet():
     metadata.update(input_revision=1,complete_province_inventory=False)
     info={'source_identity':identity,'snapshot_id':'c'*64,'dataset':{'revision':1},'certificate_id':CERT,
         'prepare_request':{},'candidate':{'artifacts':{'ldd_geometry':{'sha256':'d'*64},'ldd_summary':{'sha256':'e'*64}}}}
-    files={'ldd_geometry':{'metadata':metadata,'features':[]},'ldd_summary':{'metadata':metadata,'feature_count':0,'area_by_code_m2':{},'total_area_m2':0}}
+    files={'ldd_geometry':{'type':'FeatureCollection','metadata':metadata,'features':[]},'ldd_summary':{'metadata':metadata,'feature_count':0,'area_by_code_m2':{},'total_area_m2':0}}
     return info,files
 
 def provider_fixture():
@@ -117,6 +157,25 @@ def test_cached_summary_still_rechecks_bytes_and_current_snapshot():
 def test_pointer_change_during_read_returns_no_mixed_bundle():
     provider,_,service,info,_=provider_fixture();service._rpc.side_effect=[info,HTTPException(409)]
     with pytest.raises(HTTPException):provider.bundle(service,ACTOR,'Bangkok Metropolis',2026)
+
+def test_polled_bundle_carries_a_geometry_descriptor_not_the_geometry():
+    provider,_,service,info,_=provider_fixture()
+    bundle=provider.bundle(service,ACTOR,'Bangkok Metropolis',2026)
+    assert 'geometry' not in bundle and bundle['geometry_artifact']['sha256']=='d'*64
+
+def test_geometry_is_only_served_for_the_current_snapshot():
+    provider,store,service,info,files=provider_fixture()
+    geometry,sha=provider.geometry(service,ACTOR,'Bangkok Metropolis',2026,info['snapshot_id'])
+    assert geometry==files['ldd_geometry'] and sha=='d'*64 and store.read_files.call_count==1
+    assert service._rpc.call_args.args[1]['p_expected']==info['snapshot_id']      # still current after the read
+    with pytest.raises(HTTPException) as error:provider.geometry(service,ACTOR,'Bangkok Metropolis',2026,'f'*64)
+    assert error.value.status_code==409
+
+def test_geometry_that_does_not_match_the_parcel_count_is_not_admitted():
+    _,_,_,_,files=provider_fixture()
+    with pytest.raises(HTTPException) as error:
+        LocalLddPublication.display_geometry({**files,'ldd_summary':{**files['ldd_summary'],'feature_count':1}})
+    assert error.value.status_code==413
 
 @pytest.mark.parametrize('failure',[FileNotFoundError(),ValueError('hash')])
 def test_unavailable_files_fail_closed_even_after_cached_read(failure):
