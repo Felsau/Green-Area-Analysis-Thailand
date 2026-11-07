@@ -160,6 +160,46 @@ def test_missing_mapping_field_is_rejected_not_guessed(tmp_path, bkk, schema):
     assert details['outcome'] == 'rejected'
 
 
+# The real layouts, reduced to the fields that decide the profile (types as in the real DBF headers).
+L2567 = {'LUL1_CODE': 'str:4', 'LU_CODE': 'str:20', 'LU_ID_L1': 'float', 'Shape_Area': 'float', 'AREA_SQM': 'int'}
+L2568 = {'LUL1_CODE': 'str:4', 'LU_CODE': 'str:20', 'LU_ID_L1': 'float', 'AREA_SQM': 'int', 'AREA_RAI': 'int'}
+L2568_NO_LUL1 = {'LU_CODE': 'str:14', 'LU_ID_L1': 'float', 'AREA_SQM': 'int', 'AREA_RAI': 'int'}
+
+
+@pytest.mark.parametrize('schema,profile,fields', [
+    (L2567, 'ldd-lu-text-v1', {'main_code': 'LUL1_CODE', 'lu_code': 'LU_CODE', 'declared_area': 'Shape_Area'}),
+    (L2568, 'ldd-lu-area-sqm-v1', {'main_code': 'LUL1_CODE', 'lu_code': 'LU_CODE', 'declared_area': 'AREA_SQM'}),
+    (L2568_NO_LUL1, 'ldd-lu-id-l1-area-sqm-v1', {'main_code': 'LU_ID_L1', 'lu_code': 'LU_CODE', 'declared_area': 'AREA_SQM'}),
+])
+def test_2567_and_2568_layouts_each_resolve_to_one_profile(tmp_path, bkk, schema, profile, fields):
+    values = {'LUL1_CODE': 'A', 'LU_CODE': 'A101', 'LU_ID_L1': 2.0, 'Shape_Area': 10000.0, 'AREA_SQM': 10000, 'AREA_RAI': 6}
+    raw = make_zip([(mapping(inside_square(bkk)), {k: values[k] for k in schema})], schema=schema)
+    report, details = run(tmp_path, raw)
+    assert report['valid'] and details['field_profile'] == profile and details['field_mapping'] == fields
+    assert report['statistics']['area_by_main_m2']['A'] == pytest.approx(10000) and details['declared_area_units'] == 'm2'
+    warnings = codes(report['warnings'])
+    assert 'FIELD_PROFILE_' + profile.upper().replace('-', '_') in warnings
+    assert 'AREA_DECLARED_MINOR_DIFF' not in warnings                       # AREA_SQM is whole square metres
+    # LU_ID_L1 is a float in the real files, so reading it as the main class is shown, not hidden.
+    assert ('NUMERIC_MAIN_CODE_NORMALISED' in warnings) is (profile == 'ldd-lu-id-l1-area-sqm-v1')
+
+
+@pytest.mark.parametrize('level_1,reason', [(1.0, 'LU_CODE_MAIN_CONFLICT'), (521.0, 'MAIN_CODE_UNRECOGNISED'),
+                                            (0.0, 'MAIN_CODE_UNRECOGNISED')])
+def test_a_level_1_id_that_disagrees_with_the_code_is_reviewed_not_trusted(tmp_path, bkk, level_1, reason):
+    props = {'LU_CODE': 'A101', 'LU_ID_L1': level_1, 'AREA_SQM': 10000, 'AREA_RAI': 6}
+    report, details = run(tmp_path, make_zip([(mapping(inside_square(bkk)), props)], schema=L2568_NO_LUL1))
+    assert not report['valid'] and report['error_code'] == 'UNKNOWN_CODE_REVIEW_REQUIRED' and details['outcome'] == 'review_required'
+    (sample,) = details['unknown_samples'].values()
+    assert sample['reason'] == reason and sample['count'] == 1
+
+
+def test_area_sqm_is_compared_with_the_geometry_like_shape_area(tmp_path, bkk):
+    props = {'LU_CODE': 'A101', 'LU_ID_L1': 2.0, 'AREA_SQM': 11000, 'AREA_RAI': 7}
+    report, details = run(tmp_path, make_zip([(mapping(inside_square(bkk)), props)], schema=L2568_NO_LUL1))
+    assert report['error_code'] == 'AREA_DECLARED_MISMATCH_REVIEW_REQUIRED' and details['outcome'] == 'review_required'
+
+
 @pytest.mark.parametrize('declared,valid,warning,error', [
     (10000.0, True, None, None),
     (10050.0, True, 'AREA_DECLARED_MINOR_DIFF', None),

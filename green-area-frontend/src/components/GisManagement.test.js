@@ -93,6 +93,15 @@ test('a plus-separated composite code is shown as a warning, not hidden and not 
   expect(screen.getByText(/รหัสผสมที่คั่นด้วย \+ อ่านเป็นรหัสผสมแบบ \//)).toHaveTextContent('(34)');
 });
 
+test('an ANSI 874 .cpg and a .prj with a vertical system are explained as warnings', async () => {
+  const report = lddReport([], [{ code: 'CPG_ENCODING_ALIAS', count: 1 }, { code: 'CRS_VERTICAL_IGNORED', count: 1 }], true);
+  gisRequest.mockImplementation((path, options) => path === `/jobs/${job.id}` ? Promise.resolve({ ...job, state: 'succeeded', result: { report } }) : respond(path, options));
+  show(); await openJob();
+  expect(await screen.findByText('จำแนกผล: ผ่านพร้อมข้อสังเกต (Accepted with Warnings)')).toBeInTheDocument();
+  expect(screen.getByText(/ระบุ encoding เป็น "ANSI 874" จึงอ่านเป็น cp874/)).toHaveTextContent('(1)');
+  expect(screen.getByText(/มีระบบความสูง \(VERTCS\) ต่อท้าย/)).toHaveTextContent('(1)');
+});
+
 test('GeoTIFF report separates file validation from analysis and activation', async () => {
   const report = { provider_build: 'geotiff-local-v1', valid: true, metadata: { profile: 'ndvi_ready',
     crs: 'EPSG:32647', bands: ['NDVI'], resolution: [10,10], dtype: 'float32', nodata: -9999,

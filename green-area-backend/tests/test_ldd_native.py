@@ -389,6 +389,65 @@ def test_actual_crs_province_encoding_mismatch(tmp_path):
     assert ldd.validate(wrong_encoding, storage_root=tmp_path)['error_code'] == 'ENCODING_MISMATCH'
 
 
+VERTCS = (b',VERTCS["WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],'
+          b'PARAMETER["Vertical_Shift",0.0],PARAMETER["Direction",1.0],UNIT["Meter",1.0]]')
+
+
+def with_member(fixture, suffix, change, **more):
+    """A fixture ZIP with members' bytes changed (by suffix), as in the real LDD 2568 variants."""
+    changes = {suffix: change, **{'.' + k: v for k, v in more.items()}}
+    with zipfile.ZipFile(FIXTURES / fixture) as z:
+        return archive([(i.filename, changes.get('.' + i.filename.rsplit('.', 1)[1].lower(), lambda b: b)(z.read(i)))
+                        for i in z.infolist()])
+
+
+def test_a_cpg_naming_the_windows_thai_code_page_is_read_as_cp874_with_a_visible_warning(tmp_path):
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    req = store(tmp_path, with_member('ldd_cp874.zip', '.cpg', lambda _: b'ANSI 874'))
+    result = ldd.validate(req, storage_root=tmp_path)
+    assert result['valid'] is True and result['encoding'] == 'cp874' and result['statistics']['feature_count'] == 3
+    assert {'code': 'CPG_ENCODING_ALIAS', 'count': 1} in result['warnings']
+    assert result['audit']['outcome'] == 'accepted_with_warnings'
+    # An encoding the officer chose is still compared with what the .cpg names.
+    assert ldd.validate({**req, 'encoding': 'cp874'}, storage_root=tmp_path)['valid'] is True
+    assert ldd.validate({**req, 'encoding': 'tis-620'}, storage_root=tmp_path)['error_code'] == 'ENCODING_MISMATCH'
+    # The frozen pre-v2 validator keeps refusing the name.
+    assert ldd.validate_legacy_v1(req, storage_root=tmp_path)['error_code'] == 'ENCODING_UNSUPPORTED'
+
+
+@pytest.mark.parametrize('cpg', [b'ANSI 1252', b'ANSI874', b'Windows Thai'])
+def test_other_cpg_names_are_still_refused(tmp_path, cpg):
+    req = store(tmp_path, with_member('ldd_cp874.zip', '.cpg', lambda _: cpg))
+    assert ldd.validate(req, storage_root=tmp_path)['error_code'] == 'ENCODING_UNSUPPORTED'
+
+
+def test_an_ansi_874_cpg_does_not_excuse_text_that_is_not_cp874(tmp_path):
+    def break_thai(dbf):
+        start = int.from_bytes(dbf[8:10], 'little')
+        at = next(i for i in range(start, len(dbf)) if dbf[i] > 0x7f)   # a Thai byte inside a text field
+        assert b'\xfc'.decode('cp874', errors='replace') == '�'      # 0xFC is unassigned in cp874
+        return dbf[:at] + b'\xfc' + dbf[at + 1:]
+    raw = with_member('ldd_cp874.zip', '.cpg', lambda _: b'ANSI 874', dbf=break_thai)
+    assert ldd.validate(store(tmp_path, raw), storage_root=tmp_path)['error_code'] == 'ENCODING_INVALID'
+
+
+def test_a_prj_with_a_trailing_vertical_system_is_checked_on_its_horizontal_part(tmp_path):
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    req = store(tmp_path, with_member('ldd_valid.zip', '.prj', lambda prj: prj.rstrip() + VERTCS))
+    result = ldd.validate(req, storage_root=tmp_path)
+    assert result['valid'] is True and result['statistics']['total_area_m2'] == pytest.approx(6400)
+    assert {'code': 'CRS_VERTICAL_IGNORED', 'count': 1} in result['warnings']
+    assert result['audit']['outcome'] == 'accepted_with_warnings'
+    other_zone = deepcopy(req)
+    other_zone['manifest']['crs'] = 'EPSG:32648'          # the horizontal part must still match the declaration
+    assert ldd.validate(other_zone, storage_root=tmp_path)['error_code'] == 'CRS_MISMATCH'
+    assert ldd.validate_legacy_v1(req, storage_root=tmp_path)['error_code'] == 'CRS_MISMATCH'
+    plain = ldd.validate(store(tmp_path, (FIXTURES / 'ldd_valid.zip').read_bytes()), storage_root=tmp_path)
+    assert 'CRS_VERTICAL_IGNORED' not in {w['code'] for w in plain['warnings']}
+
+
 def ready():
     return {'status': 'ready', 'worker_role': 'gis_native_worker', 'subject': ID,
         'database_name': 'postgres', 'cluster_name': 'green-area-gis-t0', 'mode': 'local_synthetic',

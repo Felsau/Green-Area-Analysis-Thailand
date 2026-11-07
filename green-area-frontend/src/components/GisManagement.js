@@ -269,7 +269,9 @@ function NativeReport({ report }) {
     AREA_DECLARED_MINOR_DIFF: 'พื้นที่ที่บันทึกต่างจากที่คำนวณเล็กน้อย ใช้พื้นที่จากรูปแปลง',
     DECLARED_AREA_UNITS_UNVERIFIED: 'ยืนยันหน่วยของพื้นที่ที่บันทึกไม่ได้ จึงไม่นำมาเทียบ',
     NUMERIC_MAIN_CODE_NORMALISED: 'แปลงรหัสหลักแบบตัวเลขตาม Legend ที่อนุมัติ',
-    COMPOSITE_PLUS_SEPARATOR: 'รหัสผสมที่คั่นด้วย + อ่านเป็นรหัสผสมแบบ / เพราะทุกส่วนเป็นรหัสทางการของหมวดเดียวกัน' };
+    COMPOSITE_PLUS_SEPARATOR: 'รหัสผสมที่คั่นด้วย + อ่านเป็นรหัสผสมแบบ / เพราะทุกส่วนเป็นรหัสทางการของหมวดเดียวกัน',
+    CPG_ENCODING_ALIAS: 'ไฟล์ .cpg ระบุ encoding เป็น "ANSI 874" จึงอ่านเป็น cp874 และถอดรหัสข้อความได้ครบทุกแถว',
+    CRS_VERTICAL_IGNORED: 'ไฟล์ .prj มีระบบความสูง (VERTCS) ต่อท้าย ตรวจเฉพาะระบบพิกัดแนวราบซึ่งตรงกับที่ระบุ' };
   const reviewCodes = ['UNKNOWN_CODE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED',
     'AREA_DECLARED_MISMATCH_REVIEW_REQUIRED', 'GEOMETRY_REPAIR_LIMIT_REVIEW_REQUIRED'];
   const errorCodes = (Array.isArray(report.errors) ? report.errors : []).map(e => String(e?.code || ''));

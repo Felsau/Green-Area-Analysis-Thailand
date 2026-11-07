@@ -255,7 +255,9 @@ def _record_count(shp, shx, dbf):
     return count, header_len, record_len
 
 
-def _encoding(components, requested, count, header_len, record_len):
+def _encoding(components, requested, count, header_len, record_len, *, alias=None):
+    """``alias`` (policy-v2 only) maps a .cpg text such as "ANSI 874" to a codec name; the frozen
+    pre-v2 validator passes none, so its behaviour is unchanged."""
     def normalize(value):
         try:
             result = codecs.lookup(value).name
@@ -266,9 +268,10 @@ def _encoding(components, requested, count, header_len, record_len):
     declared = None
     if '.cpg' in components:
         try:
-            declared = normalize(components['.cpg'].decode('ascii', errors='strict').strip())
+            text = components['.cpg'].decode('ascii', errors='strict').strip()
         except UnicodeError:
             raise LddError('ENCODING_INVALID') from None
+        declared = normalize((alias(text) if alias else None) or text)
     require(requested != 'auto' or declared is not None, 'ENCODING_UNSPECIFIED')
     encoding = declared if requested == 'auto' else normalize(requested)
     require(declared is None or declared == encoding, 'ENCODING_MISMATCH')
@@ -413,9 +416,11 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         _, parts = _components(files)
         count, header_len, record_len = _record_count(parts['.shp'], parts['.shx'], parts['.dbf'])
         report['checks'].append('components')
-        encoding = _encoding(parts, request['encoding'], count, header_len, record_len)
+        encoding = _encoding(parts, request['encoding'], count, header_len, record_len, alias=policy.cpg_alias)
         report['encoding'] = encoding
         report['checks'].append('encoding')
+        if '.cpg' in parts and policy.cpg_alias(parts['.cpg'].decode('ascii', errors='replace').strip()):
+            warn('CPG_ENCODING_ALIAS')   # e.g. "ANSI 874" read as cp874; every text field decoded strictly above
         # GDAL gets the land-use layer alone, under fixed names. The package, the other members and
         # the bytes already checked are released first, so a large layer is held only once or twice.
         layer, prj = layer_archive(parts), parts['.prj']
@@ -428,11 +433,21 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         from shapely.geometry import mapping, shape
         from shapely import prepare as prepare_geometry
         try:
-            crs = CRS.from_wkt(prj.decode('utf-8-sig', errors='strict'))
+            prj_text = prj.decode('utf-8-sig', errors='strict')
+            crs = CRS.from_wkt(prj_text)
         except Exception:
             raise LddError('CRS_INVALID') from None
+        # A 3D layer written as PROJCS[...],VERTCS[...] is checked on its horizontal part only.
+        horizontal = policy.horizontal_wkt(prj_text) if crs.to_epsg() is None else None
+        if horizontal is not None:
+            try:
+                crs = CRS.from_wkt(horizontal)
+            except Exception:
+                raise LddError('CRS_INVALID') from None
         source_crs = request['manifest']['crs']
         require(crs.to_epsg() in (32647, 32648, 4326) and crs.to_string() == source_crs, 'CRS_MISMATCH')
+        if horizontal is not None:
+            warn('CRS_VERTICAL_IGNORED')
         report['checks'].append('crs')
         boundaries = _asset(BOUNDARY_LDD_ASSET, BOUNDARY_LDD_SHA256)
         boundary = next((f for f in boundaries['features'] if f['properties']['name'] == request['province']), None)

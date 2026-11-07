@@ -7,7 +7,7 @@ Updated 6 November 2026. Scope: findings 3 and 4 of the 3 November 2026 external
 | Category | Report | Meaning |
 | --- | --- | --- |
 | Accepted | `valid=true`, no minor warning | — |
-| Accepted with Warnings | `valid=true` plus minor warnings | repaired geometry, slightly outside the boundary, declared area slightly different, numeric main code normalised, declared-area units not verifiable |
+| Accepted with Warnings | `valid=true` plus minor warnings | repaired geometry, slightly outside the boundary, declared area slightly different, numeric main code normalised, declared-area units not verifiable, a `+` composite read as `/`, a `.cpg` named "ANSI 874", a `.prj` with a trailing vertical system |
 | Review Required | `valid=false`; every error is in the REVIEW set | unknown or unmapped codes, a small part outside the tolerance, outside share too high, declared area differs by more than 1 %, too many repairs |
 | Rejected | `valid=false` with any other error | archive, CRS or encoding errors, missing or ambiguous fields, null/empty/non-polygon geometry, unrepairable geometry, a repair that changes the type or the area beyond the limit, clearly outside the province |
 
@@ -25,14 +25,39 @@ An LDD province package carries more than the land-use layer: administrative bou
 - The stored original is the package itself, byte for byte. No report key, check or migration changed.
 - On the 26 real central-region packages the rule accepts 6. The others are blocked by the size limits, and the cause is the land-use layer itself (its `.dbf` is up to 148 MiB), not the other members (at most 1.2 MiB each). One package is a ZIP inside a ZIP.
 
-## Fields: `ldd-lu-text-v1`
+## Fields: three profiles
 
-The profile maps roles to field names: `LUL1_CODE` → main_code, `LU_CODE` → lu_code, `Shape_Area` → declared_area (m² only in EPSG:32647/32648).
+A profile maps roles to field names. It matches when all its role fields are present and none of its `absent` fields is. The `absent` lists keep the profiles apart on every real layout, so nothing is chosen by preference.
+
+| Profile | main_code | lu_code | declared_area (m² in EPSG:32647/32648) | Must be absent | Real layouts (DBF headers read 2026-11-07) |
+|---|---|---|---|---|---|
+| `ldd-lu-text-v1` | `LUL1_CODE` | `LU_CODE` | `Shape_Area` | — | 2566 Bangkok and Sing Buri; every 2567 layer except Chiang Mai; 2564 northern layers except Phetchabun |
+| `ldd-lu-area-sqm-v1` | `LUL1_CODE` | `LU_CODE` | `AREA_SQM` | `Shape_Area` | 2568 Kanchanaburi, Saraburi, Trat, Samut Songkhram, Phetchaburi, Nakhon Nayok, Ayutthaya, Prachin Buri, Suphan Buri; 2567 Chiang Mai |
+| `ldd-lu-id-l1-area-sqm-v1` | `LU_ID_L1` | `LU_CODE` | `AREA_SQM` | `Shape_Area`, `LUL1_CODE` | 2568 Pathum Thani, Ang Thong, Ratchaburi, Chanthaburi, Sa Kaeo, Prachuap Khiri Khan |
 
 - Names are matched case-insensitively.
-- Names that are duplicates after case-folding are rejected (`FIELD_NAME_AMBIGUOUS`). So are files that match two profiles (`FIELD_MAPPING_AMBIGUOUS`). Files that match no profile fail with `ATTRIBUTES_MISSING`; a field such as `AREA` is never taken to mean `Shape_Area`.
-- The profile ID and the actual field names are recorded in two places: in the validation report as the warning `FIELD_PROFILE_LDD_LU_TEXT_V1`, and in full in the preparation v2 metadata and the inventory output.
-- More profiles (for example for the six 2025 provinces) can be added only from a real file's recorded schema. Run `ldd_inventory.py` on the file, add a new profile with that provenance, and have it reviewed. None is added yet, because those files are not in the repository.
+- Names that are duplicates after case-folding are rejected (`FIELD_NAME_AMBIGUOUS`). So are files that match two profiles (`FIELD_MAPPING_AMBIGUOUS`). Files that match no profile fail with `ATTRIBUTES_MISSING`; a field such as `AREA` or `RAI` is never taken to mean a declared area in m² (Phetchabun 2564 has only `RAI` and is refused).
+- The 2567 layers carry both `Shape_Area` and `AREA_SQM`. Without the `absent` rule they would match two profiles, and Nonthaburi and Samut Prakan, which pass today, would fail. A test runs every real layout (`tests/test_ldd_policy.py`, `REAL_LAYOUTS`).
+- The profile ID and the actual field names are recorded in two places: in the validation report as the warning `FIELD_PROFILE_<ID>` (for example `FIELD_PROFILE_LDD_LU_TEXT_V1`), and in full in the audit, the preparation v2 metadata and the inventory output.
+- A new profile is added only from a real file's recorded schema, with that provenance (package SHA256) in `ldd_policy.FIELD_PROFILES`, and it is reviewed.
+
+### `ldd-lu-text-v1`
+Bangkok 2566 layout (repository legend source). The original profile; unchanged.
+
+### `ldd-lu-area-sqm-v1`
+2568 layout without `Shape_Area`. `AREA_SQM` holds whole square metres and is compared with the geometry area under the same tolerance as `Shape_Area` (rounding is at most 0.5 m²). Provenance: `LU_SKM_2568` and `LU_AYU_2568` (package SHA256 in the profile).
+
+### `ldd-lu-id-l1-area-sqm-v1`
+2568 layout without `LUL1_CODE`. The main class comes from `LU_ID_L1`, the producer's numeric level-1 class (1-5 = U A F W M), read with the existing numeric main-code rule, so a float such as `2.0` adds `NUMERIC_MAIN_CODE_NORMALISED`. The code still has to agree with it: a disagreement is `LU_CODE_MAIN_CONFLICT` and a value outside 1-5 is `MAIN_CODE_UNRECOGNISED`, both counted as unknown and sent to review.
+- Measured on the real DBFs (30 layers whose DBF is at most 90 MiB): in the 6 layers without `LUL1_CODE`, `LU_ID_L1` agrees with the letter of `LU_CODE` on every row in Pathum Thani, Ang Thong, Chanthaburi, Ratchaburi and Prachuap Khiri Khan, and differs on 6 rows in Sa Kaeo. In the 24 layers that have both, `LUL1_CODE` agrees with `LU_CODE` on every row while `LU_ID_L1` holds stray values (0, 112, 521, 522) in 17 of them (up to 313 rows). That is why `LU_ID_L1` is used only when `LUL1_CODE` is missing.
+- Provenance: `LU_PTE_2568` and `LU_ATG_2568` (package SHA256 in the profile).
+
+## Source metadata: `.cpg` and `.prj` variants
+
+Policy-v2 validation tolerates two variants written by the producer's software. The frozen pre-v2 validator refuses both, as before.
+
+- **`.cpg` "ANSI 874"** (Pathum Thani, Ratchaburi, Sa Kaeo, Prachuap Khiri Khan, Trat 2568): a closed alias list (`ldd_policy.CPG_ALIASES`, case and repeated spaces ignored) reads it as `cp874`, the Windows Thai code page. Every text field is still decoded strictly (`ENCODING_INVALID` otherwise), an encoding the officer chose must still match (`ENCODING_MISMATCH`), and any other unknown name is still `ENCODING_UNSUPPORTED`. The report adds the minor warning `CPG_ENCODING_ALIAS`. A layer without a `.cpg` (Kanchanaburi, Phetchaburi, Samut Songkhram, Saraburi 2568; DBF language ID 0x57 "ANSI") still needs the officer to choose the encoding; nothing is guessed.
+- **`.prj` with a trailing `VERTCS`** (Ang Thong, Suphan Buri 2568): ESRI writes a 3D layer as `PROJCS[...],VERTCS[...]` without a `COMPD_CS` wrapper, so the CRS has no EPSG code. Only that exact shape (two top-level parts, `PROJCS` or `GEOGCS` then one `VERTCS`) is split; the horizontal part must then be EPSG 32647, 32648 or 4326 and equal the declared CRS, as for any file. The vertical part does not change X/Y. The report adds the minor warning `CRS_VERTICAL_IGNORED`. Any other form is still `CRS_INVALID` or `CRS_MISMATCH`.
 
 ## Codes: `ldd-code-legend-v2`
 

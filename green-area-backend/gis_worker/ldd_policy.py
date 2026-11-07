@@ -31,16 +31,42 @@ BOUNDARY_POLICY = 'boundary-tolerance-m-v1'
 CODE_POLICY = 'ldd-code-legend-v2'
 
 # ---------------------------------------------------------------- field profiles
-# role -> exact source field name (matched case-insensitively, duplicates rejected)
+# role -> exact source field name (matched case-insensitively, duplicates rejected).
+# 'absent' lists fields that must NOT be in the file, so every real layout matches one profile at most:
+# 2567 layers carry both Shape_Area and AREA_SQM, 2568 layers carry AREA_SQM only, and six 2568 layers
+# have no LUL1_CODE. A file that matches two profiles is still refused, never resolved by preference.
 FIELD_PROFILES = MappingProxyType({
     'ldd-lu-text-v1': MappingProxyType({
         'roles': MappingProxyType({'main_code': 'LUL1_CODE', 'lu_code': 'LU_CODE', 'declared_area': 'Shape_Area'}),
+        'absent': (),
         # Units of declared_area per source CRS; absent CRS -> units not verified.
         'declared_area_units': MappingProxyType({'EPSG:32647': 'm2', 'EPSG:32648': 'm2'}),
         'lu_code_kind': 'text',
         'provenance': 'LDD land use 2566 Bangkok layout (repository fixtures/legend source_sha256 '
                       '949639e52513f431255578c26125906122d689f8171a72d379086159f136e12a)',
         'review_reference': 'docs/gis/ldd-field-policy.md#ldd-lu-text-v1',
+    }),
+    'ldd-lu-area-sqm-v1': MappingProxyType({
+        'roles': MappingProxyType({'main_code': 'LUL1_CODE', 'lu_code': 'LU_CODE', 'declared_area': 'AREA_SQM'}),
+        'absent': ('Shape_Area',),
+        'declared_area_units': MappingProxyType({'EPSG:32647': 'm2', 'EPSG:32648': 'm2'}),
+        'lu_code_kind': 'text',
+        'provenance': 'LDD land use 2568 layout without Shape_Area, recorded from 9 real central-region layers '
+                      '(e.g. LU_SKM_2568 package sha256 b39404fa63880223d12b4b0dbcea11e120adb02bcfb5c5bbd7ee0c0d0508738f, '
+                      'LU_AYU_2568 package sha256 20c349531fea8e73ec8ecf87174abe72f84f71bba790ba435c80e128604fd8b5)',
+        'review_reference': 'docs/gis/ldd-field-policy.md#ldd-lu-area-sqm-v1',
+    }),
+    'ldd-lu-id-l1-area-sqm-v1': MappingProxyType({
+        # LU_ID_L1 is the numeric level-1 class (1-5 = U A F W M). Used only where LUL1_CODE is missing:
+        # in layers that have both, LUL1_CODE always agreed with LU_CODE while LU_ID_L1 held stray values.
+        'roles': MappingProxyType({'main_code': 'LU_ID_L1', 'lu_code': 'LU_CODE', 'declared_area': 'AREA_SQM'}),
+        'absent': ('Shape_Area', 'LUL1_CODE'),
+        'declared_area_units': MappingProxyType({'EPSG:32647': 'm2', 'EPSG:32648': 'm2'}),
+        'lu_code_kind': 'text',
+        'provenance': 'LDD land use 2568 layout without LUL1_CODE, recorded from 6 real central-region layers '
+                      '(e.g. LU_PTE_2568 package sha256 aef20813c2bf222213d1dd05398adfa90e28b83e31685104c6f90648721bd15c, '
+                      'LU_ATG_2568 package sha256 a12f00e7a028bf50e09e81e1458cc9ae8ec3129b48d4edab01330b4c92ddf1e2)',
+        'review_reference': 'docs/gis/ldd-field-policy.md#ldd-lu-id-l1-area-sqm-v1',
     }),
 })
 LEGACY_PROFILE = 'ldd-lu-text-v1'
@@ -102,7 +128,8 @@ REVIEW = frozenset({'UNKNOWN_CODE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_REVIEW_REQ
                     'BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED', 'AREA_DECLARED_MISMATCH_REVIEW_REQUIRED',
                     'GEOMETRY_REPAIR_LIMIT_REVIEW_REQUIRED'})
 MINOR = frozenset({'GEOMETRY_REPAIRED', 'BOUNDARY_OUTSIDE_MINOR', 'AREA_DECLARED_MINOR_DIFF',
-                   'DECLARED_AREA_UNITS_UNVERIFIED', 'NUMERIC_MAIN_CODE_NORMALISED', 'COMPOSITE_PLUS_SEPARATOR'})
+                   'DECLARED_AREA_UNITS_UNVERIFIED', 'NUMERIC_MAIN_CODE_NORMALISED', 'COMPOSITE_PLUS_SEPARATOR',
+                   'CPG_ENCODING_ALIAS', 'CRS_VERTICAL_IGNORED'})
 GEOMETRY_CODES = frozenset({'GEOMETRY_TYPE', 'GEOMETRY_EMPTY', 'GEOMETRY_INVALID', 'GEOMETRY_REPAIR_TYPE_CHANGED',
                             'GEOMETRY_REPAIR_AREA_CHANGED', 'OUTSIDE_PROVINCE', 'BOUNDARY_OUTSIDE_REVIEW_REQUIRED'})
 
@@ -134,7 +161,8 @@ def resolve_profile(field_names):
     matches = []
     for profile_id, profile in FIELD_PROFILES.items():
         roles = profile['roles']
-        if all(field.casefold() in actual for field in roles.values()):
+        if (all(field.casefold() in actual for field in roles.values())
+                and not any(field.casefold() in actual for field in profile.get('absent', ()))):
             matches.append((profile_id, {role: actual[field.casefold()] for role, field in roles.items()}))
     if not matches:
         raise PolicyError('ATTRIBUTES_MISSING')
@@ -145,6 +173,56 @@ def resolve_profile(field_names):
 
 def declared_area_units(profile_id, crs):
     return FIELD_PROFILES[profile_id]['declared_area_units'].get(crs)
+
+
+# ---------------------------------------------------------------- .cpg and .prj variants (policy-v2 only)
+# A closed list of .cpg texts that name a supported codec by another name. Five real LDD 2568 layers write
+# "ANSI 874", the Windows code page that Python calls cp874. Case and repeated spaces are ignored; any other
+# text still goes through the codec registry, and every text field is still decoded strictly.
+CPG_ALIASES = MappingProxyType({'ansi 874': 'cp874'})
+
+
+def cpg_alias(text):
+    """Return the codec a .cpg text names by alias, else None."""
+    return CPG_ALIASES.get(' '.join(text.split()).casefold()) if isinstance(text, str) else None
+
+
+def horizontal_wkt(text):
+    """Return the horizontal part of a .prj written as ``PROJCS[...],VERTCS[...]``, else None.
+
+    ESRI software writes a 3D layer that way, without a COMPD_CS wrapper (real LDD 2568 Ang Thong and
+    Suphan Buri). Only that exact shape is split: two top-level parts, a PROJCS or GEOGCS followed by one
+    VERTCS. The vertical part does not change X/Y. Any other text is left alone and checked as written.
+    """
+    if not isinstance(text, str):
+        return None
+    parts, depth, start, quoted = [], 0, 0, False
+    for i, ch in enumerate(text):
+        if ch == '"':
+            quoted = not quoted
+        elif quoted:
+            continue
+        elif ch == '[':
+            depth += 1
+        elif ch == ']':
+            depth -= 1
+            if depth < 0:
+                return None
+        elif ch == ',' and depth == 0:
+            parts.append(text[start:i])
+            start = i + 1
+    if depth or quoted:
+        return None
+    parts.append(text[start:])
+    if len(parts) != 2:
+        return None
+    head, tail = (part.strip() for part in parts)
+    if not (head.startswith(('PROJCS[', 'GEOGCS[')) and head.endswith(']')
+            and tail.startswith('VERTCS[') and tail.endswith(']')):
+        return None
+    if any(word in head.upper() for word in ('VERTCS[', 'COMPD_CS[')):
+        return None
+    return head
 
 
 # ---------------------------------------------------------------- codes
