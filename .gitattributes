@@ -34,3 +34,11 @@
 /dev/gis_local/gee_live_runtime.Dockerfile -text
 /dev/gis_local/gee-runtime-*.json -text
 /docs/gis/a6-4d2-*.md -text
+# Migrations 047-051 are checksum-bound by the ledger like 027-046 above.
+/green-area-backend/migrations/04[7-9]_*.sql -text
+/green-area-backend/migrations/05[0-1]_*.sql -text
+# Hash-pinned validator assets (ldd_provider pins them; migration 051 pins the boundary one). A line-ending
+# conversion on a Windows checkout would change their bytes and make every LDD validation fail.
+/green-area-backend/gis_worker/ldd_codes.json -text
+/green-area-backend/gis_worker/province_boundaries.json -text
+/green-area-backend/gis_worker/province_boundaries_ldd.json -text

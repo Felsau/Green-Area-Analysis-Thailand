@@ -24,7 +24,15 @@ from gis_worker import ldd_policy as policy
 ROOT = Path(__file__).resolve().parent
 STORAGE_ROOT = Path('/data/ldd')
 BUILD = 'ldd-local-v1'
+# GADM level 1, frozen: the pre-v2 validator, GeoTIFF province clipping and failure reports pin it, and
+# migration 034 accepted only this hash.
 BOUNDARY_SHA256 = 'ac2b28255f22861ab644bf083fa40f28dd9da1294648d4b01cfc6f9cdc156a21'
+# Policy v2 validation: the province layer shipped in the LDD package of each province that supplied
+# one (source ldd-package), the same GADM outline elsewhere (source gadm-approx). Built by
+# dev/gis_local/build_ldd_boundaries.py. Migration 051 lets the database accept this hash too.
+BOUNDARY_LDD_ASSET = 'province_boundaries_ldd.json'
+BOUNDARY_LDD_SHA256 = '1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac'
+BOUNDARY_SOURCES = ('gadm-approx', 'ldd-package')
 LEGEND_SHA256 = '34069bca1cf06474fab22f8b7211f91d4dc5d4deb37c0fec414efd05c63afbde'
 MAX_ZIP_BYTES = 20 * 1024**2
 MAX_EXPANDED_BYTES = 80 * 1024**2
@@ -372,9 +380,11 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
     check_request(request)
     report = report_failure(request, 'VALIDATION_FAILED')
     report['errors'] = []
+    report['boundary_sha256'] = BOUNDARY_LDD_SHA256   # the asset this validation reads (failure reports name the GADM one)
     errors, warnings = {}, {}
     details = {'policy': policy.policy_summary(), 'outcome': 'rejected', 'field_profile': None,
                'field_mapping': None, 'source_fields': None, 'declared_area_units': None,
+               'boundary_source': 'gadm-approx',
                'repairs': [], 'unknown_samples': {}, 'boundary': {'minor': 0, 'review': 0, 'fatal': 0,
                'outside_area_m2': 0.0}, 'features': [] if collect else None,
                'feature_outcomes': {k: 0 for k in ('accepted', 'accepted_with_warnings', 'review_required', 'rejected')}}
@@ -419,9 +429,11 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         source_crs = request['manifest']['crs']
         require(crs.to_epsg() in (32647, 32648, 4326) and crs.to_string() == source_crs, 'CRS_MISMATCH')
         report['checks'].append('crs')
-        boundaries = _asset('province_boundaries.json', BOUNDARY_SHA256)
+        boundaries = _asset(BOUNDARY_LDD_ASSET, BOUNDARY_LDD_SHA256)
         boundary = next((f for f in boundaries['features'] if f['properties']['name'] == request['province']), None)
         require(boundary is not None, 'PROVINCE_UNKNOWN')
+        details['boundary_source'] = boundary['properties'].get('source')
+        require(details['boundary_source'] in BOUNDARY_SOURCES, 'VALIDATION_ASSET_INVALID')
         legend = _asset('ldd_codes.json', LEGEND_SHA256)['codes']
         try:
             classes = policy.main_classes(legend)
@@ -585,7 +597,9 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         error('SHAPEFILE_READ_ERROR' if native else 'NATIVE_PROCESS_FAILED')
     ordered = sorted(errors.items(), key=lambda item: item[0] in policy.REVIEW)  # fatal first, stable
     report['errors'] = [{'code': code, 'count': n} for code, n in ordered]
-    base = [{'code': 'BOUNDARY_APPROXIMATE', 'count': 1}, {'code': 'DATA_YEAR_METADATA_DECLARED', 'count': 1}]
+    # The outline is either the approximate GADM one or the data producer's own; never presented as independent.
+    outline = 'BOUNDARY_FROM_DATA_PRODUCER' if details['boundary_source'] == 'ldd-package' else 'BOUNDARY_APPROXIMATE'
+    base = [{'code': outline, 'count': 1}, {'code': 'DATA_YEAR_METADATA_DECLARED', 'count': 1}]
     markers = [{'code': 'LDD_POLICY_V2', 'count': 1}]
     if details['field_profile']:
         markers.append({'code': 'FIELD_PROFILE_' + details['field_profile'].upper().replace('-', '_'), 'count': 1})

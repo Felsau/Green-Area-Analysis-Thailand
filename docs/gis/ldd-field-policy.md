@@ -49,7 +49,16 @@ The profile maps roles to field names: `LUL1_CODE` → main_code, `LU_CODE` → 
 
 ## Geometry and boundary
 
-Boundary tolerance (`boundary-tolerance-m-v1`), measured in metres in the parcel's UTM zone against the approximate GADM boundary:
+Boundary source (`province_boundaries_ldd.json`, `ldd-boundaries-v1`, rebuilt with `dev/gis_local/run_build_ldd_boundaries.ps1`):
+
+- For the 24 provinces whose LDD package carries a province layer (`*_Pro.shp` or `prov_*.shp`) the validator reads that layer (`source: ldd-package`). It is snapped to 1e-8° (about 1 mm) and records the SHA256 of the package and of the layer it came from. The other 53 provinces keep the approximate GADM outline, byte for byte (`source: gadm-approx`). Ang Thong and Lop Buri have packages but no province layer, so they stay on GADM.
+- Packages were matched to provinces by overlap with the GADM outline (IoU 0.93 to 0.99), never by file name. Each layer was checked against its own land-use layer (1,059,852 parcels in all, including provinces too large for the validator's current limits): none lies more than 225 m outside it, 1.8 % touch the line within that tolerance, and the area outside is at most 0.007 % of a province (Sing Buri), usually under 0.00002 %.
+- The report names the asset it read (`boundary_sha256`) and says which kind of outline it was: the warning `BOUNDARY_FROM_DATA_PRODUCER` or `BOUNDARY_APPROXIMATE`. The producer's outline is not an independent source; it is the line the producer clipped its own parcels to.
+- The frozen pre-v2 validator, the v1 preparation and GeoTIFF clipping still read the GADM asset (`province_boundaries.json`, hash unchanged).
+- The two outlines differ by 2 to 7 % of a province's area, so a parcel the GADM outline accepted can lie outside the producer's one, and the other way round. Comparing validators on one file therefore means comparing like with like, on a province that still has the GADM outline.
+- The database accepts the new asset's hash from migration 051 on; migration 034 admitted only the GADM hash.
+
+Boundary tolerance (`boundary-tolerance-m-v1`), measured in metres in the parcel's UTM zone against the outline above:
 
 - Inside the boundary: no issue.
 - Within boundary + 225 m: minor warning. The old 0.002° buffer is about 216–221 m in Bangkok, so 225 m keeps everything the old buffer accepted, and is not widened beyond it.
@@ -87,12 +96,13 @@ The inventory is read-only. It reports the filename, SHA256, CRS, schema and fie
 Bangkok 2566 (`Landuse_Bangkok_2566_.zip`, 5,515,403 bytes, SHA256 starting `c3ef854c`; kept outside the repository):
 
 - The figures "158 out-of-bound parcels" and "6 geometry/area issues" are reproduced exactly by the frozen pre-v2 validator (approximate GADM boundary plus a 0.002 degree buffer): `OUTSIDE_PROVINCE` 158, `GEOMETRY_INVALID` 6, `AREA_MISMATCH` 6. The six are self-intersecting rings; policy v2 repairs them with no change in area.
-- Policy v2 with the pinned boundary asset rejects the land-use layer: 133 parcels `OUTSIDE_PROVINCE`, 20 for review, 362 minor warnings (25.5 km² outside, 1.63 % of the total, the farthest point 1,694 m beyond the line). The asset has 161 vertices for Bangkok and differs from the official boundary by 3.3 % of its area.
-- The same file with the official province boundary shipped in the same package (1,841 vertices, swapped in memory for the test, the asset itself untouched) is accepted with warnings: no rejected or review parcels, 644 minor warnings, 1.1 m² outside in total.
-- As distributed (35 members: four shapefiles, `.docx`, `.xls`, `.xlsx`, `.xml`, `.sbn`, `.sbx`, nested folders) the ZIP is rejected with `UNSUPPORTED_ZIP_MEMBER`; only the `LU_BKK_2566` layer was validated, repacked outside the repository.
-- Under the worker's child limits (`RLIMIT_CPU` 20 s, `RLIMIT_AS` 512 MiB) the 11,073 parcels took 2.6 s of CPU and 273 MiB of address space at most.
+- With the GADM outline alone, policy v2 rejected the land-use layer: 133 parcels `OUTSIDE_PROVINCE`, 20 for review, 362 minor warnings (25.5 km² outside, 1.63 % of the total, the farthest point 1,694 m beyond the line). That outline has 161 vertices for Bangkok and differs from the producer's by 3.3 % of its area.
+- With `ldd-boundaries-v1` (the producer's outline, 1,841 vertices) the package, exactly as distributed, is accepted with warnings: 10,489 parcels accepted and 584 accepted with warnings (579 within the 225 m tolerance, 26 m² outside in total, plus the 6 repaired rings), none rejected or for review.
+- The 579 are slivers where a parcel edge lies on the province line: the line is converted to degrees and back, so a strict `covers` test fails by a floating-point margin. They do not shrink with a finer grid (7, 8 and 9 decimals gave 570, 579 and 592), so real files will normally end as Accepted with Warnings. Removing them needs an epsilon in the policy, which is not set.
+- As distributed (35 members: four shapefiles, `.docx`, `.xls`, `.xlsx`, `.xml`, `.sbn`, `.sbx`, nested folders) the ZIP was rejected with `UNSUPPORTED_ZIP_MEMBER` before the package rule; see Province packages.
+- Under the worker's child limits (`RLIMIT_CPU` 20 s, `RLIMIT_AS` 512 MiB) the 11,073 parcels took 2.7 s of CPU and 288 MiB of address space at most.
 
-The other 25 central-region packages (2566-2568) were surveyed too. None passes today: package layout, the 2568 field layout, `.cpg` and `.prj` variants, legend coverage and the size limits each block some of them. Neither the boundary asset nor the policy has been changed yet.
+The other 25 central-region packages (2566-2568) were surveyed too. None passes today: the 2568 field layout, `.cpg` and `.prj` variants, legend coverage and the size limits each block some of them.
 
 ## Proposed forward migration 049 (not written, not applied, needs approval)
 

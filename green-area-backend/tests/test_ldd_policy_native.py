@@ -30,7 +30,8 @@ from gis_worker import ldd_prepare_provider as prep  # noqa: E402
 from gis_worker import ldd_provider as ldd  # noqa: E402
 
 ID = '11111111-1111-4111-8111-111111111111'
-PROVINCE = 'Bangkok Metropolis'
+PROVINCE = 'Bangkok Metropolis'   # the validator reads the producer's own outline for it (source ldd-package)
+GADM_PROVINCE = 'Chiang Mai'      # no package supplied an outline: assess() reads the same GADM geometry as the pre-v2 validator
 TEXT = {'LUL1_CODE': 'str:4', 'LU_CODE': 'str:20', 'Shape_Area': 'float'}
 
 
@@ -49,27 +50,37 @@ def make_zip(features, *, schema=None, crs=32647):
         return output.getvalue()
 
 
-def request(raw, crs='EPSG:32647'):
+def request(raw, crs='EPSG:32647', province=PROVINCE):
     return {'upload_id': ID, 'manifest': {'schema_version': 1, 'provider': 'real',
         'sha256': hashlib.sha256(raw).hexdigest(), 'byte_size': len(raw), 'provenance': 'local-ldd-upload-v1',
         'crs': crs, 'data_kind': 'polygon', 'attributes': list(ldd.REQUIRED_FIELDS)},
-        'input_hash': 'a' * 64, 'input_revision': 1, 'attempt_number': 1, 'province': PROVINCE,
+        'input_hash': 'a' * 64, 'input_revision': 1, 'attempt_number': 1, 'province': province,
         'data_year': 2025, 'encoding': 'auto'}
 
 
-def run(tmp_path, raw, crs='EPSG:32647', collect=False):
-    req = request(raw, crs)
+def run(tmp_path, raw, crs='EPSG:32647', collect=False, province=PROVINCE):
+    req = request(raw, crs, province)
     (tmp_path / (req['manifest']['sha256'] + '.zip')).write_bytes(raw)
     return ldd.assess(req, storage_root=tmp_path, collect=collect)
 
 
-@pytest.fixture(scope='module')
-def bkk():
-    boundaries = ldd._asset('province_boundaries.json', ldd.BOUNDARY_SHA256)
-    feature = next(f for f in boundaries['features'] if f['properties']['name'] == PROVINCE)
+def outline_of(name, asset=(None, None)):
+    """The outline in UTM 47N, from the asset assess() reads unless another (file, hash) is given."""
+    boundaries = ldd._asset(asset[0] or ldd.BOUNDARY_LDD_ASSET, asset[1] or ldd.BOUNDARY_LDD_SHA256)
+    feature = next(f for f in boundaries['features'] if f['properties']['name'] == name)
     exact = shape(transform_geom('EPSG:4326', 'EPSG:32647', feature['geometry']))
     return {'exact': exact, 'minor': exact.buffer(policy.BOUNDARY_MINOR_M),
             'review': exact.buffer(policy.BOUNDARY_REVIEW_M), 'inside': exact.representative_point()}
+
+
+@pytest.fixture(scope='module')
+def bkk():
+    return outline_of(PROVINCE)
+
+
+@pytest.fixture(scope='module')
+def gadm():
+    return outline_of(GADM_PROVINCE)
 
 
 def square(cx, cy, half=50.0):
@@ -247,14 +258,76 @@ def test_dataset_outside_share_needs_both_share_and_absolute_area(tmp_path, bkk,
     assert details['outcome'] == 'review_required'
 
 
-def test_parcel_accepted_by_the_old_0002_degree_buffer_is_not_newly_rejected(tmp_path, bkk):
-    cases = edge_cases(bkk)
-    big = inside_square(bkk, half=400)
+def test_parcel_accepted_by_the_old_0002_degree_buffer_is_not_newly_rejected(tmp_path, gadm):
+    # Same GADM outline for both validators, so the comparison is like with like. For a province whose
+    # outline comes from a package the two differ by design (see the official-outline tests below).
+    cases = edge_cases(gadm)
+    big = inside_square(gadm, half=400)
     raw = make_zip([parcel(big), parcel(cases['legacy_edge'])])
-    report, details = run(tmp_path, raw)
+    report, details = run(tmp_path, raw, province=GADM_PROVINCE)
     assert report['valid'] and 'BOUNDARY_OUTSIDE_MINOR' in codes(report['warnings'])
-    req = request(raw)
+    req = request(raw, province=GADM_PROVINCE)
     assert ldd.validate_legacy_v1(req, storage_root=tmp_path)['valid'] is True
+
+
+# ------------------------------------------------------------ boundary asset: producer outline vs GADM
+
+def square_in(region, half=50.0):
+    """A 100 m square lying inside `region`, at the representative point of its largest piece."""
+    pieces = sorted(getattr(region, 'geoms', [region]), key=lambda g: -g.area)
+    p = pieces[0].representative_point()
+    g = square(p.x, p.y, half)
+    assert region.covers(g)
+    return g
+
+
+def test_the_producers_outline_decides_for_a_province_a_package_supplied(tmp_path, bkk):
+    gadm_bkk = outline_of(PROVINCE, ('province_boundaries.json', ldd.BOUNDARY_SHA256))
+    only_official = square_in(bkk['exact'].difference(gadm_bkk['minor']))   # inside the producer's outline, > 225 m outside GADM
+    raw = make_zip([parcel(only_official)])
+    report, details = run(tmp_path, raw)
+    assert report['valid'] and details['outcome'] == 'accepted'
+    assert details['boundary_source'] == 'ldd-package' and report['boundary_sha256'] == ldd.BOUNDARY_LDD_SHA256
+    warned = codes(report['warnings'])
+    assert 'BOUNDARY_FROM_DATA_PRODUCER' in warned and 'BOUNDARY_APPROXIMATE' not in warned
+    # The frozen pre-v2 validator reads the GADM outline and puts the same parcel outside the province.
+    legacy = ldd.validate_legacy_v1(request(raw), storage_root=tmp_path)
+    assert legacy['valid'] is False and {'code': 'OUTSIDE_PROVINCE', 'count': 1} in legacy['errors']
+    assert legacy['boundary_sha256'] == ldd.BOUNDARY_SHA256
+    assert ldd.report_failure(request(raw), 'NATIVE_MEMORY_LIMIT')['boundary_sha256'] == ldd.BOUNDARY_SHA256
+
+
+def test_the_producers_outline_is_stricter_where_gadm_was_generous(tmp_path, bkk):
+    gadm_bkk = outline_of(PROVINCE, ('province_boundaries.json', ldd.BOUNDARY_SHA256))
+    only_gadm = square_in(gadm_bkk['exact'].difference(bkk['minor']))        # inside GADM, > 225 m outside the producer's outline
+    raw = make_zip([parcel(only_gadm)])
+    report, details = run(tmp_path, raw)
+    assert not report['valid'] and report['error_code'] == 'OUTSIDE_PROVINCE' and details['outcome'] == 'rejected'
+    assert ldd.validate_legacy_v1(request(raw), storage_root=tmp_path)['valid'] is True
+
+
+def test_a_province_without_a_package_outline_keeps_the_gadm_label(tmp_path, gadm):
+    report, details = run(tmp_path, make_zip([parcel(inside_square(gadm))]), province=GADM_PROVINCE)
+    assert report['valid'] and details['boundary_source'] == 'gadm-approx'
+    assert report['boundary_sha256'] == ldd.BOUNDARY_LDD_SHA256
+    warned = codes(report['warnings'])
+    assert 'BOUNDARY_APPROXIMATE' in warned and 'BOUNDARY_FROM_DATA_PRODUCER' not in warned
+
+
+def test_an_asset_feature_with_an_unknown_source_is_refused(tmp_path, bkk, monkeypatch):
+    real = ldd._asset
+
+    def tampered(name, expected):
+        data = real(name, expected)
+        if name == ldd.BOUNDARY_LDD_ASSET:
+            for feature in data['features']:
+                if feature['properties']['name'] == PROVINCE:
+                    feature['properties']['source'] = 'somewhere-else'
+        return data
+
+    monkeypatch.setattr(ldd, '_asset', tampered)
+    report, _ = run(tmp_path, make_zip([parcel(inside_square(bkk))]))
+    assert not report['valid'] and report['error_code'] == 'VALIDATION_ASSET_INVALID'
 
 
 # ------------------------------------------------------------ repair
@@ -351,6 +424,7 @@ def test_v2_preparation_uses_the_same_derived_geometry_and_area_as_validation(tm
     assert summary['area_by_code_m2'] == pytest.approx({'A101': 10000, 'U101': 10000})
     meta = summary['metadata']
     assert meta['method_version'] == 'ldd-geometry-area-v2' and meta['area_method'] == 'geometry-area-utm-v1'
+    assert meta['boundary_sha256'] == ldd.BOUNDARY_LDD_SHA256 == report['boundary_sha256']   # the asset validation read
     assert meta['field_mapping']['declared_area'] == 'Shape_Area' and meta['repaired_feature_count'] == 1
     assert meta['validation_outcome'] == 'accepted_with_warnings'
     first, second = geometry['features']
@@ -382,15 +456,18 @@ def test_v1_artifacts_of_existing_fixtures_are_byte_identical():
             assert hashlib.sha256(outputs['ldd_summary']).hexdigest() == summary_sha
 
 
-def test_v1_rebuild_keeps_the_frozen_legacy_rules_for_existing_editions(tmp_path, bkk):
-    # EPSG:4326 with Shape_Area in m2 and a parcel 214 m outside were v1-preparable before.
-    cases = edge_cases(bkk)
-    for name, raw, crs in (('wgs', wgs84_zip(bkk, 10000.0), 'EPSG:4326'),
-                           ('edge', make_zip([parcel(inside_square(bkk, half=400)), parcel(cases['legacy_edge'])]), 'EPSG:32647')):
+def test_v1_rebuild_keeps_the_frozen_legacy_rules_for_existing_editions(tmp_path, bkk, gadm):
+    # EPSG:4326 with Shape_Area in m2 and a parcel 214 m outside were v1-preparable before. The legacy
+    # rules read the GADM outline, so the edge case is cut against a province that still has it.
+    cases = edge_cases(gadm)
+    for name, raw, crs, province in (
+            ('wgs', wgs84_zip(bkk, 10000.0), 'EPSG:4326', PROVINCE),
+            ('edge', make_zip([parcel(inside_square(gadm, half=400)), parcel(cases['legacy_edge'])]), 'EPSG:32647', GADM_PROVINCE)):
         folder = tmp_path / name; folder.mkdir()
         source, staging = stage(folder, raw)
         packet = prepare_request(raw, prep.METHOD)
         packet['validation']['manifest']['crs'] = crs
+        packet['validation']['province'] = province
         candidate = prep.prepare(packet, source_root=source, staging_root=staging)
         verified = prep.verify(packet, source_root=source, staging_root=staging)
         assert candidate['valid'] and verified['artifacts'] == candidate['artifacts']

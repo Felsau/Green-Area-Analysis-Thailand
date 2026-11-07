@@ -54,7 +54,49 @@ def test_catalog_is_frozen_existing_96_codes_and_boundaries():
     assert ldd._main_code('U101/UNKNOWN', 'U', legend['codes']) is None
     assert ldd._main_code('U101', '', legend['codes']) is None
     assert ldd._main_code('U101', True, legend['codes']) is None
-    assert len(ldd._asset('province_boundaries.json', ldd.BOUNDARY_SHA256)['features']) == 77
+    assert len(ldd._asset('province_boundaries.json', ldd.BOUNDARY_SHA256)['features']) == 77   # the frozen GADM asset
+
+
+OFFICIAL_OUTLINES = {
+    'Bangkok Metropolis', 'Chachoengsao', 'Chai Nat', 'Chanthaburi', 'Chon Buri', 'Kanchanaburi', 'Nakhon Nayok',
+    'Nakhon Pathom', 'Nonthaburi', 'Pathum Thani', 'Phetchaburi', 'Phra Nakhon Si Ayutthaya', 'Prachin Buri',
+    'Prachuap Khiri Khan', 'Ratchaburi', 'Rayong', 'Sa Kaeo', 'Samut Prakan', 'Samut Sakhon', 'Samut Songkhram',
+    'Saraburi', 'Sing Buri', 'Suphan Buri', 'Trat'}
+
+
+def test_boundary_asset_replaces_only_the_provinces_a_package_supplied():
+    shapely_geometry = pytest.importorskip('shapely.geometry')
+    base = ldd._asset('province_boundaries.json', ldd.BOUNDARY_SHA256)
+    asset = ldd._asset(ldd.BOUNDARY_LDD_ASSET, ldd.BOUNDARY_LDD_SHA256)
+    assert asset['metadata']['version'] == 'ldd-boundaries-v1' and asset['metadata']['base_asset_sha256'] == ldd.BOUNDARY_SHA256
+    old = {f['properties']['name']: f for f in base['features']}
+    assert [f['properties']['name'] for f in asset['features']] == [f['properties']['name'] for f in base['features']] and len(old) == 77
+    official = set()
+    for feature in asset['features']:
+        props, name = feature['properties'], feature['properties']['name']
+        assert props['source'] in ldd.BOUNDARY_SOURCES
+        shape = shapely_geometry.shape(feature['geometry'])
+        assert shape.geom_type in ('Polygon', 'MultiPolygon') and shape.is_valid and not shape.is_empty
+        if props['source'] == 'gadm-approx':
+            assert feature['geometry'] == old[name]['geometry']          # the GADM outline is carried over untouched
+            continue
+        official.add(name)
+        assert re.fullmatch('[0-9a-f]{64}', props['package_sha256']) and re.fullmatch('[0-9a-f]{64}', props['shp_sha256'])
+        assert props['data_year_be'] in (2566, 2567, 2568)
+        previous = shapely_geometry.shape(old[name]['geometry'])
+        assert shape.intersection(previous).area / shape.union(previous).area > 0.9   # the same province, only more detailed
+    assert official == OFFICIAL_OUTLINES and len(official) == 24
+
+
+def test_migration_051_names_exactly_the_two_boundary_assets_the_code_pins():
+    """A rebuilt asset or a changed constant must not drift away from the SQL that admits its hash."""
+    migrations = Path(__file__).resolve().parents[1] / 'migrations'
+    sql = (migrations / '051_gis_ldd_boundary_asset.sql').read_text(encoding='utf-8')
+    previous = hashlib.sha256((migrations / '050_gis_ldd_report_audit.sql').read_bytes()).hexdigest()
+    assert set(re.findall(r'[0-9a-f]{64}', sql)) == {ldd.BOUNDARY_LDD_SHA256, ldd.BOUNDARY_SHA256, previous}
+    assert ldd.BOUNDARY_SHA256 in (migrations / '034_ldd_upload.sql').read_text(encoding='utf-8')
+    assert hashlib.sha256((Path(ldd.__file__).parent / ldd.BOUNDARY_LDD_ASSET).read_bytes()).hexdigest() == ldd.BOUNDARY_LDD_SHA256
+    assert not (Path(ldd.__file__).parent / ldd.BOUNDARY_LDD_ASSET).read_bytes().count(b'\n')   # immune to line-ending conversion
 
 
 @pytest.mark.parametrize('change', [

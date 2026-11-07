@@ -77,7 +77,8 @@ def inventory(path, province, year, crs, encoding):
                     warnings=report['warnings'], statistics=report['statistics'], checks=report['checks'],
                     encoding=report['encoding'], field_profile=details['field_profile'],
                     field_mapping=details['field_mapping'], declared_area_units=details['declared_area_units'],
-                    boundary=details['boundary'], repairs=details['repairs'][:20],
+                    boundary=details['boundary'], boundary_source=details['boundary_source'],
+                    boundary_sha256=report['boundary_sha256'], repairs=details['repairs'][:20],
                     unknown_samples=list(details['unknown_samples'].values()), policy=details['policy'])
         return item
     finally:
