@@ -115,7 +115,37 @@ def _source_bytes(request, storage_root):
         raise LddError('LDD_FILE_UNAVAILABLE') from None
 
 
-def guarded_zip(raw):
+def _layer_members(items):
+    """The land-use layer's components among the file members of a package (policy.select_land_use_layer)."""
+    layer = policy.select_land_use_layer([item.filename for item in items])
+    require(layer is not None, 'SHAPEFILE_DATASET_COUNT')
+    stem = str(PurePosixPath(layer).with_suffix('')).casefold()
+    return [item for item in items
+            if PurePosixPath(item.filename).suffix.lower() in policy.LAYER_SUFFIXES
+            and str(PurePosixPath(item.filename).with_suffix('')).casefold() == stem]
+
+
+def layer_archive(parts):
+    """The land-use layer alone as a new in-memory ZIP with fixed ASCII member names.
+
+    GDAL then never sees the rest of the package, its folder names or its member encodings.
+    """
+    output = BytesIO()
+    with zipfile.ZipFile(output, 'w', zipfile.ZIP_STORED) as archive:
+        for suffix in policy.LAYER_SUFFIXES:
+            if suffix in parts:
+                archive.writestr(zipfile.ZipInfo('layer' + suffix, date_time=(1980, 1, 1, 0, 0, 0)), parts[suffix])
+    return output.getvalue()
+
+
+def guarded_zip(raw, *, package=False):
+    """Check every member of an LDD ZIP and return the bytes of the files that will be read.
+
+    ``package=False`` is the frozen pre-v2 rule: every file member must be a shapefile component and
+    all are read. ``package=True`` accepts a province package: the path, size and ratio checks still
+    run for every member, but only the one land-use layer's components are decompressed and returned.
+    The other members (boundary layers, spreadsheets, documents) are never opened.
+    """
     require(0 < len(raw) <= MAX_ZIP_BYTES, 'ZIP_SIZE_LIMIT')
     require(raw[:4] == b'PK\x03\x04', 'ZIP_CORRUPT')
     try:
@@ -145,11 +175,16 @@ def guarded_zip(raw):
                 if item.file_size:
                     require(item.compress_size > 0 and item.file_size / item.compress_size <= 100, 'ZIP_COMPRESSION_RATIO')
                 if not item.is_dir():
-                    require(PurePosixPath(name).suffix.lower() in ('.shp', '.shx', '.dbf', '.prj', '.cpg', '.sbn', '.sbx', '.qix'), 'UNSUPPORTED_ZIP_MEMBER')
+                    suffix = PurePosixPath(name).suffix.lower()
+                    if package:
+                        require(suffix not in policy.BLOCKED_SUFFIXES, 'UNSUPPORTED_ZIP_MEMBER')
+                    else:
+                        require(suffix in ('.shp', '.shx', '.dbf', '.prj', '.cpg', '.sbn', '.sbx', '.qix'), 'UNSUPPORTED_ZIP_MEMBER')
+            readable = [item for item in members if not item.is_dir()]
+            if package:
+                readable = _layer_members(readable)
             files, actual_total = {}, 0
-            for item in members:
-                if item.is_dir():
-                    continue
+            for item in readable:
                 chunks, actual = [], 0
                 with archive.open(item) as stream:
                     while chunk := stream.read(65536):
@@ -358,14 +393,18 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         report['observed_sha256'] = observed
         require(observed == request['manifest']['sha256'], 'LDD_SHA256_MISMATCH')
         report['checks'].append('source_hash_match')
-        files = guarded_zip(raw)
+        files = guarded_zip(raw, package=True)
         report['checks'].append('archive_safety')
-        name, parts = _components(files)
+        _, parts = _components(files)
         count, header_len, record_len = _record_count(parts['.shp'], parts['.shx'], parts['.dbf'])
         report['checks'].append('components')
         encoding = _encoding(parts, request['encoding'], count, header_len, record_len)
         report['encoding'] = encoding
         report['checks'].append('encoding')
+        # GDAL gets the land-use layer alone, under fixed names. The package, the other members and
+        # the bytes already checked are released first, so a large layer is held only once or twice.
+        layer, prj = layer_archive(parts), parts['.prj']
+        files = parts = raw = None
         # Import native dependencies only inside the resource-limited child.
         import fiona
         from fiona.io import ZipMemoryFile
@@ -374,7 +413,7 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         from shapely.geometry import mapping, shape
         from shapely import prepare as prepare_geometry
         try:
-            crs = CRS.from_wkt(parts['.prj'].decode('utf-8-sig', errors='strict'))
+            crs = CRS.from_wkt(prj.decode('utf-8-sig', errors='strict'))
         except Exception:
             raise LddError('CRS_INVALID') from None
         source_crs = request['manifest']['crs']
@@ -408,8 +447,8 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         coordinate_count = 0
         repaired_change = 0.0
         with fiona.Env(GDAL_PAM_ENABLED='NO', GDAL_VRT_ENABLE_PYTHON='NO', GDAL_DISABLE_READDIR_ON_OPEN='YES'):
-            with ZipMemoryFile(raw) as memory:
-                with memory.open(name, enabled_drivers=['ESRI Shapefile'], encoding=encoding) as collection:
+            with ZipMemoryFile(layer) as memory:
+                with memory.open('layer.shp', enabled_drivers=['ESRI Shapefile'], encoding=encoding) as collection:
                     schema = dict(collection.schema['properties'])
                     try:
                         profile_id, mapping_ = policy.resolve_profile(schema)

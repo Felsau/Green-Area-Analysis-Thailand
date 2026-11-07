@@ -20,5 +20,9 @@ docker run --rm --network=none --read-only --cap-drop=ALL --security-opt=no-new-
     --mount "type=bind,src=$($file.DirectoryName),dst=/data,readonly" `
     --entrypoint python3 $image -I -B /app/ldd_inventory.py --province $Province --year $Year --crs $Crs --encoding $Encoding ("/data/" + $file.Name) |
     Out-File -FilePath $out -Encoding utf8
+if ($LASTEXITCODE -ne 0 -or (Get-Item -LiteralPath $out).Length -lt 10) {
+    Remove-Item -LiteralPath $out -ErrorAction SilentlyContinue
+    throw "LDD inventory failed (docker exit code $LASTEXITCODE); nothing was saved. The message above says why."
+}
 Get-Content $out -TotalCount 60
 "Saved: $out"

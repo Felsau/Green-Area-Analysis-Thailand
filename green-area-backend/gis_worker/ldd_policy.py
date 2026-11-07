@@ -20,6 +20,7 @@ Nothing here guesses:
 from __future__ import annotations
 
 import math
+from pathlib import PurePosixPath
 import re
 from types import MappingProxyType
 
@@ -46,6 +47,33 @@ LEGACY_PROFILE = 'ldd-lu-text-v1'
 
 # Numeric LU code -> legend text code. Each entry needs a verified source legend.
 CROSSWALKS = MappingProxyType({})
+
+# ---------------------------------------------------------------- package policy
+# A province package from LDD carries more than the land-use layer: administrative
+# boundary layers, spreadsheets, metadata and documents (Bangkok 2566 has 35 members
+# and four shapefiles). The validator reads ONE layer. Every other member still counts
+# against the size, ratio and path limits but is never decompressed, parsed or handed
+# to GDAL; the layer is re-packed under fixed names before GDAL sees it.
+LAND_USE_PREFIX = 'lu_'                                   # LDD names the layer LU_<province>_<year>.shp
+LAYER_SUFFIXES = ('.shp', '.shx', '.dbf', '.prj', '.cpg')  # the only members that are ever read
+# Nested archives must be unpacked first; the rest are programs, scripts, libraries and GDAL virtual
+# datasets, which have no place in a data package even though they would not be read.
+ARCHIVE_SUFFIXES = frozenset({'.zip', '.7z', '.rar', '.gz', '.tgz', '.tar', '.bz2', '.xz'})
+BLOCKED_SUFFIXES = ARCHIVE_SUFFIXES | frozenset({
+    '.exe', '.dll', '.com', '.bat', '.cmd', '.ps1', '.vbs', '.js', '.jar', '.msi', '.scr', '.lnk',
+    '.sh', '.py', '.pyc', '.so', '.dylib', '.vrt'})
+
+
+def select_land_use_layer(names):
+    """Return the one land-use ``.shp`` among the file members of a package, else None.
+
+    Single-shapefile ZIPs keep today's behaviour (any name). With several shapefiles exactly
+    one must be named ``LU_*`` (any case); zero or several is None. Nothing is guessed.
+    """
+    shapes = [n for n in names if PurePosixPath(n).suffix.lower() == '.shp']
+    if len(shapes) > 1:
+        shapes = [n for n in shapes if PurePosixPath(n).name.casefold().startswith(LAND_USE_PREFIX)]
+    return shapes[0] if len(shapes) == 1 else None
 
 # ---------------------------------------------------------------- geometry policy
 # The boundary asset is approximate (GADM level 1, 161 vertices for Bangkok). The

@@ -12,6 +12,7 @@ import zipfile
 
 import pytest
 
+from gis_worker import ldd_policy as policy
 from gis_worker import ldd_provider as ldd
 from gis_worker.ldd_worker import LddWorker, LddClient
 from gis_worker.worker import WorkerError
@@ -104,6 +105,130 @@ def test_size_limit_corruption_missing_components_and_sidecars():
         ldd._components({'a.shp': b'a'})
     files = ldd.guarded_zip(archive([(f'a.{ext}', b'x') for ext in ('shp', 'shx', 'dbf', 'prj', 'sbn', 'sbx', 'qix')]))
     assert len(ldd._components(files)[1]) == 7
+
+
+# ---- province packages (policy v3, package handling): one land-use layer is read, nothing else is --------------
+
+LAYER_DIR, LAYER = 'Landuse_TST_2566/', 'LU_TST_2566'
+LAYER_NAMES = sorted(f'{LAYER_DIR}{LAYER}.{ext}' for ext in ('cpg', 'dbf', 'prj', 'shp', 'shx'))
+
+
+def fixture_layer(prefix=LAYER_DIR, layer=LAYER, fixture='ldd_valid.zip'):
+    """The components of a real fixture layer, renamed to sit in a package folder."""
+    with zipfile.ZipFile(FIXTURES / fixture) as z:
+        return [(f'{prefix}{layer}.{i.filename.rsplit(".", 1)[1]}', z.read(i)) for i in z.infolist()]
+
+
+def package(extra=(), **kwargs):
+    """What LDD ships: the layer plus boundary layers, a code table, metadata and documents."""
+    others = [(f'{LAYER_DIR}LUCODE.xls', bytes(range(200))), (f'{LAYER_DIR}readme.docx', bytes(range(100, 250))),
+              (f'{LAYER_DIR}{LAYER}.shp.xml', b'<metadata/>'), (f'{LAYER_DIR}{LAYER}.sbn', b'index'),
+              (f'{LAYER_DIR}ขอบเขต/TST_Pro.shp', b'not a shapefile'), (f'{LAYER_DIR}ขอบเขต/TST_Pro.dbf', b'not a table')]
+    return archive(fixture_layer(**kwargs) + others + list(extra), compression=zipfile.ZIP_DEFLATED)
+
+
+@pytest.mark.parametrize('names,expected', [
+    (['a/x.shp'], 'a/x.shp'),                                            # a single shapefile keeps today's behaviour
+    (['LU_BKK_2566.shp', 'B_Pro.shp', 'B_Amp.shp'], 'LU_BKK_2566.shp'),
+    (['d/lu_ptt_2568.SHP', 'd/prov_Pro.shp'], 'd/lu_ptt_2568.SHP'),      # any case
+    (['x/ขอบเขต/กรุงเทพ_Pro.shp', 'x/LU_BKK_2566.shp'], 'x/LU_BKK_2566.shp'),
+    (['A_Pro.shp', 'B_Amp.shp'], None),                                  # several, none of them land use
+    (['LU_A_2566.shp', 'LU_A_2567.shp'], None),                          # two land-use layers: no guessing
+    (['readme.docx', 'sheet.xls'], None), ([], None),
+])
+def test_the_land_use_layer_is_chosen_without_guessing(names, expected):
+    assert policy.select_land_use_layer(names) == expected
+
+
+def test_a_province_package_reads_only_the_land_use_layer(monkeypatch):
+    raw = package()          # built first: writing a ZIP goes through ZipFile.open too
+    opened = []
+    real_open = zipfile.ZipFile.open
+
+    def spy(self, item, *args, **kwargs):
+        opened.append(item.filename if isinstance(item, zipfile.ZipInfo) else item)
+        return real_open(self, item, *args, **kwargs)
+
+    monkeypatch.setattr(zipfile.ZipFile, 'open', spy)
+    files = ldd.guarded_zip(raw, package=True)
+    assert sorted(opened) == sorted(files) == LAYER_NAMES   # no other member is decompressed
+    name, parts = ldd._components(files)
+    assert name == f'{LAYER_DIR}{LAYER}.shp' and set(parts) == {'.shp', '.shx', '.dbf', '.prj', '.cpg'}
+    with zipfile.ZipFile(BytesIO(ldd.layer_archive(parts))) as rebuilt:   # what GDAL is given
+        assert rebuilt.namelist() == ['layer.shp', 'layer.shx', 'layer.dbf', 'layer.prj', 'layer.cpg']
+        assert all(rebuilt.read('layer' + k) == v for k, v in parts.items())
+
+
+def test_the_frozen_rule_still_refuses_a_package():
+    with pytest.raises(ldd.LddError, match='UNSUPPORTED_ZIP_MEMBER'):
+        ldd.guarded_zip(package())
+    with pytest.raises(ldd.LddError, match='SHAPEFILE_DATASET_COUNT'):   # two shapefiles, no package rule
+        ldd._components(ldd.guarded_zip(archive(fixture_layer() + [('other.shp', b'x'), ('other.shx', b'x'), ('other.dbf', b'x')]
+                                                  + [('other.prj', b'x')], compression=zipfile.ZIP_DEFLATED)))
+
+
+@pytest.mark.parametrize('name', ['tool.exe', 'run.py', 'layer.vrt', f'{LAYER_DIR}x.dll', 'go.sh', 'macro.vbs', 'a.JS',
+                                  'inner.zip', f'{LAYER_DIR}ลพบุรี.ZIP', 'x.7z', 'x.tar', 'x.gz'])
+def test_programs_scripts_virtual_datasets_and_nested_archives_are_refused_inside_a_package(name):
+    with pytest.raises(ldd.LddError, match='UNSUPPORTED_ZIP_MEMBER'):
+        ldd.guarded_zip(package([(name, b'x')]), package=True)
+
+
+def test_every_member_is_still_checked_even_when_it_is_never_read():
+    symlink = zipfile.ZipInfo(f'{LAYER_DIR}notes.txt')
+    symlink.create_system = 3
+    symlink.external_attr = (stat.S_IFLNK | 0o777) << 16
+    for member, code in [
+        ((symlink, b'/etc/passwd'), 'ZIP_SYMLINK'),
+        ((f'{LAYER_DIR}../escape.xls', b'x'), 'ZIP_PATH_UNSAFE'),
+        ((f'{LAYER_DIR}C:/escape.xls', b'x'), 'ZIP_PATH_UNSAFE'),
+        ((f'{LAYER_DIR}readme.DOCX', b'x'), 'ZIP_DUPLICATE_NAME'),
+        ((f'{LAYER_DIR}bomb.txt', b'0' * 200000), 'ZIP_COMPRESSION_RATIO'),
+    ]:
+        with pytest.raises(ldd.LddError, match=code):
+            ldd.guarded_zip(package([member]), package=True)
+    with pytest.raises(ldd.LddError, match='ZIP_MEMBER_LIMIT'):
+        ldd.guarded_zip(package([(f'{LAYER_DIR}extra{i}.txt', bytes([i, 1, 2])) for i in range(60)]), package=True)
+
+
+@pytest.mark.parametrize('members,code', [
+    ([('A_Pro.shp', b'x'), ('B_Amp.shp', b'x')], 'SHAPEFILE_DATASET_COUNT'),               # several, none land use
+    ([('LU_A_2566.shp', b'x'), ('LU_A_2567.shp', b'x')], 'SHAPEFILE_DATASET_COUNT'),       # two land-use layers
+    ([('readme.docx', b'x'), ('sheet.xls', b'x')], 'SHAPEFILE_DATASET_COUNT'),             # no shapefile at all
+])
+def test_a_package_without_exactly_one_land_use_layer_is_refused(members, code):
+    with pytest.raises(ldd.LddError, match=code):
+        ldd.guarded_zip(archive(members), package=True)
+
+
+def test_a_province_package_gives_the_same_result_as_its_layer_alone(tmp_path):
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    alone = ldd.validate(store(tmp_path, (FIXTURES / 'ldd_valid.zip').read_bytes()), storage_root=tmp_path)
+    packed_raw = package()
+    packed = ldd.validate(store(tmp_path, packed_raw), storage_root=tmp_path)
+    assert alone['valid'] is True and packed['valid'] is True
+    for key in ('valid', 'error_code', 'errors', 'warnings', 'statistics', 'checks', 'encoding', 'audit'):
+        assert packed[key] == alone[key], key
+    assert packed['artifact_sha256'] != alone['artifact_sha256']
+    # The pre-v2 validator is frozen: it still refuses what only the package rule accepts.
+    legacy = ldd.validate_legacy_v1(request(packed_raw), storage_root=tmp_path)
+    assert legacy['valid'] is False and {'code': 'UNSUPPORTED_ZIP_MEMBER', 'count': 1} in legacy['errors']
+
+
+def test_a_layer_in_a_legacy_encoded_folder_name_is_read(tmp_path):
+    """Real LDD ZIPs name folders in Thai without the UTF-8 flag; GDAL never sees those names."""
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    placeholder = 'AAAAAA'
+    thai = 'ขอบเขต'.encode('cp874')
+    assert len(thai) == len(placeholder)
+    raw = archive(fixture_layer(prefix=placeholder + '/', layer='LU_TST_2566')
+                  + [(f'{placeholder}/BBBBBB_Pro.shp', b'not a shapefile')], compression=zipfile.ZIP_DEFLATED)
+    raw = raw.replace(placeholder.encode(), thai)
+    assert thai in raw
+    result = ldd.validate(store(tmp_path, raw), storage_root=tmp_path)
+    assert result['valid'] is True and result['statistics']['feature_count'] == 3
 
 
 @pytest.mark.parametrize('fixture,outcome,accepted,review', [

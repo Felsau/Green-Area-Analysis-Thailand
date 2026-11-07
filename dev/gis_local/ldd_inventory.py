@@ -29,8 +29,13 @@ import sys
 import tempfile
 from uuid import uuid4
 
+def source_roots(here):
+    """Folders that may hold gis_worker. Mounted at /app (the Windows wrapper), `here` has no grandparent."""
+    return [here, here.parent] + [p / 'green-area-backend' for p in here.parents[1:2]]
+
+
 HERE = Path(__file__).resolve().parent
-for candidate in (HERE, HERE.parent, HERE.parents[1] / 'green-area-backend'):
+for candidate in source_roots(HERE):
     if (candidate / 'gis_worker' / 'ldd_provider.py').is_file():
         sys.path.insert(0, str(candidate))
         break
@@ -41,9 +46,9 @@ from gis_worker import ldd_provider as ldd  # noqa: E402
 def schema_of(raw, encoding):
     import fiona
     from fiona.io import ZipMemoryFile
-    name, _ = ldd._components(ldd.guarded_zip(raw))
-    with ZipMemoryFile(raw) as memory:
-        with memory.open(name, enabled_drivers=['ESRI Shapefile'], encoding=encoding) as collection:
+    name, parts = ldd._components(ldd.guarded_zip(raw, package=True))
+    with ZipMemoryFile(ldd.layer_archive(parts)) as memory:
+        with memory.open('layer.shp', enabled_drivers=['ESRI Shapefile'], encoding=encoding) as collection:
             return {'layer': name, 'crs': collection.crs.to_string() if collection.crs else None,
                     'fields': dict(collection.schema['properties']), 'geometry_type': collection.schema['geometry'],
                     'feature_count': len(collection), 'bounds': [round(v, 3) for v in collection.bounds]}

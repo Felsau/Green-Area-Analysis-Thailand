@@ -13,6 +13,18 @@ Updated 6 November 2026. Scope: findings 3 and 4 of the 3 November 2026 external
 
 Exceptions from GDAL/OGR/GEOS/PROJ are reported as `SHAPEFILE_READ_ERROR`; any other unexpected exception is `NATIVE_PROCESS_FAILED`, so a code fault is never shown as a file defect. Every parcel is counted. The local inventory also counts parcels per category (`feature_outcomes`). Nothing is dropped, clipped or reduced to its largest part.
 
+## Province packages
+
+An LDD province package carries more than the land-use layer: administrative boundary layers (district, province, subdistrict), a code table, metadata and documents. Bangkok 2566 has 35 members and four shapefiles. The validator reads one layer only.
+
+- The land-use layer is the only `.shp` in the ZIP or, when there are several, the only one named `LU_*` (any case). Zero or several candidates fail with `SHAPEFILE_DATASET_COUNT`; nothing is guessed.
+- Only that layer's `.shp .shx .dbf .prj .cpg` are decompressed. They are re-packed under fixed names (`layer.shp`, ...) and only that archive is given to GDAL, so the other members, the folder names and their encodings never reach it.
+- Every member still counts against the same limits: at most 64 members, 20 MiB per member, 80 MiB expanded, a compression ratio of 100, safe paths, no links, no encryption. The limits themselves are unchanged.
+- Programs, scripts, libraries, GDAL virtual datasets (`.vrt`) and nested archives are refused (`UNSUPPORTED_ZIP_MEMBER`; the upload API answers `GIS_LDD_ZIP_UNSAFE`, or `GIS_LDD_ZIP_NESTED` for an archive inside the ZIP). Other members are not judged by type, because they are never read.
+- The frozen pre-v2 validator keeps its old rule (every member must be a shapefile component). A package that only this rule accepts is therefore a v2-only dataset (`PREPARE_METHOD_V2_REQUIRED`, as for any v2-only dataset).
+- The stored original is the package itself, byte for byte. No report key, check or migration changed.
+- On the 26 real central-region packages the rule accepts 6. The others are blocked by the size limits, and the cause is the land-use layer itself (its `.dbf` is up to 148 MiB), not the other members (at most 1.2 MiB each). One package is a ZIP inside a ZIP.
+
 ## Fields: `ldd-lu-text-v1`
 
 The profile maps roles to field names: `LUL1_CODE` → main_code, `LU_CODE` → lu_code, `Shape_Area` → declared_area (m² only in EPSG:32647/32648).
@@ -64,13 +76,23 @@ These thresholds were set before any real file was available, and no sample was 
 
 ## Real data
 
-Status: NOT VERIFIED. The repository contains no real LDD file (Bangkok 2566/2023, or the six provinces for 2568/2025). The figures "158 out-of-bound parcels" and "6 geometry/area issues" have not been confirmed. Check them with:
+Status: VERIFIED for Bangkok 2566/2023 (7 Nov 2026, see below). NOT VERIFIED for the six provinces for 2568/2025. The repository still contains no real LDD file. Check a file with:
 
 ```powershell
 .\dev\gis_local\run_ldd_inventory.ps1 -Zip 'D:\ldd\bkk_2566.zip' -Province 'Bangkok Metropolis' -Year 2023
 ```
 
 The inventory is read-only. It reports the filename, SHA256, CRS, schema and field types, feature count, profile, the four outcome counts, reasons, samples and repairs.
+
+Bangkok 2566 (`Landuse_Bangkok_2566_.zip`, 5,515,403 bytes, SHA256 starting `c3ef854c`; kept outside the repository):
+
+- The figures "158 out-of-bound parcels" and "6 geometry/area issues" are reproduced exactly by the frozen pre-v2 validator (approximate GADM boundary plus a 0.002 degree buffer): `OUTSIDE_PROVINCE` 158, `GEOMETRY_INVALID` 6, `AREA_MISMATCH` 6. The six are self-intersecting rings; policy v2 repairs them with no change in area.
+- Policy v2 with the pinned boundary asset rejects the land-use layer: 133 parcels `OUTSIDE_PROVINCE`, 20 for review, 362 minor warnings (25.5 km² outside, 1.63 % of the total, the farthest point 1,694 m beyond the line). The asset has 161 vertices for Bangkok and differs from the official boundary by 3.3 % of its area.
+- The same file with the official province boundary shipped in the same package (1,841 vertices, swapped in memory for the test, the asset itself untouched) is accepted with warnings: no rejected or review parcels, 644 minor warnings, 1.1 m² outside in total.
+- As distributed (35 members: four shapefiles, `.docx`, `.xls`, `.xlsx`, `.xml`, `.sbn`, `.sbx`, nested folders) the ZIP is rejected with `UNSUPPORTED_ZIP_MEMBER`; only the `LU_BKK_2566` layer was validated, repacked outside the repository.
+- Under the worker's child limits (`RLIMIT_CPU` 20 s, `RLIMIT_AS` 512 MiB) the 11,073 parcels took 2.6 s of CPU and 273 MiB of address space at most.
+
+The other 25 central-region packages (2566-2568) were surveyed too. None passes today: package layout, the 2568 field layout, `.cpg` and `.prj` variants, legend coverage and the size limits each block some of them. Neither the boundary asset nor the policy has been changed yet.
 
 ## Proposed forward migration 049 (not written, not applied, needs approval)
 

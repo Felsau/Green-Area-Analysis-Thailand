@@ -14,6 +14,7 @@ const messages = {
 const lddMessages = {
   GIS_LDD_ZIP_UNSAFE: 'ZIP ไม่ปลอดภัย มี Path, Link หรือขนาดขยายที่ไม่อนุญาต',
   GIS_LDD_ZIP_INVALID: 'ไฟล์ไม่ใช่ ZIP ที่อ่านได้ หรือ ZIP ไม่สมบูรณ์',
+  GIS_LDD_ZIP_NESTED: 'ZIP นี้มี ZIP ซ้อนอยู่ข้างใน กรุณาแตกออกแล้วบีบอัดเฉพาะแพ็กเกจชั้นการใช้ที่ดินใหม่',
   GIS_LDD_UPLOAD_BUSY: 'มีการอัปโหลดอยู่ กรุณารอสักครู่แล้วลองคำสั่งเดิม',
   GIS_UPLOADED_EDITION_IMMUTABLE: 'ไฟล์ต้นฉบับแก้ไขไม่ได้ กรุณาอัปโหลดเป็นฉบับใหม่',
   GIS_LDD_DATASET_REQUIRED: 'ต้องเลือก Dataset LDD รายปี',

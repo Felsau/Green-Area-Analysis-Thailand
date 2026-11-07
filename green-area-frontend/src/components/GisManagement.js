@@ -250,6 +250,7 @@ function NativeReport({ report }) {
     MISSING_COMPONENT_DBF: 'ขาดไฟล์ .dbf', MISSING_COMPONENT_SHP: 'ขาดไฟล์ .shp', MISSING_COMPONENT_SHX: 'ขาดไฟล์ .shx', MISSING_COMPONENT_PRJ: 'ขาดไฟล์ .prj',
     CRS_MISMATCH: 'CRS ในไฟล์ไม่ตรงกับที่เลือก', OUTSIDE_PROVINCE: 'รูปพื้นที่อยู่นอกจังหวัดที่เลือก', ENCODING_INVALID: 'อ่านตัวอักษรตาม Encoding ไม่ได้',
     ENCODING_UNSPECIFIED: 'ไม่พบ Encoding กรุณาระบุหรือเพิ่มไฟล์ .cpg', GEOMETRY_INVALID: 'รูปพื้นที่ไม่สมบูรณ์',
+    SHAPEFILE_DATASET_COUNT: 'ไม่พบชั้นการใช้ที่ดิน (LU_*.shp) เพียงชั้นเดียวใน ZIP', UNSUPPORTED_ZIP_MEMBER: 'ZIP มีไฟล์ประเภทที่ไม่อนุญาต (โปรแกรม สคริปต์ ไฟล์ VRT หรือ ZIP ซ้อน)',
     SOURCE_HASH_MISMATCH: 'SHA256 ของไฟล์ไม่ตรงกับต้นฉบับ', LDD_SHA256_MISMATCH: 'SHA256 ของไฟล์ไม่ตรงกับต้นฉบับ',
     NATIVE_MEMORY_LIMIT: 'ไฟล์นี้ใช้หน่วยความจำเกินขีดจำกัดการประมวลผล ยังไม่ได้รับการยืนยันว่าข้อมูล GIS ผิด',
     NATIVE_TIMEOUT: 'ประมวลผลนานเกินเวลาที่กำหนด ยังไม่ได้รับการยืนยันว่าข้อมูล GIS ผิด',
