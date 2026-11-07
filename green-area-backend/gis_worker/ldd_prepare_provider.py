@@ -138,7 +138,7 @@ def _build_v2(request, result, details):
     meta.update(schema_version=2, province=validation['province'], data_year=validation['data_year'], month=0,
         input_hash=validation['input_hash'], input_revision=validation['input_revision'],
         source_sha256=validation['manifest']['sha256'], boundary_sha256=result['boundary_sha256'],
-        legend_sha256=ldd.LEGEND_SHA256, display_crs='EPSG:4326', area_units='m2',
+        legend_sha256=ldd.LEGEND_V2_SHA256, display_crs='EPSG:4326', area_units='m2',
         area_method=ldd.policy.AREA_METHOD, policy=details['policy'], validation_outcome=details['outcome'],
         field_profile=details['field_profile'], field_mapping=details['field_mapping'],
         declared_area_units=details['declared_area_units'], repairs=details['repairs'],

@@ -57,6 +57,24 @@ def test_catalog_is_frozen_existing_96_codes_and_boundaries():
     assert len(ldd._asset('province_boundaries.json', ldd.BOUNDARY_SHA256)['features']) == 77   # the frozen GADM asset
 
 
+def test_second_legend_keeps_every_first_legend_entry_and_adds_the_official_table():
+    first = ldd._asset('ldd_codes.json', ldd.LEGEND_SHA256)['codes']
+    second = ldd._asset(ldd.LEGEND_V2_ASSET, ldd.LEGEND_V2_SHA256)
+    codes = second['codes']
+    assert all(codes[code] == entry for code, entry in first.items())      # nothing accepted before is refused now
+    assert second['version'] == 'ldd-codes-v2' and second['base_asset_sha256'] == ldd.LEGEND_SHA256
+    assert second['official_table']['codes'] == 232 and second['official_table']['identical_in_packages'] == 24
+    assert second['carried_from_first_legend'] == ['A800']                  # in the Bangkok legend, not in the official table
+    assert len(codes) == 256 and len([c for c in codes if '/' not in c]) == 233
+    classes = policy.main_classes(codes)                                      # one class per letter, five classes
+    assert dict(classes) == {'U': 1, 'A': 2, 'F': 3, 'W': 4, 'M': 5}
+    assert all(entry[0] == classes[code[0]] for code, entry in codes.items() if '/' not in code)
+    for code in ('A205', 'A302', 'A203', 'A403', 'A204', 'U406'):         # the codes real files use most outside the first legend
+        assert code in codes
+    assert all(c not in first for c in ('A205', 'A302', 'A203', 'A403', 'A204'))
+    assert all(isinstance(entry[1], str) and entry[1] and isinstance(entry[2], str) for entry in codes.values())
+
+
 OFFICIAL_OUTLINES = {
     'Bangkok Metropolis', 'Chachoengsao', 'Chai Nat', 'Chanthaburi', 'Chon Buri', 'Kanchanaburi', 'Nakhon Nayok',
     'Nakhon Pathom', 'Nonthaburi', 'Pathum Thani', 'Phetchaburi', 'Phra Nakhon Si Ayutthaya', 'Prachin Buri',

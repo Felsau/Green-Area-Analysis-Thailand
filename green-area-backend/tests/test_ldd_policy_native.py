@@ -222,6 +222,37 @@ def test_text_integer_float_numeric_codes(tmp_path, bkk, schema, main, code, exp
         assert stats['composite_feature_count'] == 1  # composite never lost, known or not
 
 
+def test_codes_of_the_official_table_outside_the_first_legend_are_accepted(tmp_path, bkk):
+    first = ldd._asset('ldd_codes.json', ldd.LEGEND_SHA256)['codes']
+    assert 'A205' not in first and 'A302' not in first
+    raw = make_zip([parcel(inside_square(bkk), 'A', 'A205'), parcel(inside_square(bkk, 300), 'A', 'A205/A302')])
+    report, details = run(tmp_path, raw)
+    assert report['valid'] and details['outcome'] == 'accepted' and report['statistics']['unknown_code_count'] == 0
+    assert report['statistics']['area_by_main_m2']['A'] == pytest.approx(20000) and report['statistics']['composite_feature_count'] == 1
+    # The frozen pre-v2 validator keeps the first legend, so it still refuses what only the second one knows.
+    legacy = ldd.validate_legacy_v1(request(raw), storage_root=tmp_path)
+    assert legacy['valid'] is False and legacy['error_code'] == 'UNKNOWN_CODE_REVIEW_REQUIRED'
+
+
+def test_a_plus_between_codes_of_one_class_is_accepted_with_a_visible_warning(tmp_path, bkk):
+    raw = make_zip([parcel(inside_square(bkk), 'A', 'A101+A202'), parcel(inside_square(bkk, 300), 'A', 'A101/A202')])
+    report, details = run(tmp_path, raw)
+    assert report['valid'] and report['statistics']['unknown_code_count'] == 0
+    assert report['statistics']['composite_feature_count'] == 2 and report['statistics']['area_by_main_m2']['A'] == pytest.approx(20000)
+    assert codes(report['warnings'])['COMPOSITE_PLUS_SEPARATOR'] == 1          # only the "+" parcel, the "/" one is plain
+    assert details['outcome'] == 'accepted_with_warnings'
+    assert details['feature_outcomes'] == {'accepted': 1, 'accepted_with_warnings': 1, 'review_required': 0, 'rejected': 0}
+
+
+def test_a_plus_joining_classes_is_reviewed_not_guessed(tmp_path, bkk):
+    raw = make_zip([parcel(inside_square(bkk), 'A', 'M201+A101'), parcel(inside_square(bkk, 300))])
+    report, details = run(tmp_path, raw)
+    assert not report['valid'] and report['error_code'] == 'UNKNOWN_CODE_REVIEW_REQUIRED' and details['outcome'] == 'review_required'
+    (sample,) = details['unknown_samples'].values()
+    assert sample['value'] == 'M201+A101' and sample['reason'] == 'LU_CODE_MAIN_CONFLICT' and sample['count'] == 1
+    assert 'COMPOSITE_PLUS_SEPARATOR' not in codes(report['warnings'])
+
+
 # ------------------------------------------------------------ boundary
 
 def test_slightly_outside_is_a_warning_far_outside_is_rejected(tmp_path, bkk):
@@ -425,6 +456,7 @@ def test_v2_preparation_uses_the_same_derived_geometry_and_area_as_validation(tm
     meta = summary['metadata']
     assert meta['method_version'] == 'ldd-geometry-area-v2' and meta['area_method'] == 'geometry-area-utm-v1'
     assert meta['boundary_sha256'] == ldd.BOUNDARY_LDD_SHA256 == report['boundary_sha256']   # the asset validation read
+    assert meta['legend_sha256'] == ldd.LEGEND_V2_SHA256                                       # and the legend it read
     assert meta['field_mapping']['declared_area'] == 'Shape_Area' and meta['repaired_feature_count'] == 1
     assert meta['validation_outcome'] == 'accepted_with_warnings'
     first, second = geometry['features']

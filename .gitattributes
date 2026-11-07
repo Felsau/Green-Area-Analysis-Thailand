@@ -42,3 +42,4 @@
 /green-area-backend/gis_worker/ldd_codes.json -text
 /green-area-backend/gis_worker/province_boundaries.json -text
 /green-area-backend/gis_worker/province_boundaries_ldd.json -text
+/green-area-backend/gis_worker/ldd_codes_v2.json -text

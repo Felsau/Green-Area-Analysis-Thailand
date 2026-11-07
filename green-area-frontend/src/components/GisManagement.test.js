@@ -85,6 +85,14 @@ test.each([
   if (warnings.length) expect(screen.getByText(/ซ่อมรูปร่างที่ผิดรูปเล็กน้อยแล้ว/)).toHaveTextContent('(6)');
 });
 
+test('a plus-separated composite code is shown as a warning, not hidden and not a failure', async () => {
+  const report = lddReport([], [{ code: 'COMPOSITE_PLUS_SEPARATOR', count: 34 }], true);
+  gisRequest.mockImplementation((path, options) => path === `/jobs/${job.id}` ? Promise.resolve({ ...job, state: 'succeeded', result: { report } }) : respond(path, options));
+  show(); await openJob();
+  expect(await screen.findByText('จำแนกผล: ผ่านพร้อมข้อสังเกต (Accepted with Warnings)')).toBeInTheDocument();
+  expect(screen.getByText(/รหัสผสมที่คั่นด้วย \+ อ่านเป็นรหัสผสมแบบ \//)).toHaveTextContent('(34)');
+});
+
 test('GeoTIFF report separates file validation from analysis and activation', async () => {
   const report = { provider_build: 'geotiff-local-v1', valid: true, metadata: { profile: 'ndvi_ready',
     crs: 'EPSG:32647', bands: ['NDVI'], resolution: [10,10], dtype: 'float32', nodata: -9999,

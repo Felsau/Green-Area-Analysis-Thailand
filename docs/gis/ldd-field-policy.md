@@ -34,9 +34,10 @@ The profile maps roles to field names: `LUL1_CODE` → main_code, `LU_CODE` → 
 - The profile ID and the actual field names are recorded in two places: in the validation report as the warning `FIELD_PROFILE_LDD_LU_TEXT_V1`, and in full in the preparation v2 metadata and the inventory output.
 - More profiles (for example for the six 2025 provinces) can be added only from a real file's recorded schema. Run `ldd_inventory.py` on the file, add a new profile with that provenance, and have it reviewed. None is added yet, because those files are not in the repository.
 
-## Codes: `ldd-code-legend-v1`
+## Codes: `ldd-code-legend-v2`
 
-- Text LU codes, including composites, are looked up in the hash-pinned legend (Bangkok 2566, 96 codes).
+- Text LU codes are looked up in the hash-pinned second legend (`ldd_codes_v2.json`, 256 entries, rebuilt with `dev/gis_local/run_build_ldd_legend.ps1`): the 232 codes of the producer's official table (sheet 1 of `LUCODE.xls`, identical in the 24 packages that carry it; the class comes from the letter, U A F W M = 1 to 5) plus everything in the first legend (Bangkok 2566, 96 codes). The first legend stays frozen for the pre-v2 validator and v1 preparation. `A800` and the 23 composites of the first legend are not in the official table and are carried over, so nothing accepted before is refused now; for a code in both, the first legend's text is kept.
+- A composite is up to eight codes joined by `/`. It is accepted when it is listed whole (such as `U201/A401`) or when every part is a legend code of the parcel's own class. A value joined by `+` is read the same way only when every part is of the parcel's own class, and then it adds the warning `COMPOSITE_PLUS_SEPARATOR` (731 parcels in the central-region files). A `+` that joins classes, such as `M201+A101`, stays unknown and needs review. The two separators are never mixed in one value.
 - The main code may be a letter, an integer, an integral float or a numeric string. The letter↔number pairing is derived from the legend and must agree with the old fixed pairing. Values other than plain integers add the warning `NUMERIC_MAIN_CODE_NORMALISED`.
 - Numeric LU codes need an approved crosswalk with recorded provenance. `CROSSWALKS` is empty, so these codes are counted as unknown (reason `NUMERIC_CODE_NO_APPROVED_CROSSWALK`) and need review. They are never mapped to U/A/F/W/M by assumption.
 - For unknown codes the count, the area and up to 10 samples (value, main code, reason) are kept.
@@ -102,7 +103,7 @@ Bangkok 2566 (`Landuse_Bangkok_2566_.zip`, 5,515,403 bytes, SHA256 starting `c3e
 - As distributed (35 members: four shapefiles, `.docx`, `.xls`, `.xlsx`, `.xml`, `.sbn`, `.sbx`, nested folders) the ZIP was rejected with `UNSUPPORTED_ZIP_MEMBER` before the package rule; see Province packages.
 - Under the worker's child limits (`RLIMIT_CPU` 20 s, `RLIMIT_AS` 512 MiB) the 11,073 parcels took 2.7 s of CPU and 288 MiB of address space at most.
 
-The other 25 central-region packages (2566-2568) were surveyed too. None passes today: the 2568 field layout, `.cpg` and `.prj` variants, legend coverage and the size limits each block some of them.
+The 26 central-region packages (2566-2568) were surveyed too; 25 land-use layers could be read (one package is a ZIP inside a ZIP). Of their 1,074,856 parcels, 1,038,164 carry a single code: 176 of the 177 codes used are in the official table and the 177th, `A800` (15 parcels), is in the first legend. Every part of every composite is an official code: 35,961 parcels join with `/` and 731 with `+`. With the second legend and the package rule, Sing Buri 2566 (1,116 parcels had unknown codes before), Nonthaburi 2567 (62) and Samut Prakan 2567 (11) are accepted with warnings as distributed. The others are blocked by the 2568 field layout (`Area_Sqm`, and for six provinces no `LUL1_CODE`), the `.cpg` and `.prj` variants and the size limits.
 
 ## Proposed forward migration 049 (not written, not applied, needs approval)
 

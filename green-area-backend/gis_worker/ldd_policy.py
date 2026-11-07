@@ -28,7 +28,7 @@ POLICY_VERSION = 'ldd-policy-v2'
 AREA_METHOD = 'geometry-area-utm-v1'
 GEOMETRY_POLICY = 'ldd-geometry-repair-v1'
 BOUNDARY_POLICY = 'boundary-tolerance-m-v1'
-CODE_POLICY = 'ldd-code-legend-v1'
+CODE_POLICY = 'ldd-code-legend-v2'
 
 # ---------------------------------------------------------------- field profiles
 # role -> exact source field name (matched case-insensitively, duplicates rejected)
@@ -102,7 +102,7 @@ REVIEW = frozenset({'UNKNOWN_CODE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_REVIEW_REQ
                     'BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED', 'AREA_DECLARED_MISMATCH_REVIEW_REQUIRED',
                     'GEOMETRY_REPAIR_LIMIT_REVIEW_REQUIRED'})
 MINOR = frozenset({'GEOMETRY_REPAIRED', 'BOUNDARY_OUTSIDE_MINOR', 'AREA_DECLARED_MINOR_DIFF',
-                   'DECLARED_AREA_UNITS_UNVERIFIED', 'NUMERIC_MAIN_CODE_NORMALISED'})
+                   'DECLARED_AREA_UNITS_UNVERIFIED', 'NUMERIC_MAIN_CODE_NORMALISED', 'COMPOSITE_PLUS_SEPARATOR'})
 GEOMETRY_CODES = frozenset({'GEOMETRY_TYPE', 'GEOMETRY_EMPTY', 'GEOMETRY_INVALID', 'GEOMETRY_REPAIR_TYPE_CHANGED',
                             'GEOMETRY_REPAIR_AREA_CHANGED', 'OUTSIDE_PROVINCE', 'BOUNDARY_OUTSIDE_REVIEW_REQUIRED'})
 
@@ -148,7 +148,9 @@ def declared_area_units(profile_id, crs):
 
 
 # ---------------------------------------------------------------- codes
-_TEXT_CODE = re.compile(r'[UAFWM][0-9]{3}(?:/[UAFWM][0-9]{3}){0,7}')
+# A code, or up to eight codes joined by "/" or all joined by "+" (never both in one value). Real LDD files
+# join with "/" in 36,000 parcels and with "+" in 731; every part of both is an official code.
+_TEXT_CODE = re.compile(r'[UAFWM][0-9]{3}(?:/[UAFWM][0-9]{3}){0,7}|[UAFWM][0-9]{3}(?:\+[UAFWM][0-9]{3}){1,7}')
 _NUMERIC_TEXT = re.compile(r'[0-9]{1,9}(?:\.0+)?')
 
 
@@ -195,24 +197,30 @@ def classify(lu_value, main_value, legend, classes):
     """Return dict(classification, code_key, composite, reason, normalised)."""
     main, normalised = parse_main(main_value, classes)
     result = {'classification': None, 'code_key': _code_key(lu_value), 'composite': False,
-              'reason': None, 'normalised': normalised}
+              'reason': None, 'normalised': normalised, 'plus_separator': False}
     if main is None:
         result['reason'] = 'MAIN_CODE_UNRECOGNISED'
         return result
     if isinstance(lu_value, str) and _TEXT_CODE.fullmatch(lu_value.strip()):
         code = lu_value.strip()
+        plus = '+' in code
+        parts = code.split('+' if plus else '/')
         result['code_key'] = code
-        result['composite'] = '/' in code
+        result['composite'] = len(parts) > 1
         number = classes[main]
-        if code in legend:
+        if plus:
+            # "+" reads as "/" only when every part is a legend code of the parcel's own class; a value joining
+            # classes is never guessed, and it is reported (COMPOSITE_PLUS_SEPARATOR) so the reading stays visible.
+            ok = all(p in legend and legend[p][0] == number for p in parts)
+            result['plus_separator'] = ok
+        elif code in legend:
             ok = legend[code][0] == number
         else:
-            parts = code.split('/')
             ok = len(parts) > 1 and all(p in legend and legend[p][0] == number for p in parts)
         if ok:
             result['classification'] = main
         else:
-            result['reason'] = 'LU_CODE_NOT_IN_LEGEND' if not all(p in legend for p in code.split('/')) else 'LU_CODE_MAIN_CONFLICT'
+            result['reason'] = 'LU_CODE_NOT_IN_LEGEND' if not all(p in legend for p in parts) else 'LU_CODE_MAIN_CONFLICT'
         return result
     if isinstance(lu_value, str) and '/' in lu_value:
         result['composite'] = True

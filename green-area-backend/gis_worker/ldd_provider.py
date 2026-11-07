@@ -33,7 +33,12 @@ BOUNDARY_SHA256 = 'ac2b28255f22861ab644bf083fa40f28dd9da1294648d4b01cfc6f9cdc156
 BOUNDARY_LDD_ASSET = 'province_boundaries_ldd.json'
 BOUNDARY_LDD_SHA256 = '1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac'
 BOUNDARY_SOURCES = ('gadm-approx', 'ldd-package')
+# The first legend (Bangkok 2566, 96 codes) is frozen: the pre-v2 validator and v1 preparation pin it.
 LEGEND_SHA256 = '34069bca1cf06474fab22f8b7211f91d4dc5d4deb37c0fec414efd05c63afbde'
+# Policy-v2 validation reads the second legend: the producer's official code table (LUCODE.xls, 232 codes) plus
+# everything in the first legend. Built by dev/gis_local/build_ldd_legend.py. No database rule pins either hash.
+LEGEND_V2_ASSET = 'ldd_codes_v2.json'
+LEGEND_V2_SHA256 = '652caf811b25e7234807ab417afb17fdc48edd9c52d8fb0e81cfa0b8dc058830'
 MAX_ZIP_BYTES = 20 * 1024**2
 MAX_EXPANDED_BYTES = 80 * 1024**2
 MAX_MEMBER_BYTES = 20 * 1024**2
@@ -434,7 +439,7 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         require(boundary is not None, 'PROVINCE_UNKNOWN')
         details['boundary_source'] = boundary['properties'].get('source')
         require(details['boundary_source'] in BOUNDARY_SOURCES, 'VALIDATION_ASSET_INVALID')
-        legend = _asset('ldd_codes.json', LEGEND_SHA256)['codes']
+        legend = _asset(LEGEND_V2_ASSET, LEGEND_V2_SHA256)['codes']
         try:
             classes = policy.main_classes(legend)
         except policy.PolicyError:
@@ -555,6 +560,8 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
                             stats['composite_feature_count'] += 1
                         if result['normalised']:
                             warn('NUMERIC_MAIN_CODE_NORMALISED'); notes.add('NUMERIC_MAIN_CODE_NORMALISED')
+                        if result['plus_separator']:
+                            warn('COMPOSITE_PLUS_SEPARATOR'); notes.add('COMPOSITE_PLUS_SEPARATOR')
                         if result['classification'] is None:
                             stats['unknown_code_count'] += 1
                             stats['unknown_area_m2'] += area

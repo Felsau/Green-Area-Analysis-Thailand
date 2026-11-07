@@ -268,7 +268,8 @@ function NativeReport({ report }) {
     BOUNDARY_OUTSIDE_MINOR: 'แปลงเกินเขตจังหวัดเล็กน้อยภายในเกณฑ์ (เส้นเขตเป็นค่าประมาณ)',
     AREA_DECLARED_MINOR_DIFF: 'พื้นที่ที่บันทึกต่างจากที่คำนวณเล็กน้อย ใช้พื้นที่จากรูปแปลง',
     DECLARED_AREA_UNITS_UNVERIFIED: 'ยืนยันหน่วยของพื้นที่ที่บันทึกไม่ได้ จึงไม่นำมาเทียบ',
-    NUMERIC_MAIN_CODE_NORMALISED: 'แปลงรหัสหลักแบบตัวเลขตาม Legend ที่อนุมัติ' };
+    NUMERIC_MAIN_CODE_NORMALISED: 'แปลงรหัสหลักแบบตัวเลขตาม Legend ที่อนุมัติ',
+    COMPOSITE_PLUS_SEPARATOR: 'รหัสผสมที่คั่นด้วย + อ่านเป็นรหัสผสมแบบ / เพราะทุกส่วนเป็นรหัสทางการของหมวดเดียวกัน' };
   const reviewCodes = ['UNKNOWN_CODE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED',
     'AREA_DECLARED_MISMATCH_REVIEW_REQUIRED', 'GEOMETRY_REPAIR_LIMIT_REVIEW_REQUIRED'];
   const errorCodes = (Array.isArray(report.errors) ? report.errors : []).map(e => String(e?.code || ''));

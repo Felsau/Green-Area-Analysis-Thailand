@@ -76,6 +76,31 @@ def test_code_rules_text_integer_float_numeric_string(lu, main, expected, normal
         assert result['normalised'] is normalised
 
 
+@pytest.mark.parametrize('lu,main,expected,reason', [
+    ('A300+A400', 'A', 'A', None),                        # "+" reads as "/" when every part is of the parcel's class
+    (' A300+A400+A101 ', ' A ', 'A', None),
+    ('A300+A400', 'U', None, 'LU_CODE_MAIN_CONFLICT'),    # right codes, wrong class for the parcel
+    ('A300+U101', 'A', None, 'LU_CODE_MAIN_CONFLICT'),    # a "+" joining classes is never guessed
+    ('A300+U101', 'U', None, 'LU_CODE_MAIN_CONFLICT'),
+    ('A300+A999', 'A', None, 'LU_CODE_NOT_IN_LEGEND'),
+    ('A300/A400+A101', 'A', None, 'LU_CODE_UNRECOGNISED'),   # the two separators are never mixed in one value
+    ('A300+', 'A', None, 'LU_CODE_UNRECOGNISED'),
+])
+def test_a_plus_between_codes_is_a_composite_only_inside_one_class(lu, main, expected, reason):
+    result = policy.classify(lu, main, LEGEND, CLASSES)
+    assert result['classification'] == expected and result['reason'] == reason
+    assert result['plus_separator'] is (expected is not None)
+    if '+' in lu and reason != 'LU_CODE_UNRECOGNISED':
+        assert result['composite'] is True
+
+
+def test_the_slash_reading_does_not_set_the_plus_flag_and_plus_has_a_minor_code():
+    assert policy.classify('A300/A400', 'A', LEGEND, CLASSES)['plus_separator'] is False
+    assert policy.classify('A101', 'A', LEGEND, CLASSES)['plus_separator'] is False
+    assert 'COMPOSITE_PLUS_SEPARATOR' in policy.MINOR
+    assert policy.outcome({}, {'COMPOSITE_PLUS_SEPARATOR': 3}) == 'accepted_with_warnings'
+
+
 def test_unknown_and_composite_values_are_kept_for_audit():
     result = policy.classify('U101/U999', 'U', LEGEND, CLASSES)
     assert result['composite'] is True and result['code_key'] == 'U101/U999'
