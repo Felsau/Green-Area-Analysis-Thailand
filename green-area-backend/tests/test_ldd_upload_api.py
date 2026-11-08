@@ -18,6 +18,8 @@ from types import SimpleNamespace
 from uuid import UUID, uuid4, uuid5
 import zipfile
 
+from gis_target import LOCAL_T0
+
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 import pytest
@@ -78,7 +80,8 @@ class FakeRuntime:
 
     def __init__(self):
         self.settings = SimpleNamespace(api_url='http://127.0.0.1:55421', database='postgres',
-            cluster='green-area-gis-t0', runtime_instance='a' * 32, baseline_fingerprint='b' * 64)
+            cluster='green-area-gis-t0', mode='local_synthetic', profile=LOCAL_T0,
+            runtime_instance='a' * 32, baseline_fingerprint='b' * 64)
         self.calls = []
         self.allowed = True
         self.revision = 3

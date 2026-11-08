@@ -1,12 +1,16 @@
 """GIS-only trust boundary; no legacy dependencies/dotenv/GEE imports.
 
-The only supported T2 target is the explicitly attested T0 local sandbox. No
-environment or credential files are loaded. Supabase Auth verifies the signature;
-strict issuer/audience/time/sub checks are additionally enforced here.
+A GIS runtime talks to one declared target and nothing else. The target is
+described by a `TargetProfile` (see `gis_target`): the T0 local sandbox by
+default, or a hosted Supabase project when one is explicitly selected. Whichever
+it is, the profile is only a declaration — it is attested against the transport
+and then against the database itself before any call is made. No environment or
+credential files are loaded. Supabase Auth verifies the signature; strict
+issuer/audience/time/sub checks are additionally enforced here.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import re
 import time
 from typing import Callable
@@ -16,8 +20,11 @@ from fastapi import Header, HTTPException, Request
 import httpx
 import jwt
 
-LOCAL_URL = "http://127.0.0.1:55421"
-LOCAL_ISSUER = LOCAL_URL + "/auth/v1"
+from gis_target import LOCAL_T0, TargetProfile
+
+# Re-exported: the storage, worker and mock layers import these names.
+LOCAL_URL = LOCAL_T0.api_url
+LOCAL_ISSUER = LOCAL_T0.issuer
 REQUIRED_VERSIONS = {27, 28, 29, 30}
 
 
@@ -31,22 +38,44 @@ def unauthenticated() -> HTTPException:
 
 @dataclass(frozen=True)
 class LocalGISSettings:
+    """Settings for one runtime, bound to one declared target.
+
+    `api_url`, `database`, `cluster` and `mode` are kept as fields rather than
+    read off the profile, so that a caller states the target twice and the two
+    statements have to agree. They default to the local sandbox, which is what
+    every existing caller already meant.
+    """
+
     enabled: bool = False
-    api_url: str = LOCAL_URL
-    database: str = "postgres"
-    cluster: str = "green-area-gis-t0"
-    mode: str = "local_synthetic"
+    api_url: str = LOCAL_T0.api_url
+    database: str = LOCAL_T0.database
+    cluster: str = LOCAL_T0.cluster
+    mode: str = LOCAL_T0.mode
     runtime_instance: str = ""
     baseline_fingerprint: str = ""
     sandbox_activation_enabled: bool = False
     ldd_publication_enabled: bool = False
+    profile: TargetProfile = field(default=LOCAL_T0)
+
+    @classmethod
+    def for_profile(cls, profile: TargetProfile, **kwargs) -> "LocalGISSettings":
+        """Build settings whose target fields are taken from the profile."""
+        if not isinstance(profile, TargetProfile):
+            raise unavailable()
+        return cls(api_url=profile.api_url, database=profile.database, cluster=profile.cluster,
+                   mode=profile.mode, profile=profile, **kwargs)
+
+    @property
+    def issuer(self) -> str:
+        return self.profile.issuer
 
     def validate(self):
         if (type(self.enabled) is not bool or type(self.sandbox_activation_enabled) is not bool
                 or type(self.ldd_publication_enabled) is not bool
                 or (self.ldd_publication_enabled and self.sandbox_activation_enabled)
-                or self.api_url != LOCAL_URL or self.database != "postgres"
-                or self.cluster != "green-area-gis-t0" or self.mode != "local_synthetic"
+                or not isinstance(self.profile, TargetProfile)
+                or self.api_url != self.profile.api_url or self.database != self.profile.database
+                or self.cluster != self.profile.cluster or self.mode != self.profile.mode
                 or not re.fullmatch(r"[a-f0-9]{32}", self.runtime_instance)
                 or not re.fullmatch(r"[a-f0-9]{64}", self.baseline_fingerprint)):
             raise unavailable()
@@ -118,7 +147,7 @@ class GISRuntime:
                 "verify_exp": True, "verify_nbf": True, "verify_iat": True,
                 "verify_aud": True, "verify_iss": True,
                 "require": ["iss", "aud", "exp", "iat", "sub", "role"]},
-                audience="authenticated", issuer=LOCAL_ISSUER)
+                audience="authenticated", issuer=self.settings.issuer)
             actor = str(UUID(claims["sub"]))
             if (claims["sub"] != actor or claims.get("role") != "authenticated"
                     or claims.get("aud") not in ("authenticated", ["authenticated"])

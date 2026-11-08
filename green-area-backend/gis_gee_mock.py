@@ -23,7 +23,11 @@ class LocalGeeMock:
         runtime = self.service.runtime
         settings = runtime.settings
         ready = runtime.require_ready()
-        if (settings.enabled is not True or settings.api_url != LOCAL_URL or settings.database != 'postgres'
+        # The mock serves synthetic pixels, so it stays local-only on purpose:
+        # it must never answer for a hosted target, whatever else is configured.
+        profile = getattr(settings, 'profile', None)
+        if (settings.enabled is not True or profile is None or not profile.is_local
+            or settings.api_url != LOCAL_URL or settings.database != 'postgres'
             or settings.cluster != 'green-area-gis-t0' or settings.mode != 'local_synthetic'
             or runtime.sandbox_activation_enabled is not False or 43 not in ready.get('migration_versions', [])):
             raise gis_error(503, 'GIS_GEE_MOCK_DISABLED', 'Local Mock Processing ยังไม่พร้อม')

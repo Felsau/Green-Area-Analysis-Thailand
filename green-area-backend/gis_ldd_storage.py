@@ -16,6 +16,7 @@ from uuid import uuid4
 import zipfile
 
 from gis_service import gis_error
+from gis_target import TargetProfile
 
 MAX_UPLOAD = 20 * 1024**2
 DISK_QUOTA = 256 * 1024**2
@@ -145,7 +146,12 @@ class LocalLddStore:
     def attest(self, *, parent_only=False):
         ready = self.runtime.require_ready()
         s = self.runtime.settings
-        if (s.api_url != 'http://127.0.0.1:55421' or s.database != 'postgres' or s.cluster != 'green-area-gis-t0'
+        # Stored objects belong to one declared target. Re-derive it from the
+        # profile rather than trusting the settings fields on their own, so a
+        # store can never be opened against a target the runtime did not declare.
+        profile = getattr(s, 'profile', None)
+        if (not isinstance(profile, TargetProfile) or s.api_url != profile.api_url
+            or s.database != profile.database or s.cluster != profile.cluster or s.mode != profile.mode
             or not isinstance(ready, dict) or self.REQUIRED_MIGRATION not in ready.get('migration_versions', [])):
             raise storage_error()
         try:

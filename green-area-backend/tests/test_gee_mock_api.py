@@ -8,6 +8,7 @@ import pytest
 
 from gis_app import create_app
 from gis_runtime import LOCAL_URL
+from gis_target import LOCAL_T0
 
 ACTOR = '11111111-1111-4111-8111-111111111111'
 CASE = '22222222-2222-4222-8222-222222222222'
@@ -20,7 +21,8 @@ class Runtime:
 
     def __init__(self):
         self.settings = SimpleNamespace(enabled=True, api_url=LOCAL_URL, database='postgres',
-                                        cluster='green-area-gis-t0', mode='local_synthetic')
+                                        cluster='green-area-gis-t0', mode='local_synthetic',
+                                        profile=LOCAL_T0)
         self.officer, self.admin, self.database_gate = True, False, False
         self.calls = []
         self.case_id = CASE
