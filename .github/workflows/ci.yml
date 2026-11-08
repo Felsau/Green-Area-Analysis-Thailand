@@ -5,7 +5,7 @@ on:
     # Feature branches are checked on every push, not only when a PR is opened,
     # so long-running work (feature/gis-data-management ran for 24 commits
     # without CI ever seeing it) cannot drift red unnoticed.
-    branches: [main, 'feature/**']
+    branches: [main, 'feature/**', 'gis-**']
   pull_request:
 
 jobs:
