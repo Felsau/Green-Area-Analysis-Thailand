@@ -38,6 +38,13 @@ jobs:
         run: |
           pip install ruff
           ruff check .
+      # GIS_NATIVE_RUNTIME is deliberately not set. One test asserts that the
+      # LDD artifacts are byte-identical to frozen fixtures, and those bytes
+      # depend on the system libraries under the wheels, not only on the wheel
+      # versions: the same fiona/shapely produce them under python:3.12-slim
+      # and different ones on this runner. It is skipped until the worker image
+      # is defined in this repository and the job runs inside it; see
+      # docs/gis/handoff-2026-11-08-runtime.md.
       - name: Run tests
         run: pytest tests/ -v
       # Dependency vulnerability scan — informational for now (continue-on-error).
