@@ -30,6 +30,7 @@ from dependencies import (supa_call, require_admin_or_user, require_user, ensure
 from routers import ndvi, lst, recommend, maps, saved, account
 from schemas import RankingResponse, TimelapseResponse
 from gis_app import mount_gis, gis_rate_limit_handler
+from gis_deployment import runtime_from_env
 
 GEE_PROJECT = os.getenv("GEE_PROJECT")
 ALLOWED_ORIGINS = [o.strip() for o in os.getenv(
@@ -58,9 +59,25 @@ if not IS_PRODUCTION:
     logger.warning("⚠️  ALLOWED_ORIGINS = localhost · production ต้องเปลี่ยนเป็น URL ของ frontend")
 
 app = FastAPI()
-# GIS defaults disabled here; only the attested local factory supplies its runtime.
+# GIS defaults disabled here; a runtime exists only for a deployment that
+# declared a target, and only after that target has attested itself. A GIS
+# misconfiguration must not take the rest of the API down with it: the routes
+# are still mounted and answer 503, which is what they did before a target
+# could be declared at all. The error is logged loudly because nothing else
+# will say why, and a restart is needed once the configuration is fixed.
 # Register its body guard before CORS; GIS never inherits the legacy admin header.
-mount_gis(app)
+try:
+    _gis_runtime = runtime_from_env()
+except Exception as _gis_error:
+    _gis_runtime = None
+    # DeploymentError/TargetError carry a fixed code and no configuration
+    # values; anything else is reported by type so no secret can reach the log.
+    _gis_reason = str(_gis_error) if type(_gis_error).__name__ in (
+        "DeploymentError", "TargetError") else type(_gis_error).__name__
+    logger.error("❌ GIS runtime ไม่ได้เริ่ม (%s) · /gis จะตอบ 503 จนกว่าจะแก้ค่าตั้งแล้ว restart", _gis_reason)
+if _gis_runtime is None and (os.getenv("GIS_TARGET") or "").strip():
+    logger.warning("⚠️  GIS_TARGET ถูกตั้งไว้ แต่สร้าง runtime ไม่สำเร็จ")
+mount_gis(app, _gis_runtime)
 # CORS — จำกัดเฉพาะ method/header ที่ API ใช้จริง (least privilege)
 # ไม่เปิด allow_credentials เพราะ API ใช้ token header ไม่ใช่ cookie
 # POST ใช้สำหรับ /analysis/custom-area (ส่ง GeoJSON polygon ใน body)

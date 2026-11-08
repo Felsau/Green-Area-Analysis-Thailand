@@ -108,3 +108,40 @@ test('unmount aborts an in-flight request', async () => {
   await vi.waitFor(() => expect(fetcher).toHaveBeenCalled()); abort.abort();
   await expect(pending).rejects.toHaveProperty('name', 'AbortError');
 });
+
+const cloudAuth = 'https://abcdefghijklmnopqrst.supabase.co';
+const cloudTarget = Object.freeze({ name: 'cloud', api: 'https://green-area-backend.onrender.com',
+  auth: cloudAuth, issuer: `${cloudAuth}/auth/v1` });
+const against = (target, values, fetcher) => createGisClient({ target, fetcher,
+  getSession: async () => ({ data: { session: { access_token: token(values), user: { id: subject } } } }) });
+
+test('a hosted target is the one the request is sent to', async () => {
+  const fetcher = vi.fn(async () => ({ ok: true, json: async () => ({ data: [] }) }));
+  await against(cloudTarget, { ...claims, iss: cloudTarget.issuer }, fetcher)('/datasets');
+  const [url, options] = fetcher.mock.calls[0];
+  expect(url).toBe(`${cloudTarget.api}/gis/datasets`);
+  // Everything the local client refused, the hosted one refuses too.
+  expect(options.redirect).toBe('error'); expect(options.credentials).toBe('omit'); expect(options.cache).toBe('no-store');
+});
+
+test.each([
+  ['a sandbox session against the hosted project', cloudTarget, 'http://127.0.0.1:55421/auth/v1'],
+  ['a hosted session against the sandbox', undefined, `${cloudAuth}/auth/v1`],
+  ['a session from a project nobody declared', cloudTarget, 'https://tsrqponmlkjihgfedcba.supabase.co/auth/v1'],
+])('never sends %s', async (_why, target, iss) => {
+  const fetcher = vi.fn();
+  const request = target ? against(target, { ...claims, iss }, fetcher)
+    : createGisClient({ enabled: true, fetcher,
+        getSession: async () => ({ data: { session: { access_token: token({ ...claims, iss }), user: { id: subject } } } }) });
+  await expect(request('/me')).rejects.toMatchObject({ status: 401 });
+  expect(fetcher).not.toHaveBeenCalled();
+});
+
+test('the route allowlist still applies to a hosted target', async () => {
+  const fetcher = vi.fn(); const session = vi.fn();
+  const request = createGisClient({ target: cloudTarget, fetcher, getSession: session });
+  for (const path of ['/../account', '//example.invalid', 'https://example.invalid/gis/me']) {
+    await expect(request(path)).rejects.toBeInstanceOf(GisError);
+  }
+  expect(fetcher).not.toHaveBeenCalled(); expect(session).not.toHaveBeenCalled();
+});

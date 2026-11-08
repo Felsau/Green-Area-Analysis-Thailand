@@ -1,4 +1,5 @@
 import { supabase, SUPABASE_URL } from '../lib/supabaseClient';
+import { LOCAL_TARGET, gisTarget } from './gisTarget';
 
 const messages = {
   401: 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่',
@@ -9,7 +10,7 @@ const messages = {
   429: 'ส่งคำขอถี่เกินไป กรุณารอสักครู่ก่อนลองใหม่',
   413: 'ไฟล์ต้องมีขนาดไม่เกิน 20 MiB',
   415: 'รองรับเฉพาะไฟล์ Shapefile ZIP',
-  507: 'พื้นที่ Local เต็ม กรุณาติดต่อผู้ดูแลระบบ',
+  507: 'พื้นที่จัดเก็บเต็ม กรุณาติดต่อผู้ดูแลระบบ',
 };
 const lddMessages = {
   GIS_LDD_ZIP_UNSAFE: 'ZIP ไม่ปลอดภัย มี Path, Link หรือขนาดขยายที่ไม่อนุญาต',
@@ -30,26 +31,25 @@ const lddMessages = {
 export class GisError extends Error {
   constructor(status = 0, code = '') {
     super(lddMessages[code] || messages[status] || (status >= 500
-      ? 'ระบบ GIS ยังไม่พร้อม กรุณาตรวจบริการ Local แล้วลองใหม่'
+      ? 'ระบบ GIS ยังไม่พร้อม กรุณาตรวจบริการ GIS แล้วลองใหม่'
       : 'เชื่อมต่อไม่สำเร็จ ผลคำสั่งอาจยังไม่ทราบ กรุณารีเฟรชหรือลองคำสั่งเดิม'));
     this.status = status;
   }
 }
 
-// Exact local endpoints only. A flag alone never authorizes a remote target.
+// One fully stated target, or nothing. A flag alone never authorizes a target.
 export function gisConfigured(env = import.meta.env, location = window.location, authUrl = SUPABASE_URL) {
-  return env.VITE_GIS_ENABLED === 'true'
-    && ['localhost', '127.0.0.1'].includes(location.hostname)
-    && location.protocol === 'http:'
-    && env.VITE_GIS_API_URL === 'http://127.0.0.1:55422'
-    && env.VITE_API_URL === 'http://127.0.0.1:55422'
-    && authUrl === 'http://127.0.0.1:55421';
+  return gisTarget(env, location, authUrl) !== null;
 }
 
 const id = '[0-9a-fA-F-]{36}';
 const route = new RegExp(`^/(published-ldd|published-geotiff|me|provinces|datasets|officers|processing-options|processing-jobs|processing-jobs/${id}(?:/attempts|/result|/history|/retry)?|ldd-uploads/${id}|geotiff-uploads/${id}|datasets/${id}(?:/geotiff-publication/(?:activation|rollback|withdrawal)|/ldd-publication/(?:activation|rollback|withdrawal)|/editions|/activation|/rollback|/ldd-uploads|/geotiff-uploads)?|editions/${id}(?:/geotiff-publication|/clone|/validation-jobs|/history|/withdrawal|/prepare-jobs|/prepare-retry|/prepare-verification|/prepared|/geotiff-prepare-jobs|/geotiff-prepare-retry|/geotiff-prepare-verification|/geotiff-prepared)?|jobs|jobs/${id}(?:/attempts|/result|/retry)?|officers/${id}/revocation)$`);
 
-export function createGisClient({ enabled = gisConfigured(), getSession = () => supabase.auth.getSession(), fetcher = fetch } = {}) {
+export function createGisClient({ target = gisTarget(import.meta.env, window.location, SUPABASE_URL),
+  enabled = target !== null, getSession = () => supabase.auth.getSession(), fetcher = fetch } = {}) {
+  // `enabled` is still the switch, so a caller that forces it on without a
+  // configured target gets the sandbox it must already be running against.
+  const { api, issuer } = target || LOCAL_TARGET;
   return async function request(path, { method = 'GET', body, key, query = {}, signal } = {}) {
     if (!enabled || !route.test(path) || !['GET', 'POST', 'PATCH'].includes(method)) throw new GisError(503);
     if (method !== 'GET' && !/^[0-9a-f-]{36}$/i.test(key || '')) throw new GisError(422);
@@ -68,9 +68,9 @@ export function createGisClient({ enabled = gisConfigured(), getSession = () => 
       let claims;
       try { claims = JSON.parse(atob(session.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); }
       catch { throw new GisError(401); }
-      if (claims.iss !== 'http://127.0.0.1:55421/auth/v1' || claims.role !== 'authenticated'
+      if (claims.iss !== issuer || claims.role !== 'authenticated'
           || claims.sub !== session.user?.id || !Number.isFinite(claims.exp) || claims.exp * 1000 <= Date.now()) throw new GisError(401);
-      const url = new URL(`http://127.0.0.1:55422/gis${path}`);
+      const url = new URL(`${api}/gis${path}`);
       Object.entries(query).forEach(([name, value]) => { if (value !== '' && value != null) url.searchParams.set(name, value); });
       const response = await fetcher(url.href, {
         method, signal: controller.signal, redirect: 'error', credentials: 'omit', cache: 'no-store',
