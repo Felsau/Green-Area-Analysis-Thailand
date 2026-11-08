@@ -4,7 +4,6 @@ The SDK, discovery, serialization, AuthorizedHttp refresh and googleapiclient
 retry loops are real. HTTP responses and Google credentials are synthetic.
 No arbitrary HTTP client/URL/credential provider can be supplied by a job.
 """
-from contextlib import contextmanager
 from copy import deepcopy
 from datetime import date
 from importlib.metadata import version

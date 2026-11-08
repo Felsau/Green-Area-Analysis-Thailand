@@ -1,7 +1,7 @@
 """No-network tests for daemon target checks and lease/error control flow."""
-import base64,json,time
-from copy import deepcopy
-from types import SimpleNamespace
+import base64
+import json
+import time
 import pytest
 from gis_worker.worker import GisWorker,LocalWorkerClient,WorkerError,LOCAL_URL,ISSUER
 

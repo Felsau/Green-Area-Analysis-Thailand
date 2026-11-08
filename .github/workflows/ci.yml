@@ -2,7 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # Feature branches are checked on every push, not only when a PR is opened,
+    # so long-running work (feature/gis-data-management ran for 24 commits
+    # without CI ever seeing it) cannot drift red unnoticed.
+    branches: [main, 'feature/**']
   pull_request:
 
 jobs:
@@ -21,6 +24,16 @@ jobs:
           cache-dependency-path: green-area-backend/requirements.txt
       - name: Install dependencies
         run: pip install -r requirements.txt
+      # The GIS native workers read shapefiles and GeoTIFFs through GDAL. That
+      # stack is kept out of requirements.txt because the web service never
+      # imports it, but the tests that prove the produced artifacts are
+      # byte-identical to frozen fixtures need exactly these versions — without
+      # them 33 tests fail instead of running. See requirements-native.txt.
+      - name: Install the GIS native stack
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libexpat1
+          pip install -r requirements-native.txt
       - name: Lint (ruff)
         run: |
           pip install ruff

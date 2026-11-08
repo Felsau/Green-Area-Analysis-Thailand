@@ -6,11 +6,10 @@ Production constructors remain closed, including after all these tests pass.
 from dataclasses import replace
 from datetime import date
 import hashlib
-import json
 import time
 from types import SimpleNamespace
 from unittest.mock import patch
-from uuid import uuid4, UUID
+from uuid import uuid4
 
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -129,7 +128,6 @@ class Recorder:
 
 def run_sdk(product='ndvi', scenario='candidate', statuses=(), budget=32):
     req,geom,raw,b,j=packet(product,scenario);creds,*_=delivered(b)
-    synthetic_req=req.model_copy(update={'execution':'injected'})
     fake=FakeHTTPWire(raw,responses=statuses); recorder=Recorder(budget)
     class Connection:
         def __init__(self, host, **kwargs):

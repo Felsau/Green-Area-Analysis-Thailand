@@ -1,5 +1,4 @@
 """A6.4b synthetic response/SDK graph tests; no actual Google calls."""
-from copy import deepcopy
 from datetime import date
 import json
 import os
@@ -9,7 +8,7 @@ import sys
 
 import pytest
 
-from gis_worker.gee_live_contracts import Content, Output, Request, registered_input, queue_report, digest, canonical
+from gis_worker.gee_live_contracts import Output, Request, registered_input, queue_report, digest, canonical
 from gis_worker.gee_live_bridge import BridgeError, InjectedBridge, build_graph
 from gis_worker.gee_live_injected import InjectedSDK, InjectedTransport, fixture
 from gis_worker.gee_live_worker import LiveClient, LiveWorker, require_live_runtime

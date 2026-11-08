@@ -5,20 +5,19 @@ V1/V2 fixture catalog. No database, Auth, network or Cloud is used here.
 """
 from __future__ import annotations
 
-from copy import deepcopy
 import hashlib
 import json
 import os
-from pathlib import Path
 
-import numpy as np
 import pytest
-import rasterio
-from rasterio.transform import from_origin, Affine
 
-from gis_worker import geotiff_provider as gt
-from gis_worker.geotiff_worker import GeoTiffClient, GeoTiffWorker
-from gis_worker.worker import WorkerError
+np = pytest.importorskip('numpy')
+rasterio = pytest.importorskip('rasterio')
+from rasterio.transform import from_origin, Affine  # noqa: E402
+
+from gis_worker import geotiff_provider as gt  # noqa: E402
+from gis_worker.geotiff_worker import GeoTiffClient, GeoTiffWorker  # noqa: E402
+from gis_worker.worker import WorkerError  # noqa: E402
 
 ID = '11111111-1111-4111-8111-111111111111'
 

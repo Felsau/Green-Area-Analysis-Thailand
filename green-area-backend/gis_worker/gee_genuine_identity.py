@@ -5,7 +5,6 @@ signature. A real broker must verify the identity when minting the short-lived
 token. No broker, key, token, ADC or renewal service is installed here.
 """
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 import hashlib
 import math
 import time

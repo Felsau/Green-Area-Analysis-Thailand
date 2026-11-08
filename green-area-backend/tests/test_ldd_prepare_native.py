@@ -1,5 +1,4 @@
 """Linux scientific preparation tests using synthetic Shapefile bytes only."""
-from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path

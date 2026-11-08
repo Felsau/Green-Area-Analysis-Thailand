@@ -15,3 +15,34 @@ select = ["E4", "E7", "E9", "F"]
 "main.py" = ["E402"]
 # tests destructure weight triples as `n, l, p` (ndvi/lst/pop) — `l` is fine here (E741).
 "tests/*" = ["E741"]
+
+# ── GIS feature (branch feature/gis-data-management) ──────────────────────
+# These modules are written in a deliberately dense one-statement-per-line
+# style (`def stop(self,*_): self._stop_event.set()`), which E701/E702 flag
+# 714 times. Reformatting someone else's working, well-tested code to satisfy
+# a style rule is a large diff for no behaviour change and makes every future
+# rebase harder, so the exception is declared here instead of hidden by
+# rewriting the files. Everything else in those files is still linted, and new
+# modules are expected to be written without needing this.
+"gis_geotiff_prepared.py" = ["E701", "E702"]
+"gis_geotiff_publication.py" = ["E701", "E702"]
+"gis_ldd_prepared.py" = ["E701", "E702"]
+"gis_ldd_publication.py" = ["E701", "E702"]
+"gis_worker/*" = ["E701", "E702"]
+"routers/geotiff_prepare.py" = ["E701", "E702"]
+"routers/geotiff_publication.py" = ["E701", "E702"]
+"routers/ldd_publication.py" = ["E701", "E702"]
+"tests/test_gee*.py" = ["E701", "E702"]
+"tests/test_ldd*.py" = ["E701", "E702"]
+"tests/test_geotiff*.py" = ["E701", "E702"]
+"tests/test_gis_api_unit.py" = ["E701", "E702"]
+"tests/test_gis_runtime_unit.py" = ["E701", "E702"]
+"tests/test_gis_worker_unit.py" = ["E701", "E702"]
+"tests/test_processing_api.py" = ["E701", "E702"]
+
+# `g, n, l` names the three reviewed sources (gee_utils / ndvi compute / lst)
+# that the method contract parses; renaming `l` would obscure the pairing.
+"gis_worker/processing_provider.py" = ["E701", "E702", "E741"]
+# Native-dependency tests import their subjects after pytest.importorskip, so
+# module-level imports legitimately sit below executable code (E402).
+"tests/test_geotiff_prepare_native.py" = ["E701", "E702", "E402"]

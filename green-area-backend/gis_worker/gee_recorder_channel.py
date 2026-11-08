@@ -14,7 +14,7 @@ import struct
 import time
 
 from gis_worker.gee_genuine_identity import GenuineBoundaryError
-from gis_worker.gee_live_contracts import canonical, Request
+from gis_worker.gee_live_contracts import canonical
 
 MAX_PACKET = 256 * 1024
 

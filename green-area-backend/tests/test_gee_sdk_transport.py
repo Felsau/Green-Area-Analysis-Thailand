@@ -1,14 +1,12 @@
 """Real pinned SDK and client retry machinery, synthetic HTTP responses only."""
-from copy import deepcopy
 from datetime import date
 import json
-from pathlib import Path
 from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
 
-from gis_worker.gee_live_contracts import Request, digest, queue_report
+from gis_worker.gee_live_contracts import Request
 from gis_worker.gee_live_injected import fixture
 from gis_worker.gee_sdk_transport import (FakeHTTPWire, PhysicalHTTP, FakeSDKAdapter,
     SDKBoundaryError, SANDBOX, FAKE_PRINCIPAL, require_genuine_startup)
@@ -172,7 +170,8 @@ def test_no_real_mode_or_arbitrary_wire_or_runtime_flags():
 
 
 def test_sdk_uses_explicit_credentials_no_adc_and_restores_global_hooks():
-    import ee,google.auth
+    import ee
+    import google.auth
     original=ee.deprecation._FetchDataCatalogStac
     with patch.object(google.auth,'default',side_effect=AssertionError('ADC forbidden')), \
          patch.object(ee.data,'get_persistent_credentials',side_effect=AssertionError('persistent forbidden')):

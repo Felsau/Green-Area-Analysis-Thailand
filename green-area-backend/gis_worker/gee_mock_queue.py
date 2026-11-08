@@ -10,7 +10,7 @@ from copy import deepcopy
 import json
 from uuid import UUID
 
-from gis_worker.gee_contracts import ComputeOutput, LiveRequest, digest, geometry_digest, method_for
+from gis_worker.gee_contracts import ComputeOutput, LiveRequest, geometry_digest, method_for
 
 PROTOCOL = 'gee_contract_mock'
 ROLE = 'gis_gee_mock_worker'

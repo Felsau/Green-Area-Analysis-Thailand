@@ -6,9 +6,8 @@ authenticated broker may attest an observed IAM mint exchange in a future run.
 No stdin/paste, ADC, token file, environment or command-line fallback exists.
 """
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 import hashlib
-import json
 import re
 import secrets
 import time
@@ -195,7 +194,6 @@ def receive_credential(endpoint, *, supervisor_pid: int, supervisor_uid: int, bi
     rejection carries no exception context or token-bearing locals.
     """
     from gis_worker.gee_recorder_channel import receive, send
-    from gis_worker.gee_genuine_identity import ExplicitGoogleCredentials
     credentials = value = delivery = None
     try:
         if type(supervisor_uid) is not int or supervisor_uid < 0:

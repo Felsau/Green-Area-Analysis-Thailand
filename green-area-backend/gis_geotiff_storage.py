@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 import struct
 from fastapi import HTTPException
-from gis_ldd_storage import LocalLddStore, MAX_UPLOAD, DISK_QUOTA
+from gis_ldd_storage import LocalLddStore, MAX_UPLOAD, DISK_QUOTA  # noqa: F401 - re-exported
 from gis_service import gis_error
 
 UPLOAD_PATH = re.compile(r'^/gis/datasets/[0-9a-fA-F-]{36}/geotiff-uploads$')

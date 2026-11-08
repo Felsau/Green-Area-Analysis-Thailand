@@ -8,12 +8,11 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from pathlib import Path
 from uuid import uuid4
 
 from gis_ldd_storage import LocalLddStore, unsafe_link, DISK_QUOTA
 from gis_service import gis_error
-from gis_worker.ldd_prepare_provider import NAMES, MAX_ARTIFACT, check_request, descriptors, stage_key, read_regular, VERIFIER
+from gis_worker.ldd_prepare_provider import NAMES, check_request, descriptors, stage_key, read_regular, VERIFIER
 
 
 class LocalPreparedStore(LocalLddStore):

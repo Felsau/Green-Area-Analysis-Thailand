@@ -1,7 +1,6 @@
 """Synthetic, known-answer Linux GeoTIFF artifact tests; no database or cloud."""
 import hashlib
 import json
-from pathlib import Path
 from uuid import uuid4
 import pytest
 np=pytest.importorskip('numpy');rasterio=pytest.importorskip('rasterio')

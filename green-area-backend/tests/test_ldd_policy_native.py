@@ -11,6 +11,7 @@ from io import BytesIO
 import json
 import math
 from pathlib import Path
+import sys
 import tempfile
 import zipfile
 
@@ -363,6 +364,13 @@ def test_v2_preparation_uses_the_same_derived_geometry_and_area_as_validation(tm
     assert candidate['method_version'] == prep.METHOD_V2
 
 
+# The frozen hashes below were taken on Linux x86_64 with the pinned stack in
+# requirements-native.txt (Fiona 1.10.1/GDAL 3.9.2, Shapely 2.2.0/GEOS 3.14.1).
+# The Windows wheels bundle different GDAL/GEOS builds and produce different
+# bytes for the same input, so on Windows this reports a platform difference
+# rather than a regression. CI runs it on Linux, where it is enforced.
+@pytest.mark.skipif(sys.platform != 'linux',
+                    reason='v1 artifact bytes are frozen against the Linux GDAL/GEOS build')
 def test_v1_artifacts_of_existing_fixtures_are_byte_identical():
     from tests.test_ldd_prepare_native import ROOT as fixtures, request as packet
     expected = {

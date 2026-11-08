@@ -6,7 +6,6 @@ import importlib.util
 from pathlib import Path
 import struct
 import sys
-from uuid import uuid4
 
 from fastapi import HTTPException
 from fastapi.testclient import TestClient

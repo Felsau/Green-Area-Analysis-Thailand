@@ -1,6 +1,7 @@
 """Offline identity/transport tests. Fake leases never authorize Google."""
 from copy import deepcopy
 from dataclasses import replace
+import os
 import sys
 import json
 from pathlib import Path
@@ -52,7 +53,33 @@ def test_real_credentials_and_live_egress_cannot_be_enabled(monkeypatch):
     for method in ('issue','renew','revoke','authorize'):
         with pytest.raises(CredentialBoundaryError,match='DISABLED'):
             getattr(channel,method)(project='payload-approval', verified=True)
-    assert 'ee' not in sys.modules and 'google.auth' not in sys.modules
+
+
+def test_exercising_the_disabled_channel_never_loads_the_earth_engine_sdk():
+    # Asserted in a fresh interpreter rather than against this process's
+    # sys.modules: the legacy suite (tests/test_canopy.py) imports the Earth
+    # Engine SDK through canopy.py, so an in-process check would only report
+    # what happened to run before this test rather than what this code loads.
+    program = """
+import json, sys
+sys.path.insert(0, sys.argv[1])
+from gis_worker.gee_runtime_identity import CredentialBoundaryError, DisabledGoogleCredentials
+
+channel = DisabledGoogleCredentials()
+for method in ('issue', 'renew', 'revoke', 'authorize'):
+    try:
+        getattr(channel, method)(project='payload-approval', verified=True)
+    except CredentialBoundaryError:
+        continue
+    raise SystemExit('BOUNDARY_NOT_ENFORCED: ' + method)
+print(json.dumps(sorted(m for m in ('ee', 'google.auth') if m in sys.modules)))
+"""
+    backend = str(Path(__file__).resolve().parents[1])
+    environment = {**os.environ, 'GOOGLE_APPLICATION_CREDENTIALS': '/not-mounted/fake-adc.json'}
+    result = subprocess.run([sys.executable, '-I', '-B', '-c', program, backend],
+        capture_output=True, text=True, timeout=60, env=environment)
+    assert result.returncode == 0, result.stderr[-2000:]
+    assert json.loads(result.stdout) == []
 
 
 @pytest.mark.parametrize('arguments',[[],['--live'],['--unknown']])

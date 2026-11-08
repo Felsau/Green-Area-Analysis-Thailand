@@ -220,7 +220,7 @@ def test_rehashed_transport_cannot_forge_semantic_consistency(change):
 
 
 def test_method_parameters_match_actual_legacy_ast_without_importing_startup(tmp_path):
-    from gis_worker.processing_provider import legacy_spec, LEGACY_SHA
+    from gis_worker.processing_provider import legacy_spec
     root = Path(__file__).resolve().parents[1]
     for target, source in [('gee_utils.py', 'gee_utils.py'), ('ndvi_compute.py', 'routers/ndvi/compute.py'), ('lst.py', 'routers/lst.py')]:
         (tmp_path / target).write_bytes((root / source).read_bytes())

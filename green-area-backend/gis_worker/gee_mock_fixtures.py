@@ -74,7 +74,8 @@ def compute_output(request, geometry, *, legacy_root):
         payload = {f'ndvi_{k}': raw[k] or 0 for k in ('mean', 'min', 'max')}
     else:
         payload = tuple(raw[k] or 0 for k in ('mean', 'min', 'max'))
-    binding = lambda *_: LegacyReturn(payload, obs)
+    def binding(*_):
+        return LegacyReturn(payload, obs)
     adapter = SafeComputeAdapter(LegacyBindings(binding, binding, binding, binding), as_of=AS_OF)
     return adapter.compute(request, geometry, expected_request_hash=request.request_hash())
 

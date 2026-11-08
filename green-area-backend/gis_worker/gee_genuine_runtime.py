@@ -10,7 +10,7 @@ from uuid import UUID
 from pydantic import Field
 
 from gis_worker.gee_contracts import Contract, Hash
-from gis_worker.gee_live_contracts import Project, Request, digest, geometry_digest
+from gis_worker.gee_live_contracts import Project, digest, geometry_digest
 from gis_worker.gee_genuine_identity import GenuineBoundaryError, target
 
 APPROVED_LIVE_IMAGE = None

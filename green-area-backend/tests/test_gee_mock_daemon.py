@@ -6,12 +6,11 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
 
-from gis_worker.gee_mock_fixtures import SPECS, GEOMETRY, case_for, execute
+from gis_worker.gee_mock_fixtures import SPECS, case_for, execute
 from gis_worker.gee_mock_worker import MockClient, MockWorker
 from gis_worker.worker import GisWorker, LocalWorkerClient, WorkerError
 

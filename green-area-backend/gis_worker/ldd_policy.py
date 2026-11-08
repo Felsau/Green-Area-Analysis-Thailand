@@ -159,7 +159,7 @@ def parse_main(value, classes):
     if number is not None:
         letters = [k for k, v in classes.items() if v == number]
         if len(letters) == 1:
-            return letters[0], not (type(value) is int)
+            return letters[0], type(value) is not int
     return None, False
 
 

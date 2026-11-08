@@ -1,11 +1,9 @@
 """Known numeric synthetic scene expectations; never any Earth Engine calls."""
-from copy import deepcopy
 from datetime import date
 import hashlib
 import json
 from pathlib import Path
 import shutil
-from types import SimpleNamespace
 import pytest
 
 from gis_worker import processing_provider as p

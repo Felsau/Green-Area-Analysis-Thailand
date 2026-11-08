@@ -1,0 +1,20 @@
+# The geospatial stack the GIS native workers run against.
+#
+# Deliberately NOT in requirements.txt: the web service never imports any of
+# it — only the worker child processes do (gis_worker/*_child.py), and the
+# worker runs in its own container. Adding it to the service image would pull
+# in GDAL/GEOS/PROJ for nothing.
+#
+# The versions are exact because the LDD and GeoTIFF tests assert that the
+# produced artifacts are byte-identical to frozen fixtures, and those bytes
+# depend on the GDAL/GEOS build inside each wheel. The runtime these fixtures
+# were taken on is recorded in docs/gis/t3-remediation-handoff.md:
+#   Rasterio 1.4.4 / GDAL 3.10.3 · Fiona 1.10.1 / GDAL 3.9.2
+#   Shapely 2.2.0 / GEOS 3.14.1 · NumPy 2.4.6
+# Verified to reproduce those bytes on Linux x86_64 under both Python 3.11 and
+# 3.12. Changing any line here means re-checking the frozen fixtures.
+#
+# Install: pip install -r requirements-native.txt   (needs libexpat1 present)
+rasterio==1.4.4
+fiona==1.10.1
+shapely==2.2.0

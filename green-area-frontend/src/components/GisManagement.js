@@ -316,6 +316,9 @@ function JobDetail({ id, version, onRetry, context }) {
     })
       .catch(err => { if (!abort.signal.aborted) setError(err); });
     return () => abort.abort();
+    // `context` is only read as a cache shortcut inside the effect; refetching the
+    // job when it changes identity would reload the report for no reason.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, version, tick]);
   return <section className="gis-card gis-job-detail" aria-label="รายละเอียดงานและรายงาน"><h3 ref={heading} tabIndex="-1">รายละเอียดงานและรายงาน</h3><ErrorNote error={error} />
     <p className="gis-context">ชุดข้อมูล: {related?.dataset?.title || context?.title || 'กำลังอ่านชุดข้อมูลที่เกี่ยวข้อง'}</p>
@@ -351,6 +354,9 @@ function DatasetDetail({ id, version, access, form, prepare, pending, onLoad, on
     gisRequest(`/datasets/${id}`, { signal: abort.signal }).then(d => { if (!abort.signal.aborted) { setDataset(d); onLoad?.(d); } })
       .catch(err => { if (!abort.signal.aborted) setError(err); });
     return () => abort.abort();
+    // `onLoad` is a parent callback that is not memoised; depending on it would
+    // refetch the dataset on every parent render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, version]);
   useEffect(() => {
     heading.current?.focus({ preventScroll: true });

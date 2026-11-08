@@ -1,5 +1,4 @@
 """Offline accounting/scientific tests. No Google execution or account claim."""
-from copy import deepcopy
 from datetime import date
 import sys
 from uuid import UUID, uuid4

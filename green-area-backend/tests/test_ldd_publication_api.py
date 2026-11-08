@@ -1,6 +1,5 @@
 """A3 HTTP trust-boundary tests; actual SQL/files exercised by Local checks."""
 from contextlib import nullcontext
-from copy import deepcopy
 from unittest.mock import Mock
 from uuid import uuid4
 import pytest

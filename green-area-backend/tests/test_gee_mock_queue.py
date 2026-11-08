@@ -9,7 +9,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from gis_worker.gee_contracts import ComputeOutput, LiveRequest, digest
+from gis_worker.gee_contracts import ComputeOutput, digest
 from gis_worker.gee_mock_queue import MockQueueHooks, canonical, mock_case, report
 from tests.test_gee_adapter import compute
 from tests.test_gee_contracts import GEOMETRY, request

@@ -7,7 +7,6 @@ accepted as attestations. The worker must not possess the recorder's GIS JWT.
 """
 from datetime import date
 import hashlib
-import http.client
 import ipaddress
 import json
 import socket
@@ -21,7 +20,7 @@ from types import SimpleNamespace
 from gis_worker.gee_genuine_identity import ExplicitGoogleCredentials, GenuineBoundaryError
 from gis_worker.gee_genuine_runtime import require_selective_egress
 from gis_worker.gee_live_bridge import _build_expression, observation_output
-from gis_worker.gee_live_contracts import Request, canonical
+from gis_worker.gee_live_contracts import Request
 from gis_worker.gee_sdk_transport import PhysicalHTTP, SDK_VERSION, _SDK_LOCK
 from gis_worker.gee_restricted_network import PinnedDestinations, PinnedHTTPSConnection
 

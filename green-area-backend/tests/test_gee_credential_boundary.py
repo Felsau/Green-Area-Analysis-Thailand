@@ -1,8 +1,7 @@
 """Synthetic observations/IPC only; no token issuance or Google network."""
 import base64
 from dataclasses import replace
-from datetime import datetime, timezone, date
-import hashlib
+from datetime import date
 import json
 import os
 from pathlib import Path
@@ -28,7 +27,7 @@ from gis_worker.gee_genuine_identity import ExplicitGoogleCredentials, GenuineBo
 from gis_worker.gee_operator_delivery import (OperatorDelivery, MintObservation, MINT_URL, SCOPES,
     observe_real_mint, deliver_credential, receive_credential)
 from gis_worker.gee_restricted_network import (PinnedDestinations, PinnedHTTPSConnection,
-    deny_internet_sockets, isolate_recorder_child, validate_gateway_endpoint)
+    isolate_recorder_child, validate_gateway_endpoint)
 from gis_worker.gee_recorder_channel import channel_pair, receive, send, RecorderClient, serve_once
 from gis_worker.gee_recorder_client import (RecorderSQLClient, ALLOWED_ACTIONS, ISSUER, RPC_PATH,
     READINESS_KEYS)
@@ -241,7 +240,8 @@ def test_separate_uid_recorder_worker_processes_and_replacement(scenario):
 SQL047 = Path(__file__).parents[1] / 'migrations' / '047_gis_genuine_https.sql'
 GATEWAY = ('172.18.0.2', 8000)
 TOKEN = b'synthetic-supervisor-token-only'
-WALL = lambda: 1050
+def WALL():
+    return 1050
 
 
 def make_mock_token(sub, role, exp=None, iss='http://127.0.0.1:55421/auth/v1'):
