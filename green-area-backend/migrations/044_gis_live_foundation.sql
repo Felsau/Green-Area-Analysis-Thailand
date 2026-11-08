@@ -1,10 +1,10 @@
 -- A6.4b injected-only future-live foundation. No Google, live runtime or publication.
 -- The attested operator supplies BEGIN/runtime proof and INSERT-only ledger entry.
 DO $guard$ BEGIN
- IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR current_setting('cluster_name')<>'green-area-gis-t0'
+ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
    AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=43 AND sha256='cc8d9fe7bd7163dd307a2f944614116bccd6460a50314d108cecc242320563b1')
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=43 AND sha256='5ab71475fe6c603ca2f329f701c054a74b48ce974ea59a60da2f2823d04ea0a9')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=44) THEN
   RAISE EXCEPTION 'GIS_LOCAL_BASELINE_043_REQUIRED'; END IF;
 END $guard$;

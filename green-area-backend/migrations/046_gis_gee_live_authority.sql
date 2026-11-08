@@ -2,8 +2,8 @@
 -- No real-runtime approval, credentials, publication, old ledger edits or gates.
 DO $preflight$ BEGIN
  IF current_database() NOT IN ('postgres','gis_t1_upgrade')
- OR current_setting('cluster_name')<>'green-area-gis-t0'
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=45 AND sha256='fed94e4efaf6ed2d339e0bb36f44c0dcb8bc4ef34a8d6738087fe0e888f17be8')
+ OR NOT gis.target_ok()
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=45 AND sha256='77345243303567d756122b9064b59f767591d7358a176355eb907bf9c5c24368')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=46)
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
  AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))

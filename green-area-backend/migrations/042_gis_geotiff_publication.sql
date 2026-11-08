@@ -3,10 +3,10 @@ GRANT CREATE ON SCHEMA public TO gis_owner;
 SET LOCAL ROLE gis_owner;
 SELECT gis.assert_environment();
 DO $guard$ BEGIN
- IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR current_setting('cluster_name')<>'green-area-gis-t0'
+ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
    AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=41 AND sha256='882bacfd1af803be3cd08307bfca8c150b10e0c28e8b4a893e57a1dc924db6d1')
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=41 AND sha256='fa870b836db27d12af696c43bde60baff9d90458e357ee05f699ce423355171b')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=42) THEN RAISE EXCEPTION 'GIS_LOCAL_BASELINE_041_REQUIRED'; END IF;
 END $guard$;
 
@@ -29,7 +29,7 @@ CREATE FUNCTION gis.assert_geotiff_publication() RETURNS void
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,gis AS $f$
 BEGIN
  PERFORM gis.assert_environment();
- IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR current_setting('cluster_name')<>'green-area-gis-t0'
+ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled)
  OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=42) THEN RAISE EXCEPTION 'GIS_GEOTIFF_PUBLICATION_DISABLED'; END IF;
 END $f$;

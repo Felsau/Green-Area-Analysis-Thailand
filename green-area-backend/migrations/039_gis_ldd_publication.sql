@@ -3,12 +3,12 @@ GRANT CREATE ON SCHEMA public TO gis_owner;
 SET LOCAL ROLE gis_owner;
 SELECT gis.assert_environment();
 DO $guard$ BEGIN
- IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR current_setting('cluster_name')<>'green-area-gis-t0'
+ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
   AND runtime_instance=current_setting('gis.runtime_instance',true)
   AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
  OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=38
-  AND sha256='e55344ef585e9c23c9269dae414ed73ba05fa508625fe6c6e7acf2e148795825')
+  AND sha256='d830d0671c9d44a85274c52014b6ecdeef0019eca1421379f317e28fb594b995')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=39) THEN
  RAISE EXCEPTION 'GIS_LOCAL_BASELINE_038_REQUIRED'; END IF;
 END $guard$;
@@ -17,7 +17,7 @@ CREATE FUNCTION gis.assert_ldd_publication() RETURNS void
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,gis AS $f$
 BEGIN
  PERFORM gis.assert_environment();
- IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR current_setting('cluster_name')<>'green-area-gis-t0'
+ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled)
  OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=39) THEN RAISE EXCEPTION 'GIS_LDD_PUBLICATION_DISABLED'; END IF;
 END $f$;

@@ -8,7 +8,7 @@ BEGIN
     AND e.runtime_instance=current_setting('gis.runtime_instance',true)
     AND e.baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
     OR (SELECT count(*) FROM gis.schema_migrations WHERE
-       (version=27 AND sha256='bc879ca55e26a506e4b36c887dede928b07c619c42c94ddf69282362abd351e5')
+       (version=27 AND sha256='59618ed5b7b261ce100dabd89b991a68acda0712080d46e8c09954ef67f323d5')
        OR (version=28 AND sha256='fcf5d9530b516d93dda0fc2ea5b01158809aad237c1e90863d09bd324c9000d1')
        OR (version=29 AND sha256='7faf7bf6abbd4e52ab8389423c3c1876c94af459fe9d7c5d2a7710ffc0f236a5'))<>3 THEN
   RAISE EXCEPTION 'GIS_LOCAL_TARGET_REQUIRED'; END IF;
@@ -226,7 +226,7 @@ BEGIN
  IF NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=30) THEN
   RAISE EXCEPTION 'GIS_SCHEMA_NOT_READY'; END IF;
  RETURN (SELECT jsonb_build_object('runtime_instance',runtime_instance,'baseline_fingerprint',baseline_fingerprint,
-  'database_name',current_database(),'cluster_name',current_setting('cluster_name'),'mode',mode,
+  'database_name',current_database(),'cluster_name',cluster_name,'mode',mode,
   'activation_enabled',activation_enabled,'contract_version','1.1.0-t2',
   'migration_versions',(SELECT jsonb_agg(version ORDER BY version) FROM gis.schema_migrations))
   FROM gis.environment WHERE singleton);

@@ -2,8 +2,8 @@
 -- Extends the exact 044/045/046 validators/queue; historical bytes are untouched.
 -- All identities/configuration/receipts are private; no publish/cache mutation.
 DO $guard$ BEGIN
- IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR current_setting('cluster_name')<>'green-area-gis-t0'
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=46 AND sha256='bd4d94a0b993aa7d037f14f6957451052707b4af1cb614d9d45ae42c03cbe23c')
+ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=46 AND sha256='228fe745b286a38a65b8245c806ef9c3ca850e09d614586c490deea781cd48b9')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=47)
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
  AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))

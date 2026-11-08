@@ -7,12 +7,12 @@ SET LOCAL ROLE gis_owner;
 SELECT gis.assert_environment();
 DO $guard$
 BEGIN
- IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR current_setting('cluster_name')<>'green-area-gis-t0'
+ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
    OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton
      AND runtime_instance=current_setting('gis.runtime_instance',true)
      AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
    OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=34
-     AND sha256='be6edafd9ea9abd8bddcf90c0ac57a3149e2a1aa3aaa0995cc2c7c060e787069')
+     AND sha256='cff82f851d4824a2cb8373fcdad8714151bfdf118cc444b5914f8157a250b59c')
    OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=35) THEN
    RAISE EXCEPTION 'GIS_LOCAL_BASELINE_034_REQUIRED'; END IF;
 END $guard$;

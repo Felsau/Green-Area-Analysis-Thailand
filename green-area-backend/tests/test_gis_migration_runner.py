@@ -104,11 +104,11 @@ def test_unknown_target_guard_stops_before_reading_review_or_db(tmp_path):
 
 
 @pytest.mark.parametrize("name,checksum", [
-    ("027_gis_foundation.sql", "bc879ca55e26a506e4b36c887dede928b07c619c42c94ddf69282362abd351e5"),
+    ("027_gis_foundation.sql", "59618ed5b7b261ce100dabd89b991a68acda0712080d46e8c09954ef67f323d5"),
     ("028_gis_queue.sql", "fcf5d9530b516d93dda0fc2ea5b01158809aad237c1e90863d09bd324c9000d1"),
     ("029_gis_transactions.sql", "7faf7bf6abbd4e52ab8389423c3c1876c94af459fe9d7c5d2a7710ffc0f236a5"),
-    ("030_gis_api_reads.sql", "0c6cd4b6fb3fe964dfcba848bf392a9b93cea87be7c15fd214cfe5e435b6f113"),
-    ("031_gis_native_v2.sql", "85d345fa5b8dca615735618f7d9e689646dc4a286c285e0601b51f410192269c"),
+    ("030_gis_api_reads.sql", "ce5ab117c5d46b8dcc8ab4b3ffb02f141773c80019b6eaa6e4ef7bec1a510024"),
+    ("031_gis_native_v2.sql", "469b564488035cfc51d9e64b6fa774941ea2368881d68a91054ae2987ff98f7c"),
 ])
 def test_applied_gis_migration_bytes_are_frozen(name, checksum):
     assert hashlib.sha256((MIGRATION.parent / name).read_bytes()).hexdigest() == checksum

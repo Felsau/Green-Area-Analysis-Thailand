@@ -1,10 +1,27 @@
--- T1 local/synthetic foundation. The guarded runner owns BEGIN/ledger/COMMIT.
+-- T1 foundation. The guarded runner owns BEGIN/ledger/COMMIT.
 -- No legacy migration is replayed and no legacy cache data is changed here.
+--
+-- The target is declared by the runner as gis.cluster_name and gis.mode: either
+-- the local sandbox, or a hosted Supabase project named by its twenty-letter
+-- project ref. The sandbox owns its own postmaster and so must still prove
+-- itself through cluster_name; cluster_name is a postmaster setting that a
+-- hosted project cannot set, so for a hosted target the declaration and the row
+-- it writes below are the identity, and the application checks that identity
+-- against its own configured profile before it will talk to this database.
 DO $guard$
 DECLARE r record; n text;
 BEGIN
   IF current_database() NOT IN ('postgres','gis_t1_upgrade')
-     OR current_setting('cluster_name') <> 'green-area-gis-t0'
+     -- Declaring nothing means the sandbox, which is what every existing runner
+     -- means, and it still has to prove itself against the postmaster below. A
+     -- hosted target is never reached by omission: it must be asked for.
+     OR NOT ((COALESCE(NULLIF(current_setting('gis.cluster_name',true),''),'green-area-gis-t0')='green-area-gis-t0'
+              AND COALESCE(NULLIF(current_setting('gis.mode',true),''),'local_synthetic')='local_synthetic'
+              AND current_setting('cluster_name')='green-area-gis-t0')
+          -- Both sides must be true or false and never NULL: an unset setting
+          -- would otherwise make the whole test NULL, and IF NULL does nothing.
+          OR (COALESCE(current_setting('gis.cluster_name',true),'') ~ '^[a-z]{20}$'
+              AND COALESCE(current_setting('gis.mode',true),'')='cloud'))
      OR current_setting('gis.runtime_instance',true) !~ '^[0-9a-f]{32}$'
      OR current_setting('gis.baseline_fingerprint',true) !~ '^[0-9a-f]{64}$'
      OR current_setting('gis.runtime_instance',true) IS NULL
@@ -60,11 +77,16 @@ CREATE TABLE gis.environment(
  runtime_instance text NOT NULL CHECK(runtime_instance ~ '^[0-9a-f]{32}$'),
  baseline_fingerprint text NOT NULL CHECK(baseline_fingerprint ~ '^[0-9a-f]{64}$'),
  database_name text NOT NULL CHECK(database_name IN ('postgres','gis_t1_upgrade')),
- cluster_name text NOT NULL CHECK(cluster_name='green-area-gis-t0'),
- mode text NOT NULL DEFAULT 'local_synthetic' CHECK(mode='local_synthetic'),
+ cluster_name text NOT NULL CHECK(cluster_name ~ '^(green-area-gis-t0|[a-z]{20})$'),
+ mode text NOT NULL DEFAULT 'local_synthetic' CHECK(mode IN ('local_synthetic','cloud')),
+ -- The identity and the mode move together: the sandbox is the only thing that
+ -- is ever local_synthetic, and a project ref is never anything but cloud.
+ CHECK((cluster_name='green-area-gis-t0')=(mode='local_synthetic')),
  activation_enabled boolean NOT NULL DEFAULT false);
-INSERT INTO gis.environment(runtime_instance,baseline_fingerprint,database_name,cluster_name)
-VALUES(current_setting('gis.runtime_instance'),current_setting('gis.baseline_fingerprint'),current_database(),current_setting('cluster_name'));
+INSERT INTO gis.environment(runtime_instance,baseline_fingerprint,database_name,cluster_name,mode)
+VALUES(current_setting('gis.runtime_instance'),current_setting('gis.baseline_fingerprint'),current_database(),
+ COALESCE(NULLIF(current_setting('gis.cluster_name',true),''),'green-area-gis-t0'),
+ COALESCE(NULLIF(current_setting('gis.mode',true),''),'local_synthetic'));
 CREATE TABLE gis.officers(
  user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
  granted_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
@@ -127,11 +149,30 @@ FROM (VALUES('ndvi-valid-v1','geotiff','ndvi'),('lst-valid-v1','geotiff','lst'),
 CREATE FUNCTION gis.assert_environment() RETURNS void LANGUAGE plpgsql SECURITY DEFINER
 SET search_path=pg_catalog,gis AS $f$
 BEGIN
+ -- Called on every request, where no declaration is in scope. The sandbox is
+ -- still checked against the postmaster it claims to be running on. A hosted
+ -- project has no such setting to check, so what is verified here is that the
+ -- stored identity is well formed and belongs to this database; the identity
+ -- itself is matched against the configured profile by the application.
  IF NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton
-   AND database_name=current_database() AND cluster_name=current_setting('cluster_name')
+   AND database_name=current_database()
    AND runtime_instance ~ '^[0-9a-f]{32}$' AND baseline_fingerprint ~ '^[0-9a-f]{64}$'
-   AND mode='local_synthetic') THEN RAISE EXCEPTION 'GIS_LOCAL_TARGET_REQUIRED'; END IF;
+   AND ((mode='local_synthetic' AND cluster_name='green-area-gis-t0'
+         AND cluster_name=current_setting('cluster_name'))
+     OR (mode='cloud' AND cluster_name ~ '^[a-z]{20}$')))
+   THEN RAISE EXCEPTION 'GIS_LOCAL_TARGET_REQUIRED'; END IF;
 END $f$;
+-- The same test, for the guard blocks of the migrations that follow this one.
+-- They run as the migrator before it assumes gis_owner, so it is granted here.
+CREATE FUNCTION gis.target_ok() RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path=pg_catalog,gis AS $f$
+ SELECT EXISTS(SELECT 1 FROM gis.environment WHERE singleton
+   AND database_name=current_database()
+   AND ((mode='local_synthetic' AND cluster_name='green-area-gis-t0'
+         AND cluster_name=current_setting('cluster_name'))
+     OR (mode='cloud' AND cluster_name ~ '^[a-z]{20}$'))) $f$;
+REVOKE ALL ON FUNCTION gis.target_ok() FROM PUBLIC,anon,authenticated,service_role,gis_worker;
+GRANT EXECUTE ON FUNCTION gis.target_ok() TO postgres;
 CREATE FUNCTION gis.authorize(p_actor uuid,p_admin boolean DEFAULT false) RETURNS boolean
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,gis AS $f$
 DECLARE a boolean;

@@ -6,13 +6,13 @@ SELECT gis.assert_environment();
 DO $guard$
 BEGIN
  IF current_database() NOT IN ('postgres','gis_t1_upgrade')
-    OR current_setting('cluster_name')<>'green-area-gis-t0'
+    OR NOT gis.target_ok()
     OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton
       AND runtime_instance=current_setting('gis.runtime_instance',true)
       AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true)
       AND activation_enabled=false)
     OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=36
-      AND sha256='acd1f28d50e6db4e861424049037785143b2f2e2cfacf4e7131949814ed75df7')
+      AND sha256='325e2f2293ddae556ee585fec4a7f45ace883b9931011aa2a95cfc222f28f08b')
     OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=37) THEN
    RAISE EXCEPTION 'GIS_LOCAL_BASELINE_036_REQUIRED';
  END IF;

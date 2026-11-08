@@ -1,9 +1,9 @@
 -- A6.4d-1 Local offline safety rehearsal. No approved Cloud identity or network.
 DO $guard$ BEGIN
- IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR current_setting('cluster_name')<>'green-area-gis-t0'
+ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
  AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=44 AND sha256='874919e286d7870e61f0374502a513a53ca06d6085fd9ba0b2e17df329a08a9a')
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=44 AND sha256='6636b8963e097225232d3f42c887e487cc1cc9d752d59a79387cda1b58f43f47')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=45) THEN RAISE EXCEPTION 'GIS_LOCAL_BASELINE_044_REQUIRED'; END IF;
 END $guard$;
 DO $role$ BEGIN
