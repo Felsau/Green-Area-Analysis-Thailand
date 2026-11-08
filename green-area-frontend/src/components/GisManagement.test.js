@@ -84,7 +84,10 @@ test('offline processing requires backend readiness and confirmation; district/m
     ? Promise.resolve({ districts: [{ name_en: 'BangRak', name_th: 'บางรัก' }], live_enabled: false }) : respond(path, options));
   show({ ...officer, processing_enabled: true }); switchTab('ประมวลผล NDVI/LST');
   fireEvent.click(await screen.findByRole('button', { name: 'สร้างงานประมวลผล NDVI/LST' }));
-  expect(screen.getByRole('note')).toHaveTextContent('ไม่ใช่ภาพดาวเทียม');
+  // The form renders its note only after /processing-options resolves, so this
+  // has to wait for it. getByRole is synchronous and won the race on a fast
+  // machine while losing it on a loaded CI runner.
+  expect(await screen.findByRole('note')).toHaveTextContent('ไม่ใช่ภาพดาวเทียม');
   fireEvent.change(screen.getByLabelText('ดัชนีประมวลผล'), { target: { value: 'lst' } });
   fireEvent.change(screen.getByLabelText('จังหวัดประมวลผล'), { target: { value: ds.province } });
   fireEvent.change(screen.getByLabelText('ระดับพื้นที่'), { target: { value: 'district' } });
