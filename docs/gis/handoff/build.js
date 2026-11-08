@@ -64,12 +64,15 @@ function subheading(text) {
   });
 }
 
-function bullet(text) {
-  return new Paragraph({
-    children: [run('–  '), run(text)],
+// Numbered rather than dashed: every list in these documents is a set of
+// things somebody has to work through and refer back to, so the items need to
+// be nameable ("ข้อ 2") rather than just visually separated.
+function numbered(items) {
+  return items.map((text, i) => new Paragraph({
+    children: [run(`${i + 1}.  `, { bold: true }), run(text)],
     spacing: { after: 80, line: 300 },
-    indent: { left: 360, hanging: 200 },
-  });
+    indent: { left: 420, hanging: 260 },
+  }));
 }
 
 // A boxed line for the "do not start this yet" instructions. These are the
@@ -232,8 +235,10 @@ const doc1 = [
 
   subheading('W1 — ตรวจสอบความพร้อมของฐานข้อมูล Supabase'),
   para([run('สิ่งที่ต้องทำ  ', { bold: true }), run('เปิดแดชบอร์ดของโครงการบน Supabase แล้วตอบสองคำถาม')]),
-  bullet('ฐานข้อมูลเป็น PostgreSQL รุ่น 17 ขึ้นไปหรือไม่'),
-  bullet('บัญชีที่ใช้งานมีสิทธิ์สร้าง role (คำสั่ง CREATE ROLE) หรือไม่'),
+  ...numbered([
+    'ฐานข้อมูลเป็น PostgreSQL รุ่น 17 ขึ้นไปหรือไม่',
+    'บัญชีที่ใช้งานมีสิทธิ์สร้าง role (คำสั่ง CREATE ROLE) หรือไม่',
+  ]),
   para([run('เหตุผล  ', { bold: true }), run('สคริปต์ติดตั้งฐานข้อมูล migrations/027_gis_foundation.sql กำหนดเงื่อนไขไว้ว่า server_version_num ต้องไม่ต่ำกว่า 170000 หากรุ่นต่ำกว่านี้จะติดตั้งไม่ได้ทั้งชุด และแผนงานส่วนที่เหลือต้องทบทวนใหม่ ส่วนคำสั่ง CREATE ROLE ปรากฏใน migration หมายเลข 027 และ 043 ถึง 047 สำหรับสร้าง gis_owner, gis_worker, gis_native_worker และ authenticator')]),
   para([run('สิ่งที่ต้องส่ง  ', { bold: true }), run('คำตอบสองข้อ ใช่หรือไม่ใช่ พร้อมภาพหน้าจอประกอบ')]),
   para([run('เกณฑ์ว่าเสร็จ  ', { bold: true }), run('ทีมทราบคำตอบทั้งสองข้ออย่างชัดเจน')]),
@@ -286,14 +291,18 @@ const doc1 = [
 
   heading('4. งานที่ยังไม่ส่งมอบในรอบนี้'),
   para('รายการต่อไปนี้อยู่ในแผนระยะถัดไป กรุณายังไม่เริ่มดำเนินการ'),
-  bullet('การเขียนตัวติดตั้ง migration สำหรับฐานข้อมูลบนคลาวด์'),
-  bullet('การย้ายที่จัดเก็บไฟล์ที่ผู้ใช้อัปโหลด'),
+  ...numbered([
+    'การเขียนตัวติดตั้ง migration สำหรับฐานข้อมูลบนคลาวด์',
+    'การย้ายที่จัดเก็บไฟล์ที่ผู้ใช้อัปโหลด',
+  ]),
   para('ทั้งสองรายการขึ้นอยู่กับคำตอบของงาน W1 และ W2 โดยตรง จะส่งมอบในรอบถัดไป'),
 
   heading('5. สิ่งที่จัดเตรียมไว้ให้แล้ว'),
-  bullet('ระบบตรวจอัตโนมัติ (CI) ทำงานได้และผ่านทุกขั้นตอนแล้ว หากเปิด pull request แล้วขึ้นสถานะไม่ผ่าน แสดงว่าเป็นสิ่งที่เพิ่งแก้เข้าไป ไม่ใช่ปัญหาเดิมที่ค้างอยู่'),
-  bullet('ไฟล์ green-area-backend/requirements-native.txt ระบุรุ่นไลบรารีที่ตรวจสอบแล้ว'),
-  bullet('ไฟล์ตัวอย่างการตั้งค่าอยู่ที่ green-area-backend/.env.example และ green-area-frontend/.env.example'),
+  ...numbered([
+    'ระบบตรวจอัตโนมัติ (CI) ทำงานได้และผ่านทุกขั้นตอนแล้ว หากเปิด pull request แล้วขึ้นสถานะไม่ผ่าน แสดงว่าเป็นสิ่งที่เพิ่งแก้เข้าไป ไม่ใช่ปัญหาเดิมที่ค้างอยู่',
+    'ไฟล์ green-area-backend/requirements-native.txt ระบุรุ่นไลบรารีที่ตรวจสอบแล้ว',
+    'ไฟล์ตัวอย่างการตั้งค่าอยู่ที่ green-area-backend/.env.example และ green-area-frontend/.env.example',
+  ]),
 
   ...signoff(['W1', 'W2', 'W5']),
 ];
@@ -371,9 +380,11 @@ const doc2 = [
 
   heading('5. งานที่ยังไม่ส่งมอบในรอบนี้'),
   para('รายการต่อไปนี้ต้องตัดสินใจร่วมกันก่อน กรุณายังไม่เริ่มดำเนินการ และจะนัดหารือในรอบถัดไป'),
-  bullet('การรวม commit 78f0219 เข้ากับบรานช์ และการพิจารณาขอบเขตของ legacy-v1'),
-  bullet('การพิจารณาว่า worker ใดควรทำงานบนคลาวด์'),
-  bullet('การกำหนดเงื่อนไขการอนุมัติประมวลผล Google Earth Engine จริง'),
+  ...numbered([
+    'การรวม commit 78f0219 เข้ากับบรานช์ และการพิจารณาขอบเขตของ legacy-v1',
+    'การพิจารณาว่า worker ใดควรทำงานบนคลาวด์',
+    'การกำหนดเงื่อนไขการอนุมัติประมวลผล Google Earth Engine จริง',
+  ]),
   ...callout('ข้อควรระวังหากเผลอเริ่มก่อน ค่า hash ที่ตรึงไว้ในขณะนี้ยังตรงกับไฟล์บนบรานช์ การปรับค่า hash ก่อนการรวมบรานช์จะทำให้ชุดทดสอบไม่ผ่านโดยไม่จำเป็น'),
 
   heading('6. เรื่องที่ควรทราบ'),
