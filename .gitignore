@@ -76,3 +76,9 @@ green-area-backend/reports/
 # (ต้องมี Pillow + ~/Library/Fonts/THSarabunNew.ttf) · ตัวสคริปต์ track ไว้แล้ว
 # ฉบับที่ใช้จริงฝังอยู่ใน .docx ซึ่งเก็บนอก repo ตามนโยบายด้านบน
 ภาพร่างไดอะแกรมใหม่/*.png
+
+# เอกสารส่งมอบงานฉบับที่ใช้ลงนาม (.docx/.pdf) — binary ที่ diff ไม่ได้ เหมือน
+# นโยบายของรูปเล่มด้านบน · ต้นฉบับที่ track คือ docs/gis/handoff-*.md และตัวสร้าง
+# คือ docs/gis/handoff/build.js ⇒ สร้างไฟล์ขึ้นใหม่ได้เสมอ ไม่ต้องเก็บผลลัพธ์ใน git
+docs/gis/handoff/*.docx
+docs/gis/handoff/*.pdf
