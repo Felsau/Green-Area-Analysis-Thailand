@@ -38,16 +38,23 @@ jobs:
         run: |
           pip install ruff
           ruff check .
-      # GIS_NATIVE_RUNTIME is deliberately not set. One test asserts that the
-      # LDD artifacts are byte-identical to frozen fixtures, and those bytes
-      # depend on the system libraries under the wheels, not only on the wheel
-      # versions: the same fiona/shapely produce them under python:3.12-slim
-      # and different ones on this runner. It is skipped until the worker image
-      # is defined in this repository and the job runs inside it. The workers
-      # are launched from bare sha256 digests in dev/gis_local/manage.py, so
-      # there is no image to run it in yet.
+      # GIS_NATIVE_RUNTIME is deliberately not set here. The tests that assert
+      # the LDD and GeoTIFF artifacts are byte-identical to frozen fixtures only
+      # mean something inside the pinned runtime, which the next step builds and
+      # runs them in. On this runner they are skipped, because the same
+      # fiona/shapely wheels produce different bytes here.
       - name: Run tests
         run: pytest tests/ -v
+      # Proves the pinned worker runtime reproduces the frozen artifacts, which
+      # is the whole reason the image is pinned rather than just the wheels.
+      # pytest is installed at run time rather than baked in: the worker image
+      # stays free of anything it does not need to do its job.
+      - name: Verify the pinned native runtime
+        run: |
+          docker build -f gis_worker/Dockerfile -t gis-native-runtime:ci .
+          docker run --rm -v "$PWD:/src:ro" -w /src gis-native-runtime:ci sh -c '
+            pip install --quiet --no-cache-dir pytest &&
+            python -m pytest -q -p no:cacheprovider               tests/test_ldd_policy_native.py               tests/test_ldd_prepare_native.py               tests/test_ldd_publication_native.py               tests/test_geotiff_native.py               tests/test_geotiff_prepare_native.py               tests/test_geotiff_publication_native.py               tests/test_gis_native_provider.py'
       # Dependency vulnerability scan — informational for now (continue-on-error).
       # Flip to blocking by removing continue-on-error once advisories are triaged.
       - name: Audit dependencies (pip-audit)

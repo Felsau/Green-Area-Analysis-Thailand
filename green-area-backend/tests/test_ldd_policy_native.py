@@ -372,10 +372,9 @@ def test_v2_preparation_uses_the_same_derived_geometry_and_area_as_validation(tm
 # machine, not a regression.
 #
 # The check therefore runs only where the runtime is declared to be the pinned
-# one: set GIS_NATIVE_RUNTIME=pinned inside the worker image. That image does
-# not exist in this repository yet (the workers are launched from bare sha256
-# digests in dev/gis_local/manage.py), which is why this is skipped in CI today.
-# Building it, and then turning this check back on, is a handed-over task.
+# one, which green-area-backend/gis_worker/Dockerfile sets. CI builds that image
+# and runs this file inside it; on the bare runner it skips, because there the
+# result would describe the machine rather than a regression.
 @pytest.mark.skipif(os.environ.get('GIS_NATIVE_RUNTIME') != 'pinned',
                     reason='frozen artifact bytes are only meaningful inside the pinned '
                            'worker runtime; set GIS_NATIVE_RUNTIME=pinned when running there')

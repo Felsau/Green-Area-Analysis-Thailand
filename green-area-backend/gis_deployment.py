@@ -30,6 +30,8 @@ from gis_target import TargetProfile, profile_from_env
 # Supabase Auth's liveness endpoint, reached through the project's own gateway.
 # It is the one request made before any credential is trusted, so if a future
 # Supabase release moves it, this constant is the only thing that has to change.
+# Verified against a live Supabase project on 8 Nov 2026: it answers 200 with
+# {"version": "...", "name": "GoTrue", ...} when given a valid apikey header.
 HEALTH_PATH = "/auth/v1/health"
 HEALTH_TIMEOUT = 8.0
 RPC_TIMEOUT = 15.0
