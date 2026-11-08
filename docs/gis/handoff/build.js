@@ -9,6 +9,7 @@ const path = require('path');
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   HeadingLevel, AlignmentType, WidthType, BorderStyle, ShadingType, PageOrientation,
+  HeightRule,
 } = require('docx');
 
 const THAI = 'Leelawadee UI';
@@ -49,10 +50,14 @@ function title(text) {
   });
 }
 
-function heading(text) {
+function heading(text, o = {}) {
   return new Paragraph({
     children: [run(text, { size: 28, bold: true })],
-    spacing: { before: 300, after: 130, line: 300 },
+    // pageBreakBefore rather than a separate break paragraph: the empty
+    // paragraph left a blank page whenever the previous section happened to
+    // end near the bottom of one.
+    pageBreakBefore: !!o.newPage,
+    spacing: { before: o.newPage ? 0 : 300, after: 130, line: 300 },
     border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: RULE, space: 4 } },
   });
 }
@@ -142,6 +147,44 @@ function table(widths, rows, o = {}) {
       })),
     })),
   });
+}
+
+// A bordered empty box to paste a screenshot into, with a caption saying what
+// has to be visible in it. Without naming that, what comes back is a picture of
+// whatever the sender happened to have on screen.
+function imageSlot(number, title, mustShow, heightCm = 7) {
+  return [
+    new Paragraph({
+      children: [run(`ภาพที่ ${number}  `, { bold: true }), run(title, { bold: true })],
+      spacing: { before: 260, after: 60, line: 300 },
+    }),
+    new Paragraph({
+      children: [run('ในภาพต้องเห็น: ' + mustShow, { size: 20, color: MUTED })],
+      spacing: { after: 100, line: 280 },
+    }),
+    new Table({
+      columnWidths: [CONTENT],
+      width: { size: CONTENT, type: WidthType.DXA },
+      borders: {
+        top: { style: BorderStyle.DASHED, size: 6, color: '9A9A9A' },
+        bottom: { style: BorderStyle.DASHED, size: 6, color: '9A9A9A' },
+        left: { style: BorderStyle.DASHED, size: 6, color: '9A9A9A' },
+        right: { style: BorderStyle.DASHED, size: 6, color: '9A9A9A' },
+      },
+      rows: [new TableRow({
+        cantSplit: true,
+        height: { value: Math.round(heightCm * 567), rule: HeightRule.ATLEAST },
+        children: [new TableCell({
+          width: { size: CONTENT, type: WidthType.DXA },
+          children: [new Paragraph({
+            children: [run('วางภาพหน้าจอที่นี่', { size: 20, color: 'A0A0A0' })],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 1400, after: 60, line: 280 },
+          })],
+        })],
+      })],
+    }),
+  ];
 }
 
 function spacer(h = 160) {
@@ -361,6 +404,13 @@ const doc1 = [
       ['ปัญหาที่พบ', BLANK],
     ]],
   ]),
+
+  heading('7. ภาคผนวก ภาพหลักฐาน', { newPage: true }),
+  para('วางภาพหน้าจอลงในกรอบด้านล่าง กรอบใดไม่มีภาพให้เขียนเหตุผลกำกับไว้แทน'),
+  ...imageSlot(1, 'รุ่นของฐานข้อมูล (งาน W1)', 'หน้าแดชบอร์ด Supabase ส่วนที่ระบุรุ่น PostgreSQL โดยเห็นชื่อโครงการประกอบด้วย'),
+  ...imageSlot(2, 'สิทธิ์สร้าง role (งาน W1)', 'ผลการตรวจสอบสิทธิ์ หรือข้อความผิดพลาดที่ได้เมื่อทดลองสร้าง role'),
+  ...imageSlot(3, 'ผลการสั่ง docker compose up (งาน W2)', 'บรรทัดคำสั่งที่ใช้ และสถานะของคอนเทนเนอร์ทุกตัวหลังสั่ง'),
+  ...imageSlot(4, 'ผลรันชุดทดสอบภายใน image (งาน W5)', 'บรรทัดสรุปท้ายของ pytest ที่ระบุจำนวนข้อที่ผ่าน ไม่ผ่าน และถูกข้าม'),
 ];
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -517,6 +567,12 @@ const doc2 = [
   para('ผู้รับมอบ ...................................................... วันที่ ......... / ......... / .........'),
   spacer(200),
   para('ผู้ส่งมอบ ...................................................... วันที่ ......... / ......... / .........'),
+
+  heading('9. ภาคผนวก ภาพหลักฐาน', { newPage: true }),
+  para('วางภาพหน้าจอลงในกรอบด้านล่าง กรอบใดไม่มีภาพให้เขียนเหตุผลกำกับไว้แทน'),
+  ...imageSlot(1, 'ค่า digest ที่ใช้งานอยู่จริง (งาน W3)', 'ผลของคำสั่ง docker images ที่แสดง digest ของ image ที่ใช้อยู่ หรือหน้าไฟล์ตั้งค่าที่เก็บค่าเหล่านั้น'),
+  ...imageSlot(2, 'ผลลัพธ์ของ gis_readiness() (งาน W4)', 'ค่า cluster_name, mode และรายการหมายเลข migration ที่ติดตั้งแล้ว'),
+  ...imageSlot(3, 'ผลรันชุดทดสอบหลังสร้าง T0 ใหม่ (งาน W4)', 'บรรทัดสรุปท้ายของ pytest ที่ระบุจำนวนข้อที่ผ่านและไม่ผ่าน'),
 ];
 
 const OUT = process.argv[2] || '.';
