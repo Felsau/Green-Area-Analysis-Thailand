@@ -248,7 +248,11 @@ def apply_migration(target: Target, version: int, path: Path, data: bytes, check
         "COMMIT;",
         "",
     ))
-    target.run(sql, stage=f"migration {path.name} (rolled back, nothing recorded)")
+    try:
+        target.run(sql, stage=f"migration {path.name}")
+    except InstallError as error:
+        raise InstallError(f"{error}\nThis migration was rolled back and not recorded. "
+                           "Earlier migrations stay applied; a re-run resumes here.") from None
 
 
 def readiness(target: Target, instance: str, fingerprint: str, cluster: str) -> dict:
