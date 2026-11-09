@@ -12,6 +12,8 @@ spec=importlib.util.spec_from_file_location('remediation_identity',HERE/'t3_iden
 identity_module=importlib.util.module_from_spec(spec);sys.modules[spec.name]=identity_module;spec.loader.exec_module(identity_module)
 IMAGE='sha256:fca4560d8a0d0198c0eb75fbf6598314cd8ed4a5e8bafa00e1d7298126aa04c9'
 MIGRATION=REPO/'green-area-backend/migrations/032_gis_worker_remediation.sql'
+# The only local branch the attested operators run on. Every operator that checks the branch reads this.
+GIS_BRANCH='gis-unlock'
 
 def fingerprint():
     files={}
@@ -36,7 +38,7 @@ class Local(t2.LocalT2):
         self.frozen=json.loads((self.directory/'initial-source-state.json').read_text(encoding='utf-8'))
         self.check_frozen()
     def check_frozen(self):
-        if fingerprint()['branch']!='feature/gis-data-management':raise t2.t1.SafetyError('WRONG_BRANCH')
+        if fingerprint()['branch']!=GIS_BRANCH:raise t2.t1.SafetyError('WRONG_BRANCH')
         for rel,h in self.frozen['files'].items():
             if rel.startswith('green-area-backend/migrations/') and int(Path(rel).name[:3])<=31:
                 if hashlib.sha256((REPO/rel).read_bytes()).hexdigest()!=h:raise t2.t1.SafetyError('APPLIED_MIGRATION_FILE_CHANGED')

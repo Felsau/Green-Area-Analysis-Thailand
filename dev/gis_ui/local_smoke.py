@@ -46,7 +46,7 @@ def main():
     logging.disable(logging.CRITICAL)
     local = m.Local(args.runtime_dir)
     local.attest()
-    if m.fingerprint()['branch'] != 'feature/gis-data-management':
+    if m.fingerprint()['branch'] != m.GIS_BRANCH:
         raise RuntimeError('WRONG_BRANCH')
     unused_port(3000)
     unused_port(55422)

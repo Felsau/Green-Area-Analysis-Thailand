@@ -53,7 +53,7 @@ class PublicationLocal(p.Phase4Local):
         self.output.mkdir(exist_ok=True)
 
     def proof_a1(self):
-        if p.m.fingerprint()['branch'] != 'feature/gis-data-management':
+        if p.m.fingerprint()['branch'] != p.m.GIS_BRANCH:
             raise RuntimeError('WRONG_BRANCH')
         self.check_frozen()
         self.attest()

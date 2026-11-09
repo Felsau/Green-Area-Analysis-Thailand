@@ -42,7 +42,7 @@ class LddPublicationV2Local(a3.LddPublicationLocal):
 
     def proof_a2(self):
         self.check_frozen(); self.attest()
-        if a3.m.fingerprint()['branch'] != 'feature/gis-data-management':
+        if a3.m.fingerprint()['branch'] != a3.m.GIS_BRANCH:
             raise RuntimeError('WRONG_BRANCH')
         for db in a3.a2.a1.DATABASES:
             self.db.proof(db, stage='gis')

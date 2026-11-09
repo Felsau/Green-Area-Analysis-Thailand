@@ -62,7 +62,7 @@ def main():
     local = local_module.Local(args.runtime_dir)
     local.attest()
     local.check_frozen()
-    if local_module.fingerprint()['branch'] != 'feature/gis-data-management':
+    if local_module.fingerprint()['branch'] != local_module.GIS_BRANCH:
         raise RuntimeError('WRONG_BRANCH')
     output = local.db.runtime.root / 't5-final'
     output.mkdir(exist_ok=True)

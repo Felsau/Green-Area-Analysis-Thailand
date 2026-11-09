@@ -31,7 +31,7 @@ class LddPrepareLocal(a1.PublicationLocal):
 
     def proof_a2(self):
         self.check_frozen();self.attest()
-        if m.fingerprint()['branch'] != 'feature/gis-data-management':
+        if m.fingerprint()['branch'] != m.GIS_BRANCH:
             raise RuntimeError('WRONG_BRANCH')
         if hashlib.sha256(a1.MIGRATION.read_bytes()).hexdigest() != FROZEN_037:
             raise RuntimeError('APPLIED_037_CHANGED')

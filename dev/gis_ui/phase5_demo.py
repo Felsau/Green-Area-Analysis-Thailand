@@ -32,7 +32,7 @@ m=p.m
 
 
 def local_target(root):
-    if m.fingerprint()['branch']!='feature/gis-data-management':
+    if m.fingerprint()['branch']!=m.GIS_BRANCH:
         raise RuntimeError('WRONG_BRANCH')
     local=p.Phase4Local(root)
     local.check_frozen()
