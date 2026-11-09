@@ -6,6 +6,9 @@ strict issuer/audience/time/sub checks are additionally enforced here.
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
+from contextvars import ContextVar
+from copy import deepcopy
 from dataclasses import dataclass
 import re
 import time
@@ -19,6 +22,21 @@ import jwt
 LOCAL_URL = "http://127.0.0.1:55421"
 LOCAL_ISSUER = LOCAL_URL + "/auth/v1"
 REQUIRED_VERSIONS = {27, 28, 29, 30}
+
+# One target proof per GIS read request (docs/gis/w5-ldd-publication-design.md 6.4). The ASGI scope in
+# gis_app gives each GET/HEAD /gis request its own dict. Every other request, worker and CLI call sees None
+# and proves the target before every Auth/SQL call, as before. A proof is never shared between requests,
+# never outlives its request and is never recorded when it fails.
+_READ_PROOFS: ContextVar[dict | None] = ContextVar("gis_read_proofs", default=None)
+
+
+@contextmanager
+def read_proof_scope(enabled: bool):
+    token = _READ_PROOFS.set({} if enabled else None)
+    try:
+        yield
+    finally:
+        _READ_PROOFS.reset(token)
 
 
 def unavailable() -> HTTPException:
@@ -85,6 +103,21 @@ class GISRuntime:
             raise unavailable() from None
 
     def require_ready(self):
+        """Target proof plus database readiness; within one GIS read request the first success is reused."""
+        proofs = _READ_PROOFS.get()
+        if proofs is not None and self in proofs:
+            return deepcopy(proofs[self])
+        value = self._prove_ready()
+        if proofs is not None:
+            proofs[self] = deepcopy(value)
+        return value
+
+    def _forget_read_proof(self):
+        proofs = _READ_PROOFS.get()
+        if proofs is not None:
+            proofs.pop(self, None)
+
+    def _prove_ready(self):
         self._verify_transport()
         if self._service is None:
             raise unavailable()
@@ -157,6 +190,7 @@ class GISRuntime:
             try:
                 return self._service.rpc(name, params).execute().data
             except (httpx.TransportError, httpx.TimeoutException):
+                self._forget_read_proof()  # a retry proves the target again, even inside a read request
                 if attempt:
                     raise unavailable() from None
         raise unavailable()

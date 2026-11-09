@@ -45,6 +45,8 @@
 - GIS429 มี `detail:{code,message,fields}` โดยคง Legacy handler
 - `/gis/me` แสดงทั้ง Backend/Database gates และค่าเปิดใช้งานที่รวมสอง Gate
 - ปฏิเสธ Authorization Header ซ้ำ; ยังคง target proof ก่อน Auth และ SQL
+  (ปรับ 8 พ.ย. 2569 ตาม `w5-ldd-publication-design.md` หัวข้อ 6.4 ที่ผู้ใช้อนุมัติ: คำขอ GET/HEAD `/gis` หนึ่งครั้งพิสูจน์เป้าหมายเต็มครั้งเดียวก่อน Auth แล้วใช้ผลนั้นกับ SQL/ไฟล์ของคำขอเดียวกัน ·
+  คำขอเปลี่ยนข้อมูล, เส้นทางอื่น, worker และ CLI ยังพิสูจน์ก่อน Auth และ SQL ทุกครั้ง · ไม่เก็บผลข้ามคำขอ ไม่เก็บผลที่ล้ม และ transport error ก่อน retry ทำให้พิสูจน์ใหม่)
 - Cleanup ทำตาม Queue order และปฏิเสธการแตะงานที่ไม่อยู่ในรอบทดสอบ
 
 ## ข้อจำกัดของการรับรอง

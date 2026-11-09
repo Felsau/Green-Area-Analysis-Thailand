@@ -144,9 +144,59 @@
 - **เทสต์:** backend Windows 1779 ผ่าน/81 ข้าม · native 415 ผ่าน · หน้าเว็บ 395 ผ่าน 2 ล้ม (`SystemModal.test.js` ของงาน 2.2.4 ที่พักไว้ ไฟล์นี้ import แค่ `apiClient`, `constants`, `SystemModal`, `UserMenu` ซึ่งไม่ได้ถูกแก้ในงานนี้; ยังไม่ได้พิสูจน์ด้วยการรันบน HEAD) · eslint ของไฟล์ที่แก้ผ่าน
 - **ยังไม่ได้:** ทดลองครบรอบจริงบนเครื่อง (ต้องมีตัวเปิดเดโมแบบ "LDD publication" ที่มี prepare worker ตามข้อ 4.5) · วัดความเร็วการวาดแผนที่
 
+## 6.4 target proof ครั้งเดียวต่อคำขออ่าน (8 พ.ย. 2569) — **ผู้ใช้อนุมัติ "อนุมัติ A" · แก้โค้ดแล้ว ยังไม่ commit**
+สิ่งที่ทำ: `gis_runtime.py` (`read_proof_scope`, `require_ready()` จดผลต่อคำขอ, `_prove_ready()` = การตรวจเดิมทั้งหมด, `rpc()` ลบผลก่อน retry) ·
+`gis_app.py` (`GISReadProofScope` เฉพาะ `/gis`, ลงทะเบียนใน `mount_gis` ถัดจาก `GISBodyLimit`) · เทสต์ใหม่ 6 ข้อใน `tests/test_gis_runtime_unit.py` (รวมผ่านแอปจริง: GET `/gis/me` = proof 1 ครั้ง, POST = ทุกครั้ง) · แก้ `t2-security-review.md` ·
+ยังต้อง: วัดเวลาในเดโมจริงเทียบตารางข้างล่าง
+ที่มา: E2E ปทุมธานี 2568 ผ่านหน้าเว็บ (run `df201493cc`) ทำงานถูกต้องทุกขั้น แต่การอ่าน Published ช้ามาก
+และเป็นต้นเหตุหลักของแดชบอร์ดกระพริบ (ฝั่งหน้าเว็บแก้แล้วใน `useLanduseData.js` ยังไม่ commit)
+
+**ตัวเลขที่วัด (เครื่องพัฒนา, ปทุมธานี 21,832 แปลง)**
+
+| รายการ | เวลา |
+|---|---|
+| GET `/published-ldd` ได้ข้อมูล (วัด 3 ครั้ง) | 15.5-15.8 วินาที |
+| GET `/published-ldd` หลังถอน ได้ 404 (ไม่อ่านไฟล์เลย, วัด 2 ครั้ง) | 10.2-10.4 วินาที |
+| GET `/published-ldd/geometry` | 18.9 วินาที |
+| `attest()` ของเป้าหมาย Local 1 ครั้ง (`verify_containers` 0.57 + `db.proof` 0.83, วัด 3 รอบ) | 1.40 วินาที |
+| อ่าน+SHA256 ZIP ต้นฉบับ 7 MB / ไฟล์ผลลัพธ์ทั้งสอง | 0.01-0.02 / 0.01-0.03 วินาที |
+| parse geometry 15.85 MB | 0.26-0.30 วินาที |
+| deepcopy+dump+gzip geometry (เฉพาะ endpoint geometry) | 2.11-2.26 วินาที |
+
+**ต้นเหตุ (ไล่จากโค้ด):** ทุกจุดเรียก `GISRuntime.require_ready()` = `attest()` ของเป้าหมาย + RPC `gis_readiness` ใหม่ทุกครั้ง
+GET `/published-ldd` หนึ่งครั้งเรียก 9 ครั้ง: `verify_user_token` 1 · `publication()` → `provider.attest()` + `store.attest()` 2 · `_published()` → `self.attest()` 2 ·
+`runtime.rpc` ก่อน SQL 2 ครั้ง (อ่าน pointer และตรวจซ้ำ `p_expected`) · `read_files()` → `store.attest()` 1 + `_source()` → `source_store.attest()` 1 ·
+ทาง 404 หยุดหลัง RPC แรก = 6 ครั้ง ≈ 10 วินาที ตรงกับที่วัด · งานไฟล์จริงรวมไม่ถึง 0.5 วินาที (ไม่นับ gzip ของ geometry)
+
+**แนวทางที่เสนอ (A): จดผล proof ไว้ต่อคำขอ GET/HEAD หนึ่งครั้ง**
+- `gis_runtime.py`: `ContextVar` เก็บ dict ต่อคำขอ · `require_ready()` ครั้งแรกของคำขอตรวจเต็มเหมือนเดิม (proof + `gis_readiness`) แล้วจดผล · ครั้งต่อไปในคำขอเดียวกันคืนสำเนาผลเดิม ·
+  ผ่านไม่ได้ = ไม่จด (ครั้งถัดไปตรวจใหม่และล้มเหมือนเดิม) · `rpc()` เจอ transport error ให้ลบผลที่จดก่อน retry (คงความหมาย "ตรวจเป้าหมายซ้ำก่อน retry")
+- `gis_app.py`: middleware แบบ ASGI ล้วน (แบบเดียวกับ `GISBodyLimit`) สร้าง dict ใหม่เฉพาะคำขอ GET/HEAD และล้างทิ้งตอนจบคำขอ · คำขออื่นได้ `None` = ตรวจทุกครั้งเหมือนเดิม
+- พิสูจน์กลไกแล้วด้วยสคริปต์ทดลองบน FastAPI 0.136.3 / Starlette 1.3.1 / anyio 4.13.0 ของ venv: GET หนึ่งครั้ง proof 1 ครั้ง (dependency และ endpoint อยู่คนละ thread แต่ใช้ dict เดียวกัน) · GET ถัดไป proof ใหม่ · POST proof ทุกครั้ง · นอกคำขอ proof ทุกครั้ง
+- ประเมิน (ยังไม่ได้วัด): `/published-ldd` ≈ 3 วินาที · 404 ≈ 2 วินาที · geometry ≈ 5 วินาที · หน้า GIS Management เร็วขึ้นด้วย (แต่ละ list เรียก proof 2-4 ครั้ง)
+
+**ความปลอดภัย: อะไรเปลี่ยน อะไรไม่เปลี่ยน**
+- เปลี่ยน: ในคำขอ GET เดียว SQL/ไฟล์ช่วงหลังใช้ proof ที่ทำตอนต้นคำขอนั้น (ห่างกันไม่กี่วินาที) แทนการตรวจใหม่ทุกครั้ง ·
+  เป็นการตีความ `t2-security-review.md` "ยังคง target proof ก่อน Auth และ SQL" จาก "ก่อน SQL ทุกครั้ง" เป็น "ก่อน Auth และ SQL ทุกคำขอ" สำหรับคำขออ่าน → ต้องแก้เอกสารนั้นด้วย
+- ไม่เปลี่ยน: proof ยังเกิดก่อน Auth เป็นอย่างแรกของทุกคำขอ · คำขอเปลี่ยนข้อมูลทั้งหมด (อัปโหลด, ส่งตรวจ, prepare, verify, เปิดใช้, ย้อนกลับ, ถอน) ตรวจทุกครั้งเหมือนเดิม ·
+  worker/CLI/โค้ดนอกคำขอ HTTP ตรวจทุกครั้ง · ไม่จดข้ามคำขอ (ไม่มี TTL) · `manage.py`/`verify_containers`/ฟังก์ชัน attest ของ operator ไม่แตะ ·
+  ตรวจ owner.json/symlink ของ store ยังทำทุกครั้ง · SHA/ขนาด/lineage ของไฟล์ทุกการอ่าน · SQL ตรวจ pointer ซ้ำ (`p_expected`) · ไม่มี migration ไม่แตะฐานข้อมูล
+- ความเสี่ยงที่เหลือ: ถ้าเป้าหมายถูกเปลี่ยนกลางคำขอ GET (ภายในไม่กี่วินาที) คำขอนั้นจะใช้ proof ตอนต้นไปจนจบ · ลดด้วย transport ที่ล็อก 127.0.0.1, การตรวจ SHA/SQL ทุกการอ่าน และคำขอถัดไป (≤10 วินาทีจาก polling) ตรวจใหม่
+
+**ทางเลือกที่ไม่เสนอ:** (B) cache proof ข้ามคำขอแบบ TTL → คำขอที่ไม่มี proof ของตัวเอง ขัดหลัก A3 ·
+(C) ทำ attest ให้เร็วขึ้น (รวม docker inspect / SQL รอบเดียว) → ต้องแก้ `manage.py` ซึ่งห้ามแตะ guard ·
+(D) ส่งธง "ตรวจแล้ว" ผ่านทุก call site → แก้หลายไฟล์ พลาดง่าย และยังเหลือ proof ก่อน RPC ทุกครั้ง ·
+(E) ไม่ parse geometry ตอน poll summary → ประหยัดแค่ ~0.3 วินาที ไม่คุ้มตอนนี้
+
+**ไฟล์ที่จะแก้:** `gis_runtime.py`, `gis_app.py`, `tests/test_gis_runtime_unit.py` (+ เทสต์ระดับแอปนับจำนวน proof), `docs/gis/t2-security-review.md` · ไม่แตะ migration, guard, runner, ไฟล์ที่พักไว้
+**เทสต์ที่จะเพิ่ม:** GET เดียวที่มี Auth + RPC 2 ครั้ง + store attest = proof 1 ครั้ง · GET สองครั้ง = 2 · POST = ทุกครั้ง · proof ล้มไม่ถูกจด · transport error → retry ตรวจใหม่ · นอกคำขอ = ทุกครั้ง
+**ตรวจรับ:** เทสต์ backend Windows ทั้งชุด + native (pinned image) · เปิดเดโม W5 แล้ววัดเวลา 3 รายการในตารางซ้ำ (ใช้ฉบับ 2 `39ce7cf0` ที่ยังเปิดใช้ได้) และดูว่าแดชบอร์ดไม่กระพริบ
+**นอกขอบเขตร่างนี้:** prepare ชนเพดาน CPU 20 วินาที (และ `worker.py` รายงาน SIGKILL เป็น `NATIVE_MEMORY_LIMIT`) · verifier ตอนเปิดใช้เกือบชน timeout 25 วินาที → ออกแบบแยก
+
 ## 7. เรื่องที่ต้องตัดสินใจ
 **ผู้ใช้อนุมัติ "ตามที่เสนอ" เมื่อ 8 พ.ย. 2569:** ข้อ 1-3 อนุมัติแล้ว · ข้อ 4 อนุมัติในหลักการ แต่จะขอยืนยันอีกครั้งก่อนแก้ไฟล์ runner จริง (ตามกฎเดิมของ `gee_dashboard_local.py`) · การ apply Migration 052 ยังต้องขออนุมัติแยกตามขั้นตอนเดิม
 1. อนุมัติแนวทาง B (ปัดพิกัด 6 ตำแหน่ง ไม่ลดรูป) และการแยก geometry ออกจาก bundle
 2. Migration 052 เป็นไฟล์เดียว (prepare + publication v2) หรือแยกสองไฟล์ → **ไฟล์เดียว**
 3. ขอบเขต W5: จังหวัดเล็กเป็นเป้าหลัก และปทุมธานีเป็นเป้าเสริม
 4. อนุญาตให้แก้ runner ของเดโม (`ldd_prepare_local.py`, `gee_dashboard_local.py`) เพื่อรับ ledger 52 เมื่อถึงขั้นนั้น
+5. **(อนุมัติแล้ว "อนุมัติ A", 8 พ.ย.)** หัวข้อ 6.4 แนวทาง A: target proof ครั้งเดียวต่อคำขอ GET/HEAD (คำขอเปลี่ยนข้อมูลตรวจทุกครั้งเหมือนเดิม) และแก้ `t2-security-review.md` ให้ตรง

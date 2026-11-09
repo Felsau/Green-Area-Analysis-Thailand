@@ -8,7 +8,9 @@ import httpx
 import jwt
 import pytest
 from fastapi import HTTPException
-from gis_runtime import GISRuntime, LocalGISSettings, LOCAL_ISSUER
+from fastapi.testclient import TestClient
+from gis_app import create_app
+from gis_runtime import GISRuntime, LocalGISSettings, LOCAL_ISSUER, read_proof_scope
 
 ACTOR = str(uuid4())
 DUMMY_KEY = "dummy-unit-signing-material-only-never-a-real-key"
@@ -132,3 +134,79 @@ def test_private_and_worker_rpc_names_are_not_backend_endpoints():
     instance, _, service=runtime()
     with pytest.raises(HTTPException):instance.rpc('gis_worker',{})
     assert service.calls==[]
+
+
+# One target proof per GIS read request (docs/gis/w5-ldd-publication-design.md 6.4).
+def counting_runtime(**change):
+    instance, auth, service = runtime()
+    proofs = []
+    def attest():
+        proofs.append(1)
+        return {**proof(), **change}
+    instance._attest = attest
+    return instance, service, proofs
+
+
+def test_a_read_scope_proves_the_target_once_and_a_new_scope_proves_again():
+    instance, service, proofs = counting_runtime()
+    with read_proof_scope(True):
+        first = instance.require_ready()
+        assert instance.rpc('gis_read', {}) == {'ok': True} and instance.rpc('gis_read', {}) == {'ok': True}
+        again = instance.require_ready()
+    assert len(proofs) == 1 and service.calls.count('gis_readiness') == 1
+    assert again == first and again is not first   # callers get their own copy
+    with read_proof_scope(True):
+        instance.require_ready()
+    assert len(proofs) == 2
+
+
+@pytest.mark.parametrize('scope', ['mutation', 'outside a request'])
+def test_mutations_and_code_outside_requests_prove_before_every_call(scope):
+    instance, _, proofs = counting_runtime()
+    def work():
+        instance.require_ready(); instance.rpc('gis_command', {}); instance.require_ready()
+    if scope == 'mutation':
+        with read_proof_scope(False):
+            work()
+    else:
+        work()
+    assert len(proofs) == 3
+
+
+def test_a_failed_proof_is_not_remembered():
+    instance, service, proofs = counting_runtime(containers_healthy=False)
+    with read_proof_scope(True):
+        for _ in range(2):
+            with pytest.raises(HTTPException) as error:
+                instance.rpc('gis_read', {})
+            assert error.value.status_code == 503
+    assert len(proofs) == 2 and 'gis_read' not in service.calls
+
+
+def test_a_transport_error_proves_the_target_again_before_the_retry():
+    instance, service, proofs = counting_runtime()
+    plain, failures = service.rpc, [httpx.ConnectError('dummy local failure')]
+    def flaky(name, params):
+        if name == 'gis_read' and failures:
+            raise failures.pop()
+        return plain(name, params)
+    service.rpc = flaky
+    with read_proof_scope(True):
+        instance.require_ready()
+        assert instance.rpc('gis_read', {}) == {'ok': True}
+    assert len(proofs) == 2
+
+
+def test_gis_app_proves_once_per_get_and_before_every_call_otherwise():
+    instance, service, proofs = counting_runtime()
+    headers = {'Authorization': 'Bearer ' + token()}
+    with TestClient(create_app(instance, rate_limit='10000/minute')) as client:
+        # /gis/me: Auth, one SQL read and a readiness check, in different threads.
+        assert client.get('/gis/me', headers=headers).status_code == 200
+        assert len(proofs) == 1
+        assert client.get('/gis/me', headers=headers).status_code == 200
+        assert len(proofs) == 2
+        before = len(proofs)
+        client.post('/gis/officers', headers={**headers, 'Idempotency-Key': str(uuid4())},
+            json={'user_id': str(uuid4()), 'reason': 'unit test only'})
+        assert 'gis_command' in service.calls and len(proofs) - before >= 2   # Auth and the SQL command each prove
