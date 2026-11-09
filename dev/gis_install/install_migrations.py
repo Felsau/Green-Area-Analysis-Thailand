@@ -137,6 +137,10 @@ class Target:
         if result.returncode:
             detail = self.scrub(result.stderr.strip()[-2000:]) or "(no error output)"
             raise InstallError(f"{stage}: psql exited {result.returncode}\n{detail}")
+        # A statement that had no effect is only a warning, and for a REVOKE that matters.
+        for line in result.stderr.splitlines():
+            if line.startswith("WARNING:"):
+                log(f"warning   {stage}: {self.scrub(line)}")
         return result.stdout.strip()
 
 
@@ -174,7 +178,13 @@ def preflight(target: Target) -> None:
            for r in REQUIRED_ROLES]
         + ["SELECT 'function auth.uid()' WHERE to_regprocedure('auth.uid()') IS NULL",
            "SELECT 'PostgreSQL 17 or newer' WHERE current_setting('server_version_num')::int < 170000",
-           "SELECT 'connecting as the postgres role' WHERE current_user<>'postgres'"])
+           "SELECT 'connecting as the postgres role' WHERE current_user<>'postgres'",
+           # 027 line 67 revokes on schema gis before it assumes gis_owner. Without this
+           # membership a non-superuser gets "permission denied" there instead of a no-op.
+           "SELECT 'postgres in pg_read_all_data' WHERE NOT pg_has_role(current_user,'pg_read_all_data','MEMBER')",
+           # The only role allowed to execute gis_readiness().
+           "SELECT 'SET ROLE service_role for postgres' WHERE to_regrole('service_role') IS NOT NULL"
+           " AND NOT pg_has_role(current_user,'service_role','SET')"])
     missing = target.run(checks + ";", stage="preflight").splitlines()
     if missing:
         raise InstallError("the database is not ready, missing: " + "; ".join(missing))
