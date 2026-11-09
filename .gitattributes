@@ -43,3 +43,27 @@
 /green-area-backend/gis_worker/province_boundaries.json -text
 /green-area-backend/gis_worker/province_boundaries_ldd.json -text
 /green-area-backend/gis_worker/ldd_codes_v2.json -text
+# Python sources pinned by the dev/gis_local review records (gee-mock, gee-live, gee-genuine, gee-boundary,
+# gee-transport-final). The runners hash the bytes on disk, so a CRLF checkout on Windows would not match.
+/green-area-backend/gis_worker/gee_genuine_identity.py -text
+/green-area-backend/gis_worker/gee_genuine_runtime.py -text
+/green-area-backend/gis_worker/gee_genuine_transport.py -text
+/green-area-backend/gis_worker/gee_genuine_worker.py -text
+/green-area-backend/gis_worker/gee_live_bridge.py -text
+/green-area-backend/gis_worker/gee_live_contracts.py -text
+/green-area-backend/gis_worker/gee_live_worker.py -text
+/green-area-backend/gis_worker/gee_mock_queue.py -text
+/green-area-backend/gis_worker/gee_operator_delivery.py -text
+/green-area-backend/gis_worker/gee_recorder_channel.py -text
+/green-area-backend/gis_worker/gee_restricted_network.py -text
+/green-area-backend/tests/test_gee_credential_boundary.py -text
+/green-area-backend/tests/test_gee_genuine_foundation.py -text
+/dev/gis_local/gee_boundary_entry.py -text
+/dev/gis_local/gee_boundary_local.py -text
+/dev/gis_local/gee_genuine_checks.py -text
+/dev/gis_local/gee_genuine_local.py -text
+/dev/gis_local/gee_live_local.py -text
+/dev/gis_local/gee_mock_local.py -text
+/dev/gis_local/gee_transport_extra_checks.py -text
+/dev/gis_local/tests/test_gee_genuine_local.py -text
+/dev/gis_local/tests/test_gee_transport_local.py -text
