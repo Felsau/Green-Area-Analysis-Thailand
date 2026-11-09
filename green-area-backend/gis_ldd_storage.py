@@ -1,6 +1,7 @@
 """Private immutable Local LDD objects; no dotenv, cloud SDK or native GIS import."""
 from __future__ import annotations
 
+import abc
 import asyncio
 from contextlib import contextmanager
 import hashlib
@@ -46,14 +47,191 @@ def storage_error(code='GIS_LDD_STORAGE_UNAVAILABLE', status=503):
     }.get(code, 'พื้นที่ Local สำหรับ LDD ยังไม่พร้อมใช้งาน'))
 
 
-def preflight_zip(path):
+# Storage layer: unsafe_link, StagedFile and DiskStorage are the only code in
+# this module that touches the disk. Upload rules and hash checks stay outside.
+
+class StagedFile:
+    """A new file written under a private staging name, then published by hard link."""
+
+    def __init__(self, path: Path):
+        self.path = path
+
+    def open(self):
+        return self.path.open('xb')
+
+    @staticmethod
+    def sync(out):
+        out.flush()
+        os.fsync(out.fileno())
+
+    def publish(self, target):
+        """True once linked; False if target already existed (caller compares hashes)."""
+        # Hard link is atomic and refuses replacement. Only remove our
+        # private staging name, never any published/original object.
+        try:
+            os.link(self.path, target)
+            self.path.unlink()
+        except FileExistsError:
+            if target.is_symlink():
+                raise storage_error('GIS_LDD_INTEGRITY') from None
+            return False
+        return True
+
+    @staticmethod
+    def seal(target):
+        os.chmod(target, 0o444)
+
+    def discard(self, *, make_writable):
+        # This random file was created by this request; old/orphan staged
+        # objects and published originals are never deleted automatically.
+        if self.path.exists():
+            if make_writable:
+                os.chmod(self.path, 0o600)
+            self.path.unlink()
+
+
+class ObjectStorage(abc.ABC):
+    """Where stored objects live. LocalLddStore only reads and writes through this."""
+
+    root: Path
+    objects: Path
+    staging: Path
+
+    @abc.abstractmethod
+    def verify(self, *, owner, t0_project, t0_instance, parent_only=False):
+        """Check the storage still belongs to the attested owner; raise storage_error() if not."""
+
+    @abc.abstractmethod
+    def prepare(self, owner):
+        """Create the storage and its owner.json if it does not exist yet."""
+
+    @abc.abstractmethod
+    def lock(self):
+        """Context manager serializing writers across processes."""
+
+    @abc.abstractmethod
+    def used_space(self):
+        """Bytes held by objects and staging."""
+
+    @abc.abstractmethod
+    def open_read(self, path):
+        """Open a stored file for binary reading."""
+
+    @abc.abstractmethod
+    def existing_size(self, path):
+        """None if path does not exist, else its size; GIS_LDD_INTEGRITY if it is not a safe object."""
+
+    @abc.abstractmethod
+    def new_file(self) -> StagedFile:
+        """A new private staging file."""
+
+
+class DiskStorage(ObjectStorage):
+    """Default storage: the operator-attested local directory."""
+
+    def __init__(self, runtime_dir, name):
+        self.runtime_dir = Path(runtime_dir)
+        self.root = self.runtime_dir / name
+        self.objects = self.root / 'objects'
+        self.staging = self.root / 'staging'
+
+    def verify(self, *, owner, t0_project, t0_instance, parent_only=False):
+        try:
+            if any(unsafe_link(p) for p in (self.runtime_dir, *self.runtime_dir.parents)):
+                raise ValueError()
+            owner_path = self.runtime_dir / 'owner.json'
+            if owner_path.is_symlink():
+                raise ValueError()
+            t0 = json.loads(owner_path.read_text(encoding='utf-8'))
+            if t0.get('scope') != 'gis-foundation-t0' or t0.get('project') != t0_project or t0.get('instance') != t0_instance:
+                raise ValueError()
+            if not parent_only:
+                for p in (self.root, self.objects, self.staging):
+                    if unsafe_link(p) or not p.is_dir() or p.resolve().parent != p.parent.resolve():
+                        raise ValueError()
+                marker = self.root / 'owner.json'
+                if marker.is_symlink() or json.loads(marker.read_text(encoding='utf-8')) != owner:
+                    raise ValueError()
+        except (OSError, ValueError, TypeError):
+            raise storage_error() from None
+
+    def prepare(self, owner):
+        if not self.root.exists():
+            self.root.mkdir(mode=0o700)
+            with (self.root / 'owner.json').open('x', encoding='utf-8') as out:
+                json.dump(owner, out)
+            self.objects.mkdir(mode=0o700)
+            self.staging.mkdir(mode=0o700)
+
+    @contextmanager
+    def lock(self):
+        path = self.root / 'upload.lock'
+        if path.is_symlink() or (path.exists() and not path.is_file()):
+            raise storage_error()
+        fd = os.open(path, os.O_RDWR | os.O_CREAT | getattr(os, 'O_NOFOLLOW', 0), 0o600)
+        locked = False
+        try:
+            if os.fstat(fd).st_size == 0:
+                os.write(fd, b'0')
+            os.lseek(fd, 0, os.SEEK_SET)
+            try:
+                if os.name == 'nt':
+                    import msvcrt
+                    msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                locked = True
+            except OSError:
+                raise storage_error('GIS_LDD_UPLOAD_BUSY', 429) from None
+            yield
+        finally:
+            if locked:
+                os.lseek(fd, 0, os.SEEK_SET)
+                if os.name == 'nt':
+                    import msvcrt
+                    msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
+
+    def used_space(self):
+        total = 0
+        count = 0
+        for directory in (self.objects, self.staging):
+            for p in directory.iterdir():
+                if p.is_symlink() or not p.is_file() or p.stat().st_nlink > 1:
+                    raise storage_error()
+                total += p.stat().st_size
+                count += 1
+                if count > 4096:
+                    raise storage_error('GIS_LDD_QUOTA', 507)
+        return total
+
+    @staticmethod
+    def open_read(path):
+        return path.open('rb')
+
+    def existing_size(self, path):
+        if not path.exists():
+            return None
+        if path.is_symlink() or not path.is_file() or path.stat().st_nlink > 1:
+            raise storage_error('GIS_LDD_INTEGRITY')
+        return path.stat().st_size
+
+    def new_file(self):
+        return StagedFile(self.staging / (uuid4().hex + '.part'))
+
+
+def preflight_zip(path, open_read=DiskStorage.open_read):
     """Metadata-only checks before publishing. Native child validates contents."""
     seen = set()
     try:
         # ZipFile eagerly materializes the complete central directory. Bound its
         # raw bytes and actual record count BEFORE constructing that parser.
-        with path.open('rb') as source:
-            size = path.stat().st_size
+        with open_read(path) as source:
+            size = source.seek(0, os.SEEK_END)
             source.seek(max(0, size - 65557))
             tail = source.read(65557)
             pos = tail.rfind(b'PK\x05\x06')
@@ -80,7 +258,7 @@ def preflight_zip(path):
                 cursor += 46 + name + extra + note
             if cursor != len(directory) or actual != count:
                 raise storage_error('GIS_LDD_ZIP_UNSAFE', 422)
-        with zipfile.ZipFile(path) as archive:
+        with open_read(path) as stream, zipfile.ZipFile(stream) as archive:
             items = archive.infolist()
             if not items or len(items) > MAX_MEMBERS:
                 raise storage_error('GIS_LDD_ZIP_UNSAFE', 422)
@@ -127,24 +305,21 @@ class LocalLddStore:
     OWNER_SCOPE = 'gis-ldd-storage-v1'
     REQUIRED_MIGRATION = 34
     OBJECT_SUFFIX = '.zip'
+    STORAGE_CLASS = DiskStorage
 
     def preflight(self, path):
-        preflight_zip(path)
+        preflight_zip(path, self.disk.open_read)
 
     def __init__(self, runtime, runtime_dir: Path):
         self.runtime = runtime
         self.runtime_dir = Path(runtime_dir)
-        self.root = self.runtime_dir / self.STORAGE_NAME
-        self.objects = self.root / 'objects'
-        self.staging = self.root / 'staging'
+        self.disk = self.STORAGE_CLASS(self.runtime_dir, self.STORAGE_NAME)
+        self.root = self.disk.root
+        self.objects = self.disk.objects
+        self.staging = self.disk.staging
         self._owner = self._expected_owner()
         self.attest(parent_only=True)
-        if not self.root.exists():
-            self.root.mkdir(mode=0o700)
-            with (self.root / 'owner.json').open('x', encoding='utf-8') as out:
-                json.dump(self._owner, out)
-            self.objects.mkdir(mode=0o700)
-            self.staging.mkdir(mode=0o700)
+        self.disk.prepare(self._owner)
         self.attest()
 
     def _expected_owner(self):
@@ -163,75 +338,18 @@ class LocalLddStore:
             or s.database != profile.database or s.cluster != profile.cluster or s.mode != profile.mode
             or not isinstance(ready, dict) or self.REQUIRED_MIGRATION not in ready.get('migration_versions', [])):
             raise storage_error()
-        try:
-            if any(unsafe_link(p) for p in (self.runtime_dir, *self.runtime_dir.parents)):
-                raise ValueError()
-            owner_path = self.runtime_dir / 'owner.json'
-            if owner_path.is_symlink():
-                raise ValueError()
-            owner = json.loads(owner_path.read_text(encoding='utf-8'))
-            if owner.get('scope') != 'gis-foundation-t0' or owner.get('project') != s.cluster or owner.get('instance') != s.runtime_instance:
-                raise ValueError()
-            if not parent_only:
-                for p in (self.root, self.objects, self.staging):
-                    if unsafe_link(p) or not p.is_dir() or p.resolve().parent != p.parent.resolve():
-                        raise ValueError()
-                marker = self.root / 'owner.json'
-                if marker.is_symlink() or json.loads(marker.read_text(encoding='utf-8')) != self._owner:
-                    raise ValueError()
-        except (OSError, ValueError, TypeError):
-            raise storage_error() from None
+        self.disk.verify(owner=self._owner, t0_project=s.cluster, t0_instance=s.runtime_instance,
+            parent_only=parent_only)
 
-    @contextmanager
     def _lock(self):
-        path = self.root / 'upload.lock'
-        if path.is_symlink() or (path.exists() and not path.is_file()):
-            raise storage_error()
-        fd = os.open(path, os.O_RDWR | os.O_CREAT | getattr(os, 'O_NOFOLLOW', 0), 0o600)
-        locked = False
-        try:
-            if os.fstat(fd).st_size == 0:
-                os.write(fd, b'0')
-            os.lseek(fd, 0, os.SEEK_SET)
-            try:
-                if os.name == 'nt':
-                    import msvcrt
-                    msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
-                else:
-                    import fcntl
-                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                locked = True
-            except OSError:
-                raise storage_error('GIS_LDD_UPLOAD_BUSY', 429) from None
-            yield
-        finally:
-            if locked:
-                os.lseek(fd, 0, os.SEEK_SET)
-                if os.name == 'nt':
-                    import msvcrt
-                    msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
-                else:
-                    import fcntl
-                    fcntl.flock(fd, fcntl.LOCK_UN)
-            os.close(fd)
+        return self.disk.lock()
 
     def _usage(self):
-        total = 0
-        count = 0
-        for directory in (self.objects, self.staging):
-            for p in directory.iterdir():
-                if p.is_symlink() or not p.is_file() or p.stat().st_nlink > 1:
-                    raise storage_error()
-                total += p.stat().st_size
-                count += 1
-                if count > 4096:
-                    raise storage_error('GIS_LDD_QUOTA', 507)
-        return total
+        return self.disk.used_space()
 
-    @staticmethod
-    def checksum(path):
+    def checksum(self, path):
         digest = hashlib.sha256()
-        with path.open('rb') as stream:
+        with self.disk.open_read(path) as stream:
             while chunk := stream.read(65536):
                 digest.update(chunk)
         return digest.hexdigest()
@@ -242,12 +360,12 @@ class LocalLddStore:
             raise storage_error('GIS_LDD_SIZE_LIMIT', 413)
         with self._lock():
             used = self._usage()
-            temp = self.staging / (uuid4().hex + '.part')
+            temp = self.disk.new_file()
             size = 0
             digest = hashlib.sha256()
             started = time.monotonic()
             try:
-                with temp.open('xb') as out:
+                with temp.open() as out:
                     iterator = stream.__aiter__()
                     while True:
                         if time.monotonic() - started >= 60:
@@ -267,32 +385,23 @@ class LocalLddStore:
                             raise storage_error('GIS_LDD_QUOTA', 507)
                         digest.update(chunk)
                         out.write(chunk)
-                    out.flush()
-                    os.fsync(out.fileno())
+                    temp.sync(out)
                 if not size or (declared_size is not None and size != declared_size):
                     raise storage_error('GIS_LDD_ZIP_INVALID', 422)
-                self.preflight(temp)
+                self.preflight(temp.path)
                 checksum = digest.hexdigest()
                 target = self.objects / (checksum + self.OBJECT_SUFFIX)
                 self.attest()
-                if target.exists():
-                    if target.is_symlink() or not target.is_file() or target.stat().st_nlink > 1 or target.stat().st_size != size or self.checksum(target) != checksum:
+                stored = self.disk.existing_size(target)
+                if stored is not None:
+                    if stored != size or self.checksum(target) != checksum:
                         raise storage_error('GIS_LDD_INTEGRITY')
                 else:
-                    # Hard link is atomic and refuses replacement. Only remove our
-                    # private staging name, never any published/original object.
-                    try:
-                        os.link(temp, target)
-                        temp.unlink()
-                    except FileExistsError:
-                        if target.is_symlink() or self.checksum(target) != checksum:
-                            raise storage_error('GIS_LDD_INTEGRITY') from None
-                    os.chmod(target, 0o444)
+                    # publish() is False when another writer won the link race:
+                    # that object must then hash to exactly what we received.
+                    if not temp.publish(target) and self.checksum(target) != checksum:
+                        raise storage_error('GIS_LDD_INTEGRITY')
+                    temp.seal(target)
                 return {'sha256': checksum, 'byte_size': size}
             finally:
-                # This random file was created by this request; old/orphan staged
-                # objects and published originals are never deleted automatically.
-                if temp.exists():
-                    if os.name == 'nt':
-                        os.chmod(temp, 0o600)
-                    temp.unlink()
+                temp.discard(make_writable=os.name == 'nt')
