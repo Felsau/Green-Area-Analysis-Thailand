@@ -1,0 +1,33 @@
+{
+  "mode": "cloud",
+  "cluster_name": "pgtestlocalcontainer",
+  "database_name": "postgres",
+  "contract_version": "1.1.0-t2",
+  "runtime_instance": "8c405e665ad76f4f6a0571c42aa87fee",
+  "activation_enabled": false,
+  "migration_versions": [
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48
+  ],
+  "baseline_fingerprint": "289f467a4a428b60ca31fe79d6d603f480383882f6e3b3f98fa6ed7912fa1cc0"
+}

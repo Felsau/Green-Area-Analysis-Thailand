@@ -1,0 +1,194 @@
+W2 installer test. Throwaway containers only; project ref is fake.
+commit under test: 7929fc5
+date: 2026-11-09T14:20:56Z
+=== postgres:17: blank database, run twice ===
+server: PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+PASS  the migrator is not a superuser
+PASS  no gis schema before the first run
+--- run 1 ---
+target    127.0.0.1:5432/postgres as postgres
+declared  cluster_name=pgtestlocalcontainer mode=cloud
+role      gis_native_worker ready
+warning   migration 027_gis_foundation.sql: WARNING:  no privileges could be revoked for "gis"
+applied   027_gis_foundation.sql sha256=4d1ef87fccc1a484bd4a199b5bd74af2cf7adb4db7e03f55718f6553d43428d0
+applied   028_gis_queue.sql sha256=fcf5d9530b516d93dda0fc2ea5b01158809aad237c1e90863d09bd324c9000d1
+warning   migration 029_gis_transactions.sql: WARNING:  no privileges were granted for "public"
+applied   029_gis_transactions.sql sha256=7faf7bf6abbd4e52ab8389423c3c1876c94af459fe9d7c5d2a7710ffc0f236a5
+applied   030_gis_api_reads.sql sha256=6e7cc972d648fe717539c63131f752440c79446a5ffcbe8608b232cd63a4914f
+warning   migration 031_gis_native_v2.sql: WARNING:  no privileges were granted for "public"
+applied   031_gis_native_v2.sql sha256=7ff49cf8cd2658c8c1ba0c5d015faf26306e310f30a129dd962994bb6d243b86
+applied   032_gis_worker_remediation.sql sha256=ef58eb7d864c0433f4393b0f52dbb6db00a91e8d3dd397742594d1d909660b7f
+applied   033_gis_native_trigger_fields.sql sha256=034d6be5c329ec4d2259bb57482f06582fc2dc3c4aa8ea3e14be84fbb8996e5d
+applied   034_ldd_upload.sql sha256=f3fcbd2ed0aabf0ff74258728e95f527fead96b8cb0d4b6656a237514410fece
+applied   035_gis_processing_offline.sql sha256=39e73e60b7ff0ae1865f06296981d0b9b582be844db24b26f61617a40b6ade62
+applied   036_gis_geotiff_upload.sql sha256=53f8138d7f7ab89dc4e62c52140cd93de7c21288ee3a6f975adbb34a18b65d61
+applied   037_gis_publication_foundation.sql sha256=bacd6937efb07d54fb37bef3d2be83a07c2ebff43ff97879d5220096532fcde6
+applied   038_gis_ldd_prepare.sql sha256=95709b43f9a51001987dc687f98db868ac6f702aac375696d2d51fc8aa2c421d
+applied   039_gis_ldd_publication.sql sha256=287c1259ac685645a8a43275ee0a9fbdb6ca5cf5483aeeb8eaf8f650adeeff59
+applied   040_gis_ldd_publication_jsonb_fix.sql sha256=b93d65306e112763cd24019a0abf225a1e02698ba9a3f9ae2da13f33392b083e
+applied   041_gis_geotiff_prepare.sql sha256=57dc2baee7cf205f76167aacfffd0c9f9db55c63588c2fde280e4482975bfd95
+applied   042_gis_geotiff_publication.sql sha256=a03b3271eb24624b8b033e205d5ce2a30ccd050a66ea4a638fa917822bb1b378
+warning   migration 043_gis_gee_mock_candidates.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 043_gis_gee_mock_candidates.sql: WARNING:  no privileges could be revoked for "public"
+applied   043_gis_gee_mock_candidates.sql sha256=08c516b3098f202d3a9f673771a452113914f65ed455c03a57e24c2c89550f2a
+warning   migration 044_gis_live_foundation.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 044_gis_live_foundation.sql: WARNING:  no privileges could be revoked for "public"
+applied   044_gis_live_foundation.sql sha256=53e3fc5359ea99a84f22d05714f9972a2e15d62b96bcf4b339d39ea9533b3f17
+warning   migration 045_gis_execution_safety.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 045_gis_execution_safety.sql: WARNING:  no privileges could be revoked for "public"
+applied   045_gis_execution_safety.sql sha256=a7ae1f4cfd99f4bd0d728b3ca290fb4a2734d05f585c3a192c9611a0b317b395
+warning   migration 046_gis_gee_live_authority.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 046_gis_gee_live_authority.sql: WARNING:  no privileges could be revoked for "public"
+applied   046_gis_gee_live_authority.sql sha256=1efa5e50247afbaf4fbf7d51a1ba3e4ee98921f8aa600de8d337c17b3bfbb4b0
+warning   migration 047_gis_genuine_https.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 047_gis_genuine_https.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 047_gis_genuine_https.sql: WARNING:  no privileges could be revoked for "public"
+applied   047_gis_genuine_https.sql sha256=4d8af35d59bc90f81de4bd835a74ec6e957e7803ab6c6cdee268d67a63ff15f8
+applied   048_gis_gee_dashboard_processing.sql sha256=44d44e3e60fb307e1ccf95b9eee8239fb1b1547ff121c180107f78bc96c844d5
+evidence  gis_readiness() written to /tmp/tmp.QUnkSluTbV/readiness-run1.json
+readiness cluster_name=pgtestlocalcontainer mode=cloud migrations=[27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48]
+done      installed through 048: applied 22, skipped 0
+PASS  run 1 applied all 22
+--- run 2 ---
+target    127.0.0.1:5432/postgres as postgres
+declared  cluster_name=pgtestlocalcontainer mode=cloud
+role      gis_native_worker ready
+skip      027_gis_foundation.sql already applied, sha256 verified
+skip      028_gis_queue.sql already applied, sha256 verified
+skip      029_gis_transactions.sql already applied, sha256 verified
+skip      030_gis_api_reads.sql already applied, sha256 verified
+skip      031_gis_native_v2.sql already applied, sha256 verified
+skip      032_gis_worker_remediation.sql already applied, sha256 verified
+skip      033_gis_native_trigger_fields.sql already applied, sha256 verified
+skip      034_ldd_upload.sql already applied, sha256 verified
+skip      035_gis_processing_offline.sql already applied, sha256 verified
+skip      036_gis_geotiff_upload.sql already applied, sha256 verified
+skip      037_gis_publication_foundation.sql already applied, sha256 verified
+skip      038_gis_ldd_prepare.sql already applied, sha256 verified
+skip      039_gis_ldd_publication.sql already applied, sha256 verified
+skip      040_gis_ldd_publication_jsonb_fix.sql already applied, sha256 verified
+skip      041_gis_geotiff_prepare.sql already applied, sha256 verified
+skip      042_gis_geotiff_publication.sql already applied, sha256 verified
+skip      043_gis_gee_mock_candidates.sql already applied, sha256 verified
+skip      044_gis_live_foundation.sql already applied, sha256 verified
+skip      045_gis_execution_safety.sql already applied, sha256 verified
+skip      046_gis_gee_live_authority.sql already applied, sha256 verified
+skip      047_gis_genuine_https.sql already applied, sha256 verified
+skip      048_gis_gee_dashboard_processing.sql already applied, sha256 verified
+evidence  gis_readiness() written to docs/gis/evidence/w2-gis-readiness.json
+readiness cluster_name=pgtestlocalcontainer mode=cloud migrations=[27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48]
+done      installed through 048: applied 0, skipped 22
+PASS  run 2 applied nothing
+PASS  ledger is identical after run 2, applied_at included
+PASS  gis_readiness() is identical after run 2
+PASS  ledger holds exactly 27 to 48, so 049-052 were not touched
+PASS  gis_native_worker has the boundary 032 requires
+PASS  gis_readiness(): cluster_name=pgtestlocalcontainer mode=cloud
+PASS  no client role can use schema gis
+PASS  PUBLIC, anon and authenticated cannot execute any GIS function
+PASS  client roles cannot reach any gis table
+PASS  gis_owner kept no CREATE on schema public
+=== postgres:17: refusals on the installed database ===
+PASS  changed file: reason is reported
+PASS  ledger unchanged after the drift refusal
+PASS  different identity: reason is reported
+PASS  hosted host: reason is reported
+PASS  ledger gap: reason is reported
+=== postgres:17: a failing migration stops the run and rolls back ===
+PASS  failing 029: reason is reported
+PASS  only the migrations before it are recorded
+PASS  the failing file's work was rolled back
+PASS  re-run resumes from 029
+=== postgres:17: a database that is not ready is refused ===
+PASS  no baseline: reason is reported
+PASS  nothing was written
+=== pinned supabase/postgres image: run twice ===
+image: supabase/postgres@sha256:f371b5f3f2ac0a05703f33d6e6134515fb2498cab708fb948a0aeb7481467c00
+server: PostgreSQL 17.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit
+PASS  the migrator is not a superuser
+PASS  no gis schema before the first run
+--- run 1 ---
+target    127.0.0.1:5432/postgres as postgres
+declared  cluster_name=pgtestlocalcontainer mode=cloud
+role      gis_native_worker ready
+warning   migration 027_gis_foundation.sql: WARNING:  no privileges could be revoked for "gis"
+applied   027_gis_foundation.sql sha256=4d1ef87fccc1a484bd4a199b5bd74af2cf7adb4db7e03f55718f6553d43428d0
+applied   028_gis_queue.sql sha256=fcf5d9530b516d93dda0fc2ea5b01158809aad237c1e90863d09bd324c9000d1
+warning   migration 029_gis_transactions.sql: WARNING:  no privileges were granted for "public"
+applied   029_gis_transactions.sql sha256=7faf7bf6abbd4e52ab8389423c3c1876c94af459fe9d7c5d2a7710ffc0f236a5
+applied   030_gis_api_reads.sql sha256=6e7cc972d648fe717539c63131f752440c79446a5ffcbe8608b232cd63a4914f
+warning   migration 031_gis_native_v2.sql: WARNING:  no privileges were granted for "public"
+applied   031_gis_native_v2.sql sha256=7ff49cf8cd2658c8c1ba0c5d015faf26306e310f30a129dd962994bb6d243b86
+applied   032_gis_worker_remediation.sql sha256=ef58eb7d864c0433f4393b0f52dbb6db00a91e8d3dd397742594d1d909660b7f
+applied   033_gis_native_trigger_fields.sql sha256=034d6be5c329ec4d2259bb57482f06582fc2dc3c4aa8ea3e14be84fbb8996e5d
+applied   034_ldd_upload.sql sha256=f3fcbd2ed0aabf0ff74258728e95f527fead96b8cb0d4b6656a237514410fece
+applied   035_gis_processing_offline.sql sha256=39e73e60b7ff0ae1865f06296981d0b9b582be844db24b26f61617a40b6ade62
+applied   036_gis_geotiff_upload.sql sha256=53f8138d7f7ab89dc4e62c52140cd93de7c21288ee3a6f975adbb34a18b65d61
+applied   037_gis_publication_foundation.sql sha256=bacd6937efb07d54fb37bef3d2be83a07c2ebff43ff97879d5220096532fcde6
+applied   038_gis_ldd_prepare.sql sha256=95709b43f9a51001987dc687f98db868ac6f702aac375696d2d51fc8aa2c421d
+applied   039_gis_ldd_publication.sql sha256=287c1259ac685645a8a43275ee0a9fbdb6ca5cf5483aeeb8eaf8f650adeeff59
+applied   040_gis_ldd_publication_jsonb_fix.sql sha256=b93d65306e112763cd24019a0abf225a1e02698ba9a3f9ae2da13f33392b083e
+applied   041_gis_geotiff_prepare.sql sha256=57dc2baee7cf205f76167aacfffd0c9f9db55c63588c2fde280e4482975bfd95
+applied   042_gis_geotiff_publication.sql sha256=a03b3271eb24624b8b033e205d5ce2a30ccd050a66ea4a638fa917822bb1b378
+warning   migration 043_gis_gee_mock_candidates.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 043_gis_gee_mock_candidates.sql: WARNING:  no privileges could be revoked for "public"
+applied   043_gis_gee_mock_candidates.sql sha256=08c516b3098f202d3a9f673771a452113914f65ed455c03a57e24c2c89550f2a
+warning   migration 044_gis_live_foundation.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 044_gis_live_foundation.sql: WARNING:  no privileges could be revoked for "public"
+applied   044_gis_live_foundation.sql sha256=53e3fc5359ea99a84f22d05714f9972a2e15d62b96bcf4b339d39ea9533b3f17
+warning   migration 045_gis_execution_safety.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 045_gis_execution_safety.sql: WARNING:  no privileges could be revoked for "public"
+applied   045_gis_execution_safety.sql sha256=a7ae1f4cfd99f4bd0d728b3ca290fb4a2734d05f585c3a192c9611a0b317b395
+warning   migration 046_gis_gee_live_authority.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 046_gis_gee_live_authority.sql: WARNING:  no privileges could be revoked for "public"
+applied   046_gis_gee_live_authority.sql sha256=1efa5e50247afbaf4fbf7d51a1ba3e4ee98921f8aa600de8d337c17b3bfbb4b0
+warning   migration 047_gis_genuine_https.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 047_gis_genuine_https.sql: WARNING:  no privileges could be revoked for "gis"
+warning   migration 047_gis_genuine_https.sql: WARNING:  no privileges could be revoked for "public"
+applied   047_gis_genuine_https.sql sha256=4d8af35d59bc90f81de4bd835a74ec6e957e7803ab6c6cdee268d67a63ff15f8
+applied   048_gis_gee_dashboard_processing.sql sha256=44d44e3e60fb307e1ccf95b9eee8239fb1b1547ff121c180107f78bc96c844d5
+evidence  gis_readiness() written to /tmp/tmp.QUnkSluTbV/readiness-run1.json
+readiness cluster_name=pgtestlocalcontainer mode=cloud migrations=[27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48]
+done      installed through 048: applied 22, skipped 0
+PASS  run 1 applied all 22
+--- run 2 ---
+target    127.0.0.1:5432/postgres as postgres
+declared  cluster_name=pgtestlocalcontainer mode=cloud
+role      gis_native_worker ready
+skip      027_gis_foundation.sql already applied, sha256 verified
+skip      028_gis_queue.sql already applied, sha256 verified
+skip      029_gis_transactions.sql already applied, sha256 verified
+skip      030_gis_api_reads.sql already applied, sha256 verified
+skip      031_gis_native_v2.sql already applied, sha256 verified
+skip      032_gis_worker_remediation.sql already applied, sha256 verified
+skip      033_gis_native_trigger_fields.sql already applied, sha256 verified
+skip      034_ldd_upload.sql already applied, sha256 verified
+skip      035_gis_processing_offline.sql already applied, sha256 verified
+skip      036_gis_geotiff_upload.sql already applied, sha256 verified
+skip      037_gis_publication_foundation.sql already applied, sha256 verified
+skip      038_gis_ldd_prepare.sql already applied, sha256 verified
+skip      039_gis_ldd_publication.sql already applied, sha256 verified
+skip      040_gis_ldd_publication_jsonb_fix.sql already applied, sha256 verified
+skip      041_gis_geotiff_prepare.sql already applied, sha256 verified
+skip      042_gis_geotiff_publication.sql already applied, sha256 verified
+skip      043_gis_gee_mock_candidates.sql already applied, sha256 verified
+skip      044_gis_live_foundation.sql already applied, sha256 verified
+skip      045_gis_execution_safety.sql already applied, sha256 verified
+skip      046_gis_gee_live_authority.sql already applied, sha256 verified
+skip      047_gis_genuine_https.sql already applied, sha256 verified
+skip      048_gis_gee_dashboard_processing.sql already applied, sha256 verified
+evidence  gis_readiness() written to docs/gis/evidence/w2-gis-readiness-supabase-image.json
+readiness cluster_name=pgtestlocalcontainer mode=cloud migrations=[27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48]
+done      installed through 048: applied 0, skipped 22
+PASS  run 2 applied nothing
+PASS  ledger is identical after run 2, applied_at included
+PASS  gis_readiness() is identical after run 2
+PASS  ledger holds exactly 27 to 48, so 049-052 were not touched
+PASS  gis_native_worker has the boundary 032 requires
+PASS  gis_readiness(): cluster_name=pgtestlocalcontainer mode=cloud
+PASS  no client role can use schema gis
+PASS  PUBLIC, anon and authenticated cannot execute any GIS function
+PASS  client roles cannot reach any gis table
+PASS  gis_owner kept no CREATE on schema public
+PASS  no password in any log or evidence file
+ALL PASSED
