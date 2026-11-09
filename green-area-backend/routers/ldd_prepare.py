@@ -47,8 +47,10 @@ def current(service, actor, edition_id):
 def public_preview(service, actor, edition_id, store, *, geometry=False):
     info = current(service, actor, edition_id)
     value = {k: info.get(k) for k in ('status','job','attempts','preview_only','complete_province_inventory')}
+    # The method of the preparation request (migration 052 sets it from the validation); None before any preparation.
+    method = (info.get('prepare_request') or {}).get('method_version')
     value.update(ready_for_publication=False, prepared=bool(info.get('candidate', {}).get('valid')) if info.get('candidate') else False,
-        method_version='ldd-source-area-v1', local_only=True)
+        method_version=method if method in ('ldd-source-area-v1', 'ldd-geometry-area-v2') else None, local_only=True)
     if info.get('certificate') and info.get('ready_for_publication') is True:
         try:
             files = store.read_files(info['prepare_request'], info['candidate']['artifacts'])

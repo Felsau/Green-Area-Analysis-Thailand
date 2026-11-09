@@ -225,6 +225,29 @@ class TestEndpointHelper:
         from routers.ndvi.endpoints import _build_validation
         assert _build_validation({"green_area_pct": 82.8}, 96.9, 2021) is None
 
+    def test_cache_value_without_reference_is_not_stale(self):
+        """None ใน cache = stale → ลบ row แล้วคำนวณ GEE ใหม่ทุกครั้งที่เปิด"""
+        from dependencies import CURRENT_CACHE_VERSION
+        from routers.ndvi import _is_stale
+        from routers.ndvi.endpoints import _validation_for_cache
+        result = self._result()
+        out = _validation_for_cache(result, None, 2021)
+        assert out["available"] is False and out["year"] == 2021
+        assert "extra_area_sums" not in result and "total_area_m2_raw" not in result
+        row = {"cache_version": CURRENT_CACHE_VERSION, "green_area_pct": 82.8, "total_area_km2": 1.0,
+               "data_quality": {}, "canopy": {}, "validation": out, "ndvi_min": 0.1}
+        assert _is_stale(row, require_validation=True) is False
+        assert _is_stale({**row, "validation": None}, require_validation=True) is True
+
+    def test_cache_value_without_sums_still_compares_to_the_reference(self):
+        from routers.ndvi.endpoints import _validation_for_cache
+        out = _validation_for_cache({"green_area_pct": 82.8}, 96.9, 2021)
+        assert out["available"] is True and out["error_pp"] == -14.1 and out["breakdown"] is None
+
+    def test_cache_value_with_full_data_keeps_the_breakdown(self):
+        from routers.ndvi.endpoints import _validation_for_cache
+        assert _validation_for_cache(self._result(), 96.9, 2021)["breakdown"]["dominant"]["code"] == 40
+
 
 class TestPayloadShape:
     def test_keys_are_stable_between_available_and_not(self):

@@ -1,7 +1,8 @@
 """Bounded scientific validation of immutable local GeoTIFF bytes.
 
-Only ready single-band NDVI or LST profiles are supported. No GEE, calibration
-guessing, network, Auth or database configuration is imported by this module.
+Ready single-band NDVI or LST profiles are validated here. Source-band profiles are
+computed in geotiff_bands. No GEE, calibration guessing, network, Auth or database
+configuration is imported by this module.
 """
 from __future__ import annotations
 
@@ -27,6 +28,10 @@ PROFILES = {
     'ndvi_ready': ('ndvi', 'NDVI', 'unitless', -1.0, 1.0),
     'lst_celsius_ready': ('lst', 'LST', 'celsius', -100.0, 100.0),
     'lst_kelvin_ready': ('lst', 'LST', 'kelvin', 173.15, 373.15),
+}
+BAND_PROFILES = {
+    'ndvi_bands': ('ndvi', ['B4', 'B8'], 'reflectance'),
+    'lst_st_b10': ('lst', ['ST_B10'], 'landsat_c2_l2_dn'),
 }
 HASH = re.compile(r'^[0-9a-f]{64}$')
 CODE = re.compile(r'^[A-Z][A-Z0-9_]{0,59}$')
@@ -59,9 +64,13 @@ def check_request(value):
             and isinstance(m['sha256'], str) and HASH.fullmatch(m['sha256'])
             and type(m['byte_size']) is int and 0 < m['byte_size'] <= MAX_FILE_BYTES
             and m['crs'] in ('EPSG:32647', 'EPSG:32648', 'EPSG:4326')
-            and isinstance(m['profile'], str) and m['profile'] in PROFILES)
-    metric, band, units, _, _ = PROFILES[m['profile']]
-    require(m['metric'] == metric and m['bands'] == [band] and m['units'] == units)
+            and isinstance(m['profile'], str) and (m['profile'] in PROFILES or m['profile'] in BAND_PROFILES))
+    if m['profile'] in BAND_PROFILES:
+        metric, bands, units = BAND_PROFILES[m['profile']]
+    else:
+        metric, band, units, _, _ = PROFILES[m['profile']]
+        bands = [band]
+    require(m['metric'] == metric and m['bands'] == bands and m['units'] == units)
     require(isinstance(value['input_hash'], str) and HASH.fullmatch(value['input_hash'])
             and type(value['input_revision']) is int and 1 <= value['input_revision'] <= 2147483647
             and type(value['attempt_number']) is int and 1 <= value['attempt_number'] <= 3
@@ -74,7 +83,7 @@ def report_failure(request, code):
     check_request(request)
     require(isinstance(code, str) and CODE.fullmatch(code))
     m = request['manifest']
-    return {'schema_version': 1, 'provider_build': BUILD, 'upload_id': request['upload_id'],
+    report = {'schema_version': 1, 'provider_build': BUILD, 'upload_id': request['upload_id'],
             'artifact_sha256': m['sha256'], 'observed_sha256': None,
             'byte_size': m['byte_size'], 'input_hash': request['input_hash'],
             'input_revision': request['input_revision'], 'province': request['province'],
@@ -85,6 +94,10 @@ def report_failure(request, code):
                            'mean': None, 'min': None, 'max': None},
             'metadata': {k: None for k in ('crs', 'bands', 'resolution', 'dtype', 'nodata',
                         'units', 'scales', 'offsets', 'profile', 'output_units')}}
+    if m['profile'] in BAND_PROFILES:
+        report['statistics']['outside_area_pixels'] = 0
+        report['coverage'] = None
+    return report
 
 
 def _unsafe(path):
@@ -150,6 +163,13 @@ def validate(request, *, storage_root=STORAGE_ROOT):
         require(report['observed_sha256'] == m['sha256'], 'GEOTIFF_SHA256_MISMATCH')
         report['checks'].append('source_hash_match')
         _signature(raw)
+        if m['profile'] in BAND_PROFILES:
+            from . import geotiff_bands
+            geotiff_bands.compute(request, raw, report, require=require, tags=_tags,
+                                  limits={'dimension': MAX_DIMENSION, 'pixels': MAX_PIXELS})
+            if len(json.dumps(report, allow_nan=False).encode('utf-8')) > 16384:
+                return report_failure(request, 'NATIVE_OUTPUT_LIMIT')
+            return report
         # Native libraries are only loaded after byte bounds/hash checks and,
         # in production execution, after the child applies resource limits.
         import numpy as np
@@ -234,7 +254,8 @@ def validate(request, *, storage_root=STORAGE_ROOT):
                                 total += float(np.sum(valid, dtype='float64'))
                                 low, high = min(low, float(valid.min())), max(high, float(valid.max()))
                     require(stats['valid_pixels'] > 0, 'GEOTIFF_NO_VALID_PIXELS')
-                    stats.update(mean=total / stats['valid_pixels'], min=low, max=high)
+                    # A rounded sum can put the mean just outside the extrema of near-uniform pixels.
+                    stats.update(mean=min(high, max(low, total / stats['valid_pixels'])), min=low, max=high)
                     report['checks'].append('scientific_range')
                     report.update(valid=True, errors=[], error_code=None,
                         warnings=[{'code': 'PROVINCE_AND_YEAR_DECLARED_NOT_SPATIALLY_VERIFIED', 'count': 1}])

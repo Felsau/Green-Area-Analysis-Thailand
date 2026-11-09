@@ -6,11 +6,13 @@ import hashlib
 from io import BytesIO
 import json
 from pathlib import Path
+import re
 import stat
 import zipfile
 
 import pytest
 
+from gis_worker import ldd_policy as policy
 from gis_worker import ldd_provider as ldd
 from gis_worker.ldd_worker import LddWorker, LddClient
 from gis_worker.worker import WorkerError
@@ -52,7 +54,67 @@ def test_catalog_is_frozen_existing_96_codes_and_boundaries():
     assert ldd._main_code('U101/UNKNOWN', 'U', legend['codes']) is None
     assert ldd._main_code('U101', '', legend['codes']) is None
     assert ldd._main_code('U101', True, legend['codes']) is None
-    assert len(ldd._asset('province_boundaries.json', ldd.BOUNDARY_SHA256)['features']) == 77
+    assert len(ldd._asset('province_boundaries.json', ldd.BOUNDARY_SHA256)['features']) == 77   # the frozen GADM asset
+
+
+def test_second_legend_keeps_every_first_legend_entry_and_adds_the_official_table():
+    first = ldd._asset('ldd_codes.json', ldd.LEGEND_SHA256)['codes']
+    second = ldd._asset(ldd.LEGEND_V2_ASSET, ldd.LEGEND_V2_SHA256)
+    codes = second['codes']
+    assert all(codes[code] == entry for code, entry in first.items())      # nothing accepted before is refused now
+    assert second['version'] == 'ldd-codes-v2' and second['base_asset_sha256'] == ldd.LEGEND_SHA256
+    assert second['official_table']['codes'] == 232 and second['official_table']['identical_in_packages'] == 24
+    assert second['carried_from_first_legend'] == ['A800']                  # in the Bangkok legend, not in the official table
+    assert len(codes) == 256 and len([c for c in codes if '/' not in c]) == 233
+    classes = policy.main_classes(codes)                                      # one class per letter, five classes
+    assert dict(classes) == {'U': 1, 'A': 2, 'F': 3, 'W': 4, 'M': 5}
+    assert all(entry[0] == classes[code[0]] for code, entry in codes.items() if '/' not in code)
+    for code in ('A205', 'A302', 'A203', 'A403', 'A204', 'U406'):         # the codes real files use most outside the first legend
+        assert code in codes
+    assert all(c not in first for c in ('A205', 'A302', 'A203', 'A403', 'A204'))
+    assert all(isinstance(entry[1], str) and entry[1] and isinstance(entry[2], str) for entry in codes.values())
+
+
+OFFICIAL_OUTLINES = {
+    'Bangkok Metropolis', 'Chachoengsao', 'Chai Nat', 'Chanthaburi', 'Chon Buri', 'Kanchanaburi', 'Nakhon Nayok',
+    'Nakhon Pathom', 'Nonthaburi', 'Pathum Thani', 'Phetchaburi', 'Phra Nakhon Si Ayutthaya', 'Prachin Buri',
+    'Prachuap Khiri Khan', 'Ratchaburi', 'Rayong', 'Sa Kaeo', 'Samut Prakan', 'Samut Sakhon', 'Samut Songkhram',
+    'Saraburi', 'Sing Buri', 'Suphan Buri', 'Trat'}
+
+
+def test_boundary_asset_replaces_only_the_provinces_a_package_supplied():
+    shapely_geometry = pytest.importorskip('shapely.geometry')
+    base = ldd._asset('province_boundaries.json', ldd.BOUNDARY_SHA256)
+    asset = ldd._asset(ldd.BOUNDARY_LDD_ASSET, ldd.BOUNDARY_LDD_SHA256)
+    assert asset['metadata']['version'] == 'ldd-boundaries-v1' and asset['metadata']['base_asset_sha256'] == ldd.BOUNDARY_SHA256
+    old = {f['properties']['name']: f for f in base['features']}
+    assert [f['properties']['name'] for f in asset['features']] == [f['properties']['name'] for f in base['features']] and len(old) == 77
+    official = set()
+    for feature in asset['features']:
+        props, name = feature['properties'], feature['properties']['name']
+        assert props['source'] in ldd.BOUNDARY_SOURCES
+        shape = shapely_geometry.shape(feature['geometry'])
+        assert shape.geom_type in ('Polygon', 'MultiPolygon') and shape.is_valid and not shape.is_empty
+        if props['source'] == 'gadm-approx':
+            assert feature['geometry'] == old[name]['geometry']          # the GADM outline is carried over untouched
+            continue
+        official.add(name)
+        assert re.fullmatch('[0-9a-f]{64}', props['package_sha256']) and re.fullmatch('[0-9a-f]{64}', props['shp_sha256'])
+        assert props['data_year_be'] in (2566, 2567, 2568)
+        previous = shapely_geometry.shape(old[name]['geometry'])
+        assert shape.intersection(previous).area / shape.union(previous).area > 0.9   # the same province, only more detailed
+    assert official == OFFICIAL_OUTLINES and len(official) == 24
+
+
+def test_migration_051_names_exactly_the_two_boundary_assets_the_code_pins():
+    """A rebuilt asset or a changed constant must not drift away from the SQL that admits its hash."""
+    migrations = Path(__file__).resolve().parents[1] / 'migrations'
+    sql = (migrations / '051_gis_ldd_boundary_asset.sql').read_text(encoding='utf-8')
+    previous = hashlib.sha256((migrations / '050_gis_ldd_report_audit.sql').read_bytes()).hexdigest()
+    assert set(re.findall(r'[0-9a-f]{64}', sql)) == {ldd.BOUNDARY_LDD_SHA256, ldd.BOUNDARY_SHA256, previous}
+    assert ldd.BOUNDARY_SHA256 in (migrations / '034_ldd_upload.sql').read_text(encoding='utf-8')
+    assert hashlib.sha256((Path(ldd.__file__).parent / ldd.BOUNDARY_LDD_ASSET).read_bytes()).hexdigest() == ldd.BOUNDARY_LDD_SHA256
+    assert not (Path(ldd.__file__).parent / ldd.BOUNDARY_LDD_ASSET).read_bytes().count(b'\n')   # immune to line-ending conversion
 
 
 @pytest.mark.parametrize('change', [
@@ -103,6 +165,174 @@ def test_size_limit_corruption_missing_components_and_sidecars():
         ldd._components({'a.shp': b'a'})
     files = ldd.guarded_zip(archive([(f'a.{ext}', b'x') for ext in ('shp', 'shx', 'dbf', 'prj', 'sbn', 'sbx', 'qix')]))
     assert len(ldd._components(files)[1]) == 7
+
+
+# ---- province packages (policy v3, package handling): one land-use layer is read, nothing else is --------------
+
+LAYER_DIR, LAYER = 'Landuse_TST_2566/', 'LU_TST_2566'
+LAYER_NAMES = sorted(f'{LAYER_DIR}{LAYER}.{ext}' for ext in ('cpg', 'dbf', 'prj', 'shp', 'shx'))
+
+
+def fixture_layer(prefix=LAYER_DIR, layer=LAYER, fixture='ldd_valid.zip'):
+    """The components of a real fixture layer, renamed to sit in a package folder."""
+    with zipfile.ZipFile(FIXTURES / fixture) as z:
+        return [(f'{prefix}{layer}.{i.filename.rsplit(".", 1)[1]}', z.read(i)) for i in z.infolist()]
+
+
+def package(extra=(), **kwargs):
+    """What LDD ships: the layer plus boundary layers, a code table, metadata and documents."""
+    others = [(f'{LAYER_DIR}LUCODE.xls', bytes(range(200))), (f'{LAYER_DIR}readme.docx', bytes(range(100, 250))),
+              (f'{LAYER_DIR}{LAYER}.shp.xml', b'<metadata/>'), (f'{LAYER_DIR}{LAYER}.sbn', b'index'),
+              (f'{LAYER_DIR}ขอบเขต/TST_Pro.shp', b'not a shapefile'), (f'{LAYER_DIR}ขอบเขต/TST_Pro.dbf', b'not a table')]
+    return archive(fixture_layer(**kwargs) + others + list(extra), compression=zipfile.ZIP_DEFLATED)
+
+
+@pytest.mark.parametrize('names,expected', [
+    (['a/x.shp'], 'a/x.shp'),                                            # a single shapefile keeps today's behaviour
+    (['LU_BKK_2566.shp', 'B_Pro.shp', 'B_Amp.shp'], 'LU_BKK_2566.shp'),
+    (['d/lu_ptt_2568.SHP', 'd/prov_Pro.shp'], 'd/lu_ptt_2568.SHP'),      # any case
+    (['x/ขอบเขต/กรุงเทพ_Pro.shp', 'x/LU_BKK_2566.shp'], 'x/LU_BKK_2566.shp'),
+    (['A_Pro.shp', 'B_Amp.shp'], None),                                  # several, none of them land use
+    (['LU_A_2566.shp', 'LU_A_2567.shp'], None),                          # two land-use layers: no guessing
+    (['readme.docx', 'sheet.xls'], None), ([], None),
+])
+def test_the_land_use_layer_is_chosen_without_guessing(names, expected):
+    assert policy.select_land_use_layer(names) == expected
+
+
+def test_a_province_package_reads_only_the_land_use_layer(monkeypatch):
+    raw = package()          # built first: writing a ZIP goes through ZipFile.open too
+    opened = []
+    real_open = zipfile.ZipFile.open
+
+    def spy(self, item, *args, **kwargs):
+        opened.append(item.filename if isinstance(item, zipfile.ZipInfo) else item)
+        return real_open(self, item, *args, **kwargs)
+
+    monkeypatch.setattr(zipfile.ZipFile, 'open', spy)
+    files = ldd.guarded_zip(raw, package=True)
+    assert sorted(opened) == sorted(files) == LAYER_NAMES   # no other member is decompressed
+    name, parts = ldd._components(files)
+    assert name == f'{LAYER_DIR}{LAYER}.shp' and set(parts) == {'.shp', '.shx', '.dbf', '.prj', '.cpg'}
+    with zipfile.ZipFile(BytesIO(ldd.layer_archive(parts))) as rebuilt:   # what GDAL is given
+        assert rebuilt.namelist() == ['layer.shp', 'layer.shx', 'layer.dbf', 'layer.prj', 'layer.cpg']
+        assert all(rebuilt.read('layer' + k) == v for k, v in parts.items())
+
+
+def test_the_frozen_rule_still_refuses_a_package():
+    with pytest.raises(ldd.LddError, match='UNSUPPORTED_ZIP_MEMBER'):
+        ldd.guarded_zip(package())
+    with pytest.raises(ldd.LddError, match='SHAPEFILE_DATASET_COUNT'):   # two shapefiles, no package rule
+        ldd._components(ldd.guarded_zip(archive(fixture_layer() + [('other.shp', b'x'), ('other.shx', b'x'), ('other.dbf', b'x')]
+                                                  + [('other.prj', b'x')], compression=zipfile.ZIP_DEFLATED)))
+
+
+@pytest.mark.parametrize('name', ['tool.exe', 'run.py', 'layer.vrt', f'{LAYER_DIR}x.dll', 'go.sh', 'macro.vbs', 'a.JS',
+                                  'inner.zip', f'{LAYER_DIR}ลพบุรี.ZIP', 'x.7z', 'x.tar', 'x.gz'])
+def test_programs_scripts_virtual_datasets_and_nested_archives_are_refused_inside_a_package(name):
+    with pytest.raises(ldd.LddError, match='UNSUPPORTED_ZIP_MEMBER'):
+        ldd.guarded_zip(package([(name, b'x')]), package=True)
+
+
+def test_every_member_is_still_checked_even_when_it_is_never_read():
+    symlink = zipfile.ZipInfo(f'{LAYER_DIR}notes.txt')
+    symlink.create_system = 3
+    symlink.external_attr = (stat.S_IFLNK | 0o777) << 16
+    for member, code in [
+        ((symlink, b'/etc/passwd'), 'ZIP_SYMLINK'),
+        ((f'{LAYER_DIR}../escape.xls', b'x'), 'ZIP_PATH_UNSAFE'),
+        ((f'{LAYER_DIR}C:/escape.xls', b'x'), 'ZIP_PATH_UNSAFE'),
+        ((f'{LAYER_DIR}readme.DOCX', b'x'), 'ZIP_DUPLICATE_NAME'),
+        ((f'{LAYER_DIR}bomb.txt', b'0' * 200000), 'ZIP_COMPRESSION_RATIO'),
+    ]:
+        with pytest.raises(ldd.LddError, match=code):
+            ldd.guarded_zip(package([member]), package=True)
+    with pytest.raises(ldd.LddError, match='ZIP_MEMBER_LIMIT'):
+        ldd.guarded_zip(package([(f'{LAYER_DIR}extra{i}.txt', bytes([i, 1, 2])) for i in range(60)]), package=True)
+
+
+@pytest.mark.parametrize('members,code', [
+    ([('A_Pro.shp', b'x'), ('B_Amp.shp', b'x')], 'SHAPEFILE_DATASET_COUNT'),               # several, none land use
+    ([('LU_A_2566.shp', b'x'), ('LU_A_2567.shp', b'x')], 'SHAPEFILE_DATASET_COUNT'),       # two land-use layers
+    ([('readme.docx', b'x'), ('sheet.xls', b'x')], 'SHAPEFILE_DATASET_COUNT'),             # no shapefile at all
+])
+def test_a_package_without_exactly_one_land_use_layer_is_refused(members, code):
+    with pytest.raises(ldd.LddError, match=code):
+        ldd.guarded_zip(archive(members), package=True)
+
+
+def test_a_province_package_gives_the_same_result_as_its_layer_alone(tmp_path):
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    alone = ldd.validate(store(tmp_path, (FIXTURES / 'ldd_valid.zip').read_bytes()), storage_root=tmp_path)
+    packed_raw = package()
+    packed = ldd.validate(store(tmp_path, packed_raw), storage_root=tmp_path)
+    assert alone['valid'] is True and packed['valid'] is True
+    for key in ('valid', 'error_code', 'errors', 'warnings', 'statistics', 'checks', 'encoding', 'audit'):
+        assert packed[key] == alone[key], key
+    assert packed['artifact_sha256'] != alone['artifact_sha256']
+    # The pre-v2 validator is frozen: it still refuses what only the package rule accepts.
+    legacy = ldd.validate_legacy_v1(request(packed_raw), storage_root=tmp_path)
+    assert legacy['valid'] is False and {'code': 'UNSUPPORTED_ZIP_MEMBER', 'count': 1} in legacy['errors']
+
+
+def test_a_layer_in_a_legacy_encoded_folder_name_is_read(tmp_path):
+    """Real LDD ZIPs name folders in Thai without the UTF-8 flag; GDAL never sees those names."""
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    placeholder = 'AAAAAA'
+    thai = 'ขอบเขต'.encode('cp874')
+    assert len(thai) == len(placeholder)
+    raw = archive(fixture_layer(prefix=placeholder + '/', layer='LU_TST_2566')
+                  + [(f'{placeholder}/BBBBBB_Pro.shp', b'not a shapefile')], compression=zipfile.ZIP_DEFLATED)
+    raw = raw.replace(placeholder.encode(), thai)
+    assert thai in raw
+    result = ldd.validate(store(tmp_path, raw), storage_root=tmp_path)
+    assert result['valid'] is True and result['statistics']['feature_count'] == 3
+
+
+@pytest.mark.parametrize('fixture,outcome,accepted,review', [
+    ('ldd_valid.zip', 'accepted', 3, 0), ('ldd_unknown.zip', 'review_required', None, None), ('ldd_missing_dbf.zip', 'rejected', 0, 0),
+])
+def test_report_audit_matches_the_rules_in_migration_050(tmp_path, fixture, outcome, accepted, review):
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    result = ldd.validate(store(tmp_path, (FIXTURES / fixture).read_bytes()), storage_root=tmp_path)
+    audit = result['audit']
+    assert set(audit) == {'policy_version', 'outcome', 'field_profile', 'field_mapping', 'declared_area_units', 'feature_outcomes',
+                          'boundary', 'unknown_samples', 'repairs', 'repairs_total'}
+    assert audit['outcome'] == outcome and audit['policy_version'] == 'ldd-policy-v2'
+    assert set(audit['feature_outcomes']) == {'accepted', 'accepted_with_warnings', 'review_required', 'rejected'}
+    assert set(audit['boundary']) == {'minor', 'review', 'fatal', 'outside_area_m2'}
+    total = sum(audit['feature_outcomes'].values())
+    if result['valid']:
+        assert total == result['statistics']['feature_count'] and audit['field_mapping'] == {
+            'main_code': 'LUL1_CODE', 'lu_code': 'LU_CODE', 'declared_area': 'Shape_Area'}
+    else:
+        assert total <= result['statistics']['feature_count']
+    if accepted is not None:
+        assert audit['feature_outcomes']['accepted'] == accepted and audit['feature_outcomes']['review_required'] == review
+    if outcome == 'review_required':
+        assert audit['feature_outcomes']['review_required'] > 0 and 0 < len(audit['unknown_samples']) <= 10
+        assert {e['code'] for e in result['errors']} == {'UNKNOWN_CODE_REVIEW_REQUIRED'}
+        sample = audit['unknown_samples'][0]
+        assert set(sample) == {'value', 'main', 'reason', 'count', 'area_m2'} and re.fullmatch('[A-Z][A-Z0-9_]{0,59}', sample['reason'])
+    assert len(json.dumps(result, allow_nan=False).encode()) <= 16384
+
+
+def test_audit_is_dropped_rather_than_failing_when_the_report_would_be_too_large(tmp_path, monkeypatch):
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    monkeypatch.setattr(ldd, 'audit_summary', lambda details, total: {'padding': 'x' * 20000})
+    result = ldd.validate(store(tmp_path, (FIXTURES / 'ldd_valid.zip').read_bytes()), storage_root=tmp_path)
+    assert result['valid'] is True and 'audit' not in result
+
+
+def test_resource_failures_carry_no_audit(tmp_path, monkeypatch):
+    req = request((FIXTURES / 'ldd_valid.zip').read_bytes())
+    failure = ldd.report_failure(req, 'NATIVE_MEMORY_LIMIT')
+    monkeypatch.setattr(ldd, 'assess', lambda request, storage_root: (failure, {}))
+    assert 'audit' not in ldd.validate(req, storage_root=tmp_path)
 
 
 def test_native_hash_mismatch_and_missing_file_fail_safely(tmp_path):
@@ -157,6 +387,65 @@ def test_actual_crs_province_encoding_mismatch(tmp_path):
     assert ldd.validate(wrong_province, storage_root=tmp_path)['error_code'] == 'OUTSIDE_PROVINCE'
     wrong_encoding = {**req, 'encoding': 'cp874'}
     assert ldd.validate(wrong_encoding, storage_root=tmp_path)['error_code'] == 'ENCODING_MISMATCH'
+
+
+VERTCS = (b',VERTCS["WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],'
+          b'PARAMETER["Vertical_Shift",0.0],PARAMETER["Direction",1.0],UNIT["Meter",1.0]]')
+
+
+def with_member(fixture, suffix, change, **more):
+    """A fixture ZIP with members' bytes changed (by suffix), as in the real LDD 2568 variants."""
+    changes = {suffix: change, **{'.' + k: v for k, v in more.items()}}
+    with zipfile.ZipFile(FIXTURES / fixture) as z:
+        return archive([(i.filename, changes.get('.' + i.filename.rsplit('.', 1)[1].lower(), lambda b: b)(z.read(i)))
+                        for i in z.infolist()])
+
+
+def test_a_cpg_naming_the_windows_thai_code_page_is_read_as_cp874_with_a_visible_warning(tmp_path):
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    req = store(tmp_path, with_member('ldd_cp874.zip', '.cpg', lambda _: b'ANSI 874'))
+    result = ldd.validate(req, storage_root=tmp_path)
+    assert result['valid'] is True and result['encoding'] == 'cp874' and result['statistics']['feature_count'] == 3
+    assert {'code': 'CPG_ENCODING_ALIAS', 'count': 1} in result['warnings']
+    assert result['audit']['outcome'] == 'accepted_with_warnings'
+    # An encoding the officer chose is still compared with what the .cpg names.
+    assert ldd.validate({**req, 'encoding': 'cp874'}, storage_root=tmp_path)['valid'] is True
+    assert ldd.validate({**req, 'encoding': 'tis-620'}, storage_root=tmp_path)['error_code'] == 'ENCODING_MISMATCH'
+    # The frozen pre-v2 validator keeps refusing the name.
+    assert ldd.validate_legacy_v1(req, storage_root=tmp_path)['error_code'] == 'ENCODING_UNSUPPORTED'
+
+
+@pytest.mark.parametrize('cpg', [b'ANSI 1252', b'ANSI874', b'Windows Thai'])
+def test_other_cpg_names_are_still_refused(tmp_path, cpg):
+    req = store(tmp_path, with_member('ldd_cp874.zip', '.cpg', lambda _: cpg))
+    assert ldd.validate(req, storage_root=tmp_path)['error_code'] == 'ENCODING_UNSUPPORTED'
+
+
+def test_an_ansi_874_cpg_does_not_excuse_text_that_is_not_cp874(tmp_path):
+    def break_thai(dbf):
+        start = int.from_bytes(dbf[8:10], 'little')
+        at = next(i for i in range(start, len(dbf)) if dbf[i] > 0x7f)   # a Thai byte inside a text field
+        assert b'\xfc'.decode('cp874', errors='replace') == '�'      # 0xFC is unassigned in cp874
+        return dbf[:at] + b'\xfc' + dbf[at + 1:]
+    raw = with_member('ldd_cp874.zip', '.cpg', lambda _: b'ANSI 874', dbf=break_thai)
+    assert ldd.validate(store(tmp_path, raw), storage_root=tmp_path)['error_code'] == 'ENCODING_INVALID'
+
+
+def test_a_prj_with_a_trailing_vertical_system_is_checked_on_its_horizontal_part(tmp_path):
+    pytest.importorskip('fiona')
+    pytest.importorskip('rasterio')
+    req = store(tmp_path, with_member('ldd_valid.zip', '.prj', lambda prj: prj.rstrip() + VERTCS))
+    result = ldd.validate(req, storage_root=tmp_path)
+    assert result['valid'] is True and result['statistics']['total_area_m2'] == pytest.approx(6400)
+    assert {'code': 'CRS_VERTICAL_IGNORED', 'count': 1} in result['warnings']
+    assert result['audit']['outcome'] == 'accepted_with_warnings'
+    other_zone = deepcopy(req)
+    other_zone['manifest']['crs'] = 'EPSG:32648'          # the horizontal part must still match the declaration
+    assert ldd.validate(other_zone, storage_root=tmp_path)['error_code'] == 'CRS_MISMATCH'
+    assert ldd.validate_legacy_v1(req, storage_root=tmp_path)['error_code'] == 'CRS_MISMATCH'
+    plain = ldd.validate(store(tmp_path, (FIXTURES / 'ldd_valid.zip').read_bytes()), storage_root=tmp_path)
+    assert 'CRS_VERTICAL_IGNORED' not in {w['code'] for w in plain['warnings']}
 
 
 def ready():

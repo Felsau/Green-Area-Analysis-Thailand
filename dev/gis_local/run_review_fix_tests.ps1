@@ -25,7 +25,7 @@ Step 'backend tests (Windows venv, full suite)' {
     $env:PYTHONPATH = (Resolve-Path tests).Path
     # Native GIS tests (rasterio/fiona/shapely) run in the pinned Linux image below.
     $native = 'test_ldd_native.py','test_ldd_prepare_native.py','test_ldd_policy_native.py','test_gis_native_provider.py',
-        'test_ldd_publication_native.py','test_gis_worker_unit.py','test_geotiff_native.py','test_geotiff_prepare_native.py'
+        'test_ldd_publication_native.py','test_gis_worker_unit.py','test_geotiff_native.py','test_geotiff_prepare_native.py','test_geotiff_bands_native.py'
     $ignore = $native | ForEach-Object { "--ignore=tests\$_" }
     & .\.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider --continue-on-collection-errors -rfE @ignore tests
     Remove-Item Env:PYTHONPATH -ErrorAction SilentlyContinue
@@ -33,7 +33,7 @@ Step 'backend tests (Windows venv, full suite)' {
 }
 Step 'native GIS tests (pinned Linux image, CRLF bind mount)' {
     $backend = (Resolve-Path green-area-backend).Path
-    $code = "import sys;sys.path[:0]=['/work','/work/tests'];import pytest;raise SystemExit(pytest.main(['-q','-p','no:cacheprovider','--basetemp','/tmp/pt','/work/tests/test_ldd_native.py','/work/tests/test_ldd_prepare_native.py','/work/tests/test_ldd_policy_native.py','/work/tests/test_ldd_policy.py','/work/tests/test_gis_native_provider.py','/work/tests/test_ldd_publication_native.py','/work/tests/test_gis_worker_unit.py','/work/tests/test_geotiff_native.py','/work/tests/test_geotiff_prepare_native.py']))"
+    $code = "import sys;sys.path[:0]=['/work','/work/tests'];import pytest;raise SystemExit(pytest.main(['-q','-p','no:cacheprovider','--basetemp','/tmp/pt','/work/tests/test_ldd_native.py','/work/tests/test_ldd_prepare_native.py','/work/tests/test_ldd_policy_native.py','/work/tests/test_ldd_policy.py','/work/tests/test_gis_native_provider.py','/work/tests/test_ldd_publication_native.py','/work/tests/test_gis_worker_unit.py','/work/tests/test_geotiff_native.py','/work/tests/test_geotiff_prepare_native.py','/work/tests/test_geotiff_bands_native.py']))"
     docker run --rm --network=none --read-only --cap-drop=ALL --security-opt=no-new-privileges:true --user=65534:65534 `
         --memory=2g --pids-limit=128 --tmpfs=/tmp:rw,nosuid,size=512m,mode=1777 -e PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 `
         --mount "type=bind,src=$backend\gis_worker,dst=/work/gis_worker,readonly" `

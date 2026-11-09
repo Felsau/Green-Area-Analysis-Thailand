@@ -16,6 +16,7 @@ from uuid import uuid4
 import zipfile
 
 from gis_service import gis_error
+from gis_worker import ldd_policy as policy  # pure Python: shared package rules, no native GIS import
 from gis_target import TargetProfile
 
 MAX_UPLOAD = 20 * 1024**2
@@ -37,6 +38,7 @@ def storage_error(code='GIS_LDD_STORAGE_UNAVAILABLE', status=503):
         'GIS_LDD_SIZE_LIMIT': 'ไฟล์ ZIP ต้องมีขนาดไม่เกิน 20 MiB',
         'GIS_LDD_QUOTA': 'พื้นที่ Local สำหรับข้อมูล LDD เต็ม กรุณาติดต่อผู้ดูแลระบบ',
         'GIS_LDD_ZIP_UNSAFE': 'ZIP ไม่ปลอดภัย มี Path, Link หรือขนาดขยายที่ไม่อนุญาต',
+        'GIS_LDD_ZIP_NESTED': 'ZIP นี้มี ZIP ซ้อนอยู่ข้างใน กรุณาแตกออกแล้วบีบอัดเฉพาะแพ็กเกจชั้นการใช้ที่ดินใหม่',
         'GIS_LDD_ZIP_INVALID': 'ไฟล์ไม่ใช่ ZIP ที่อ่านได้ หรือข้อมูล ZIP ไม่สมบูรณ์',
         'GIS_LDD_UPLOAD_BUSY': 'มีการอัปโหลดอยู่ กรุณารอสักครู่แล้วลองคำสั่งเดิม',
         'GIS_LDD_UPLOAD_TIMEOUT': 'อัปโหลดนานเกินกำหนด กรุณาลองคำสั่งเดิมอีกครั้ง',
@@ -100,8 +102,15 @@ def preflight_zip(path):
                 if (item.file_size > MAX_UPLOAD or total > MAX_EXPANDED
                     or (item.file_size and (not item.compress_size or item.file_size / item.compress_size > MAX_RATIO))):
                     raise storage_error('GIS_LDD_ZIP_UNSAFE', 422)
-                if not item.is_dir() and PurePosixPath(name).suffix.lower() not in ('.shp', '.shx', '.dbf', '.prj', '.cpg', '.sbn', '.sbx', '.qix'):
-                    raise storage_error('GIS_LDD_ZIP_UNSAFE', 422)
+                if not item.is_dir():
+                    # A province package also carries boundary layers and documents. The worker reads one
+                    # land-use layer only, so other members are not judged by type here, except programs,
+                    # scripts and virtual datasets (never wanted) and nested archives (unpack them first).
+                    suffix = PurePosixPath(name).suffix.lower()
+                    if suffix in policy.ARCHIVE_SUFFIXES:
+                        raise storage_error('GIS_LDD_ZIP_NESTED', 422)
+                    if suffix in policy.BLOCKED_SUFFIXES:
+                        raise storage_error('GIS_LDD_ZIP_UNSAFE', 422)
     except (zipfile.BadZipFile, OSError, ValueError, NotImplementedError):
         raise storage_error('GIS_LDD_ZIP_INVALID', 422) from None
 

@@ -132,7 +132,7 @@ def api(runtime, store):
 
 
 def upload(api, raw, **kwargs):
-    return api.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3', content=raw,
+    return api.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3&source_label=synthetic-test-source', content=raw,
         headers={'Content-Type': 'application/zip', **kwargs.pop('headers', {})}, **kwargs)
 
 
@@ -175,6 +175,46 @@ def test_zip_path_and_extension_safety(tmp_path, name):
         raw = raw.replace(name.replace('\\', '/').encode(), name.encode())
     with pytest.raises(HTTPException) as error:
         preflight_zip(archive_file(tmp_path, raw))
+    assert_code(error, 422, 'GIS_LDD_ZIP_UNSAFE')
+
+
+def province_package(extra=()):
+    """What LDD ships: the land-use layer in a folder, with boundary layers, a code table and documents."""
+    layer = [(f'Landuse_X_2566/LU_X_2566.{ext}', b'x') for ext in ('shp', 'shx', 'dbf', 'prj', 'cpg')]
+    return zip_bytes(layer + [('Landuse_X_2566/LUCODE.xls', b'x'), ('Landuse_X_2566/readme.docx', b'x'),
+        ('Landuse_X_2566/meta.xml', b'x'), ('Landuse_X_2566/ขอบเขตการปกครอง/X_Pro.shp', b'x'),
+        ('Landuse_X_2566/ขอบเขตการปกครอง/X_Pro.dbf', b'x')] + list(extra))
+
+
+def test_province_package_with_boundary_layers_and_documents_passes_preflight(tmp_path):
+    preflight_zip(archive_file(tmp_path, province_package()))
+
+
+@pytest.mark.parametrize('name', ['tool.exe', 'run.py', 'layer.vrt', 'Landuse_X_2566/x.dll', 'go.sh', 'macro.vbs', 'a.JS'])
+def test_programs_scripts_and_virtual_datasets_are_refused_even_inside_a_package(tmp_path, name):
+    with pytest.raises(HTTPException) as error:
+        preflight_zip(archive_file(tmp_path, province_package([(name, b'x')])))
+    assert_code(error, 422, 'GIS_LDD_ZIP_UNSAFE')
+
+
+@pytest.mark.parametrize('name', ['inner.zip', 'Landuse_X_2566/ลพบุรี.ZIP', 'x.7z', 'x.rar', 'x.tar', 'x.gz'])
+def test_nested_archive_is_refused_with_its_own_code(tmp_path, name):
+    with pytest.raises(HTTPException) as error:
+        preflight_zip(archive_file(tmp_path, province_package([(name, b'x')])))
+    assert_code(error, 422, 'GIS_LDD_ZIP_NESTED')
+
+
+def test_the_package_limits_still_cover_members_that_are_never_read(tmp_path):
+    many = province_package([(f'Landuse_X_2566/extra{i}.txt', b'x') for i in range(60)])
+    with pytest.raises(HTTPException) as error:
+        preflight_zip(archive_file(tmp_path, many))
+    assert_code(error, 422, 'GIS_LDD_ZIP_UNSAFE')
+    bomb = BytesIO()
+    with zipfile.ZipFile(bomb, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr('Landuse_X_2566/LU_X_2566.shp', b'x')
+        archive.writestr('Landuse_X_2566/notes.txt', b'a' * 65536)
+    with pytest.raises(HTTPException) as error:
+        preflight_zip(archive_file(tmp_path, bomb.getvalue()))
     assert_code(error, 422, 'GIS_LDD_ZIP_UNSAFE')
 
 
@@ -325,6 +365,14 @@ def test_api_binary_upload_binds_server_actor_and_stable_file_id(api, store, run
     assert len(list(store.objects.iterdir())) == 1
 
 
+def test_api_accepts_a_whole_province_package_and_stores_it_unchanged(api, store):
+    raw = province_package()
+    response = upload(api, raw)
+    assert response.status_code == 201
+    stored = list(store.objects.iterdir())
+    assert len(stored) == 1 and stored[0].read_bytes() == raw  # the immutable original is the package itself
+
+
 @pytest.mark.parametrize('failure', ['missing_jwt', 'invalid_jwt', 'no_gis_role', 'revision', 'wrong_kind', 'wrong_month'])
 def test_api_auth_dataset_revision_guards_before_store_consumes_stream(api, store, runtime, monkeypatch, failure):
     async def forbidden(*_args, **_kwargs):
@@ -353,7 +401,7 @@ def test_api_auth_dataset_revision_guards_before_store_consumes_stream(api, stor
 
 def test_api_upload_disabled_by_default(runtime):
     with TestClient(create_app(runtime)) as client:
-        response = client.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3', content=b'raw',
+        response = client.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3&source_label=synthetic-test-source', content=b'raw',
             headers={'Authorization': 'Bearer mock-user-token', 'Idempotency-Key': KEY, 'Content-Type': 'application/zip'})
     assert response.status_code == 503 and response.json()['detail']['code'] == 'GIS_LDD_STORAGE_UNAVAILABLE'
 
@@ -382,7 +430,7 @@ def test_upload_stream_bypasses_only_json_limit(api, store):
 def test_api_rejects_invalid_zip_and_unrecognized_query(api):
     response = upload(api, b'has zip extension but no structure')
     assert response.status_code == 422 and response.json()['detail']['code'] == 'GIS_LDD_ZIP_INVALID'
-    response = api.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3&actor_id={ACTOR}',
+    response = api.post(f'/gis/datasets/{DATASET}/ldd-uploads?expected_revision=3&source_label=synthetic-test-source&actor_id={ACTOR}',
         content=b'x', headers={'Content-Type': 'application/zip'})
     assert response.status_code == 422
 

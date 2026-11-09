@@ -140,10 +140,10 @@ def test_monthly_values_are_checked_before_reporting(rows, code):
 
 def test_no_imagery_is_a_final_no_data_result_and_other_errors_are_transient():
     assert provider.compute(request(), Endpoints(error=provider.NoData()))['error_code'] == provider.NO_DATA
-    secret = 'https://earthengine.googleapis.com/v1/projects/innate-beacon-483307-v1 token=ya29.secret'
+    secret = 'https://earthengine.googleapis.com/v1/projects/example-project-123 token=ya29.secret'
     report = provider.compute(request(), Endpoints(error=RuntimeError(secret)))
     assert report['error_code'] == provider.TRANSIENT and provider.TRANSIENT in INFRA
-    assert 'ya29' not in json.dumps(report) and 'innate-beacon' not in json.dumps(report)
+    assert 'ya29' not in json.dumps(report) and 'example-project' not in json.dumps(report)
     assert provider.NO_DATA not in INFRA and provider.IMPLAUSIBLE not in INFRA
 
 

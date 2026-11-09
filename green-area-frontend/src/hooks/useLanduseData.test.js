@@ -27,6 +27,22 @@ test('Published bundle is cleared immediately for failed rechecks',async()=>{
   expect(result.current.landuseData).toBeNull();expect(result.current.landuseError).toContain('ไม่มีการใช้ Legacy แทน');
   expect(fetchWithRetry).not.toHaveBeenCalled();
 });
+test('Published geometry is fetched once per snapshot and merged into the bundle',async()=>{
+  const split=seed=>{const {geometry,...summary}=data(seed);return {summary:{...summary,geometry_artifact:{sha256:seed.repeat(64),byte_size:1}},geometry};};
+  const a=split('a'),b=split('b');
+  const calls=()=>gisRequest.mock.calls.filter(call=>call[0]==='/published-ldd/geometry');
+  gisRequest.mockImplementation(path=>Promise.resolve(path==='/published-ldd/geometry'?a.geometry:a.summary));
+  const {result}=renderHook(()=>useLanduseData());act(()=>result.current.setLanduseSource('published'));
+  await act(()=>result.current.fetchLanduse('Bangkok Metropolis',null,2026,'published'));
+  expect(result.current.landuseData.geometry).toEqual(a.geometry);
+  expect(calls()).toHaveLength(1);
+  expect(calls()[0][1].query).toEqual({province:'Bangkok Metropolis',data_year:2026,snapshot_id:a.summary.snapshot_id});
+  await act(()=>result.current.fetchLanduse('Bangkok Metropolis',null,2026,'published'));   // same snapshot: no second download
+  expect(calls()).toHaveLength(1);expect(result.current.landuseData.geometry).toEqual(a.geometry);
+  gisRequest.mockImplementation(path=>Promise.resolve(path==='/published-ldd/geometry'?b.geometry:b.summary));
+  await act(()=>result.current.fetchLanduse('Bangkok Metropolis',null,2026,'published'));   // new snapshot: downloaded again
+  expect(calls()).toHaveLength(2);expect(result.current.landuseData.snapshot_id).toBe(b.summary.snapshot_id);
+});
 test('switching source ignores a delayed old Published response',async()=>{
   const {result}=renderHook(()=>useLanduseData());let resolve;
   act(()=>result.current.setLanduseSource('published'));
@@ -73,6 +89,45 @@ test('scope clearing preserves explicit Published selection and removes old snap
  gisRequest.mockResolvedValue(data('a'));const {result}=renderHook(()=>useLanduseData());act(()=>result.current.setLanduseSource('published'));
  await act(()=>result.current.fetchLanduse('Bangkok Metropolis',null,2026,'published'));
  act(()=>result.current.clearLanduseScope());expect(result.current.landuseData).toBeNull();expect(result.current.landuseSource).toBe('published');
+});
+const recheck=()=>act(()=>window.dispatchEvent(new Event('gis-ldd-publication-change')));
+const pending=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
+test('a background recheck keeps the same Published snapshot on screen until it answers',async()=>{
+ gisRequest.mockResolvedValue(data('a'));const {result}=renderHook(()=>useLanduseData());act(()=>result.current.setLanduseSource('published'));
+ await act(()=>result.current.fetchLanduse('Bangkok Metropolis',null,2026,'published'));
+ const shown=result.current.landuseData,next=pending();gisRequest.mockReturnValue(next.promise);
+ recheck();
+ expect(gisRequest).toHaveBeenCalledTimes(2);   // the recheck is in flight
+ expect(result.current.landuseData).toBe(shown);expect(result.current.landuseLoading).toBe(false);
+ await act(async()=>{next.resolve(data('a'));await next.promise;});
+ await waitFor(()=>expect(result.current.landuseData).not.toBe(shown));
+ expect(result.current.landuseData.snapshot_id).toBe(shown.snapshot_id);expect(result.current.landuseLoading).toBe(false);
+});
+test('a background recheck that finds another snapshot removes the old one before the new one arrives',async()=>{
+ const split=seed=>{const {geometry,...summary}=data(seed);return {summary:{...summary,geometry_artifact:{sha256:seed.repeat(64),byte_size:1}},geometry};};
+ const a=split('a'),b=split('b'),slow=pending();
+ gisRequest.mockImplementation(path=>Promise.resolve(path==='/published-ldd/geometry'?a.geometry:a.summary));
+ const {result}=renderHook(()=>useLanduseData());act(()=>result.current.setLanduseSource('published'));
+ await act(()=>result.current.fetchLanduse('Bangkok Metropolis',null,2026,'published'));
+ expect(result.current.landuseData.snapshot_id).toBe(a.summary.snapshot_id);
+ gisRequest.mockImplementation(path=>path==='/published-ldd/geometry'?slow.promise:Promise.resolve(b.summary));
+ recheck();
+ await waitFor(()=>expect(result.current.landuseData).toBeNull());expect(result.current.landuseLoading).toBe(true);
+ await act(async()=>{slow.resolve(b.geometry);await slow.promise;});
+ await waitFor(()=>expect(result.current.landuseData?.snapshot_id).toBe(b.summary.snapshot_id));expect(result.current.landuseLoading).toBe(false);
+});
+test('a failed recheck clears the snapshot and its error stays on screen through the next recheck',async()=>{
+ gisRequest.mockResolvedValueOnce(data('a')).mockRejectedValueOnce(Error('withdrawn'));
+ const {result}=renderHook(()=>useLanduseData());act(()=>result.current.setLanduseSource('published'));
+ await act(()=>result.current.fetchLanduse('Bangkok Metropolis',null,2026,'published'));
+ recheck();
+ await waitFor(()=>expect(result.current.landuseError).toContain('ไม่มีการใช้ Legacy แทน'));expect(result.current.landuseData).toBeNull();
+ const next=pending();gisRequest.mockReturnValue(next.promise);
+ recheck();
+ expect(gisRequest).toHaveBeenCalledTimes(3);
+ expect(result.current.landuseError).toContain('ไม่มีการใช้ Legacy แทน');expect(result.current.landuseLoading).toBe(false);
+ await act(async()=>{next.resolve(data('a'));await next.promise;});
+ await waitFor(()=>expect(result.current.landuseData?.snapshot_id).toBe(data('a').snapshot_id));expect(result.current.landuseError).toBeNull();
 });
 test('late failure after a source/scope change cannot attach an old error to the new selection',async()=>{
  let reject;gisRequest.mockReturnValue(new Promise((_,no)=>{reject=no;}));const {result}=renderHook(()=>useLanduseData());

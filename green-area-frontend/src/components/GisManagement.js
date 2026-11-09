@@ -155,13 +155,13 @@ function FormDialog({ form, prepare, close, provinces }) {
           const file = values.file;
           if (!(file instanceof File) || !/\.tiff?$/i.test(file.name) || file.size < 1 || file.size > 20 * 1024**2) throw new Error('กรุณาเลือก GeoTIFF ขนาดไม่เกิน 20 MiB');
           prepare({ title: form.title, path: form.path, body: file,
-            query: { expected_revision: dataset.revision, crs: values.crs, profile: values.profile } });
+            query: { expected_revision: dataset.revision, crs: values.crs, profile: values.profile, source_label: values.source_label.trim(), acquisition_date: values.acquisition_date } });
           return;
         } else if (form.type === 'upload') {
           const file = values.file;
           if (!(file instanceof File) || !/\.zip$/i.test(file.name) || file.size < 1 || file.size > 20 * 1024**2) throw new Error('กรุณาเลือก Shapefile ZIP ขนาดไม่เกิน 20 MiB');
           prepare({ title: form.title, path: form.path, body: file,
-            query: { expected_revision: dataset.revision, crs: values.crs, encoding: values.encoding } });
+            query: { expected_revision: dataset.revision, crs: values.crs, encoding: values.encoding, source_label: values.source_label.trim() } });
           return;
         } else if (form.type === 'title') body = { title: values.title.trim(), expected_revision: dataset.revision };
         else if (form.type === 'edition') body = { manifest: parseManifest(values.manifest, dataset),
@@ -188,14 +188,18 @@ function FormDialog({ form, prepare, close, provinces }) {
         <p>Local/Test เท่านั้น ผลตรวจผ่านยังไม่ใช่ผลวิเคราะห์หรือการเปิดใช้งาน ไม่มีการ Publish หรือเปลี่ยน Cache</p>
         <Field label="ไฟล์ GeoTIFF" name="file" type="file" accept=".tif,.tiff,image/tiff" required />
         <Field label="CRS GeoTIFF"><select name="crs"><option value="EPSG:32647">EPSG:32647</option><option value="EPSG:32648">EPSG:32648</option><option value="EPSG:4326">EPSG:4326</option></select></Field>
+        <Field label="แหล่งที่มาของข้อมูล" name="source_label" required maxLength={255} />
+        <Field label="วันที่ข้อมูลดาวเทียม" name="acquisition_date" type="date" required min={`${dataset.data_year}-01-01`} max={`${dataset.data_year}-12-31`} />
         <Field label="Scientific Profile"><select name="profile">{dataset.purpose === 'ndvi'
-          ? <option value="ndvi_ready">NDVI สำเร็จรูป / unitless</option>
-          : <><option value="lst_celsius_ready">LST สำเร็จรูป / Celsius</option><option value="lst_kelvin_ready">LST สำเร็จรูป / Kelvin → รายงาน Celsius</option></>}</select></Field>
-        <p>รองรับแบนด์เดียว Float32/64, Scale 1, Offset 0 และ NoData ที่ระบุชัดเจน ต้องมี Tag GIS_PROFILE ตรงกับ Profile ที่เลือก พร้อมชื่อแบนด์ NDVI/LST และหน่วยในไฟล์ ไม่รองรับ Raw DN หรือไฟล์ที่ขาด Calibration</p>
+          ? <><option value="ndvi_bands">คำนวณ NDVI จากแบนด์ B4 และ B8</option><option value="ndvi_ready">NDVI สำเร็จรูป / unitless</option></>
+          : <><option value="lst_st_b10">คำนวณ LST จากแบนด์ ST_B10 (Landsat C2 L2)</option><option value="lst_celsius_ready">LST สำเร็จรูป / Celsius</option><option value="lst_kelvin_ready">LST สำเร็จรูป / Kelvin → รายงาน Celsius</option></>}</select></Field>
+        <p>แบบคำนวณจากแบนด์: ต้องมีชื่อแบนด์ B4, B8 หรือ ST_B10 ในไฟล์และระบุ NoData ระบบคำนวณเฉพาะพิกเซลในขอบเขตจังหวัดของชุดข้อมูล ผลนี้ใช้ดูอย่างเดียว ยังไม่เปิดใช้เป็นข้อมูลของ Dashboard</p>
+        <p>แบบสำเร็จรูป: รองรับแบนด์เดียว Float32/64, Scale 1, Offset 0 และ NoData ที่ระบุชัดเจน ต้องมี Tag GIS_PROFILE ตรงกับ Profile ที่เลือก พร้อมชื่อแบนด์ NDVI/LST และหน่วยในไฟล์</p>
       </>}
       {form.type === 'upload' && <>
         <p>อัปโหลดเป็นฉบับใหม่ของ {dataset.province} ปี {dataset.data_year} (ค.ศ.) ไฟล์ต้นฉบับแก้ไขหรือเขียนทับไม่ได้ ไม่เปิดใช้อัตโนมัติ</p>
         <Field label="ไฟล์ LDD Shapefile ZIP" name="file" type="file" accept=".zip,application/zip" required />
+        <Field label="แหล่งที่มาของข้อมูล" name="source_label" required maxLength={255} />
         <Field label="CRS ที่คาดว่าใช้ในไฟล์"><select name="crs"><option value="EPSG:32647">UTM 47N / WGS84 (EPSG:32647)</option><option value="EPSG:32648">UTM 48N / WGS84 (EPSG:32648)</option><option value="EPSG:4326">WGS84 (EPSG:4326)</option></select></Field>
         <Field label="Encoding ภาษาไทย"><select name="encoding"><option value="auto">อ่านจาก .cpg (ต้องมี)</option><option value="utf-8">UTF-8</option><option value="cp874">Windows-874</option><option value="tis-620">TIS-620</option></select></Field>
         <p>ต้องมี .shp .shx .dbf .prj และ Attributes LUL1_CODE, LU_CODE, Shape_Area ปีข้อมูลอ้างอิงจาก Dataset ไม่ได้เดาจากชื่อไฟล์</p>
@@ -212,6 +216,29 @@ function FormDialog({ form, prepare, close, provinces }) {
   </Modal>;
 }
 
+function LddAuditDetails({ audit }) {
+  if (!audit || typeof audit !== 'object') return null;
+  const outcomes = audit.feature_outcomes || {};
+  const boundary = audit.boundary || {};
+  const mapping = audit.field_mapping || {};
+  const roles = { main_code: 'รหัสหลัก', lu_code: 'รหัสการใช้ที่ดิน', declared_area: 'พื้นที่ในไฟล์' };
+  const unknown = Array.isArray(audit.unknown_samples) ? audit.unknown_samples.slice(0, 10) : [];
+  const repairs = Array.isArray(audit.repairs) ? audit.repairs.slice(0, 20) : [];
+  return <div className="gis-report-audit">
+    <p>แปลงที่ผ่าน {Number(outcomes.accepted) || 0} · ผ่านพร้อมข้อสังเกต {Number(outcomes.accepted_with_warnings) || 0} · ต้องตรวจสอบ {Number(outcomes.review_required) || 0} · ไม่ผ่าน {Number(outcomes.rejected) || 0}</p>
+    {audit.outcome === 'review_required' && <p role="note">ฉบับนี้ต้องตรวจสอบก่อนใช้ ระบบยังไม่มีขั้นอนุมัติ จึงยังนำเข้าหรือเปิดใช้ไม่ได้ ให้แก้ไฟล์แล้วอัปโหลดใหม่</p>}
+    <details><summary>รายละเอียดการตรวจ</summary>
+      <p>นโยบาย: {String(audit.policy_version || '—').slice(0, 40)} · Field Profile: {String(audit.field_profile || 'ยังไม่จับคู่').slice(0, 40)} · หน่วยพื้นที่ในไฟล์: {audit.declared_area_units === 'm2' ? 'ตารางเมตร' : 'ยืนยันไม่ได้'}</p>
+      {Object.keys(roles).filter(key => typeof mapping[key] === 'string').map(key => <p key={key}>{roles[key]}: {mapping[key].slice(0, 40)}</p>)}
+      <p>เกินเขตจังหวัด: เล็กน้อย {Number(boundary.minor) || 0} · ต้องตรวจสอบ {Number(boundary.review) || 0} · ไม่รับ {Number(boundary.fatal) || 0} แปลง · พื้นที่นอกเขต {Number(boundary.outside_area_m2) || 0} ตร.ม. (เส้นเขตเป็นค่าประมาณ)</p>
+      {unknown.length > 0 && <><h5>รหัสที่ไม่รู้จัก (แสดงไม่เกิน 10 รายการ)</h5>
+        <ul>{unknown.map((u, i) => <li key={i}>{String(u.value ?? '').slice(0, 40)} · รหัสหลัก {String(u.main ?? '').slice(0, 40)} · {String(u.reason ?? '').slice(0, 60)} · {Number(u.count) || 0} แปลง · {Number(u.area_m2) || 0} ตร.ม.</li>)}</ul></>}
+      {repairs.length > 0 && <><h5>แปลงที่ซ่อมรูปทรง (ทั้งหมด {Number(audit.repairs_total) || repairs.length} แปลง แสดงไม่เกิน 20)</h5>
+        <ul>{repairs.map((r, i) => <li key={i}>แปลงที่ {Number(r.feature) || 0} · {String(r.reason ?? '').slice(0, 40)} · {Number(r.area_before_m2) || 0} → {Number(r.area_after_m2) || 0} ตร.ม. · {String(r.type_before ?? '').slice(0, 40)} → {String(r.type_after ?? '').slice(0, 40)}</li>)}</ul></>}
+    </details>
+  </div>;
+}
+
 function NativeReport({ report }) {
   if (!report) return null;
   if (report.mode === 'offline_synthetic') return <ProcessingReport report={report} />;
@@ -223,6 +250,7 @@ function NativeReport({ report }) {
     MISSING_COMPONENT_DBF: 'ขาดไฟล์ .dbf', MISSING_COMPONENT_SHP: 'ขาดไฟล์ .shp', MISSING_COMPONENT_SHX: 'ขาดไฟล์ .shx', MISSING_COMPONENT_PRJ: 'ขาดไฟล์ .prj',
     CRS_MISMATCH: 'CRS ในไฟล์ไม่ตรงกับที่เลือก', OUTSIDE_PROVINCE: 'รูปพื้นที่อยู่นอกจังหวัดที่เลือก', ENCODING_INVALID: 'อ่านตัวอักษรตาม Encoding ไม่ได้',
     ENCODING_UNSPECIFIED: 'ไม่พบ Encoding กรุณาระบุหรือเพิ่มไฟล์ .cpg', GEOMETRY_INVALID: 'รูปพื้นที่ไม่สมบูรณ์',
+    SHAPEFILE_DATASET_COUNT: 'ไม่พบชั้นการใช้ที่ดิน (LU_*.shp) เพียงชั้นเดียวใน ZIP', UNSUPPORTED_ZIP_MEMBER: 'ZIP มีไฟล์ประเภทที่ไม่อนุญาต (โปรแกรม สคริปต์ ไฟล์ VRT หรือ ZIP ซ้อน)',
     SOURCE_HASH_MISMATCH: 'SHA256 ของไฟล์ไม่ตรงกับต้นฉบับ', LDD_SHA256_MISMATCH: 'SHA256 ของไฟล์ไม่ตรงกับต้นฉบับ',
     NATIVE_MEMORY_LIMIT: 'ไฟล์นี้ใช้หน่วยความจำเกินขีดจำกัดการประมวลผล ยังไม่ได้รับการยืนยันว่าข้อมูล GIS ผิด',
     NATIVE_TIMEOUT: 'ประมวลผลนานเกินเวลาที่กำหนด ยังไม่ได้รับการยืนยันว่าข้อมูล GIS ผิด',
@@ -240,7 +268,10 @@ function NativeReport({ report }) {
     BOUNDARY_OUTSIDE_MINOR: 'แปลงเกินเขตจังหวัดเล็กน้อยภายในเกณฑ์ (เส้นเขตเป็นค่าประมาณ)',
     AREA_DECLARED_MINOR_DIFF: 'พื้นที่ที่บันทึกต่างจากที่คำนวณเล็กน้อย ใช้พื้นที่จากรูปแปลง',
     DECLARED_AREA_UNITS_UNVERIFIED: 'ยืนยันหน่วยของพื้นที่ที่บันทึกไม่ได้ จึงไม่นำมาเทียบ',
-    NUMERIC_MAIN_CODE_NORMALISED: 'แปลงรหัสหลักแบบตัวเลขตาม Legend ที่อนุมัติ' };
+    NUMERIC_MAIN_CODE_NORMALISED: 'แปลงรหัสหลักแบบตัวเลขตาม Legend ที่อนุมัติ',
+    COMPOSITE_PLUS_SEPARATOR: 'รหัสผสมที่คั่นด้วย + อ่านเป็นรหัสผสมแบบ / เพราะทุกส่วนเป็นรหัสทางการของหมวดเดียวกัน',
+    CPG_ENCODING_ALIAS: 'ไฟล์ .cpg ระบุ encoding เป็น "ANSI 874" จึงอ่านเป็น cp874 และถอดรหัสข้อความได้ครบทุกแถว',
+    CRS_VERTICAL_IGNORED: 'ไฟล์ .prj มีระบบความสูง (VERTCS) ต่อท้าย ตรวจเฉพาะระบบพิกัดแนวราบซึ่งตรงกับที่ระบุ' };
   const reviewCodes = ['UNKNOWN_CODE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED',
     'AREA_DECLARED_MISMATCH_REVIEW_REQUIRED', 'GEOMETRY_REPAIR_LIMIT_REVIEW_REQUIRED'];
   const errorCodes = (Array.isArray(report.errors) ? report.errors : []).map(e => String(e?.code || ''));
@@ -252,6 +283,7 @@ function NativeReport({ report }) {
   return <div className="gis-report"><h4>รายงานการตรวจ</h4>
     <p>ผล: {report.valid === true ? 'ผ่าน' : report.valid === false ? 'ไม่ผ่าน' : 'ยังไม่ระบุ'} · {report.upload_id ? `ไฟล์อัปโหลด: ${String(report.upload_id).slice(0, 36)}` : `Fixture: ${String(report.fixture_id || '—').slice(0, 60)}`}</p>
     {outcome && <p>จำแนกผล: {outcome}</p>}
+    <LddAuditDetails audit={report.audit} />
     {report.error_code && <p>รหัสผลตรวจ: {errors[report.error_code] || String(report.error_code).slice(0, 60)}</p>}
     <ul>{(Array.isArray(report.checks) ? report.checks : []).slice(0, 12).filter(x => typeof x === 'string').map(x => <li key={x}>{x.slice(0, 60)}</li>)}</ul>
     {(Array.isArray(report.errors) ? report.errors : []).slice(0, 20).map((e, i) => <p key={i}>ปัญหา: {errors[e.code] || String(e.code || '').slice(0, 60)} ({Number(e.count) || 0})</p>)}
@@ -269,8 +301,9 @@ function GeoTiffReport({ report }) {
     GEOTIFF_SCIENTIFIC_RANGE: 'ค่าพิกเซลไม่อยู่ในช่วงของ Profile', GEOTIFF_UNITS_MISMATCH: 'หน่วยในไฟล์ไม่ตรงกับ Profile',
     GEOTIFF_PROFILE_MISMATCH: 'Tag GIS_PROFILE ไม่ตรงกับ Profile ที่เลือก', GEOTIFF_NO_VALID_PIXELS: 'ไม่มีพิกเซลที่ใช้ตรวจได้',
     GEOTIFF_READ_ERROR: 'ไฟล์ TIFF เสียหายหรืออ่านค่าพิกเซลไม่ได้', GEOTIFF_TIFF_SIGNATURE: 'ส่วนหัวไม่ใช่ TIFF ที่รองรับ',
-    GEOTIFF_BANDS_MISMATCH: 'ต้องเป็นแบนด์เดียวและมีชื่อ NDVI หรือ LST ตรงกับประเภทที่เลือก',
-    GEOTIFF_DTYPE_UNSUPPORTED: 'รองรับ Float32/64 เท่านั้น ไม่รับ Raw DN ที่ไม่มี Calibration',
+    GEOTIFF_BANDS_MISMATCH: 'จำนวนหรือชื่อแบนด์ในไฟล์ไม่ตรงกับ Profile ที่เลือก',
+    GEOTIFF_DTYPE_UNSUPPORTED: 'ชนิดข้อมูลของแบนด์ไม่ตรงกับ Profile ที่เลือก',
+    GEOTIFF_OUTSIDE_PROVINCE: 'ไฟล์ไม่ครอบคลุมพื้นที่ของจังหวัดที่เลือก จึงไม่คำนวณ', GEOTIFF_PROVINCE_UNKNOWN: 'ไม่พบขอบเขตของจังหวัดนี้',
     GEOTIFF_RESOLUTION_INVALID: 'ขนาดพิกเซลหรือทิศทาง Raster ไม่อยู่ในขอบเขตที่รองรับ',
     GEOTIFF_DIMENSIONS_LIMIT: 'จำนวนพิกเซลหรือความกว้าง/สูงเกินขีดจำกัด Local',
     GEOTIFF_BOUNDS_INVALID: 'พิกัด Raster อยู่นอกขอบเขตของ CRS',
@@ -287,7 +320,9 @@ function GeoTiffReport({ report }) {
     <p>Bands: {(m.bands || []).join(', ')} · Resolution: {(m.resolution || []).join(' × ')} · Data Type: {m.dtype || '—'}</p>
     <p>NoData: {Number.isFinite(m.nodata) ? m.nodata : 'ยังไม่ระบุ'} · Units: {m.units || '—'} · Output Units: {m.output_units || '—'}</p>
     <p>Scale: {(m.scales || []).join(', ')} · Offset: {(m.offsets || []).join(', ')}</p>
-    {['width','height','band_count','valid_pixels','nodata_pixels','nonfinite_pixels','mean','min','max'].map(k => <p key={k}>{k}: {Number.isFinite(report.statistics?.[k]) ? report.statistics[k] : 'ไม่มีข้อมูล'}</p>)}
+    {report.coverage && <p>พื้นที่ที่คำนวณ: {report.province} (ขอบเขตโดยประมาณ) · ครอบคลุมจังหวัด {(report.coverage.fraction_of_province * 100).toFixed(1)}% · ใช้พิกเซลของไฟล์ {(report.coverage.fraction_of_file * 100).toFixed(1)}%</p>}
+    {(report.warnings || []).some(w => w.code === 'GEOTIFF_PARTIAL_PROVINCE_COVERAGE') && <p role="note">ไฟล์ครอบคลุมจังหวัดเพียงบางส่วน ค่านี้จึงแทนเฉพาะส่วนที่ครอบคลุม</p>}
+    {['width','height','band_count','valid_pixels','nodata_pixels','nonfinite_pixels','outside_area_pixels','mean','min','max'].filter(k => k !== 'outside_area_pixels' || report.coverage).map(k => <p key={k}>{k}: {Number.isFinite(report.statistics?.[k]) ? report.statistics[k] : 'ไม่มีข้อมูล'}</p>)}
     <details><summary>ต้นฉบับและผลตรวจ</summary><p>SHA256: {report.artifact_sha256}</p><p>File ID: {report.upload_id}</p>
       <p>{(report.checks || []).join(', ')}</p><p>ผ่านการตรวจไฟล์เท่านั้น ยังไม่ได้ยืนยันความถูกต้องของข้อมูลดาวเทียมหรือขอบเขตจังหวัด</p></details>
   </div>;
@@ -390,7 +425,7 @@ function DatasetDetail({ id, version, access, form, prepare, pending, onLoad, on
         <details className="gis-technical"><summary>ข้อมูลทางเทคนิคของฉบับ</summary><p>Edition ID: {e.id}</p><p>Revision: {e.input_revision} · Metadata V{e.manifest?.schema_version}</p><p>Fixture: {e.manifest?.fixture_id || '—'}</p></details>
         {e.manifest?.schema_version === 3 && <p>Offline Synthetic Candidate — ใช้ส่วนประมวลผล NDVI/LST เพื่อดูรายงาน ไม่ใช่ผล GEE จริง</p>}
         {e.manifest?.schema_version === 4 && <p>GeoTIFF Local/Test — ผลตรวจผ่านไม่ได้เปิดใช้งานหรือแทนที่ Cache</p>}
-        {e.upload && <details><summary>ข้อมูลไฟล์ต้นฉบับ</summary><p>File ID: {e.upload.upload_id}</p><p>SHA256: {e.upload.sha256}</p><p>{e.upload.byte_size} bytes · {e.upload.crs} · Encoding {e.upload.encoding} · อัปโหลด {e.upload.created_at}</p></details>}
+        {e.upload && <details><summary>ข้อมูลไฟล์ต้นฉบับ</summary><p>File ID: {e.upload.upload_id}</p><p>SHA256: {e.upload.sha256}</p><p>{e.upload.byte_size} bytes · {e.upload.crs} · Encoding {e.upload.encoding} · อัปโหลด {e.upload.created_at}</p>{e.upload.source_label && <p>แหล่งที่มา: {e.upload.source_label}</p>}{e.upload.acquisition_date && <p>วันที่ข้อมูล: {e.upload.acquisition_date} (ตามที่ผู้ส่งระบุ ระบบไม่ได้ตรวจสอบ)</p>}</details>}
         {e.manifest?.schema_version === 1 && !e.upload && <p>ฉบับ V1 แสดงเพื่อความเข้ากันได้ Worker Native ปัจจุบันรองรับเฉพาะ V2 จึงยังไม่เปิดส่งตรวจ V1 จากหน้านี้</p>}
         <div className="gis-actions">
           <button onClick={() => onJobs({ id: e.id, label: `ฉบับข้อมูล ${index + 1} ในหน้านี้` })}>งานและรายงานฉบับนี้</button>
@@ -449,7 +484,7 @@ function DashboardProcessingReport({ report }) {
     NATIVE_TIMEOUT: 'ประมวลผลเกินเวลาที่อนุญาต', WORKER_SHUTDOWN: 'Worker หยุดทำงานระหว่างประมวลผล' };
   const unit = m.metric === 'lst' ? ' °C' : '';
   return <div className="gis-report"><h4>ผลประมวลผล Google Earth Engine</h4>
-    <p>{report.valid ? `บันทึกจุดข้อมูลลงอนุกรมเวลาของ Dashboard แล้ว (${report.cache?.table || m.cache_table})` : 'ยังไม่มีผลสำเร็จ'}</p>
+    <p>{report.valid ? `${o.from_cache ? 'มีจุดข้อมูลนี้ในอนุกรมเวลาของ Dashboard อยู่แล้ว ไม่ได้บันทึกใหม่' : 'บันทึกจุดข้อมูลลงอนุกรมเวลาของ Dashboard แล้ว'} (${report.cache?.table || m.cache_table})` : 'ยังไม่มีผลสำเร็จ'}</p>
     {report.error_code && <p>{errors[report.error_code] || String(report.error_code).slice(0, 60)}</p>}
     <p>{String(m.metric || '').toUpperCase()} · {m.province} {m.district || 'ระดับจังหวัด'} · {m.month ? `เดือน ${m.month}/${m.data_year}` : `รายปี ${m.data_year}`}</p>
     {['mean', 'min', 'max'].map(key => <p key={key}>{key}: {Number.isFinite(report.statistics?.[key]) ? `${report.statistics[key]}${unit}` : 'ไม่มีข้อมูล'}</p>)}
@@ -579,7 +614,9 @@ function Workspace({ access, pendingCommand, setPendingCommand }) {
       if (mounted.current) {
         if (command.path === '/datasets' && uuid.test(result?.id || '')) { selectDataset(result); setView('datasets'); }
         if (command.path.endsWith('/validation-jobs')) { setJob(null); setView('jobs'); }
-        setCommand(null); setUncertain(false); setShowConfirmation(false); setNotice('Backend ยืนยันบันทึกคำสั่งแล้ว กรุณาดูสถานะล่าสุดในรายการ'); refresh();
+        setCommand(null); setUncertain(false); setShowConfirmation(false); setNotice(command.path.endsWith('/validation-jobs') && result?.state === 'failed'
+          ? 'ฉบับนี้เคยตรวจแล้วและไม่สำเร็จ ระบบไม่ได้สร้างงานใหม่ เปิดงานเดิมเพื่อดูผล และกด "ขอลองใหม่" ถ้าหน้างานมีปุ่มนี้'
+          : 'Backend ยืนยันบันทึกคำสั่งแล้ว กรุณาดูสถานะล่าสุดในรายการ'); refresh();
       }
     } catch (err) {
       if (mounted.current) {

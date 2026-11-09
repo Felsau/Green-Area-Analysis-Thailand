@@ -7,24 +7,62 @@ Updated 6 November 2026. Scope: findings 3 and 4 of the 3 November 2026 external
 | Category | Report | Meaning |
 | --- | --- | --- |
 | Accepted | `valid=true`, no minor warning | — |
-| Accepted with Warnings | `valid=true` plus minor warnings | repaired geometry, slightly outside the boundary, declared area slightly different, numeric main code normalised, declared-area units not verifiable |
+| Accepted with Warnings | `valid=true` plus minor warnings | repaired geometry, slightly outside the boundary, declared area slightly different, numeric main code normalised, declared-area units not verifiable, a `+` composite read as `/`, a `.cpg` named "ANSI 874", a `.prj` with a trailing vertical system |
 | Review Required | `valid=false`; every error is in the REVIEW set | unknown or unmapped codes, a small part outside the tolerance, outside share too high, declared area differs by more than 1 %, too many repairs |
 | Rejected | `valid=false` with any other error | archive, CRS or encoding errors, missing or ambiguous fields, null/empty/non-polygon geometry, unrepairable geometry, a repair that changes the type or the area beyond the limit, clearly outside the province |
 
 Exceptions from GDAL/OGR/GEOS/PROJ are reported as `SHAPEFILE_READ_ERROR`; any other unexpected exception is `NATIVE_PROCESS_FAILED`, so a code fault is never shown as a file defect. Every parcel is counted. The local inventory also counts parcels per category (`feature_outcomes`). Nothing is dropped, clipped or reduced to its largest part.
 
-## Fields: `ldd-lu-text-v1`
+## Province packages
 
-The profile maps roles to field names: `LUL1_CODE` → main_code, `LU_CODE` → lu_code, `Shape_Area` → declared_area (m² only in EPSG:32647/32648).
+An LDD province package carries more than the land-use layer: administrative boundary layers (district, province, subdistrict), a code table, metadata and documents. Bangkok 2566 has 35 members and four shapefiles. The validator reads one layer only.
+
+- The land-use layer is the only `.shp` in the ZIP or, when there are several, the only one named `LU_*` (any case). Zero or several candidates fail with `SHAPEFILE_DATASET_COUNT`; nothing is guessed.
+- Only that layer's `.shp .shx .dbf .prj .cpg` are decompressed. They are re-packed under fixed names (`layer.shp`, ...) and only that archive is given to GDAL, so the other members, the folder names and their encodings never reach it.
+- Every member still counts against the same limits: at most 64 members, 20 MiB per member, 80 MiB expanded, a compression ratio of 100, safe paths, no links, no encryption. The limits themselves are unchanged.
+- Programs, scripts, libraries, GDAL virtual datasets (`.vrt`) and nested archives are refused (`UNSUPPORTED_ZIP_MEMBER`; the upload API answers `GIS_LDD_ZIP_UNSAFE`, or `GIS_LDD_ZIP_NESTED` for an archive inside the ZIP). Other members are not judged by type, because they are never read.
+- The frozen pre-v2 validator keeps its old rule (every member must be a shapefile component). A package that only this rule accepts is therefore a v2-only dataset (`PREPARE_METHOD_V2_REQUIRED`, as for any v2-only dataset).
+- The stored original is the package itself, byte for byte. No report key, check or migration changed.
+- On the 26 real central-region packages the rule accepts 6. The others are blocked by the size limits, and the cause is the land-use layer itself (its `.dbf` is up to 148 MiB), not the other members (at most 1.2 MiB each). One package is a ZIP inside a ZIP.
+
+## Fields: three profiles
+
+A profile maps roles to field names. It matches when all its role fields are present and none of its `absent` fields is. The `absent` lists keep the profiles apart on every real layout, so nothing is chosen by preference.
+
+| Profile | main_code | lu_code | declared_area (m² in EPSG:32647/32648) | Must be absent | Real layouts (DBF headers read 2026-11-07) |
+|---|---|---|---|---|---|
+| `ldd-lu-text-v1` | `LUL1_CODE` | `LU_CODE` | `Shape_Area` | — | 2566 Bangkok and Sing Buri; every 2567 layer except Chiang Mai; 2564 northern layers except Phetchabun |
+| `ldd-lu-area-sqm-v1` | `LUL1_CODE` | `LU_CODE` | `AREA_SQM` | `Shape_Area` | 2568 Kanchanaburi, Saraburi, Trat, Samut Songkhram, Phetchaburi, Nakhon Nayok, Ayutthaya, Prachin Buri, Suphan Buri; 2567 Chiang Mai |
+| `ldd-lu-id-l1-area-sqm-v1` | `LU_ID_L1` | `LU_CODE` | `AREA_SQM` | `Shape_Area`, `LUL1_CODE` | 2568 Pathum Thani, Ang Thong, Ratchaburi, Chanthaburi, Sa Kaeo, Prachuap Khiri Khan |
 
 - Names are matched case-insensitively.
-- Names that are duplicates after case-folding are rejected (`FIELD_NAME_AMBIGUOUS`). So are files that match two profiles (`FIELD_MAPPING_AMBIGUOUS`). Files that match no profile fail with `ATTRIBUTES_MISSING`; a field such as `AREA` is never taken to mean `Shape_Area`.
-- The profile ID and the actual field names are recorded in two places: in the validation report as the warning `FIELD_PROFILE_LDD_LU_TEXT_V1`, and in full in the preparation v2 metadata and the inventory output.
-- More profiles (for example for the six 2025 provinces) can be added only from a real file's recorded schema. Run `ldd_inventory.py` on the file, add a new profile with that provenance, and have it reviewed. None is added yet, because those files are not in the repository.
+- Names that are duplicates after case-folding are rejected (`FIELD_NAME_AMBIGUOUS`). So are files that match two profiles (`FIELD_MAPPING_AMBIGUOUS`). Files that match no profile fail with `ATTRIBUTES_MISSING`; a field such as `AREA` or `RAI` is never taken to mean a declared area in m² (Phetchabun 2564 has only `RAI` and is refused).
+- The 2567 layers carry both `Shape_Area` and `AREA_SQM`. Without the `absent` rule they would match two profiles, and Nonthaburi and Samut Prakan, which pass today, would fail. A test runs every real layout (`tests/test_ldd_policy.py`, `REAL_LAYOUTS`).
+- The profile ID and the actual field names are recorded in two places: in the validation report as the warning `FIELD_PROFILE_<ID>` (for example `FIELD_PROFILE_LDD_LU_TEXT_V1`), and in full in the audit, the preparation v2 metadata and the inventory output.
+- A new profile is added only from a real file's recorded schema, with that provenance (package SHA256) in `ldd_policy.FIELD_PROFILES`, and it is reviewed.
 
-## Codes: `ldd-code-legend-v1`
+### `ldd-lu-text-v1`
+Bangkok 2566 layout (repository legend source). The original profile; unchanged.
 
-- Text LU codes, including composites, are looked up in the hash-pinned legend (Bangkok 2566, 96 codes).
+### `ldd-lu-area-sqm-v1`
+2568 layout without `Shape_Area`. `AREA_SQM` holds whole square metres and is compared with the geometry area under the same tolerance as `Shape_Area` (rounding is at most 0.5 m²). Provenance: `LU_SKM_2568` and `LU_AYU_2568` (package SHA256 in the profile).
+
+### `ldd-lu-id-l1-area-sqm-v1`
+2568 layout without `LUL1_CODE`. The main class comes from `LU_ID_L1`, the producer's numeric level-1 class (1-5 = U A F W M), read with the existing numeric main-code rule, so a float such as `2.0` adds `NUMERIC_MAIN_CODE_NORMALISED`. The code still has to agree with it: a disagreement is `LU_CODE_MAIN_CONFLICT` and a value outside 1-5 is `MAIN_CODE_UNRECOGNISED`, both counted as unknown and sent to review.
+- Measured on the real DBFs (30 layers whose DBF is at most 90 MiB): in the 6 layers without `LUL1_CODE`, `LU_ID_L1` agrees with the letter of `LU_CODE` on every row in Pathum Thani, Ang Thong, Chanthaburi, Ratchaburi and Prachuap Khiri Khan, and differs on 6 rows in Sa Kaeo. In the 24 layers that have both, `LUL1_CODE` agrees with `LU_CODE` on every row while `LU_ID_L1` holds stray values (0, 112, 521, 522) in 17 of them (up to 313 rows). That is why `LU_ID_L1` is used only when `LUL1_CODE` is missing.
+- Provenance: `LU_PTE_2568` and `LU_ATG_2568` (package SHA256 in the profile).
+
+## Source metadata: `.cpg` and `.prj` variants
+
+Policy-v2 validation tolerates two variants written by the producer's software. The frozen pre-v2 validator refuses both, as before.
+
+- **`.cpg` "ANSI 874"** (Pathum Thani, Ratchaburi, Sa Kaeo, Prachuap Khiri Khan, Trat 2568): a closed alias list (`ldd_policy.CPG_ALIASES`, case and repeated spaces ignored) reads it as `cp874`, the Windows Thai code page. Every text field is still decoded strictly (`ENCODING_INVALID` otherwise), an encoding the officer chose must still match (`ENCODING_MISMATCH`), and any other unknown name is still `ENCODING_UNSUPPORTED`. The report adds the minor warning `CPG_ENCODING_ALIAS`. A layer without a `.cpg` (Kanchanaburi, Phetchaburi, Samut Songkhram, Saraburi 2568; DBF language ID 0x57 "ANSI") still needs the officer to choose the encoding; nothing is guessed.
+- **`.prj` with a trailing `VERTCS`** (Ang Thong, Suphan Buri 2568): ESRI writes a 3D layer as `PROJCS[...],VERTCS[...]` without a `COMPD_CS` wrapper, so the CRS has no EPSG code. Only that exact shape (two top-level parts, `PROJCS` or `GEOGCS` then one `VERTCS`) is split; the horizontal part must then be EPSG 32647, 32648 or 4326 and equal the declared CRS, as for any file. The vertical part does not change X/Y. The report adds the minor warning `CRS_VERTICAL_IGNORED`. Any other form is still `CRS_INVALID` or `CRS_MISMATCH`.
+
+## Codes: `ldd-code-legend-v2`
+
+- Text LU codes are looked up in the hash-pinned second legend (`ldd_codes_v2.json`, 256 entries, rebuilt with `dev/gis_local/run_build_ldd_legend.ps1`): the 232 codes of the producer's official table (sheet 1 of `LUCODE.xls`, identical in the 24 packages that carry it; the class comes from the letter, U A F W M = 1 to 5) plus everything in the first legend (Bangkok 2566, 96 codes). The first legend stays frozen for the pre-v2 validator and v1 preparation. `A800` and the 23 composites of the first legend are not in the official table and are carried over, so nothing accepted before is refused now; for a code in both, the first legend's text is kept.
+- A composite is up to eight codes joined by `/`. It is accepted when it is listed whole (such as `U201/A401`) or when every part is a legend code of the parcel's own class. A value joined by `+` is read the same way only when every part is of the parcel's own class, and then it adds the warning `COMPOSITE_PLUS_SEPARATOR` (731 parcels in the central-region files). A `+` that joins classes, such as `M201+A101`, stays unknown and needs review. The two separators are never mixed in one value.
 - The main code may be a letter, an integer, an integral float or a numeric string. The letter↔number pairing is derived from the legend and must agree with the old fixed pairing. Values other than plain integers add the warning `NUMERIC_MAIN_CODE_NORMALISED`.
 - Numeric LU codes need an approved crosswalk with recorded provenance. `CROSSWALKS` is empty, so these codes are counted as unknown (reason `NUMERIC_CODE_NO_APPROVED_CROSSWALK`) and need review. They are never mapped to U/A/F/W/M by assumption.
 - For unknown codes the count, the area and up to 10 samples (value, main code, reason) are kept.
@@ -37,7 +75,16 @@ The profile maps roles to field names: `LUL1_CODE` → main_code, `LU_CODE` → 
 
 ## Geometry and boundary
 
-Boundary tolerance (`boundary-tolerance-m-v1`), measured in metres in the parcel's UTM zone against the approximate GADM boundary:
+Boundary source (`province_boundaries_ldd.json`, `ldd-boundaries-v1`, rebuilt with `dev/gis_local/run_build_ldd_boundaries.ps1`):
+
+- For the 24 provinces whose LDD package carries a province layer (`*_Pro.shp` or `prov_*.shp`) the validator reads that layer (`source: ldd-package`). It is snapped to 1e-8° (about 1 mm) and records the SHA256 of the package and of the layer it came from. The other 53 provinces keep the approximate GADM outline, byte for byte (`source: gadm-approx`). Ang Thong and Lop Buri have packages but no province layer, so they stay on GADM.
+- Packages were matched to provinces by overlap with the GADM outline (IoU 0.93 to 0.99), never by file name. Each layer was checked against its own land-use layer (1,059,852 parcels in all, including provinces too large for the validator's current limits): none lies more than 225 m outside it, 1.8 % touch the line within that tolerance, and the area outside is at most 0.007 % of a province (Sing Buri), usually under 0.00002 %.
+- The report names the asset it read (`boundary_sha256`) and says which kind of outline it was: the warning `BOUNDARY_FROM_DATA_PRODUCER` or `BOUNDARY_APPROXIMATE`. The producer's outline is not an independent source; it is the line the producer clipped its own parcels to.
+- The frozen pre-v2 validator, the v1 preparation and GeoTIFF clipping still read the GADM asset (`province_boundaries.json`, hash unchanged).
+- The two outlines differ by 2 to 7 % of a province's area, so a parcel the GADM outline accepted can lie outside the producer's one, and the other way round. Comparing validators on one file therefore means comparing like with like, on a province that still has the GADM outline.
+- The database accepts the new asset's hash from migration 051 on; migration 034 admitted only the GADM hash.
+
+Boundary tolerance (`boundary-tolerance-m-v1`), measured in metres in the parcel's UTM zone against the outline above:
 
 - Inside the boundary: no issue.
 - Within boundary + 225 m: minor warning. The old 0.002° buffer is about 216–221 m in Bangkok, so 225 m keeps everything the old buffer accepted, and is not widened beyond it.
@@ -64,13 +111,24 @@ These thresholds were set before any real file was available, and no sample was 
 
 ## Real data
 
-Status: NOT VERIFIED. The repository contains no real LDD file (Bangkok 2566/2023, or the six provinces for 2568/2025). The figures "158 out-of-bound parcels" and "6 geometry/area issues" have not been confirmed. Check them with:
+Status: VERIFIED for Bangkok 2566/2023 (7 Nov 2026, see below). NOT VERIFIED for the six provinces for 2568/2025. The repository still contains no real LDD file. Check a file with:
 
 ```powershell
 .\dev\gis_local\run_ldd_inventory.ps1 -Zip 'D:\ldd\bkk_2566.zip' -Province 'Bangkok Metropolis' -Year 2023
 ```
 
 The inventory is read-only. It reports the filename, SHA256, CRS, schema and field types, feature count, profile, the four outcome counts, reasons, samples and repairs.
+
+Bangkok 2566 (`Landuse_Bangkok_2566_.zip`, 5,515,403 bytes, SHA256 starting `c3ef854c`; kept outside the repository):
+
+- The figures "158 out-of-bound parcels" and "6 geometry/area issues" are reproduced exactly by the frozen pre-v2 validator (approximate GADM boundary plus a 0.002 degree buffer): `OUTSIDE_PROVINCE` 158, `GEOMETRY_INVALID` 6, `AREA_MISMATCH` 6. The six are self-intersecting rings; policy v2 repairs them with no change in area.
+- With the GADM outline alone, policy v2 rejected the land-use layer: 133 parcels `OUTSIDE_PROVINCE`, 20 for review, 362 minor warnings (25.5 km² outside, 1.63 % of the total, the farthest point 1,694 m beyond the line). That outline has 161 vertices for Bangkok and differs from the producer's by 3.3 % of its area.
+- With `ldd-boundaries-v1` (the producer's outline, 1,841 vertices) the package, exactly as distributed, is accepted with warnings: 10,489 parcels accepted and 584 accepted with warnings (579 within the 225 m tolerance, 26 m² outside in total, plus the 6 repaired rings), none rejected or for review.
+- The 579 are slivers where a parcel edge lies on the province line: the line is converted to degrees and back, so a strict `covers` test fails by a floating-point margin. They do not shrink with a finer grid (7, 8 and 9 decimals gave 570, 579 and 592), so real files will normally end as Accepted with Warnings. Removing them needs an epsilon in the policy, which is not set.
+- As distributed (35 members: four shapefiles, `.docx`, `.xls`, `.xlsx`, `.xml`, `.sbn`, `.sbx`, nested folders) the ZIP was rejected with `UNSUPPORTED_ZIP_MEMBER` before the package rule; see Province packages.
+- Under the worker's child limits (`RLIMIT_CPU` 20 s, `RLIMIT_AS` 512 MiB) the 11,073 parcels took 2.7 s of CPU and 288 MiB of address space at most.
+
+The 26 central-region packages (2566-2568) were surveyed too; 25 land-use layers could be read (one package is a ZIP inside a ZIP). Of their 1,074,856 parcels, 1,038,164 carry a single code: 176 of the 177 codes used are in the official table and the 177th, `A800` (15 parcels), is in the first legend. Every part of every composite is an official code: 35,961 parcels join with `/` and 731 with `+`. With the second legend and the package rule, Sing Buri 2566 (1,116 parcels had unknown codes before), Nonthaburi 2567 (62) and Samut Prakan 2567 (11) are accepted with warnings as distributed. The others are blocked by the 2568 field layout (`Area_Sqm`, and for six provinces no `LUL1_CODE`), the `.cpg` and `.prj` variants and the size limits.
 
 ## Proposed forward migration 049 (not written, not applied, needs approval)
 

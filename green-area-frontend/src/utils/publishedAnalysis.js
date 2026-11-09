@@ -17,7 +17,7 @@ export function publishedSnapshotMatches(bundle,expected={}){
     ||Object.entries(expected).some(([k,v])=>id[k]!==v))return false;
   const summary=bundle.summary,meta=summary?.metadata;
   if(!sameLineage(meta,id)||meta.complete_province_inventory!==false)return false;
-  if(id.product==='landuse')return id.month===0&&id.method_version==='ldd-source-area-v1'
+  if(id.product==='landuse')return id.month===0&&['ldd-source-area-v1','ldd-geometry-area-v2'].includes(id.method_version)
     &&bundle.coverage_mode==='validated_source_footprint'&&bundle.geometry?.type==='FeatureCollection'
     &&Array.isArray(bundle.geometry.features)&&sameLineage(bundle.geometry.metadata,id)
     &&count(summary.feature_count)&&summary.feature_count>0&&summary.feature_count===bundle.geometry.features.length

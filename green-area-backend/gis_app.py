@@ -7,7 +7,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from gis_runtime import GISRuntime
+from gis_runtime import GISRuntime, read_proof_scope
 from gis_service import GisService
 from routers.gis import router
 from gis_ldd_storage import UPLOAD_PATH
@@ -58,6 +58,22 @@ class GISBodyLimit:
         return await self.app(scope, replay, send)
 
 
+class GISReadProofScope:
+    """One target proof per GET/HEAD /gis request (docs/gis/w5-ldd-publication-design.md 6.4).
+
+    Each read request gets its own scope, removed when the request ends. Other methods (all mutations),
+    other paths, workers and CLI code still prove the target before every Auth/SQL call.
+    """
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http" or not (scope["path"] == "/gis" or scope["path"].startswith("/gis/")):
+            return await self.app(scope, receive, send)
+        with read_proof_scope(scope.get("method") in ("GET", "HEAD")):
+            return await self.app(scope, receive, send)
+
+
 def mount_gis(app: FastAPI, runtime: GISRuntime | None = None, *, ldd_store=None, geotiff_store=None, prepared_store=None, gee_mock_catalog=None):
     app.state.gis_service = GisService(runtime or GISRuntime())
     app.state.gis_ldd_store = ldd_store
@@ -74,6 +90,7 @@ def mount_gis(app: FastAPI, runtime: GISRuntime | None = None, *, ldd_store=None
     app.include_router(geotiff_publication_router)
     app.include_router(gee_mock_router)
     app.add_middleware(GISBodyLimit)
+    app.add_middleware(GISReadProofScope)
 
 
 def create_app(runtime: GISRuntime | None = None, *, rate_limit="60/minute", ldd_store=None, geotiff_store=None, prepared_store=None, gee_mock_catalog=None) -> FastAPI:

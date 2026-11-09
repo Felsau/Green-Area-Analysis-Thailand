@@ -31,7 +31,8 @@ from gis_worker import ldd_prepare_provider as prep  # noqa: E402
 from gis_worker import ldd_provider as ldd  # noqa: E402
 
 ID = '11111111-1111-4111-8111-111111111111'
-PROVINCE = 'Bangkok Metropolis'
+PROVINCE = 'Bangkok Metropolis'   # the validator reads the producer's own outline for it (source ldd-package)
+GADM_PROVINCE = 'Chiang Mai'      # no package supplied an outline: assess() reads the same GADM geometry as the pre-v2 validator
 TEXT = {'LUL1_CODE': 'str:4', 'LU_CODE': 'str:20', 'Shape_Area': 'float'}
 
 
@@ -50,27 +51,37 @@ def make_zip(features, *, schema=None, crs=32647):
         return output.getvalue()
 
 
-def request(raw, crs='EPSG:32647'):
+def request(raw, crs='EPSG:32647', province=PROVINCE):
     return {'upload_id': ID, 'manifest': {'schema_version': 1, 'provider': 'real',
         'sha256': hashlib.sha256(raw).hexdigest(), 'byte_size': len(raw), 'provenance': 'local-ldd-upload-v1',
         'crs': crs, 'data_kind': 'polygon', 'attributes': list(ldd.REQUIRED_FIELDS)},
-        'input_hash': 'a' * 64, 'input_revision': 1, 'attempt_number': 1, 'province': PROVINCE,
+        'input_hash': 'a' * 64, 'input_revision': 1, 'attempt_number': 1, 'province': province,
         'data_year': 2025, 'encoding': 'auto'}
 
 
-def run(tmp_path, raw, crs='EPSG:32647', collect=False):
-    req = request(raw, crs)
+def run(tmp_path, raw, crs='EPSG:32647', collect=False, province=PROVINCE):
+    req = request(raw, crs, province)
     (tmp_path / (req['manifest']['sha256'] + '.zip')).write_bytes(raw)
     return ldd.assess(req, storage_root=tmp_path, collect=collect)
 
 
-@pytest.fixture(scope='module')
-def bkk():
-    boundaries = ldd._asset('province_boundaries.json', ldd.BOUNDARY_SHA256)
-    feature = next(f for f in boundaries['features'] if f['properties']['name'] == PROVINCE)
+def outline_of(name, asset=(None, None)):
+    """The outline in UTM 47N, from the asset assess() reads unless another (file, hash) is given."""
+    boundaries = ldd._asset(asset[0] or ldd.BOUNDARY_LDD_ASSET, asset[1] or ldd.BOUNDARY_LDD_SHA256)
+    feature = next(f for f in boundaries['features'] if f['properties']['name'] == name)
     exact = shape(transform_geom('EPSG:4326', 'EPSG:32647', feature['geometry']))
     return {'exact': exact, 'minor': exact.buffer(policy.BOUNDARY_MINOR_M),
             'review': exact.buffer(policy.BOUNDARY_REVIEW_M), 'inside': exact.representative_point()}
+
+
+@pytest.fixture(scope='module')
+def bkk():
+    return outline_of(PROVINCE)
+
+
+@pytest.fixture(scope='module')
+def gadm():
+    return outline_of(GADM_PROVINCE)
 
 
 def square(cx, cy, half=50.0):
@@ -150,6 +161,46 @@ def test_missing_mapping_field_is_rejected_not_guessed(tmp_path, bkk, schema):
     assert details['outcome'] == 'rejected'
 
 
+# The real layouts, reduced to the fields that decide the profile (types as in the real DBF headers).
+L2567 = {'LUL1_CODE': 'str:4', 'LU_CODE': 'str:20', 'LU_ID_L1': 'float', 'Shape_Area': 'float', 'AREA_SQM': 'int'}
+L2568 = {'LUL1_CODE': 'str:4', 'LU_CODE': 'str:20', 'LU_ID_L1': 'float', 'AREA_SQM': 'int', 'AREA_RAI': 'int'}
+L2568_NO_LUL1 = {'LU_CODE': 'str:14', 'LU_ID_L1': 'float', 'AREA_SQM': 'int', 'AREA_RAI': 'int'}
+
+
+@pytest.mark.parametrize('schema,profile,fields', [
+    (L2567, 'ldd-lu-text-v1', {'main_code': 'LUL1_CODE', 'lu_code': 'LU_CODE', 'declared_area': 'Shape_Area'}),
+    (L2568, 'ldd-lu-area-sqm-v1', {'main_code': 'LUL1_CODE', 'lu_code': 'LU_CODE', 'declared_area': 'AREA_SQM'}),
+    (L2568_NO_LUL1, 'ldd-lu-id-l1-area-sqm-v1', {'main_code': 'LU_ID_L1', 'lu_code': 'LU_CODE', 'declared_area': 'AREA_SQM'}),
+])
+def test_2567_and_2568_layouts_each_resolve_to_one_profile(tmp_path, bkk, schema, profile, fields):
+    values = {'LUL1_CODE': 'A', 'LU_CODE': 'A101', 'LU_ID_L1': 2.0, 'Shape_Area': 10000.0, 'AREA_SQM': 10000, 'AREA_RAI': 6}
+    raw = make_zip([(mapping(inside_square(bkk)), {k: values[k] for k in schema})], schema=schema)
+    report, details = run(tmp_path, raw)
+    assert report['valid'] and details['field_profile'] == profile and details['field_mapping'] == fields
+    assert report['statistics']['area_by_main_m2']['A'] == pytest.approx(10000) and details['declared_area_units'] == 'm2'
+    warnings = codes(report['warnings'])
+    assert 'FIELD_PROFILE_' + profile.upper().replace('-', '_') in warnings
+    assert 'AREA_DECLARED_MINOR_DIFF' not in warnings                       # AREA_SQM is whole square metres
+    # LU_ID_L1 is a float in the real files, so reading it as the main class is shown, not hidden.
+    assert ('NUMERIC_MAIN_CODE_NORMALISED' in warnings) is (profile == 'ldd-lu-id-l1-area-sqm-v1')
+
+
+@pytest.mark.parametrize('level_1,reason', [(1.0, 'LU_CODE_MAIN_CONFLICT'), (521.0, 'MAIN_CODE_UNRECOGNISED'),
+                                            (0.0, 'MAIN_CODE_UNRECOGNISED')])
+def test_a_level_1_id_that_disagrees_with_the_code_is_reviewed_not_trusted(tmp_path, bkk, level_1, reason):
+    props = {'LU_CODE': 'A101', 'LU_ID_L1': level_1, 'AREA_SQM': 10000, 'AREA_RAI': 6}
+    report, details = run(tmp_path, make_zip([(mapping(inside_square(bkk)), props)], schema=L2568_NO_LUL1))
+    assert not report['valid'] and report['error_code'] == 'UNKNOWN_CODE_REVIEW_REQUIRED' and details['outcome'] == 'review_required'
+    (sample,) = details['unknown_samples'].values()
+    assert sample['reason'] == reason and sample['count'] == 1
+
+
+def test_area_sqm_is_compared_with_the_geometry_like_shape_area(tmp_path, bkk):
+    props = {'LU_CODE': 'A101', 'LU_ID_L1': 2.0, 'AREA_SQM': 11000, 'AREA_RAI': 7}
+    report, details = run(tmp_path, make_zip([(mapping(inside_square(bkk)), props)], schema=L2568_NO_LUL1))
+    assert report['error_code'] == 'AREA_DECLARED_MISMATCH_REVIEW_REQUIRED' and details['outcome'] == 'review_required'
+
+
 @pytest.mark.parametrize('declared,valid,warning,error', [
     (10000.0, True, None, None),
     (10050.0, True, 'AREA_DECLARED_MINOR_DIFF', None),
@@ -212,6 +263,37 @@ def test_text_integer_float_numeric_codes(tmp_path, bkk, schema, main, code, exp
         assert stats['composite_feature_count'] == 1  # composite never lost, known or not
 
 
+def test_codes_of_the_official_table_outside_the_first_legend_are_accepted(tmp_path, bkk):
+    first = ldd._asset('ldd_codes.json', ldd.LEGEND_SHA256)['codes']
+    assert 'A205' not in first and 'A302' not in first
+    raw = make_zip([parcel(inside_square(bkk), 'A', 'A205'), parcel(inside_square(bkk, 300), 'A', 'A205/A302')])
+    report, details = run(tmp_path, raw)
+    assert report['valid'] and details['outcome'] == 'accepted' and report['statistics']['unknown_code_count'] == 0
+    assert report['statistics']['area_by_main_m2']['A'] == pytest.approx(20000) and report['statistics']['composite_feature_count'] == 1
+    # The frozen pre-v2 validator keeps the first legend, so it still refuses what only the second one knows.
+    legacy = ldd.validate_legacy_v1(request(raw), storage_root=tmp_path)
+    assert legacy['valid'] is False and legacy['error_code'] == 'UNKNOWN_CODE_REVIEW_REQUIRED'
+
+
+def test_a_plus_between_codes_of_one_class_is_accepted_with_a_visible_warning(tmp_path, bkk):
+    raw = make_zip([parcel(inside_square(bkk), 'A', 'A101+A202'), parcel(inside_square(bkk, 300), 'A', 'A101/A202')])
+    report, details = run(tmp_path, raw)
+    assert report['valid'] and report['statistics']['unknown_code_count'] == 0
+    assert report['statistics']['composite_feature_count'] == 2 and report['statistics']['area_by_main_m2']['A'] == pytest.approx(20000)
+    assert codes(report['warnings'])['COMPOSITE_PLUS_SEPARATOR'] == 1          # only the "+" parcel, the "/" one is plain
+    assert details['outcome'] == 'accepted_with_warnings'
+    assert details['feature_outcomes'] == {'accepted': 1, 'accepted_with_warnings': 1, 'review_required': 0, 'rejected': 0}
+
+
+def test_a_plus_joining_classes_is_reviewed_not_guessed(tmp_path, bkk):
+    raw = make_zip([parcel(inside_square(bkk), 'A', 'M201+A101'), parcel(inside_square(bkk, 300))])
+    report, details = run(tmp_path, raw)
+    assert not report['valid'] and report['error_code'] == 'UNKNOWN_CODE_REVIEW_REQUIRED' and details['outcome'] == 'review_required'
+    (sample,) = details['unknown_samples'].values()
+    assert sample['value'] == 'M201+A101' and sample['reason'] == 'LU_CODE_MAIN_CONFLICT' and sample['count'] == 1
+    assert 'COMPOSITE_PLUS_SEPARATOR' not in codes(report['warnings'])
+
+
 # ------------------------------------------------------------ boundary
 
 def test_slightly_outside_is_a_warning_far_outside_is_rejected(tmp_path, bkk):
@@ -248,14 +330,76 @@ def test_dataset_outside_share_needs_both_share_and_absolute_area(tmp_path, bkk,
     assert details['outcome'] == 'review_required'
 
 
-def test_parcel_accepted_by_the_old_0002_degree_buffer_is_not_newly_rejected(tmp_path, bkk):
-    cases = edge_cases(bkk)
-    big = inside_square(bkk, half=400)
+def test_parcel_accepted_by_the_old_0002_degree_buffer_is_not_newly_rejected(tmp_path, gadm):
+    # Same GADM outline for both validators, so the comparison is like with like. For a province whose
+    # outline comes from a package the two differ by design (see the official-outline tests below).
+    cases = edge_cases(gadm)
+    big = inside_square(gadm, half=400)
     raw = make_zip([parcel(big), parcel(cases['legacy_edge'])])
-    report, details = run(tmp_path, raw)
+    report, details = run(tmp_path, raw, province=GADM_PROVINCE)
     assert report['valid'] and 'BOUNDARY_OUTSIDE_MINOR' in codes(report['warnings'])
-    req = request(raw)
+    req = request(raw, province=GADM_PROVINCE)
     assert ldd.validate_legacy_v1(req, storage_root=tmp_path)['valid'] is True
+
+
+# ------------------------------------------------------------ boundary asset: producer outline vs GADM
+
+def square_in(region, half=50.0):
+    """A 100 m square lying inside `region`, at the representative point of its largest piece."""
+    pieces = sorted(getattr(region, 'geoms', [region]), key=lambda g: -g.area)
+    p = pieces[0].representative_point()
+    g = square(p.x, p.y, half)
+    assert region.covers(g)
+    return g
+
+
+def test_the_producers_outline_decides_for_a_province_a_package_supplied(tmp_path, bkk):
+    gadm_bkk = outline_of(PROVINCE, ('province_boundaries.json', ldd.BOUNDARY_SHA256))
+    only_official = square_in(bkk['exact'].difference(gadm_bkk['minor']))   # inside the producer's outline, > 225 m outside GADM
+    raw = make_zip([parcel(only_official)])
+    report, details = run(tmp_path, raw)
+    assert report['valid'] and details['outcome'] == 'accepted'
+    assert details['boundary_source'] == 'ldd-package' and report['boundary_sha256'] == ldd.BOUNDARY_LDD_SHA256
+    warned = codes(report['warnings'])
+    assert 'BOUNDARY_FROM_DATA_PRODUCER' in warned and 'BOUNDARY_APPROXIMATE' not in warned
+    # The frozen pre-v2 validator reads the GADM outline and puts the same parcel outside the province.
+    legacy = ldd.validate_legacy_v1(request(raw), storage_root=tmp_path)
+    assert legacy['valid'] is False and {'code': 'OUTSIDE_PROVINCE', 'count': 1} in legacy['errors']
+    assert legacy['boundary_sha256'] == ldd.BOUNDARY_SHA256
+    assert ldd.report_failure(request(raw), 'NATIVE_MEMORY_LIMIT')['boundary_sha256'] == ldd.BOUNDARY_SHA256
+
+
+def test_the_producers_outline_is_stricter_where_gadm_was_generous(tmp_path, bkk):
+    gadm_bkk = outline_of(PROVINCE, ('province_boundaries.json', ldd.BOUNDARY_SHA256))
+    only_gadm = square_in(gadm_bkk['exact'].difference(bkk['minor']))        # inside GADM, > 225 m outside the producer's outline
+    raw = make_zip([parcel(only_gadm)])
+    report, details = run(tmp_path, raw)
+    assert not report['valid'] and report['error_code'] == 'OUTSIDE_PROVINCE' and details['outcome'] == 'rejected'
+    assert ldd.validate_legacy_v1(request(raw), storage_root=tmp_path)['valid'] is True
+
+
+def test_a_province_without_a_package_outline_keeps_the_gadm_label(tmp_path, gadm):
+    report, details = run(tmp_path, make_zip([parcel(inside_square(gadm))]), province=GADM_PROVINCE)
+    assert report['valid'] and details['boundary_source'] == 'gadm-approx'
+    assert report['boundary_sha256'] == ldd.BOUNDARY_LDD_SHA256
+    warned = codes(report['warnings'])
+    assert 'BOUNDARY_APPROXIMATE' in warned and 'BOUNDARY_FROM_DATA_PRODUCER' not in warned
+
+
+def test_an_asset_feature_with_an_unknown_source_is_refused(tmp_path, bkk, monkeypatch):
+    real = ldd._asset
+
+    def tampered(name, expected):
+        data = real(name, expected)
+        if name == ldd.BOUNDARY_LDD_ASSET:
+            for feature in data['features']:
+                if feature['properties']['name'] == PROVINCE:
+                    feature['properties']['source'] = 'somewhere-else'
+        return data
+
+    monkeypatch.setattr(ldd, '_asset', tampered)
+    report, _ = run(tmp_path, make_zip([parcel(inside_square(bkk))]))
+    assert not report['valid'] and report['error_code'] == 'VALIDATION_ASSET_INVALID'
 
 
 # ------------------------------------------------------------ repair
@@ -352,6 +496,8 @@ def test_v2_preparation_uses_the_same_derived_geometry_and_area_as_validation(tm
     assert summary['area_by_code_m2'] == pytest.approx({'A101': 10000, 'U101': 10000})
     meta = summary['metadata']
     assert meta['method_version'] == 'ldd-geometry-area-v2' and meta['area_method'] == 'geometry-area-utm-v1'
+    assert meta['boundary_sha256'] == ldd.BOUNDARY_LDD_SHA256 == report['boundary_sha256']   # the asset validation read
+    assert meta['legend_sha256'] == ldd.LEGEND_V2_SHA256                                       # and the legend it read
     assert meta['field_mapping']['declared_area'] == 'Shape_Area' and meta['repaired_feature_count'] == 1
     assert meta['validation_outcome'] == 'accepted_with_warnings'
     first, second = geometry['features']
@@ -362,6 +508,45 @@ def test_v2_preparation_uses_the_same_derived_geometry_and_area_as_validation(tm
     verified = prep.verify(packet, source_root=source, staging_root=staging)
     assert candidate['valid'] and verified['artifacts'] == candidate['artifacts']
     assert candidate['method_version'] == prep.METHOD_V2
+
+
+def _coordinates(value):
+    if isinstance(value, (list, tuple)) and value and isinstance(value[0], (int, float)):
+        yield from value
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            yield from _coordinates(item)
+
+
+def test_v2_display_coordinates_are_rounded_and_areas_still_come_from_validation(tmp_path, bkk):
+    raw = make_zip([parcel(inside_square(bkk)), parcel(inside_square(bkk, 400), 'A', 'A101')])
+    source, staging = stage(tmp_path, raw)
+    packet = prepare_request(raw, prep.METHOD_V2)
+    outputs = prep.build(packet, source_root=source)
+    summary, geometry = json.loads(outputs['ldd_summary']), json.loads(outputs['ldd_geometry'])
+    display = summary['metadata']['display_coordinates']
+    assert display == {'crs': 'EPSG:4326', 'decimals': 6, 'full_precision_feature_count': 0, 'full_precision_features': []}
+    assert geometry['metadata'] == summary['metadata']
+    for feature in geometry['features']:
+        assert all(round(x, 6) == x for x in _coordinates(feature['geometry']['coordinates']))
+        assert shape(feature['geometry']).is_valid and feature['properties']['area_m2'] == pytest.approx(10000)
+    assert summary['total_area_m2'] == pytest.approx(20000)        # measured on the unrounded geometry
+
+
+def test_a_parcel_that_rounding_would_break_keeps_full_precision(tmp_path, bkk, monkeypatch):
+    # 0 decimals collapse a 100 m square to a point: both parcels must keep their full coordinates.
+    monkeypatch.setattr(prep, 'DISPLAY_DECIMALS', 0)
+    raw = make_zip([parcel(inside_square(bkk)), parcel(inside_square(bkk, 400), 'A', 'A101')])
+    source, staging = stage(tmp_path, raw)
+    packet = prepare_request(raw, prep.METHOD_V2)
+    candidate = prep.prepare(packet, source_root=source, staging_root=staging)
+    verified = prep.verify(packet, source_root=source, staging_root=staging)
+    assert candidate['valid'] and verified['artifacts'] == candidate['artifacts']   # the rule is deterministic
+    geometry = json.loads(prep.build(packet, source_root=source)['ldd_geometry'])
+    display = geometry['metadata']['display_coordinates']
+    assert display['decimals'] == 0 and display['full_precision_feature_count'] == 2
+    assert sorted(display['full_precision_features']) == [0, 1]
+    assert all(shape(f['geometry']).is_valid and shape(f['geometry']).area > 0 for f in geometry['features'])
 
 
 # The hashes below are frozen against one exact runtime, not just one library
@@ -397,15 +582,18 @@ def test_v1_artifacts_of_existing_fixtures_are_byte_identical():
             assert hashlib.sha256(outputs['ldd_summary']).hexdigest() == summary_sha
 
 
-def test_v1_rebuild_keeps_the_frozen_legacy_rules_for_existing_editions(tmp_path, bkk):
-    # EPSG:4326 with Shape_Area in m2 and a parcel 214 m outside were v1-preparable before.
-    cases = edge_cases(bkk)
-    for name, raw, crs in (('wgs', wgs84_zip(bkk, 10000.0), 'EPSG:4326'),
-                           ('edge', make_zip([parcel(inside_square(bkk, half=400)), parcel(cases['legacy_edge'])]), 'EPSG:32647')):
+def test_v1_rebuild_keeps_the_frozen_legacy_rules_for_existing_editions(tmp_path, bkk, gadm):
+    # EPSG:4326 with Shape_Area in m2 and a parcel 214 m outside were v1-preparable before. The legacy
+    # rules read the GADM outline, so the edge case is cut against a province that still has it.
+    cases = edge_cases(gadm)
+    for name, raw, crs, province in (
+            ('wgs', wgs84_zip(bkk, 10000.0), 'EPSG:4326', PROVINCE),
+            ('edge', make_zip([parcel(inside_square(gadm, half=400)), parcel(cases['legacy_edge'])]), 'EPSG:32647', GADM_PROVINCE)):
         folder = tmp_path / name; folder.mkdir()
         source, staging = stage(folder, raw)
         packet = prepare_request(raw, prep.METHOD)
         packet['validation']['manifest']['crs'] = crs
+        packet['validation']['province'] = province
         candidate = prep.prepare(packet, source_root=source, staging_root=staging)
         verified = prep.verify(packet, source_root=source, staging_root=staging)
         assert candidate['valid'] and verified['artifacts'] == candidate['artifacts']

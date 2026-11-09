@@ -20,6 +20,7 @@ Nothing here guesses:
 from __future__ import annotations
 
 import math
+from pathlib import PurePosixPath
 import re
 from types import MappingProxyType
 
@@ -27,13 +28,17 @@ POLICY_VERSION = 'ldd-policy-v2'
 AREA_METHOD = 'geometry-area-utm-v1'
 GEOMETRY_POLICY = 'ldd-geometry-repair-v1'
 BOUNDARY_POLICY = 'boundary-tolerance-m-v1'
-CODE_POLICY = 'ldd-code-legend-v1'
+CODE_POLICY = 'ldd-code-legend-v2'
 
 # ---------------------------------------------------------------- field profiles
-# role -> exact source field name (matched case-insensitively, duplicates rejected)
+# role -> exact source field name (matched case-insensitively, duplicates rejected).
+# 'absent' lists fields that must NOT be in the file, so every real layout matches one profile at most:
+# 2567 layers carry both Shape_Area and AREA_SQM, 2568 layers carry AREA_SQM only, and six 2568 layers
+# have no LUL1_CODE. A file that matches two profiles is still refused, never resolved by preference.
 FIELD_PROFILES = MappingProxyType({
     'ldd-lu-text-v1': MappingProxyType({
         'roles': MappingProxyType({'main_code': 'LUL1_CODE', 'lu_code': 'LU_CODE', 'declared_area': 'Shape_Area'}),
+        'absent': (),
         # Units of declared_area per source CRS; absent CRS -> units not verified.
         'declared_area_units': MappingProxyType({'EPSG:32647': 'm2', 'EPSG:32648': 'm2'}),
         'lu_code_kind': 'text',
@@ -41,11 +46,60 @@ FIELD_PROFILES = MappingProxyType({
                       '949639e52513f431255578c26125906122d689f8171a72d379086159f136e12a)',
         'review_reference': 'docs/gis/ldd-field-policy.md#ldd-lu-text-v1',
     }),
+    'ldd-lu-area-sqm-v1': MappingProxyType({
+        'roles': MappingProxyType({'main_code': 'LUL1_CODE', 'lu_code': 'LU_CODE', 'declared_area': 'AREA_SQM'}),
+        'absent': ('Shape_Area',),
+        'declared_area_units': MappingProxyType({'EPSG:32647': 'm2', 'EPSG:32648': 'm2'}),
+        'lu_code_kind': 'text',
+        'provenance': 'LDD land use 2568 layout without Shape_Area, recorded from 9 real central-region layers '
+                      '(e.g. LU_SKM_2568 package sha256 b39404fa63880223d12b4b0dbcea11e120adb02bcfb5c5bbd7ee0c0d0508738f, '
+                      'LU_AYU_2568 package sha256 20c349531fea8e73ec8ecf87174abe72f84f71bba790ba435c80e128604fd8b5)',
+        'review_reference': 'docs/gis/ldd-field-policy.md#ldd-lu-area-sqm-v1',
+    }),
+    'ldd-lu-id-l1-area-sqm-v1': MappingProxyType({
+        # LU_ID_L1 is the numeric level-1 class (1-5 = U A F W M). Used only where LUL1_CODE is missing:
+        # in layers that have both, LUL1_CODE always agreed with LU_CODE while LU_ID_L1 held stray values.
+        'roles': MappingProxyType({'main_code': 'LU_ID_L1', 'lu_code': 'LU_CODE', 'declared_area': 'AREA_SQM'}),
+        'absent': ('Shape_Area', 'LUL1_CODE'),
+        'declared_area_units': MappingProxyType({'EPSG:32647': 'm2', 'EPSG:32648': 'm2'}),
+        'lu_code_kind': 'text',
+        'provenance': 'LDD land use 2568 layout without LUL1_CODE, recorded from 6 real central-region layers '
+                      '(e.g. LU_PTE_2568 package sha256 aef20813c2bf222213d1dd05398adfa90e28b83e31685104c6f90648721bd15c, '
+                      'LU_ATG_2568 package sha256 a12f00e7a028bf50e09e81e1458cc9ae8ec3129b48d4edab01330b4c92ddf1e2)',
+        'review_reference': 'docs/gis/ldd-field-policy.md#ldd-lu-id-l1-area-sqm-v1',
+    }),
 })
 LEGACY_PROFILE = 'ldd-lu-text-v1'
 
 # Numeric LU code -> legend text code. Each entry needs a verified source legend.
 CROSSWALKS = MappingProxyType({})
+
+# ---------------------------------------------------------------- package policy
+# A province package from LDD carries more than the land-use layer: administrative
+# boundary layers, spreadsheets, metadata and documents (Bangkok 2566 has 35 members
+# and four shapefiles). The validator reads ONE layer. Every other member still counts
+# against the size, ratio and path limits but is never decompressed, parsed or handed
+# to GDAL; the layer is re-packed under fixed names before GDAL sees it.
+LAND_USE_PREFIX = 'lu_'                                   # LDD names the layer LU_<province>_<year>.shp
+LAYER_SUFFIXES = ('.shp', '.shx', '.dbf', '.prj', '.cpg')  # the only members that are ever read
+# Nested archives must be unpacked first; the rest are programs, scripts, libraries and GDAL virtual
+# datasets, which have no place in a data package even though they would not be read.
+ARCHIVE_SUFFIXES = frozenset({'.zip', '.7z', '.rar', '.gz', '.tgz', '.tar', '.bz2', '.xz'})
+BLOCKED_SUFFIXES = ARCHIVE_SUFFIXES | frozenset({
+    '.exe', '.dll', '.com', '.bat', '.cmd', '.ps1', '.vbs', '.js', '.jar', '.msi', '.scr', '.lnk',
+    '.sh', '.py', '.pyc', '.so', '.dylib', '.vrt'})
+
+
+def select_land_use_layer(names):
+    """Return the one land-use ``.shp`` among the file members of a package, else None.
+
+    Single-shapefile ZIPs keep today's behaviour (any name). With several shapefiles exactly
+    one must be named ``LU_*`` (any case); zero or several is None. Nothing is guessed.
+    """
+    shapes = [n for n in names if PurePosixPath(n).suffix.lower() == '.shp']
+    if len(shapes) > 1:
+        shapes = [n for n in shapes if PurePosixPath(n).name.casefold().startswith(LAND_USE_PREFIX)]
+    return shapes[0] if len(shapes) == 1 else None
 
 # ---------------------------------------------------------------- geometry policy
 # The boundary asset is approximate (GADM level 1, 161 vertices for Bangkok). The
@@ -74,7 +128,8 @@ REVIEW = frozenset({'UNKNOWN_CODE_REVIEW_REQUIRED', 'BOUNDARY_OUTSIDE_REVIEW_REQ
                     'BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED', 'AREA_DECLARED_MISMATCH_REVIEW_REQUIRED',
                     'GEOMETRY_REPAIR_LIMIT_REVIEW_REQUIRED'})
 MINOR = frozenset({'GEOMETRY_REPAIRED', 'BOUNDARY_OUTSIDE_MINOR', 'AREA_DECLARED_MINOR_DIFF',
-                   'DECLARED_AREA_UNITS_UNVERIFIED', 'NUMERIC_MAIN_CODE_NORMALISED'})
+                   'DECLARED_AREA_UNITS_UNVERIFIED', 'NUMERIC_MAIN_CODE_NORMALISED', 'COMPOSITE_PLUS_SEPARATOR',
+                   'CPG_ENCODING_ALIAS', 'CRS_VERTICAL_IGNORED'})
 GEOMETRY_CODES = frozenset({'GEOMETRY_TYPE', 'GEOMETRY_EMPTY', 'GEOMETRY_INVALID', 'GEOMETRY_REPAIR_TYPE_CHANGED',
                             'GEOMETRY_REPAIR_AREA_CHANGED', 'OUTSIDE_PROVINCE', 'BOUNDARY_OUTSIDE_REVIEW_REQUIRED'})
 
@@ -106,7 +161,8 @@ def resolve_profile(field_names):
     matches = []
     for profile_id, profile in FIELD_PROFILES.items():
         roles = profile['roles']
-        if all(field.casefold() in actual for field in roles.values()):
+        if (all(field.casefold() in actual for field in roles.values())
+                and not any(field.casefold() in actual for field in profile.get('absent', ()))):
             matches.append((profile_id, {role: actual[field.casefold()] for role, field in roles.items()}))
     if not matches:
         raise PolicyError('ATTRIBUTES_MISSING')
@@ -119,8 +175,60 @@ def declared_area_units(profile_id, crs):
     return FIELD_PROFILES[profile_id]['declared_area_units'].get(crs)
 
 
+# ---------------------------------------------------------------- .cpg and .prj variants (policy-v2 only)
+# A closed list of .cpg texts that name a supported codec by another name. Five real LDD 2568 layers write
+# "ANSI 874", the Windows code page that Python calls cp874. Case and repeated spaces are ignored; any other
+# text still goes through the codec registry, and every text field is still decoded strictly.
+CPG_ALIASES = MappingProxyType({'ansi 874': 'cp874'})
+
+
+def cpg_alias(text):
+    """Return the codec a .cpg text names by alias, else None."""
+    return CPG_ALIASES.get(' '.join(text.split()).casefold()) if isinstance(text, str) else None
+
+
+def horizontal_wkt(text):
+    """Return the horizontal part of a .prj written as ``PROJCS[...],VERTCS[...]``, else None.
+
+    ESRI software writes a 3D layer that way, without a COMPD_CS wrapper (real LDD 2568 Ang Thong and
+    Suphan Buri). Only that exact shape is split: two top-level parts, a PROJCS or GEOGCS followed by one
+    VERTCS. The vertical part does not change X/Y. Any other text is left alone and checked as written.
+    """
+    if not isinstance(text, str):
+        return None
+    parts, depth, start, quoted = [], 0, 0, False
+    for i, ch in enumerate(text):
+        if ch == '"':
+            quoted = not quoted
+        elif quoted:
+            continue
+        elif ch == '[':
+            depth += 1
+        elif ch == ']':
+            depth -= 1
+            if depth < 0:
+                return None
+        elif ch == ',' and depth == 0:
+            parts.append(text[start:i])
+            start = i + 1
+    if depth or quoted:
+        return None
+    parts.append(text[start:])
+    if len(parts) != 2:
+        return None
+    head, tail = (part.strip() for part in parts)
+    if not (head.startswith(('PROJCS[', 'GEOGCS[')) and head.endswith(']')
+            and tail.startswith('VERTCS[') and tail.endswith(']')):
+        return None
+    if any(word in head.upper() for word in ('VERTCS[', 'COMPD_CS[')):
+        return None
+    return head
+
+
 # ---------------------------------------------------------------- codes
-_TEXT_CODE = re.compile(r'[UAFWM][0-9]{3}(?:/[UAFWM][0-9]{3}){0,7}')
+# A code, or up to eight codes joined by "/" or all joined by "+" (never both in one value). Real LDD files
+# join with "/" in 36,000 parcels and with "+" in 731; every part of both is an official code.
+_TEXT_CODE = re.compile(r'[UAFWM][0-9]{3}(?:/[UAFWM][0-9]{3}){0,7}|[UAFWM][0-9]{3}(?:\+[UAFWM][0-9]{3}){1,7}')
 _NUMERIC_TEXT = re.compile(r'[0-9]{1,9}(?:\.0+)?')
 
 
@@ -167,24 +275,30 @@ def classify(lu_value, main_value, legend, classes):
     """Return dict(classification, code_key, composite, reason, normalised)."""
     main, normalised = parse_main(main_value, classes)
     result = {'classification': None, 'code_key': _code_key(lu_value), 'composite': False,
-              'reason': None, 'normalised': normalised}
+              'reason': None, 'normalised': normalised, 'plus_separator': False}
     if main is None:
         result['reason'] = 'MAIN_CODE_UNRECOGNISED'
         return result
     if isinstance(lu_value, str) and _TEXT_CODE.fullmatch(lu_value.strip()):
         code = lu_value.strip()
+        plus = '+' in code
+        parts = code.split('+' if plus else '/')
         result['code_key'] = code
-        result['composite'] = '/' in code
+        result['composite'] = len(parts) > 1
         number = classes[main]
-        if code in legend:
+        if plus:
+            # "+" reads as "/" only when every part is a legend code of the parcel's own class; a value joining
+            # classes is never guessed, and it is reported (COMPOSITE_PLUS_SEPARATOR) so the reading stays visible.
+            ok = all(p in legend and legend[p][0] == number for p in parts)
+            result['plus_separator'] = ok
+        elif code in legend:
             ok = legend[code][0] == number
         else:
-            parts = code.split('/')
             ok = len(parts) > 1 and all(p in legend and legend[p][0] == number for p in parts)
         if ok:
             result['classification'] = main
         else:
-            result['reason'] = 'LU_CODE_NOT_IN_LEGEND' if not all(p in legend for p in code.split('/')) else 'LU_CODE_MAIN_CONFLICT'
+            result['reason'] = 'LU_CODE_NOT_IN_LEGEND' if not all(p in legend for p in parts) else 'LU_CODE_MAIN_CONFLICT'
         return result
     if isinstance(lu_value, str) and '/' in lu_value:
         result['composite'] = True

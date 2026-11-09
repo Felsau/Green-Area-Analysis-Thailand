@@ -24,8 +24,21 @@ from gis_worker import ldd_policy as policy
 ROOT = Path(__file__).resolve().parent
 STORAGE_ROOT = Path('/data/ldd')
 BUILD = 'ldd-local-v1'
+# GADM level 1, frozen: the pre-v2 validator, GeoTIFF province clipping and failure reports pin it, and
+# migration 034 accepted only this hash.
 BOUNDARY_SHA256 = 'ac2b28255f22861ab644bf083fa40f28dd9da1294648d4b01cfc6f9cdc156a21'
+# Policy v2 validation: the province layer shipped in the LDD package of each province that supplied
+# one (source ldd-package), the same GADM outline elsewhere (source gadm-approx). Built by
+# dev/gis_local/build_ldd_boundaries.py. Migration 051 lets the database accept this hash too.
+BOUNDARY_LDD_ASSET = 'province_boundaries_ldd.json'
+BOUNDARY_LDD_SHA256 = '1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac'
+BOUNDARY_SOURCES = ('gadm-approx', 'ldd-package')
+# The first legend (Bangkok 2566, 96 codes) is frozen: the pre-v2 validator and v1 preparation pin it.
 LEGEND_SHA256 = '34069bca1cf06474fab22f8b7211f91d4dc5d4deb37c0fec414efd05c63afbde'
+# Policy-v2 validation reads the second legend: the producer's official code table (LUCODE.xls, 232 codes) plus
+# everything in the first legend. Built by dev/gis_local/build_ldd_legend.py. No database rule pins either hash.
+LEGEND_V2_ASSET = 'ldd_codes_v2.json'
+LEGEND_V2_SHA256 = '652caf811b25e7234807ab417afb17fdc48edd9c52d8fb0e81cfa0b8dc058830'
 MAX_ZIP_BYTES = 20 * 1024**2
 MAX_EXPANDED_BYTES = 80 * 1024**2
 MAX_MEMBER_BYTES = 20 * 1024**2
@@ -37,6 +50,7 @@ REQUIRED_FIELDS = ('LUL1_CODE', 'LU_CODE', 'Shape_Area')
 CHECKS = ('source_hash_match', 'archive_safety', 'components', 'crs', 'geometry',
           'attributes', 'encoding', 'ldd_codes', 'province_bounds', 'dataset_association')
 HASH = re.compile(r'^[0-9a-f]{64}$')
+AUDIT_MAX_SAMPLES, AUDIT_MAX_REPAIRS = 10, 20
 ENCODINGS = ('auto', 'utf-8', 'cp874', 'tis-620')
 
 
@@ -114,7 +128,37 @@ def _source_bytes(request, storage_root):
         raise LddError('LDD_FILE_UNAVAILABLE') from None
 
 
-def guarded_zip(raw):
+def _layer_members(items):
+    """The land-use layer's components among the file members of a package (policy.select_land_use_layer)."""
+    layer = policy.select_land_use_layer([item.filename for item in items])
+    require(layer is not None, 'SHAPEFILE_DATASET_COUNT')
+    stem = str(PurePosixPath(layer).with_suffix('')).casefold()
+    return [item for item in items
+            if PurePosixPath(item.filename).suffix.lower() in policy.LAYER_SUFFIXES
+            and str(PurePosixPath(item.filename).with_suffix('')).casefold() == stem]
+
+
+def layer_archive(parts):
+    """The land-use layer alone as a new in-memory ZIP with fixed ASCII member names.
+
+    GDAL then never sees the rest of the package, its folder names or its member encodings.
+    """
+    output = BytesIO()
+    with zipfile.ZipFile(output, 'w', zipfile.ZIP_STORED) as archive:
+        for suffix in policy.LAYER_SUFFIXES:
+            if suffix in parts:
+                archive.writestr(zipfile.ZipInfo('layer' + suffix, date_time=(1980, 1, 1, 0, 0, 0)), parts[suffix])
+    return output.getvalue()
+
+
+def guarded_zip(raw, *, package=False):
+    """Check every member of an LDD ZIP and return the bytes of the files that will be read.
+
+    ``package=False`` is the frozen pre-v2 rule: every file member must be a shapefile component and
+    all are read. ``package=True`` accepts a province package: the path, size and ratio checks still
+    run for every member, but only the one land-use layer's components are decompressed and returned.
+    The other members (boundary layers, spreadsheets, documents) are never opened.
+    """
     require(0 < len(raw) <= MAX_ZIP_BYTES, 'ZIP_SIZE_LIMIT')
     require(raw[:4] == b'PK\x03\x04', 'ZIP_CORRUPT')
     try:
@@ -144,11 +188,16 @@ def guarded_zip(raw):
                 if item.file_size:
                     require(item.compress_size > 0 and item.file_size / item.compress_size <= 100, 'ZIP_COMPRESSION_RATIO')
                 if not item.is_dir():
-                    require(PurePosixPath(name).suffix.lower() in ('.shp', '.shx', '.dbf', '.prj', '.cpg', '.sbn', '.sbx', '.qix'), 'UNSUPPORTED_ZIP_MEMBER')
+                    suffix = PurePosixPath(name).suffix.lower()
+                    if package:
+                        require(suffix not in policy.BLOCKED_SUFFIXES, 'UNSUPPORTED_ZIP_MEMBER')
+                    else:
+                        require(suffix in ('.shp', '.shx', '.dbf', '.prj', '.cpg', '.sbn', '.sbx', '.qix'), 'UNSUPPORTED_ZIP_MEMBER')
+            readable = [item for item in members if not item.is_dir()]
+            if package:
+                readable = _layer_members(readable)
             files, actual_total = {}, 0
-            for item in members:
-                if item.is_dir():
-                    continue
+            for item in readable:
                 chunks, actual = [], 0
                 with archive.open(item) as stream:
                     while chunk := stream.read(65536):
@@ -206,7 +255,9 @@ def _record_count(shp, shx, dbf):
     return count, header_len, record_len
 
 
-def _encoding(components, requested, count, header_len, record_len):
+def _encoding(components, requested, count, header_len, record_len, *, alias=None):
+    """``alias`` (policy-v2 only) maps a .cpg text such as "ANSI 874" to a codec name; the frozen
+    pre-v2 validator passes none, so its behaviour is unchanged."""
     def normalize(value):
         try:
             result = codecs.lookup(value).name
@@ -217,9 +268,10 @@ def _encoding(components, requested, count, header_len, record_len):
     declared = None
     if '.cpg' in components:
         try:
-            declared = normalize(components['.cpg'].decode('ascii', errors='strict').strip())
+            text = components['.cpg'].decode('ascii', errors='strict').strip()
         except UnicodeError:
             raise LddError('ENCODING_INVALID') from None
+        declared = normalize((alias(text) if alias else None) or text)
     require(requested != 'auto' or declared is not None, 'ENCODING_UNSPECIFIED')
     encoding = declared if requested == 'auto' else normalize(requested)
     require(declared is None or declared == encoding, 'ENCODING_MISMATCH')
@@ -300,8 +352,30 @@ def _reason(geometry):
     return re.sub(r'[^A-Za-z ]', '', text.split('[', 1)[0]).strip()[:40] or 'Invalid'
 
 
+def audit_summary(details, repairs_total):
+    """Closed, bounded projection of ``details`` for the stored report (migration 050)."""
+    repair_keys = ('feature', 'reason', 'area_before_m2', 'area_after_m2', 'type_before', 'type_after')
+    return {'policy_version': details['policy']['policy_version'], 'outcome': details['outcome'],
+            'field_profile': details['field_profile'], 'field_mapping': details['field_mapping'],
+            'declared_area_units': details['declared_area_units'],
+            'feature_outcomes': dict(details['feature_outcomes']),
+            'boundary': {'minor': details['boundary']['minor'], 'review': details['boundary']['review'],
+                         'fatal': details['boundary']['fatal'],
+                         'outside_area_m2': round(details['boundary']['outside_area_m2'], 3)},
+            'unknown_samples': [{**entry, 'area_m2': round(entry['area_m2'], 3)}
+                                for entry in details['unknown_samples'].values()][:AUDIT_MAX_SAMPLES],
+            'repairs': [{key: repair[key] for key in repair_keys} for repair in details['repairs'][:AUDIT_MAX_REPAIRS]],
+            'repairs_total': repairs_total}
+
+
 def validate(request, *, storage_root=STORAGE_ROOT):
-    return assess(request, storage_root=storage_root)[0]
+    report, details = assess(request, storage_root=storage_root)
+    # A resource or output failure says nothing about the file, so it carries no audit.
+    if report.get('error_code') in ('NATIVE_MEMORY_LIMIT', 'NATIVE_OUTPUT_LIMIT', 'NATIVE_PROCESS_FAILED'):
+        return report
+    repairs_total = next((w['count'] for w in report['warnings'] if w['code'] == 'GEOMETRY_REPAIRED'), len(details['repairs']))
+    audited = {**report, 'audit': audit_summary(details, repairs_total)}
+    return audited if len(json.dumps(audited, allow_nan=False).encode()) <= 16384 else report
 
 
 def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
@@ -314,9 +388,11 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
     check_request(request)
     report = report_failure(request, 'VALIDATION_FAILED')
     report['errors'] = []
+    report['boundary_sha256'] = BOUNDARY_LDD_SHA256   # the asset this validation reads (failure reports name the GADM one)
     errors, warnings = {}, {}
     details = {'policy': policy.policy_summary(), 'outcome': 'rejected', 'field_profile': None,
                'field_mapping': None, 'source_fields': None, 'declared_area_units': None,
+               'boundary_source': 'gadm-approx',
                'repairs': [], 'unknown_samples': {}, 'boundary': {'minor': 0, 'review': 0, 'fatal': 0,
                'outside_area_m2': 0.0}, 'features': [] if collect else None,
                'feature_outcomes': {k: 0 for k in ('accepted', 'accepted_with_warnings', 'review_required', 'rejected')}}
@@ -335,14 +411,20 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         report['observed_sha256'] = observed
         require(observed == request['manifest']['sha256'], 'LDD_SHA256_MISMATCH')
         report['checks'].append('source_hash_match')
-        files = guarded_zip(raw)
+        files = guarded_zip(raw, package=True)
         report['checks'].append('archive_safety')
-        name, parts = _components(files)
+        _, parts = _components(files)
         count, header_len, record_len = _record_count(parts['.shp'], parts['.shx'], parts['.dbf'])
         report['checks'].append('components')
-        encoding = _encoding(parts, request['encoding'], count, header_len, record_len)
+        encoding = _encoding(parts, request['encoding'], count, header_len, record_len, alias=policy.cpg_alias)
         report['encoding'] = encoding
         report['checks'].append('encoding')
+        if '.cpg' in parts and policy.cpg_alias(parts['.cpg'].decode('ascii', errors='replace').strip()):
+            warn('CPG_ENCODING_ALIAS')   # e.g. "ANSI 874" read as cp874; every text field decoded strictly above
+        # GDAL gets the land-use layer alone, under fixed names. The package, the other members and
+        # the bytes already checked are released first, so a large layer is held only once or twice.
+        layer, prj = layer_archive(parts), parts['.prj']
+        files = parts = raw = None
         # Import native dependencies only inside the resource-limited child.
         import fiona
         from fiona.io import ZipMemoryFile
@@ -351,16 +433,28 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         from shapely.geometry import mapping, shape
         from shapely import prepare as prepare_geometry
         try:
-            crs = CRS.from_wkt(parts['.prj'].decode('utf-8-sig', errors='strict'))
+            prj_text = prj.decode('utf-8-sig', errors='strict')
+            crs = CRS.from_wkt(prj_text)
         except Exception:
             raise LddError('CRS_INVALID') from None
+        # A 3D layer written as PROJCS[...],VERTCS[...] is checked on its horizontal part only.
+        horizontal = policy.horizontal_wkt(prj_text) if crs.to_epsg() is None else None
+        if horizontal is not None:
+            try:
+                crs = CRS.from_wkt(horizontal)
+            except Exception:
+                raise LddError('CRS_INVALID') from None
         source_crs = request['manifest']['crs']
         require(crs.to_epsg() in (32647, 32648, 4326) and crs.to_string() == source_crs, 'CRS_MISMATCH')
+        if horizontal is not None:
+            warn('CRS_VERTICAL_IGNORED')
         report['checks'].append('crs')
-        boundaries = _asset('province_boundaries.json', BOUNDARY_SHA256)
+        boundaries = _asset(BOUNDARY_LDD_ASSET, BOUNDARY_LDD_SHA256)
         boundary = next((f for f in boundaries['features'] if f['properties']['name'] == request['province']), None)
         require(boundary is not None, 'PROVINCE_UNKNOWN')
-        legend = _asset('ldd_codes.json', LEGEND_SHA256)['codes']
+        details['boundary_source'] = boundary['properties'].get('source')
+        require(details['boundary_source'] in BOUNDARY_SOURCES, 'VALIDATION_ASSET_INVALID')
+        legend = _asset(LEGEND_V2_ASSET, LEGEND_V2_SHA256)['codes']
         try:
             classes = policy.main_classes(legend)
         except policy.PolicyError:
@@ -385,8 +479,8 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         coordinate_count = 0
         repaired_change = 0.0
         with fiona.Env(GDAL_PAM_ENABLED='NO', GDAL_VRT_ENABLE_PYTHON='NO', GDAL_DISABLE_READDIR_ON_OPEN='YES'):
-            with ZipMemoryFile(raw) as memory:
-                with memory.open(name, enabled_drivers=['ESRI Shapefile'], encoding=encoding) as collection:
+            with ZipMemoryFile(layer) as memory:
+                with memory.open('layer.shp', enabled_drivers=['ESRI Shapefile'], encoding=encoding) as collection:
                     schema = dict(collection.schema['properties'])
                     try:
                         profile_id, mapping_ = policy.resolve_profile(schema)
@@ -481,6 +575,8 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
                             stats['composite_feature_count'] += 1
                         if result['normalised']:
                             warn('NUMERIC_MAIN_CODE_NORMALISED'); notes.add('NUMERIC_MAIN_CODE_NORMALISED')
+                        if result['plus_separator']:
+                            warn('COMPOSITE_PLUS_SEPARATOR'); notes.add('COMPOSITE_PLUS_SEPARATOR')
                         if result['classification'] is None:
                             stats['unknown_code_count'] += 1
                             stats['unknown_area_m2'] += area
@@ -523,7 +619,9 @@ def assess(request, *, storage_root=STORAGE_ROOT, collect=False):
         error('SHAPEFILE_READ_ERROR' if native else 'NATIVE_PROCESS_FAILED')
     ordered = sorted(errors.items(), key=lambda item: item[0] in policy.REVIEW)  # fatal first, stable
     report['errors'] = [{'code': code, 'count': n} for code, n in ordered]
-    base = [{'code': 'BOUNDARY_APPROXIMATE', 'count': 1}, {'code': 'DATA_YEAR_METADATA_DECLARED', 'count': 1}]
+    # The outline is either the approximate GADM one or the data producer's own; never presented as independent.
+    outline = 'BOUNDARY_FROM_DATA_PRODUCER' if details['boundary_source'] == 'ldd-package' else 'BOUNDARY_APPROXIMATE'
+    base = [{'code': outline, 'count': 1}, {'code': 'DATA_YEAR_METADATA_DECLARED', 'count': 1}]
     markers = [{'code': 'LDD_POLICY_V2', 'count': 1}]
     if details['field_profile']:
         markers.append({'code': 'FIELD_PROFILE_' + details['field_profile'].upper().replace('-', '_'), 'count': 1})
