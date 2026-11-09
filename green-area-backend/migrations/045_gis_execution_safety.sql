@@ -3,7 +3,7 @@ DO $guard$ BEGIN
  IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
  AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=44 AND sha256='6636b8963e097225232d3f42c887e487cc1cc9d752d59a79387cda1b58f43f47')
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=44 AND sha256='53e3fc5359ea99a84f22d05714f9972a2e15d62b96bcf4b339d39ea9533b3f17')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=45) THEN RAISE EXCEPTION 'GIS_LOCAL_BASELINE_044_REQUIRED'; END IF;
 END $guard$;
 DO $role$ BEGIN

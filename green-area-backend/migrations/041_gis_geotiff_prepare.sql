@@ -6,7 +6,7 @@ DO $guard$ BEGIN
  IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
   AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=40 AND sha256='d5565a3829a9ce2535b16771a7a985db0b1f89885787c3f4bd28123d818114e0')
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=40 AND sha256='b93d65306e112763cd24019a0abf225a1e02698ba9a3f9ae2da13f33392b083e')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=41) THEN RAISE EXCEPTION 'GIS_LOCAL_BASELINE_040_REQUIRED'; END IF;
 END $guard$;
 ALTER TABLE gis.jobs DROP CONSTRAINT jobs_kind_check;

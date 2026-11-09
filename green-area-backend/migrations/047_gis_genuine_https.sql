@@ -3,7 +3,7 @@
 -- All identities/configuration/receipts are private; no publish/cache mutation.
 DO $guard$ BEGIN
  IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=46 AND sha256='228fe745b286a38a65b8245c806ef9c3ca850e09d614586c490deea781cd48b9')
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=46 AND sha256='1efa5e50247afbaf4fbf7d51a1ba3e4ee98921f8aa600de8d337c17b3bfbb4b0')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=47)
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
  AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))

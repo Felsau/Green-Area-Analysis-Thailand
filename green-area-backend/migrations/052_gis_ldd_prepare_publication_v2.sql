@@ -9,8 +9,8 @@
 -- Not included: approving Review Required results, new artifact kinds, larger artifact limits.
 -- The attested operator supplies BEGIN/runtime proof and the INSERT-only ledger entry.
 DO $guard$ BEGIN
- IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR current_setting('cluster_name')<>'green-area-gis-t0'
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=51 AND sha256='b2506ddd4f4ed5888fb0b25bfb3424e52aaee87d601a43523830db45b6347d5a')
+ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=51 AND sha256='875cd02e5f5bb40f1fd7828c84335b856f097f65e3e496fde087f60c7c32cccc')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=52)
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
  AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))

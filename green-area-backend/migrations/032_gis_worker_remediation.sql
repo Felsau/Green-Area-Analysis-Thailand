@@ -11,7 +11,7 @@ BEGIN
       AND runtime_instance=current_setting('gis.runtime_instance',true)
       AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
     OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=31
-      AND sha256='469b564488035cfc51d9e64b6fa774941ea2368881d68a91054ae2987ff98f7c')
+      AND sha256='7ff49cf8cd2658c8c1ba0c5d015faf26306e310f30a129dd962994bb6d243b86')
     OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=32) THEN
    RAISE EXCEPTION 'GIS_LOCAL_BASELINE_031_REQUIRED';
  END IF;

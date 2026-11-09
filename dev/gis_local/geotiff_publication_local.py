@@ -11,7 +11,7 @@ from uuid import uuid4
 HERE=Path(__file__).resolve().parent;REPO=HERE.parents[1]
 s=importlib.util.spec_from_file_location('a42_existing_a41',HERE/'geotiff_prepare_local.py');a41=importlib.util.module_from_spec(s);sys.modules[s.name]=a41;s.loader.exec_module(a41);m=a41.m
 MIGRATION=REPO/'green-area-backend/migrations/042_gis_geotiff_publication.sql'
-FROZEN041='882bacfd1af803be3cd08307bfca8c150b10e0c28e8b4a893e57a1dc924db6d1'
+FROZEN041='57dc2baee7cf205f76167aacfffd0c9f9db55c63588c2fde280e4482975bfd95'
 
 class GeoTiffPublicationLocal(a41.GeoTiffPrepareLocal):
     def __init__(self,root):

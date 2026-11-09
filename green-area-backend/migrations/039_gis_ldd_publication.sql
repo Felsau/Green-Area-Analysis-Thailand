@@ -8,7 +8,7 @@ DO $guard$ BEGIN
   AND runtime_instance=current_setting('gis.runtime_instance',true)
   AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
  OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=38
-  AND sha256='d830d0671c9d44a85274c52014b6ecdeef0019eca1421379f317e28fb594b995')
+  AND sha256='95709b43f9a51001987dc687f98db868ac6f702aac375696d2d51fc8aa2c421d')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=39) THEN
  RAISE EXCEPTION 'GIS_LOCAL_BASELINE_038_REQUIRED'; END IF;
 END $guard$;

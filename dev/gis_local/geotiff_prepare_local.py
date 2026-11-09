@@ -12,7 +12,7 @@ HERE=Path(__file__).resolve().parent;REPO=HERE.parents[1]
 s=importlib.util.spec_from_file_location('a4_existing_a3',HERE/'ldd_publication_local.py')
 a3=importlib.util.module_from_spec(s);sys.modules[s.name]=a3;s.loader.exec_module(a3);m=a3.m
 MIGRATION=REPO/'green-area-backend/migrations/041_gis_geotiff_prepare.sql'
-FROZEN040='dc397a2aaa0020768b71364f2116823134a745a0c66863569b250ca7417e1185'
+FROZEN040='b93d65306e112763cd24019a0abf225a1e02698ba9a3f9ae2da13f33392b083e'
 
 class GeoTiffPrepareLocal(a3.LddPublicationLocal):
     def __init__(self,root):

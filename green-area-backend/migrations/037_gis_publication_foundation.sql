@@ -12,7 +12,7 @@ BEGIN
       AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true)
       AND activation_enabled=false)
     OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=36
-      AND sha256='325e2f2293ddae556ee585fec4a7f45ace883b9931011aa2a95cfc222f28f08b')
+      AND sha256='53f8138d7f7ab89dc4e62c52140cd93de7c21288ee3a6f975adbb34a18b65d61')
     OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=37) THEN
    RAISE EXCEPTION 'GIS_LOCAL_BASELINE_036_REQUIRED';
  END IF;

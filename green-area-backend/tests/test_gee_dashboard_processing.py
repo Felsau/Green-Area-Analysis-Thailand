@@ -347,7 +347,7 @@ def test_048_extends_047_queue_with_only_the_listed_protocol_additions():
 
 def test_048_guard_grants_and_closed_gates():
     sql = M048.read_text(encoding='utf-8')
-    assert "version=47 AND sha256='41a913e80f5699e9c6cd9136054af33665ea56f35caa2eba26274f0ae1f6a28e'" in sql
+    assert "version=47 AND sha256='4d8af35d59bc90f81de4bd835a74ec6e957e7803ab6c6cdee268d67a63ff15f8'" in sql
     assert "EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=48)" in sql and 'NOT activation_enabled' in sql
     grants = re.findall(r'GRANT EXECUTE ON FUNCTION ([^;]+) TO ([a-z_]+);', sql)
     assert grants == [('public.gis_gee_dashboard_worker(text,jsonb),public.gis_gee_dashboard_readiness()', 'gis_native_worker')]
@@ -360,6 +360,6 @@ def test_048_guard_grants_and_closed_gates():
 
 
 def test_older_migrations_are_unchanged_bytes():
-    pinned = {'047_gis_genuine_https.sql': '41a913e80f5699e9c6cd9136054af33665ea56f35caa2eba26274f0ae1f6a28e'}
+    pinned = {'047_gis_genuine_https.sql': '4d8af35d59bc90f81de4bd835a74ec6e957e7803ab6c6cdee268d67a63ff15f8'}
     for name, sha in pinned.items():
         assert hashlib.sha256((MIGRATIONS / name).read_bytes()).hexdigest() == sha

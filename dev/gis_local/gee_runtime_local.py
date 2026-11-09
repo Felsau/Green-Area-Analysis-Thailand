@@ -51,7 +51,7 @@ class RuntimeLocal(p.SafetyLocal):
         for database in p.p.p.DATABASES:
             sha = self.sql('SELECT to_jsonb(sha256) FROM gis.schema_migrations WHERE version=45',
                 database, read_only=True)
-            if sha != 'fed94e4efaf6ed2d339e0bb36f44c0dcb8bc4ef34a8d6738087fe0e888f17be8':
+            if sha != 'a7ae1f4cfd99f4bd0d728b3ca290fb4a2734d05f585c3a192c9611a0b317b395':
                 raise RuntimeError('A64D2_APPLIED_045_REQUIRED')
         return value
 

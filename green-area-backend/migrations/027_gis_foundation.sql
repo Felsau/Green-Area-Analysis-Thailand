@@ -21,7 +21,16 @@ BEGIN
           -- Both sides must be true or false and never NULL: an unset setting
           -- would otherwise make the whole test NULL, and IF NULL does nothing.
           OR (COALESCE(current_setting('gis.cluster_name',true),'') ~ '^[a-z]{20}$'
-              AND COALESCE(current_setting('gis.mode',true),'')='cloud'))
+              AND COALESCE(current_setting('gis.mode',true),'')='cloud'
+              -- The sandbox's own postmaster is never a hosted project.
+              AND current_setting('cluster_name')<>'green-area-gis-t0'))
+     -- The declaration must be made by this connection. A gis.* value persisted
+     -- with ALTER DATABASE/ROLE ... SET would make every later session that
+     -- declares nothing pass as whatever it names. Custom settings never appear
+     -- in pg_settings, so the stored defaults are read from their own catalog.
+     OR EXISTS(SELECT 1 FROM pg_db_role_setting s CROSS JOIN LATERAL unnest(s.setconfig) c
+               WHERE s.setdatabase IN (0,(SELECT oid FROM pg_database WHERE datname=current_database()))
+                 AND c LIKE 'gis.%')
      OR current_setting('gis.runtime_instance',true) !~ '^[0-9a-f]{32}$'
      OR current_setting('gis.baseline_fingerprint',true) !~ '^[0-9a-f]{64}$'
      OR current_setting('gis.runtime_instance',true) IS NULL

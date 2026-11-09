@@ -7,7 +7,7 @@
 -- The attested operator supplies BEGIN/runtime proof and the INSERT-only ledger entry.
 DO $guard$ BEGIN
  IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=47 AND sha256='41a913e80f5699e9c6cd9136054af33665ea56f35caa2eba26274f0ae1f6a28e')
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=47 AND sha256='4d8af35d59bc90f81de4bd835a74ec6e957e7803ab6c6cdee268d67a63ff15f8')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=48)
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
  AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))

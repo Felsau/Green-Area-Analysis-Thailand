@@ -3,7 +3,7 @@
 DO $preflight$ BEGIN
  IF current_database() NOT IN ('postgres','gis_t1_upgrade')
  OR NOT gis.target_ok()
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=45 AND sha256='77345243303567d756122b9064b59f767591d7358a176355eb907bf9c5c24368')
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=45 AND sha256='a7ae1f4cfd99f4bd0d728b3ca290fb4a2734d05f585c3a192c9611a0b317b395')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=46)
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
  AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))

@@ -18,10 +18,10 @@ BEGIN
     AND e.runtime_instance=current_setting('gis.runtime_instance',true)
     AND e.baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
     OR (SELECT count(*) FROM gis.schema_migrations WHERE
-       (version=27 AND sha256='59618ed5b7b261ce100dabd89b991a68acda0712080d46e8c09954ef67f323d5')
+       (version=27 AND sha256='4d1ef87fccc1a484bd4a199b5bd74af2cf7adb4db7e03f55718f6553d43428d0')
        OR (version=28 AND sha256='fcf5d9530b516d93dda0fc2ea5b01158809aad237c1e90863d09bd324c9000d1')
        OR (version=29 AND sha256='7faf7bf6abbd4e52ab8389423c3c1876c94af459fe9d7c5d2a7710ffc0f236a5')
-       OR (version=30 AND sha256='ce5ab117c5d46b8dcc8ab4b3ffb02f141773c80019b6eaa6e4ef7bec1a510024'))<>4 THEN
+       OR (version=30 AND sha256='6e7cc972d648fe717539c63131f752440c79446a5ffcbe8608b232cd63a4914f'))<>4 THEN
    RAISE EXCEPTION 'GIS_LOCAL_TARGET_REQUIRED'; END IF;
 END $guard$;
 

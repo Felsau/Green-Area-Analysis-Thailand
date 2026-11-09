@@ -16,7 +16,7 @@ a2=importlib.util.module_from_spec(spec);sys.modules[spec.name]=a2;spec.loader.e
 m=a2.m
 MIGRATION=REPO/'green-area-backend/migrations/039_gis_ldd_publication.sql'
 CORRECTION=REPO/'green-area-backend/migrations/040_gis_ldd_publication_jsonb_fix.sql'
-FROZEN_038='e55344ef585e9c23c9269dae414ed73ba05fa508625fe6c6e7acf2e148795825'
+FROZEN_038='95709b43f9a51001987dc687f98db868ac6f702aac375696d2d51fc8aa2c421d'
 
 class LddPublicationLocal(a2.LddPrepareLocal):
     def __init__(self,root):

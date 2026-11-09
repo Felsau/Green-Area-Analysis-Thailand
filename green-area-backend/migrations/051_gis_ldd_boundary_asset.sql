@@ -8,8 +8,8 @@
 -- Nothing here changes what passes validation, prepare or publication.
 -- The attested operator supplies BEGIN/runtime proof and the INSERT-only ledger entry.
 DO $guard$ BEGIN
- IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR current_setting('cluster_name')<>'green-area-gis-t0'
- OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=50 AND sha256='cc785e8a8424b9b5d14e0d4e62f09b1d2adba94f7f4947c90acbd8999e85107d')
+ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
+ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=50 AND sha256='87a09b59ddeae481a0f927ebde641fa915260837bc82729fd8effcb026bac893')
  OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=51)
  OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
  AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))

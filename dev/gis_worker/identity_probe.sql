@@ -8,7 +8,7 @@ BEGIN
    AND runtime_instance=current_setting('gis.runtime_instance',true)
    AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
    OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=30
-     AND sha256='0c6cd4b6fb3fe964dfcba848bf392a9b93cea87be7c15fd214cfe5e435b6f113') THEN
+     AND sha256='6e7cc972d648fe717539c63131f752440c79446a5ffcbe8608b232cd63a4914f') THEN
   RAISE EXCEPTION 'T3_LOCAL_T2_IDENTITY_REQUIRED'; END IF;
 END $guard$;
 RESET ROLE;

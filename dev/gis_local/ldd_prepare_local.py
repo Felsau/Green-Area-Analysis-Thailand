@@ -20,7 +20,7 @@ spec = importlib.util.spec_from_file_location('a2_existing_a1', HERE/'publicatio
 a1 = importlib.util.module_from_spec(spec);sys.modules[spec.name] = a1;spec.loader.exec_module(a1)
 m = a1.p.m
 MIGRATION = REPO/'green-area-backend/migrations/038_gis_ldd_prepare.sql'
-FROZEN_037 = '386538e46e2b5e220ad271bd6c34b047a4624aac7cec8f818d1b5d2af65389a8'
+FROZEN_037 = 'bacd6937efb07d54fb37bef3d2be83a07c2ebff43ff97879d5220096532fcde6'
 
 
 class LddPrepareLocal(a1.PublicationLocal):

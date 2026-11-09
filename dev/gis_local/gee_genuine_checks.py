@@ -147,7 +147,7 @@ def preserve(local):
         checks.append((db+'_old_gis_rows_history_pointers',all(all(h in now['gis'][db][t] for h in rows) for t,rows in old['gis'][db].items())))
         checks.append((db+'_no_runtime_approval_or_running_jobs',local.sql("SELECT jsonb_build_array((SELECT count(*) FROM gis.gee_https_runtimes),(SELECT count(*) FROM gis.jobs WHERE state IN ('queued','running')),(SELECT activation_enabled FROM gis.environment))",db,read_only=True)==[0,0,False]))
     checks.append(('migration_000_046_bytes',all(now['source'][n]==h for n,h in old['source'].items() if int(Path(n).name[:3])<=46)))
-    reviewed='b04c63ca3f30a4605d8514bbbfc3195cdbe9a44dac3544b6ca19bf9a8c70962c'
+    reviewed='4d8af35d59bc90f81de4bd835a74ec6e957e7803ab6c6cdee268d67a63ff15f8'
     checks.append(('migration_047_applied_reviewed_checksum',all(local.sql('SELECT to_jsonb(sha256) FROM gis.schema_migrations WHERE version=47',db,read_only=True)==reviewed for db in ('postgres','gis_t1_upgrade')) and now['source']['green-area-backend/migrations/047_gis_genuine_https.sql']==reviewed))
     result={'passed':sum(v for _,v in checks),'failed':sum(not v for _,v in checks),'checks':checks}
     (local.output/'preservation.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
