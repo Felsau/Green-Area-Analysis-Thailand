@@ -1,11 +1,10 @@
 -- TEST ONLY. Stand-ins for what a Supabase project already provides, so that the
--- installer can be exercised on a plain postgres:17 container. Run by test_pg17.sh
--- as the container's superuser. Never run this against a real project.
+-- installer can be exercised on a plain postgres:17 container. Run this as the
+-- container's superuser. Never run this against a real project.
 --
--- `postgres` is created by test_pg17.sh as a non-superuser with CREATEROLE. Its other
--- attributes and memberships below were read from the pinned supabase/postgres image
--- (dev/gis_local/images.lock.json), not from the real project: see
--- docs/gis/evidence/w2-notes.md.
+-- Create `postgres` first, as a non-superuser with CREATEROLE. Its other attributes
+-- and memberships below were read from the pinned supabase/postgres image
+-- (dev/gis_local/images.lock.json), not from the real project.
 BEGIN;
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;

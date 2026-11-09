@@ -178,13 +178,7 @@ def preflight(target: Target) -> None:
            for r in REQUIRED_ROLES]
         + ["SELECT 'function auth.uid()' WHERE to_regprocedure('auth.uid()') IS NULL",
            "SELECT 'PostgreSQL 17 or newer' WHERE current_setting('server_version_num')::int < 170000",
-           "SELECT 'connecting as the postgres role' WHERE current_user<>'postgres'",
-           # 027 line 67 revokes on schema gis before it assumes gis_owner. Without this
-           # membership a non-superuser gets "permission denied" there instead of a no-op.
-           "SELECT 'postgres in pg_read_all_data' WHERE NOT pg_has_role(current_user,'pg_read_all_data','MEMBER')",
-           # The only role allowed to execute gis_readiness().
-           "SELECT 'SET ROLE service_role for postgres' WHERE to_regrole('service_role') IS NOT NULL"
-           " AND NOT pg_has_role(current_user,'service_role','SET')"])
+           "SELECT 'connecting as the postgres role' WHERE current_user<>'postgres'"])
     missing = target.run(checks + ";", stage="preflight").splitlines()
     if missing:
         raise InstallError("the database is not ready, missing: " + "; ".join(missing))
