@@ -1,0 +1,24 @@
+{
+  "independent_review": true,
+  "reviewer": "/root/remediation_review",
+  "review_kind": "Independent exact forward SQL correction review before local application",
+  "unresolved_high_critical": 0,
+  "files": {
+    "033_gis_native_trigger_fields.sql": "034d6be5c329ec4d2259bb57482f06582fc2dc3c4aa8ea3e14be84fbb8996e5d"
+  },
+  "scope": "Only the existing attested local postgres and gis_t1_upgrade databases after exact migration 032. Forward version 33 ledger INSERT only.",
+  "findings": [
+    {"severity": "High", "status": "Correction reviewed; runtime retest required", "detail": "Actual post-032 enqueue exposed PostgreSQL 42703: CASE referenced NEW.job_id on a jobs record. Static review did not detect this runtime polymorphic-record error. Applied 032 is preserved; 033 uses separate IF statements referencing only concrete relation fields."},
+    {"severity": "Info", "status": "Reviewed", "detail": "The attempts-only NEW.state check is also in a nested IF so result records without a state field cannot cause the same class of error before Boolean short circuiting."},
+    {"severity": "Info", "status": "Reviewed", "detail": "All original report-validation, result equality, successful attempt and Native V2 invariants remain. Expired crashed attempts may retain NULL reports, while successful and failed native attempts still require their report invariants."},
+    {"severity": "Info", "status": "Reviewed", "detail": "The SECURITY DEFINER function retains fixed pg_catalog,gis search_path and private runtime ACL revocations. No role, schema, public privilege or RLS expansion is introduced."},
+    {"severity": "Info", "status": "Reviewed", "detail": "Guard binds exact 032 checksum, local cluster/database/runtime marker/baseline and rejects existing version 33. There is no data UPDATE, DELETE or old ledger write."}
+  ],
+  "execution_conditions": [
+    "Re-attest local target and all applied migration checksums immediately before execution.",
+    "Execute only exact reviewed bytes and append the actual version 33 SHA256 atomically in one transaction.",
+    "Retest trigger paths on jobs, editions, attempts and results for V1 and Native V2, including enqueue, successful completion, failed validation, recovery and deferred report bypass rejection.",
+    "Preserve 000-032 source and old ledger rows; any further applied-SQL correction requires another forward migration."
+  ],
+  "evidence_boundary": "Static independent correction review only. Reviewer has not applied SQL, mutated database resources or independently rerun runtime tests. Final T3 acceptance remains dependent on actual tests and preservation evidence."
+}

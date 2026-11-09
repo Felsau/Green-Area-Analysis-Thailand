@@ -1,0 +1,30 @@
+{
+  "independent_review": true,
+  "unresolved_high_critical": 0,
+  "reviewer": "p4_review independent exact SQL review",
+  "files": {
+    "036_gis_geotiff_upload.sql": "53f8138d7f7ab89dc4e62c52140cd93de7c21288ee3a6f975adbb34a18b65d61"
+  },
+  "functions_reviewed": 20,
+  "scope": [
+    "Forced RLS/owner-only private table",
+    "Immutable upload association, typed manifest and deferred report invariants",
+    "Trusted JWT native subject RPC and exact ACL/search_path",
+    "Shared queue atomic claim/lease/recovery/fencing and additive protocol isolation",
+    "Validation-only draft/NULL validated pointer and activation denial",
+    "No legacy cache DML; 000-035 unchanged; four Phase3 delegates body-exact"
+  ],
+  "preapply_fixes_verified": [
+    "Nonexistent encoding reference corrected to profile",
+    "NEW.state only evaluated inside attempts trigger branch",
+    "Only three bare IS DISTINCT FROM CASE expressions parenthesized; reverse reconstruction matches prior approved SHA exactly"
+  ],
+  "runtime_tests": "Not run by reviewer; application/native validation and actual Local integration must pass before Phase4 final acceptance",
+  "prior_review_revisions": [
+    {
+      "sha256": "8cfee4baca66d16f14f9d24fe89c99549c659a6e5a8149c0e947c2b0620a2e21",
+      "status": "superseded before successful apply",
+      "reason": "PLpgSQL syntax42601 for bare CASE expressions; root verified full transaction rollback, no036ledger/table in bothlocalDBs"
+    }
+  ]
+}

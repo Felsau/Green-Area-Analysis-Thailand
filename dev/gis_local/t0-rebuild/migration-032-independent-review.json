@@ -1,0 +1,28 @@
+{
+  "independent_review": true,
+  "reviewer": "/root/remediation_review",
+  "review_kind": "Independent exact SQL security, authorization and transaction review before local application",
+  "unresolved_high_critical": 0,
+  "files": {
+    "032_gis_worker_remediation.sql": "ef58eb7d864c0433f4393b0f52dbb6db00a91e8d3dd397742594d1d909660b7f"
+  },
+  "scope": "Only the existing attested T0 local PostgreSQL databases postgres and gis_t1_upgrade, using the exact reviewed SQL in one guarded transaction with a new ledger INSERT for version 32. No old migration or ledger update is approved.",
+  "findings": [
+    {"severity": "Info", "status": "Reviewed", "detail": "Migration requires the exact applied 031 checksum, matching local runtime instance and baseline, fixed local database and cluster, no existing version 32, and an unprivileged noninheriting native worker role."},
+    {"severity": "Info", "status": "Reviewed", "detail": "Native authority derives from PostgREST session_user authenticator, role setting gis_native_worker, JWT role, exact local issuer and canonical UUID subject. A supplied worker_id must match this subject and is not authoritative."},
+    {"severity": "Info", "status": "Reviewed", "detail": "All SECURITY DEFINER functions use fixed pg_catalog,gis search_path. Private functions are revoked from runtime roles. Existing public V2 entrypoints grant execute only to gis_native_worker; owner CREATE privilege is revoked at the end. No RLS weakening or direct table grant is introduced."},
+    {"severity": "Info", "status": "Reviewed", "detail": "Private shared queue preserves states, bounded attempts, lease and retry backoff. V1 and V2 wrappers select a fixed protocol; claim/recover and mutation paths enforce edition metadata version, with edition then job then attempt lock order and post-lock clock fencing."},
+    {"severity": "Info", "status": "Reviewed", "detail": "Native completion and transient failure require exact bounded report keys and types, artifact SHA, frozen input hash/revision, provider build, finite bounded statistics/warnings and mandatory scientific checks when actual validation is claimed. Report updates happen before terminal attempt transitions in the same transaction and only after fencing."},
+    {"severity": "Medium", "status": "Resolved before application", "detail": "Initial candidate only checked nonempty raster statistics. The reviewed final SQL now compares successful raster grids, valid-pixel counts, mean/min/max to frozen synthetic expected answers with tolerance 0.00005. Polygon counts and areas are also enforced."},
+    {"severity": "Info", "status": "Reviewed", "detail": "Deferred native integrity triggers block Native V2 success without a matching validated attempt report and matching immutable result report, including legacy-wrapper bypass. Existing applied migration files and existing data are not updated by the migration."},
+    {"severity": "Info", "status": "Reviewed", "detail": "Readiness binds the signed native subject to real local environment markers and applied versions. The Python worker must compare these with trusted launcher expectations before mutations."}
+  ],
+  "execution_conditions": [
+    "Re-attest exact container ownership, cluster, both database identities and all applied checksums before applying.",
+    "Run only exact reviewed bytes in a local transaction; append version 32 and its actual file SHA256 atomically. Fail closed on old checksum drift.",
+    "Use actual GoTrue/PostgREST worker JWT for positive and negative runtime tests; SQL role simulation is not a substitute.",
+    "Verify post-migration ACL, RLS, function ownership and definitions and preserve legacy data and all old ledger values.",
+    "Complete actual lifecycle, recovery, fencing, fault and regression tests before final acceptance. Static review does not establish those results."
+  ],
+  "evidence_boundary": "Static exact-source review only. Reviewer has not executed migrations, changed databases, called GEE/Cloud, or tested runtime behavior. Approval is for controlled local testing, not production readiness or final T3 acceptance."
+}
