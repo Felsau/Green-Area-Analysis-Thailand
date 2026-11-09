@@ -19,22 +19,41 @@ export function useLanduseData() {
   const lastScope = useRef(null);
   // Published LDD geometry is fetched once per snapshot (the polled bundle only names it).
   const geometryRef = useRef(null);
+  // Published scope now on screen (its snapshot, or null while it shows an error). A background recheck of
+  // that same scope keeps it on screen until the recheck answers: an as-of snapshot. A failed recheck or a
+  // different snapshot still clears it (a3-contracts.md). Real provinces take 10-16 s per read, so clearing
+  // at the start of every 10 s recheck left the map empty most of the time.
+  const shownRef = useRef(null);
 
-  const fetchLanduse = useCallback(async (provinceEN, districtEN, year, source) => {
+  const fetchLanduse = useCallback(async (provinceEN, districtEN, year, source, { background = false } = {}) => {
     if (!provinceEN) return;
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     const { signal } = controller;
+    const key = [provinceEN, districtEN || '', year, source].join('|');
+    const shown = shownRef.current;
+    const quiet = background && source === 'published' && shown?.key === key;
 
-    setLanduseLoading(true);
-    setLanduseData(null);
-    setLanduseError(null);
+    if (!quiet) {
+      shownRef.current = null;
+      setLanduseLoading(true);
+      setLanduseData(null);
+      setLanduseError(null);
+    }
     lastScope.current = { provinceEN, districtEN, year, source };
     try {
       if (source === 'published') {
         if (districtEN) throw new Error('Published LDD รองรับเฉพาะจังหวัด กรุณายกเลิกการเลือกอำเภอ');
         const summary = await gisRequest('/published-ldd', { query: { province: provinceEN, data_year: year }, signal });
+        if (signal.aborted) return;
+        if (quiet && summary?.snapshot_id !== shown.snapshot) {
+          // The snapshot on screen is no longer the current one: remove it before loading the new one.
+          shownRef.current = null;
+          setLanduseData(null);
+          setLanduseError(null);
+          setLanduseLoading(true);
+        }
         let geometry = summary?.geometry;
         if (!geometry && summary?.geometry_artifact) {
           const cached = geometryRef.current, sha = summary.geometry_artifact.sha256;
@@ -46,7 +65,11 @@ export function useLanduseData() {
         }
         const bundle = geometry ? { ...summary, geometry } : summary;
         if(!publishedSnapshotMatches(bundle,{province:provinceEN,data_year:year,month:0,product:'landuse'}))throw new Error('Published Snapshot หรือขอบเขตไม่ตรงกัน');
-        if (!signal.aborted) setLanduseData({ ...bundle, checked_at: Date.now() });
+        if (!signal.aborted) {
+          shownRef.current = { key, snapshot: bundle.snapshot_id };
+          setLanduseError(null);
+          setLanduseData({ ...bundle, checked_at: Date.now() });
+        }
         return;
       }
       const enc = encodeURIComponent;
@@ -64,6 +87,9 @@ export function useLanduseData() {
     } catch (err) {
       if (signal.aborted || err?.name === 'AbortError') return;
       if (source === 'published') {
+        // A failed read or recheck clears Published state; the error stays on screen through later rechecks.
+        shownRef.current = { key, snapshot: null };
+        setLanduseData(null);
         setLanduseError('Published ไม่พร้อมใช้งานหรือเปลี่ยนฉบับ กรุณาตรวจใหม่ ไม่มีการใช้ Legacy แทน');
         return;
       }
@@ -80,13 +106,14 @@ export function useLanduseData() {
   // สลับแหล่งข้อมูล → ล้างผลเดิม (คนละ provider อ่านคู่กันไม่ได้) ให้ผู้ใช้กดวิเคราะห์ใหม่
   const setLanduseSource = useCallback((src) => {
     abortRef.current?.abort();
+    shownRef.current = null;
     setLanduseData(null);
     setLanduseError(null);setLanduseLoading(false);lastScope.current = null;
     setLanduseSourceRaw(src);
   }, []);
   const setLanduseYear = useCallback(year => {
     if (landuseSource === 'published') {
-      abortRef.current?.abort();setLanduseData(null);setLanduseError(null);lastScope.current = null;setLanduseLoading(false);
+      abortRef.current?.abort();shownRef.current = null;setLanduseData(null);setLanduseError(null);lastScope.current = null;setLanduseLoading(false);
     }
     setLanduseYearRaw(year);
   }, [landuseSource]);
@@ -96,9 +123,9 @@ export function useLanduseData() {
     const recheck = () => {
       const scope=lastScope.current;
       if (!abortRef.current && scope?.source==='published' && document.visibilityState!=='hidden')
-        fetchLanduse(scope.provinceEN,scope.districtEN,scope.year,scope.source);
+        fetchLanduse(scope.provinceEN,scope.districtEN,scope.year,scope.source,{background:true});
     };
-    const visible = () => { if(document.visibilityState==='hidden') { abortRef.current?.abort();setLanduseData(null); } else recheck(); };
+    const visible = () => { if(document.visibilityState==='hidden') { abortRef.current?.abort();shownRef.current=null;setLanduseData(null); } else recheck(); };
     const timer=setInterval(recheck,10000);
     window.addEventListener('focus',recheck);window.addEventListener('gis-ldd-publication-change',recheck);
     document.addEventListener('visibilitychange',visible);
@@ -112,6 +139,7 @@ export function useLanduseData() {
   const clearLanduseScope = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current=null;
+    shownRef.current=null;
     setLanduseData(null);
     setLanduseError(null);lastScope.current=null;
     setLanduseLoading(false);
