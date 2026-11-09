@@ -5,6 +5,6 @@
   "reviewer": "t2_review",
   "scope": "exact SQL bytes through attested local runner only",
   "files": {
-    "030_gis_api_reads.sql": "0c6cd4b6fb3fe964dfcba848bf392a9b93cea87be7c15fd214cfe5e435b6f113"
+    "030_gis_api_reads.sql": "6e7cc972d648fe717539c63131f752440c79446a5ffcbe8608b232cd63a4914f"
   }
 }

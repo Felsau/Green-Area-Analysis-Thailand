@@ -5,6 +5,6 @@
   "review_type": "exact_a4_1_sql_before_local_application",
   "scope": "GeoTIFF prepare and verified Local preview only; no publication readiness or activation",
   "files": {
-    "041_gis_geotiff_prepare.sql": "882bacfd1af803be3cd08307bfca8c150b10e0c28e8b4a893e57a1dc924db6d1"
+    "041_gis_geotiff_prepare.sql": "57dc2baee7cf205f76167aacfffd0c9f9db55c63588c2fde280e4482975bfd95"
   }
 }

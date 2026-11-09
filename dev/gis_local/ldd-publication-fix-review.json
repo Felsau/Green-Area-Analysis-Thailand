@@ -5,6 +5,6 @@
   "review_type": "independent_exact_a3_sql_before_local_application",
   "scope": "JSONB grouping correction only; original039 unchanged, no ACL/contract change",
   "files": {
-    "040_gis_ldd_publication_jsonb_fix.sql": "dc397a2aaa0020768b71364f2116823134a745a0c66863569b250ca7417e1185"
+    "040_gis_ldd_publication_jsonb_fix.sql": "b93d65306e112763cd24019a0abf225a1e02698ba9a3f9ae2da13f33392b083e"
   }
 }

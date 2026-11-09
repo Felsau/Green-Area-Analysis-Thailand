@@ -5,6 +5,6 @@
   "review_type": "exact_a4_2_sql_before_local_application",
   "scope": "Local declared-period uploaded GeoTIFF publication only; broad gate closed; LDD branches preserved",
   "files": {
-    "042_gis_geotiff_publication.sql": "dfb9adf5b36b290f715165a57905373df1226ab52c539cd93ff79da6a0c86946"
+    "042_gis_geotiff_publication.sql": "a03b3271eb24624b8b033e205d5ce2a30ccd050a66ea4a638fa917822bb1b378"
   }
 }

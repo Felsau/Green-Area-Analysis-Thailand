@@ -5,11 +5,11 @@
   "scope": "closed offline Genuine HTTPS foundation; no Google observations",
   "unresolved_high_critical": 0,
   "files": {
-    "047_gis_genuine_https.sql": "b04c63ca3f30a4605d8514bbbfc3195cdbe9a44dac3544b6ca19bf9a8c70962c"
+    "047_gis_genuine_https.sql": "4d8af35d59bc90f81de4bd835a74ec6e957e7803ab6c6cdee268d67a63ff15f8"
   },
   "source_files": {
-    "green-area-backend/gis_worker/gee_genuine_identity.py": "4b4dbaa7eb2166b666881cd8683f5d84a793f4d97d0a277221f3465d4c61ba83",
-    "green-area-backend/gis_worker/gee_genuine_runtime.py": "8ac6faaaa0a1594473043deb9d60d5c27db02adb081029ef48de2b32bafc8c02",
+    "green-area-backend/gis_worker/gee_genuine_identity.py": "bb00cac62658c81b759f55f37ea0ab352676887463cff03447e0a16ac6fa15ac",
+    "green-area-backend/gis_worker/gee_genuine_runtime.py": "e0497ea26bf8c00f27b84911de89b977c92c1b8c438572fa0df6d8dfa8ec65f3",
     "green-area-backend/gis_worker/gee_genuine_transport.py": "2963e430e1854ee5a3902a28372bed4fdbc81d9d9aa152e1c654b80541caf20b",
     "green-area-backend/gis_worker/gee_genuine_worker.py": "837d38166d8f9f03fb3abe0f67c802ac0aa68eaebb700795e4765d42801f2d6a",
     "green-area-backend/gis_worker/gee_live_bridge.py": "8e8dc88da1865084ad9803c682aa00cc4c647e8bdea511c64cfcfca97d04c7c8",

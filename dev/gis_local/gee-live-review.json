@@ -4,7 +4,7 @@
   "reviewer": "a63_security_review",
   "scope": "A6.4b Local injected-only exact SQL/authority/contracts/operator; no actual Google runtime or network approval",
   "files": {
-    "044_gis_live_foundation.sql": "874919e286d7870e61f0374502a513a53ca06d6085fd9ba0b2e17df329a08a9a"
+    "044_gis_live_foundation.sql": "53e3fc5359ea99a84f22d05714f9972a2e15d62b96bcf4b339d39ea9533b3f17"
   },
   "source_files": {
     "green-area-backend/gis_worker/gee_live_contracts.py": "045d00a474b9cec317e08ab08dffc3ca3104600b0615f49a7973d500fe576779",

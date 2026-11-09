@@ -5,7 +5,7 @@
   "reviewer": "t3_review",
   "scope": "exact SQL bytes through attested local runner only",
   "files": {
-    "031_gis_native_v2.sql": "85d345fa5b8dca615735618f7d9e689646dc4a286c285e0601b51f410192269c"
+    "031_gis_native_v2.sql": "7ff49cf8cd2658c8c1ba0c5d015faf26306e310f30a129dd962994bb6d243b86"
   }
 }
 

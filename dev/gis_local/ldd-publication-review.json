@@ -5,6 +5,6 @@
   "review_type": "independent_exact_a3_sql_before_local_application",
   "scope": "Local annual uploaded LDD only; broad activation gate stays false",
   "files": {
-    "039_gis_ldd_publication.sql": "ec1966a73fc8b463aa154b33a3dca5d9ab7d22ff679086da46b8ba41434dd118"
+    "039_gis_ldd_publication.sql": "287c1259ac685645a8a43275ee0a9fbdb6ca5cf5483aeeb8eaf8f650adeeff59"
   }
 }

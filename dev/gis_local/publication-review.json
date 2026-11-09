@@ -5,6 +5,6 @@
   "review_type": "independent_exact_sql_security_review",
   "scope": "Migration 037, attested local sandbox only; not production or publication approval",
   "files": {
-    "037_gis_publication_foundation.sql": "386538e46e2b5e220ad271bd6c34b047a4624aac7cec8f818d1b5d2af65389a8"
+    "037_gis_publication_foundation.sql": "bacd6937efb07d54fb37bef3d2be83a07c2ebff43ff97879d5220096532fcde6"
   }
 }

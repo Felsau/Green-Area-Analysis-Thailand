@@ -4,7 +4,7 @@
   "reviewer": "independent a63_security_review",
   "unresolved_high_critical": 0,
   "files": {
-    "045_gis_execution_safety.sql": "fed94e4efaf6ed2d339e0bb36f44c0dcb8bc4ef34a8d6738087fe0e888f17be8"
+    "045_gis_execution_safety.sql": "a7ae1f4cfd99f4bd0d728b3ca290fb4a2734d05f585c3a192c9611a0b317b395"
   },
   "source_files": {
     "green-area-backend/gis_worker/gee_execution_safety.py": "b7b7436def144a44cf3d360a0dfca330b53177d8e9a5ce57956354d313ba573c",

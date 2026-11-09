@@ -5,7 +5,7 @@
   "scope": "exact SQL bytes, verified T0-owned local sandbox only; not production approval",
   "unresolved_high_critical": 0,
   "files": {
-    "027_gis_foundation.sql": "bc879ca55e26a506e4b36c887dede928b07c619c42c94ddf69282362abd351e5",
+    "027_gis_foundation.sql": "4d1ef87fccc1a484bd4a199b5bd74af2cf7adb4db7e03f55718f6553d43428d0",
     "028_gis_queue.sql": "fcf5d9530b516d93dda0fc2ea5b01158809aad237c1e90863d09bd324c9000d1",
     "029_gis_transactions.sql": "7faf7bf6abbd4e52ab8389423c3c1876c94af459fe9d7c5d2a7710ffc0f236a5"
   }
