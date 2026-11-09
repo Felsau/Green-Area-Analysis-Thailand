@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install GIS migrations 027-048 on an external PostgreSQL database (W2).
+"""Install GIS migrations 027-052 on an external PostgreSQL database (W2).
 
 Required environment:
   GIS_INSTALL_DATABASE_URL   postgresql://user:password@host:port/postgres
@@ -19,7 +19,7 @@ transaction together with its ledger row, so a failure rolls that file back, sto
 the run, and a re-run resumes from the same place.
 
 The database must already hold the Supabase objects and legacy migrations 000-026
-(see preflight). Versions above 048 are never read or applied.
+(see preflight). Versions above 052 are never read or applied.
 """
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ from urllib.parse import parse_qsl, quote, unquote, urlsplit
 
 REPO = Path(__file__).resolve().parents[2]
 DEFAULT_MIGRATIONS = REPO / "green-area-backend/migrations"
-FIRST, LAST = 27, 48
+FIRST, LAST = 27, 52
 VERSIONS = range(FIRST, LAST + 1)
 MODE = "cloud"
 DATABASES = {"postgres", "gis_t1_upgrade"}
@@ -266,7 +266,7 @@ def readiness(target: Target, instance: str, fingerprint: str, cluster: str) -> 
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Install GIS migrations 027-048 on an external database.",
+    parser = argparse.ArgumentParser(description="Install GIS migrations 027-052 on an external database.",
                                      epilog="Configuration comes from the environment: see the module docstring.")
     parser.add_argument("--readiness-out", type=Path, help="write the gis_readiness() result to this file")
     parser.add_argument("--allow-hosted", action="store_true",
