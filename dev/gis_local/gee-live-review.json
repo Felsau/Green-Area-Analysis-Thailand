@@ -7,8 +7,8 @@
     "044_gis_live_foundation.sql": "53e3fc5359ea99a84f22d05714f9972a2e15d62b96bcf4b339d39ea9533b3f17"
   },
   "source_files": {
-    "green-area-backend/gis_worker/gee_live_contracts.py": "045d00a474b9cec317e08ab08dffc3ca3104600b0615f49a7973d500fe576779",
-    "green-area-backend/gis_worker/gee_live_bridge.py": "b26ce041d54a4f773858909d53082352ad3c938b3da5ed896aaa08ce6849e1a9",
+    "green-area-backend/gis_worker/gee_live_contracts.py": "6d93e2a9ff90db7f7fd6e338d6c358e6441bc74d362bbe1b52329aa618eefccb",
+    "green-area-backend/gis_worker/gee_live_bridge.py": "5720c887e51893fffc03ccece6ef0da9e926d924ed70281611505cfd950aedce",
     "green-area-backend/gis_worker/gee_live_worker.py": "1d80e0e49e3cd36de4708beb28f68f8f914e6138a5ed9455c32e26da11187703",
     "dev/gis_local/gee_live_local.py": "9c9aed58901fb66a8241591bfa87ae715ba9bd0368e0fe58bdc9423f2b9cd4d7"
   }

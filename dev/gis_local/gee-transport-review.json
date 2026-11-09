@@ -9,7 +9,7 @@
   "source_files": {
     "green-area-backend/gis_worker/gee_sdk_transport.py": "74f25d924231d96e748a61491d0d0ffa29a3863e86ea93c42a8bda47948f42d3",
     "dev/gis_local/gee_transport_local.py": "6bc94609c375b5dc2fab33f235257c1235de59582ad091532a5d1b1b64c02ee8",
-    "dev/gis_local/gee_transport_checks.py": "5c7bfe5193b903c915a991f50835b78fc68b037c77219a83572d7c96766bde38"
+    "dev/gis_local/gee_transport_checks.py": "c65b348136f4fc25bb8682e6b70b4d8d5b1685c78c72c10e927e6929a1a9641f"
   },
   "actual_live_approved": false,
   "rollback_probes": {
