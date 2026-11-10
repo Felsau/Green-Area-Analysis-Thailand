@@ -13,7 +13,7 @@ identity_module=importlib.util.module_from_spec(spec);sys.modules[spec.name]=ide
 IMAGE='sha256:fca4560d8a0d0198c0eb75fbf6598314cd8ed4a5e8bafa00e1d7298126aa04c9'
 MIGRATION=REPO/'green-area-backend/migrations/032_gis_worker_remediation.sql'
 # The only local branch the attested operators run on. Every operator that checks the branch reads this.
-GIS_BRANCH='gis-unlock'
+GIS_BRANCH='feature/gis-w2-integration-prep'
 
 def fingerprint():
     files={}

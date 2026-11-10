@@ -1,4 +1,4 @@
-"""Seed a new T0 runtime dir with the files the attested operators read from fixed places (W4 rebuild on gis-unlock).
+"""Seed a new T0 runtime dir with the files the attested operators read from fixed places (W4 rebuild, GIS_BRANCH).
 
 Writes, and never overwrites:
   <runtime>/t3-remediation/initial-source-state.json  from remediation_local.fingerprint(), the function the operators use

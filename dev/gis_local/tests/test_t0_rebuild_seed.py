@@ -15,10 +15,10 @@ seed = importlib.util.module_from_spec(spec); sys.modules[spec.name] = seed; spe
 sha = lambda p: hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
-def operator(branch='gis-unlock'):
+def operator(branch='operators-branch'):
     files = {f'green-area-backend/migrations/{p.name}': sha(p)
              for p in sorted((REPO / 'green-area-backend/migrations').glob('0[0-3]*.sql'))}
-    return SimpleNamespace(GIS_BRANCH='gis-unlock', fingerprint=lambda: {'branch': branch, 'head': 'f' * 40, 'files': files})
+    return SimpleNamespace(GIS_BRANCH='operators-branch', fingerprint=lambda: {'branch': branch, 'head': 'f' * 40, 'files': files})
 
 
 def test_seed_writes_frozen_state_matching_current_migrations(tmp_path):
@@ -41,7 +41,7 @@ def test_seed_refuses_to_overwrite_and_writes_nothing(tmp_path):
 
 def test_seed_refuses_another_branch(tmp_path):
     with pytest.raises(RuntimeError, match='WRONG_BRANCH'):
-        seed.seed(tmp_path, operator('feature/gis-w2-integration-prep'))
+        seed.seed(tmp_path, operator('another-branch'))
     assert not (tmp_path / seed.STATE).exists()
 
 
