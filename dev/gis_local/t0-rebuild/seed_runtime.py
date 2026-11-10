@@ -5,6 +5,8 @@ Writes, and never overwrites:
   <runtime>/phase2/evidence-index.json                copy of phase2-evidence-index.json (phase3_local check_frozen)
   <runtime>/phase3/evidence-index.json                copy of phase3-evidence-index.json (phase4_audit)
   <runtime>/phase4/review-036.json                    copy of review-036.json (phase4_audit)
+  <runtime>/a4-geotiff-prepare/before.json            copy of a4-geotiff-prepare-before.json (041 proof reads its sql)
+  <runtime>/a4-2-geotiff-publication/before.json      copy of a4-2-geotiff-publication-before.json (042 proof reads its sql)
 The 032-036 review records stay here and are passed to the operators with --review.
 Touches no container, volume or database. Run it on the local branch named by GIS_BRANCH, before migrating 032.
 """
@@ -23,6 +25,8 @@ COPIES = {
     'phase2/evidence-index.json': 'phase2-evidence-index.json',
     'phase3/evidence-index.json': 'phase3-evidence-index.json',
     'phase4/review-036.json': 'review-036.json',
+    'a4-geotiff-prepare/before.json': 'a4-geotiff-prepare-before.json',
+    'a4-2-geotiff-publication/before.json': 'a4-2-geotiff-publication-before.json',
 }
 STATE = 't3-remediation/initial-source-state.json'
 

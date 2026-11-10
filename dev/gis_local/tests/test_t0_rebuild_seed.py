@@ -45,6 +45,28 @@ def test_seed_refuses_another_branch(tmp_path):
     assert not (tmp_path / seed.STATE).exists()
 
 
+def test_seed_writes_geotiff_before_files_where_041_and_042_read_them(tmp_path):
+    seed.seed(tmp_path, operator())
+    for rel, name, top in [('a4-geotiff-prepare/before.json', 'a4-geotiff-prepare-before.json', 40),
+                           ('a4-2-geotiff-publication/before.json', 'a4-2-geotiff-publication-before.json', 41)]:
+        assert (tmp_path / rel).read_bytes() == (ROOT / name).read_bytes()
+        pins = json.loads((tmp_path / rel).read_text(encoding='utf-8'))['sql']
+        assert max(int(n[:3]) for n in pins) == top
+        # 000-026 keep their checkout-dependent bytes (no -text); the GIS migrations must match the files exactly.
+        for n, h in pins.items():
+            if int(n[:3]) >= 27:
+                assert sha(REPO / 'green-area-backend/migrations' / n) == h, n
+
+
+def test_seed_refuses_to_overwrite_an_existing_before_file(tmp_path):
+    (tmp_path / 'a4-geotiff-prepare').mkdir()
+    (tmp_path / 'a4-geotiff-prepare/before.json').write_text('{}', encoding='utf-8')
+    with pytest.raises(RuntimeError, match='REFUSING_TO_OVERWRITE'):
+        seed.seed(tmp_path, operator())
+    assert not (tmp_path / seed.STATE).exists()
+    assert (tmp_path / 'a4-geotiff-prepare/before.json').read_text(encoding='utf-8') == '{}'
+
+
 def test_committed_records_pin_the_current_migrations():
     for name, version in [('migration-032-independent-review.json', 32), ('migration-033-independent-review.json', 33),
                           ('review-034.json', 34), ('review-035.json', 35), ('review-036.json', 36)]:
