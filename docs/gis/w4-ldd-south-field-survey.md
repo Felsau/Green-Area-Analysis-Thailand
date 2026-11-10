@@ -67,11 +67,16 @@ Field order differs (Phang Nga has `Shape_Area` before `LU_DES`); the validator 
 
 ## Findings
 
-1. All three layers carry `LUL1_CODE`, `LU_CODE` and `Shape_Area`, so they already satisfy `REQUIRED_FIELDS` (`green-area-backend/gis_worker/ldd_provider.py:49`) and match exactly one policy-v2 profile, `ldd-lu-text-v1`. None has `AREA_SQM`, `Area_Rai` or `Area_RAI`. The layouts that motivated W4 were not found in these three provinces.
+1. All three layers carry `LUL1_CODE`, `LU_CODE` and `Shape_Area`, so they already satisfy `REQUIRED_FIELDS` (`green-area-backend/gis_worker/ldd_provider.py:49`) and match exactly one policy-v2 profile, `ldd-lu-text-v1`. This covers field names only: geometry, CRS-to-area agreement and the composite-code class rule were not checked (see "Not checked" below), so it does not yet show that the layers would be accepted. None has `AREA_SQM`, `Area_Rai` or `Area_RAI`. The layouts that motivated W4 were not found in these three provinces.
 2. `RAI` sits alongside `Shape_Area` and is a rounded derivative of it (1 rai = 1,600 m²). It is not used and does not affect profile matching.
 3. Encoding is UTF-8, declared by `.cpg` and confirmed on every row. This differs from the central-region 2568 files (`.cpg` "ANSI 874" or none, cp874). No alias is needed.
 4. `LU_ID_L1` encodes the class of the first part of a composite inconsistently (`U201/A401` → 2, i.e. A) and holds the stray value `112`. This confirms the existing rule that `LU_ID_L1` is used only when `LUL1_CODE` is missing.
 5. Not a field issue, but it decides the outcome: every `.dbf` exceeds the 20 MiB per-member limit (27.1, 50.7 and 44.1 MiB for Yala, Phang Nga and Narathiwat). The packages expand to 83,634,463 bytes (Narathiwat), 92,997,614 bytes (Phang Nga) and 56,256,806 bytes (Yala), 11 members each, so Phang Nga also exceeds the 80 MiB (83,886,080-byte) expanded limit, and Narathiwat is just under it. As distributed, all three packages would be refused on size before their fields are read.
+   Which check refuses them, in order (code as of `9_13`):
+   - If the `.zip` itself is over 20 MiB, the upload is refused with **`GIS_LDD_SIZE_LIMIT` (HTTP 413)** before it is stored (`routers/gis.py:227-228`, `gis_ldd_storage.py:363-364` and `:386-387`). The compressed `.zip` sizes were not recorded in this survey, so it is not yet known whether this check or the next one fires.
+   - Otherwise the upload preflight refuses the oversized member with **`GIS_LDD_ZIP_UNSAFE` (HTTP 422)** (`gis_ldd_storage.py:284-286`). The officer sees the generic "ZIP ไม่ปลอดภัย" message, not a size message.
+   - The worker's own codes (`ZIP_MEMBER_SIZE_LIMIT`, `ZIP_EXPANDED_SIZE_LIMIT`, `gis_worker/ldd_provider.py:185-187`) are never reached for these packages.
+   - Still to do: record each package's compressed `.zip` size next to its SHA256.
 
 ## Proposal: field acceptance for every province
 
@@ -86,3 +91,12 @@ Field order differs (Phang Nga has `Shape_Area` before `LU_DES`); the validator 
    A bare `RAI` or `AREA` field on its own stays refused (Phetchabun 2564 rule).
 6. **Encoding**: keep reading the `.cpg`; UTF-8 needs no alias. A layer with neither a `.cpg` nor a DBF language ID still needs the officer's choice.
 7. **Outside field policy, flagged only**: the per-member and expanded size limits block these packages. Changing them is a separate decision with its own review.
+
+## Not checked
+
+Added during review (11 November 2026). These limit what Finding 1 can claim:
+
+- **Geometry**: not read, so validity, repairability and boundary fit (`OUTSIDE_PROVINCE`) are unknown.
+- **CRS against area**: `Shape_Area` was not compared with the geometry area in `WGS_1984_UTM_Zone_47N`.
+- **Composite class rule**: the legend check above only shows that every part of a composite exists in legend v2. It does not apply the policy rule that a composite must be listed whole or have every part in the parcel's own class. Mixed-class values such as `U201/A401` and `U201/A405` (at least 1,334 rows in Narathiwat and 53 in Yala, from the `LU_ID_L1` row above, where `LUL1_CODE` is `U` but the second part is `A`) still need to be checked against that rule.
+- **Compressed `.zip` sizes**: not recorded (see Finding 5).

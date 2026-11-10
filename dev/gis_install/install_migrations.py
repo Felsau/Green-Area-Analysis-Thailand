@@ -9,6 +9,14 @@ Required environment:
 
 Optional environment:
   GIS_INSTALL_PSQL           command that runs psql, if it is not on PATH
+  GIS_INSTALL_ALLOW_REMOTE_HOST=1   same as --allow-remote-host
+  GIS_INSTALL_LOCK_TIMEOUT / GIS_INSTALL_STATEMENT_TIMEOUT
+                             same as --lock-timeout / --statement-timeout
+
+Only a local host (localhost, 127.0.0.1, ::1) is accepted unless --allow-remote-host
+is given. A *.supabase.co or *.supabase.com host is refused in every case.
+A session-level advisory lock is held for the whole run, so a second run against the
+same database fails at once instead of interleaving with this one.
 
 The identity values are never generated here: the backend must be given the same
 ones, and migrations 030+ compare them with what 027 stored.
@@ -41,6 +49,9 @@ VERSIONS = range(FIRST, LAST + 1)
 MODE = "cloud"
 DATABASES = {"postgres", "gis_t1_upgrade"}
 HOSTED_SUFFIXES = (".supabase.co", ".supabase.com")
+LOCAL_HOSTS = ("localhost", "127.0.0.1", "::1")
+LOCK_ID = 7305271052027048  # fixed key for pg_try_advisory_lock; one installer per database
+TIMEOUT_RE = r"[0-9]+(ms|s|min)"
 REQUIRED_ROLES = ("postgres", "anon", "authenticated", "service_role", "authenticator")
 REQUIRED_TABLES = ("auth.users", "public.profiles", "public.provinces", "public.districts")
 URL_OPTIONS = {"sslmode": "PGSSLMODE", "sslrootcert": "PGSSLROOTCERT",
@@ -51,7 +62,7 @@ PSQL_TIMEOUT = 300
 # No migration creates this role, 031 revokes from it and 032 requires it.
 NATIVE_WORKER_SQL = """
 BEGIN;
-SET LOCAL lock_timeout='5s';
+SET LOCAL lock_timeout='{lock_timeout}';
 DO $role$
 DECLARE r record;
 BEGIN
@@ -157,10 +168,10 @@ def require_env(name: str, pattern: str | None = None, shape: str = "") -> str:
     return value
 
 
-def migration_files(directory: Path) -> dict[int, tuple[Path, bytes, str]]:
+def migration_files(directory: Path, versions=VERSIONS) -> dict[int, tuple[Path, bytes, str]]:
     """Exactly one file per version. Bytes are read once, so what is hashed is what runs."""
     found = {}
-    for version in VERSIONS:
+    for version in versions:
         matches = sorted(directory.glob(f"{version:03d}_*.sql"))
         if len(matches) != 1:
             raise InstallError(f"expected one file for migration {version:03d} in {directory}, "
@@ -182,6 +193,17 @@ def preflight(target: Target) -> None:
     missing = target.run(checks + ";", stage="preflight").splitlines()
     if missing:
         raise InstallError("the database is not ready, missing: " + "; ".join(missing))
+    # Read-only diagnostics. Neither stops the run, but each predicts a later failure.
+    warnings = target.run(
+        "SELECT 'postgres is not in pg_read_all_data: 027 line 67 revokes on schema gis before it "
+        "assumes gis_owner and a non-superuser gets permission denied without it'"
+        " WHERE NOT pg_has_role(current_user,'pg_read_all_data','MEMBER')"
+        " UNION ALL SELECT 'postgres cannot SET ROLE service_role: gis_readiness() is only "
+        "executable by service_role, so the final check will fail'"
+        " WHERE to_regrole('service_role') IS NOT NULL AND NOT pg_has_role(current_user,'service_role','SET');",
+        stage="preflight warnings").splitlines()
+    for line in warnings:
+        log(f"warning   preflight: {line}")
 
 
 def read_state(target: Target, instance: str, fingerprint: str, cluster: str) -> dict[int, str]:
@@ -211,26 +233,27 @@ def read_state(target: Target, instance: str, fingerprint: str, cluster: str) ->
     return ledger
 
 
-def check_ledger(ledger: dict[int, str], files: dict) -> list[int]:
+def check_ledger(ledger: dict[int, str], files: dict, versions=VERSIONS) -> list[int]:
     """Validate everything already recorded, then return the versions still to apply."""
-    for version in VERSIONS:
+    for version in versions:
         if version in ledger and ledger[version] != files[version][2]:
             raise InstallError(f"migration {version:03d} checksum drift: ledger has {ledger[version]}, "
                                f"file is {files[version][2]}")
-    pending = [v for v in VERSIONS if v not in ledger]
+    pending = [v for v in versions if v not in ledger]
     for version in pending:
-        later = [v for v in VERSIONS if v > version and v in ledger]
+        later = [v for v in versions if v > version and v in ledger]
         if later:
             raise InstallError(f"ledger gap: {version:03d} is missing but {later[0]:03d} is recorded")
     return pending
 
 
 def apply_migration(target: Target, version: int, path: Path, data: bytes, checksum: str,
-                    instance: str, fingerprint: str, cluster: str) -> None:
+                    instance: str, fingerprint: str, cluster: str,
+                    lock_timeout: str, statement_timeout: str) -> None:
     sql = "\n".join((
         "BEGIN;",
-        "SET LOCAL lock_timeout='5s';",
-        "SET LOCAL statement_timeout='120s';",
+        f"SET LOCAL lock_timeout='{lock_timeout}';",
+        f"SET LOCAL statement_timeout='{statement_timeout}';",
         f"SELECT set_config('gis.runtime_instance',{sql_literal(instance)},true);",
         f"SELECT set_config('gis.baseline_fingerprint',{sql_literal(fingerprint)},true);",
         f"SELECT set_config('gis.cluster_name',{sql_literal(cluster)},true);",
@@ -249,7 +272,7 @@ def apply_migration(target: Target, version: int, path: Path, data: bytes, check
                            "Earlier migrations stay applied; a re-run resumes here.") from None
 
 
-def readiness(target: Target, instance: str, fingerprint: str, cluster: str) -> dict:
+def readiness(target: Target, instance: str, fingerprint: str, cluster: str, versions=VERSIONS) -> dict:
     """gis_readiness() is executable only by service_role, as PostgREST calls it."""
     raw = target.run("BEGIN; SET LOCAL ROLE service_role; SELECT public.gis_readiness(); ROLLBACK;",
                      stage="gis_readiness()")
@@ -259,18 +282,66 @@ def readiness(target: Target, instance: str, fingerprint: str, cluster: str) -> 
     wrong = [k for k, v in expected.items() if value.get(k) != v]
     if wrong:
         raise InstallError("gis_readiness() disagrees with the declaration on: " + ", ".join(wrong))
-    absent = [v for v in VERSIONS if v not in value.get("migration_versions", [])]
+    absent = [v for v in versions if v not in value.get("migration_versions", [])]
     if absent:
         raise InstallError(f"gis_readiness() does not list migrations: {absent}")
     return value
+
+
+class AdvisoryLock:
+    """Holds pg_try_advisory_lock on one open psql session until released."""
+
+    def __init__(self, target: Target):
+        args = target.psql + ["-X", "-w", "-qAt", "-v", "ON_ERROR_STOP=1"]
+        try:
+            self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                         stderr=subprocess.DEVNULL, env=target.env, text=True, encoding="utf-8")
+        except FileNotFoundError:
+            raise InstallError("psql was not found: install a PostgreSQL client "
+                               "or set GIS_INSTALL_PSQL") from None
+        try:
+            self.proc.stdin.write(f"SELECT pg_try_advisory_lock({LOCK_ID});\n")
+            self.proc.stdin.flush()
+            answer = self.proc.stdout.readline().strip()
+        except OSError:
+            answer = ""
+        if answer != "t":
+            self.release()
+            raise InstallError("could not take the installer lock: " + (
+                "another installer run is using this database" if answer == "f"
+                else "the lock session failed to start"))
+
+    def release(self) -> None:
+        try:
+            self.proc.stdin.close()
+            self.proc.wait(timeout=15)
+        except (OSError, subprocess.TimeoutExpired):
+            self.proc.kill()
+
+
+def is_hosted(host: str) -> bool:
+    return host.lower().rstrip(".").endswith(HOSTED_SUFFIXES)
+
+
+def is_local(host: str) -> bool:
+    return host.lower() in LOCAL_HOSTS or host.startswith("/")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Install GIS migrations 027-052 on an external database.",
                                      epilog="Configuration comes from the environment: see the module docstring.")
     parser.add_argument("--readiness-out", type=Path, help="write the gis_readiness() result to this file")
-    parser.add_argument("--allow-hosted", action="store_true",
-                        help="permit a *.supabase.co or *.supabase.com host; off by default")
+    parser.add_argument("--allow-remote-host", action="store_true",
+                        default=os.environ.get("GIS_INSTALL_ALLOW_REMOTE_HOST") == "1",
+                        help="permit a host other than localhost/127.0.0.1/::1; "
+                             "*.supabase.co and *.supabase.com stay refused")
+    parser.add_argument("--lock-timeout", default=os.environ.get("GIS_INSTALL_LOCK_TIMEOUT", "5s"),
+                        help="lock_timeout for each migration transaction (default 5s)")
+    parser.add_argument("--statement-timeout", default=os.environ.get("GIS_INSTALL_STATEMENT_TIMEOUT", "120s"),
+                        help="statement_timeout for each migration transaction (default 120s)")
+    parser.add_argument("--up-to", type=int, default=LAST, metavar="N",
+                        help=f"install only through migration N ({FIRST}-{LAST}, default {LAST}); "
+                             "for testing an upgrade")
     parser.add_argument("--migrations-dir", type=Path, default=DEFAULT_MIGRATIONS,
                         help="directory holding the migration files (default: the repository's)")
     args = parser.parse_args()
@@ -284,40 +355,56 @@ def main() -> None:
     target = Target(url, psql)
     if target.database not in DATABASES:
         raise InstallError(f"the database must be named one of {sorted(DATABASES)}: migration 027 refuses others")
-    if target.host.lower().endswith(HOSTED_SUFFIXES) and not args.allow_hosted:
-        raise InstallError("refusing a hosted Supabase database without --allow-hosted")
+    if is_hosted(target.host):
+        raise InstallError(f"refusing {target.host}: a hosted Supabase database is never accepted by this installer")
+    if not is_local(target.host) and not args.allow_remote_host:
+        raise InstallError(f"refusing non-local host {target.host}: only localhost, 127.0.0.1 and ::1 are "
+                           "accepted unless --allow-remote-host (or GIS_INSTALL_ALLOW_REMOTE_HOST=1) is given")
+    for name, value in (("--lock-timeout", args.lock_timeout), ("--statement-timeout", args.statement_timeout)):
+        if not re.fullmatch(TIMEOUT_RE, value):
+            raise InstallError(f"{name} must look like 500ms, 5s or 2min")
+    if not FIRST <= args.up_to <= LAST:
+        raise InstallError(f"--up-to must be between {FIRST} and {LAST}")
+    last = args.up_to
+    versions = range(FIRST, last + 1)
 
     log(f"target    {target.host}:{target.port}/{target.database} as {target.user}")
     log(f"declared  cluster_name={cluster} mode={MODE}")
-    files = migration_files(args.migrations_dir)
+    files = migration_files(args.migrations_dir, versions)
     preflight(target)
-    ledger = read_state(target, instance, fingerprint, cluster)
-    pending = check_ledger(ledger, files)
-    beyond = sorted(v for v in ledger if v > LAST)
-    if beyond:
-        log(f"note      versions above {LAST:03d} are recorded and left alone: {beyond}")
+    lock = AdvisoryLock(target)
+    try:
+        ledger = read_state(target, instance, fingerprint, cluster)
+        pending = check_ledger(ledger, files, versions)
+        beyond = sorted(v for v in ledger if v > last)
+        if beyond:
+            log(f"note      versions above {last:03d} are recorded and left alone: {beyond}")
 
-    target.run(NATIVE_WORKER_SQL, stage="role gis_native_worker")
-    log("role      gis_native_worker ready")
+        # Nothing is written before the ledger has been accepted.
+        target.run(NATIVE_WORKER_SQL.replace("{lock_timeout}", args.lock_timeout), stage="role gis_native_worker")
+        log("role      gis_native_worker ready")
 
-    applied = 0
-    for version in VERSIONS:
-        path, data, checksum = files[version]
-        if version in ledger:
-            log(f"skip      {path.name} already applied, sha256 verified")
-            continue
-        apply_migration(target, version, path, data, checksum, instance, fingerprint, cluster)
-        applied += 1
-        log(f"applied   {path.name} sha256={checksum}")
+        applied = 0
+        for version in versions:
+            path, data, checksum = files[version]
+            if version in ledger:
+                log(f"skip      {path.name} already applied, sha256 verified")
+                continue
+            apply_migration(target, version, path, data, checksum, instance, fingerprint, cluster,
+                            args.lock_timeout, args.statement_timeout)
+            applied += 1
+            log(f"applied   {path.name} sha256={checksum}")
 
-    value = readiness(target, instance, fingerprint, cluster)
+        value = readiness(target, instance, fingerprint, cluster, versions)
+    finally:
+        lock.release()
     if args.readiness_out:
         args.readiness_out.parent.mkdir(parents=True, exist_ok=True)
         args.readiness_out.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
         log(f"evidence  gis_readiness() written to {args.readiness_out}")
     log(f"readiness cluster_name={value['cluster_name']} mode={value['mode']} "
         f"migrations={value['migration_versions']}")
-    log(f"done      installed through {LAST:03d}: applied {applied}, skipped {len(VERSIONS) - applied}")
+    log(f"done      installed through {last:03d}: applied {applied}, skipped {len(versions) - applied}")
 
 
 if __name__ == "__main__":

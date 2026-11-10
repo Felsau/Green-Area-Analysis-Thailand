@@ -49,6 +49,10 @@ def storage_error(code='GIS_LDD_STORAGE_UNAVAILABLE', status=503):
 
 # Storage layer: unsafe_link, StagedFile and DiskStorage are the only code in
 # this module that touches the disk. Upload rules and hash checks stay outside.
+# Not yet covered: gis_ldd_prepared.py and gis_geotiff_prepared.py subclass
+# LocalLddStore and still read/write their files directly. StagedFile and the
+# Path-based root/objects/staging attributes are disk-specific, so a non-disk
+# backend needs more work than swapping STORAGE_CLASS.
 
 class StagedFile:
     """A new file written under a private staging name, then published by hard link."""
