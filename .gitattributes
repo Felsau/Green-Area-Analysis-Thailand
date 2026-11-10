@@ -67,3 +67,5 @@
 /dev/gis_local/gee_transport_extra_checks.py -text
 /dev/gis_local/tests/test_gee_genuine_local.py -text
 /dev/gis_local/tests/test_gee_transport_local.py -text
+# The T3 identity setup SQL is pinned by dev/gis_local/t0-rebuild/t3-identity-independent-review.json.
+/dev/gis_worker/identity_probe.sql -text

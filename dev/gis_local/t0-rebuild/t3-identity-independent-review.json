@@ -1,0 +1,26 @@
+{
+  "independent_review": true,
+  "reviewer": "/root/t3_security",
+  "review_kind": "independent exact SQL and operator harness static security review",
+  "unresolved_high_critical": 0,
+  "files": {
+    "identity_probe.sql": "4890be565f19c2c80d4803fd2dfdfa6101c125a07e6494513f5c99a57e7c7c46"
+  },
+  "scope": "Initial Step 1 provisioning on the attested existing local T0-T2 stack only; no approval of Migration 031 or Worker implementation",
+  "findings": [
+    {"severity": "Info", "status": "Reviewed", "detail": "SQL checks existing GIS environment runtime identity and baseline fingerprint plus exact migration 030 ledger hash before DDL."},
+    {"severity": "Info", "status": "Reviewed", "detail": "New NOLOGIN worker role is nonsuperuser, NOBYPASSRLS, NOINHERIT, cannot create roles/databases or replicate; collision checks reject unsafe role state."},
+    {"severity": "Info", "status": "Reviewed", "detail": "Authenticator receives SET TRUE and INHERIT FALSE membership; worker has no outbound privileged memberships."},
+    {"severity": "Info", "status": "Reviewed", "detail": "Probe is SECURITY INVOKER with pg_catalog search path and checks effective native worker SQL role, authenticator session, local database/cluster and JWT role/subject context."},
+    {"severity": "Info", "status": "Reviewed", "detail": "Probe execute is revoked from PUBLIC, anon, authenticated, service_role and legacy gis_worker. No private GIS or legacy table privilege is granted."},
+    {"severity": "Info", "status": "Reviewed", "detail": "Operator-only provisioning is separate from actual worker JWT HTTP permission proofs. Worker identity object does not persist or print credentials."},
+    {"severity": "Medium", "status": "Resolved", "detail": "Checkpoint drift guard now fingerprints exact function definition, owner, ACL, all worker role flags and membership options rather than accepting comment markers alone."}
+  ],
+  "execution_conditions": [
+    "Reverify existing local stack identity immediately before mutation.",
+    "Execute exact reviewed SQL in one operator-owned transaction with local identity GUCs; do not change migration 000-030 or ledger.",
+    "Use actual GoTrue-issued custom-role worker JWT for positive and negative proofs, never service-role or postgres simulation.",
+    "Stop dependent implementation if the actual custom-role identity or negative ACL proof fails."
+  ],
+  "evidence_boundary": "Static review only. Actual JWT issuance, effective SQL role and denied operations remain Not Tested until the parent executes and inspects the proof results. Reviewer has not run SQL or changed database resources."
+}
