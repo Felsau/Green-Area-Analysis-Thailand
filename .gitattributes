@@ -1,6 +1,10 @@
 # Applied GIS migrations are checksum-bound by the local migration ledger and
 # independent review records. Preserve their exact bytes on every platform.
-# Keep legacy 000-026 under their existing Git behavior.
+# Legacy 000-026 are bound too: the T0 rebuild evidence (dev/gis_local/t0-rebuild) pins their LF
+# bytes, so a CRLF checkout would stop the rebuild at 035 and again at 041/042.
+/green-area-backend/migrations/00[0-9]_*.sql -text
+/green-area-backend/migrations/01[0-9]_*.sql -text
+/green-area-backend/migrations/02[0-6]_*.sql -text
 /green-area-backend/migrations/02[7-9]_*.sql -text
 /green-area-backend/migrations/03[0-6]_*.sql -text
 /green-area-backend/migrations/037_*.sql -text

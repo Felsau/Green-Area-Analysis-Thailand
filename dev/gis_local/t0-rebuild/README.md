@@ -27,12 +27,33 @@
   docker ps -a --filter name=green-area-gis-t0      # ต้องว่าง
   docker volume ls --filter name=green-area-gis-t0  # ต้องว่าง
   ```
-- clone บน Windows ที่ `core.autocrlf` เป็น `true` (ต้องตั้งก่อน clone ไฟล์ที่ checkout ไว้แล้วจะไม่เปลี่ยนเอง ถ้าไม่ใช่ `true` จะหยุดที่ขั้น 7 ดูข้อจำกัดข้อแรก)
+- อยู่บนบรานช์ชื่อ **`gis-unlock`** ตรงตัว ตัวรันเทียบชื่อบรานช์กับ `GIS_BRANCH` ใน `dev/gis_worker/remediation_local.py` ถ้าเป็น detached HEAD หรือบรานช์ชื่ออื่นจะหยุดด้วย `WRONG_BRANCH`
   ```powershell
-  git config core.autocrlf   # ต้องเป็น true
+  git fetch origin
+  git switch gis-unlock          # ถ้ายังไม่มีบรานช์ในเครื่อง git จะสร้างจาก origin/gis-unlock ให้
+  git pull --ff-only
+  git branch --show-current      # ต้องได้ gis-unlock
   ```
-- `green-area-backend\.venv` ที่ติดตั้ง dependency ของ backend แล้ว
-- อยู่บนบรานช์ **`gis-unlock`** ที่รวมงานในโฟลเดอร์นี้แล้ว (ตัวรันเทียบชื่อบรานช์กับ `GIS_BRANCH` ใน `dev/gis_worker/remediation_local.py` ถ้าไม่ตรงจะหยุดด้วย `WRONG_BRANCH`)
+- migration 000–052 บนดิสก์ต้องเป็น LF ทุกไฟล์ `.gitattributes` ตั้ง `-text` ให้ครบแล้ว clone ใหม่จึงได้ LF เองทุกระบบ แต่ clone เดิมบน Windows ที่ `core.autocrlf=true` อาจยังมีไฟล์ CRLF ค้างอยู่ ให้ตรวจและ checkout ใหม่
+  ```powershell
+  git ls-files --eol green-area-backend/migrations | Select-String 'w/crlf'   # ต้องไม่มีผลลัพธ์
+  # ถ้ามี: ลบไฟล์ที่ขึ้นมาแล้ว checkout ใหม่
+  Remove-Item green-area-backend\migrations\*.sql
+  git checkout -- green-area-backend/migrations
+  ```
+- image ฐาน `gis-linux-poc:20261026` ที่ id ตรงกับค่าที่ปักไว้ใน `dev/gis_local/manage.py` (`WORKER_IMAGE`) ขั้น 8 (038–042) รัน container จาก id นี้ และ `manage.py` ไม่ดึง image นี้ให้ image นี้ไม่ได้อยู่ใน git และสร้างซ้ำจาก `dev/gis_local/gis_linux_poc.Dockerfile` ไม่ได้ เพราะจะได้ digest คนละค่า ให้ขอไฟล์ `gis-linux-poc_20261026.tar` (137,613,312 ไบต์) จากหัวหน้ากลุ่ม แล้วตรวจและโหลด
+  ```powershell
+  (Get-FileHash <path>\gis-linux-poc_20261026.tar -Algorithm SHA256).Hash
+  # ต้องได้ BD0C4B65472A06835142A2B0521BFD89DDD01CF91E3E0F41324192BC09496C40
+  docker load -i <path>\gis-linux-poc_20261026.tar
+  docker image inspect sha256:fca4560d8a0d0198c0eb75fbf6598314cd8ed4a5e8bafa00e1d7298126aa04c9 --format '{{.Id}}'
+  ```
+- Python 3.11 และ `green-area-backend\.venv` ที่ติดตั้ง dependency ของ backend แล้ว ถ้ายังไม่มี
+  ```powershell
+  py -3.11 -m venv green-area-backend\.venv
+  green-area-backend\.venv\Scripts\python.exe -m pip install -r green-area-backend\requirements.txt
+  ```
+- port 55421 ของเครื่องว่าง (`manage.py` ผูก port นี้ไว้) และมี `git` กับ `docker compose` อยู่ใน PATH
 - เครื่องต่ออินเทอร์เน็ตได้ตอน `prepare` (ดาวน์โหลดสคริปต์ bootstrap ที่ hash ล็อกไว้)
 - ตั้งตัวแปร (เลือก path ของ runtime dir เอง ต้องเป็นโฟลเดอร์ที่ยังไม่มี และอยู่นอก repo):
   ```powershell
@@ -183,7 +204,7 @@ probe ของ 044 ต้องมีแถวใน `gis.officers` ทุก�
 & $py -I -B dev\gis_local\upload_052_local.py probe --runtime-dir $rt
 & $py -I -B dev\gis_local\upload_052_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-052-approval.json
 ```
-- probe ต้องมีผู้ใช้สังเคราะห์ (officer, profile ที่ไม่ใช่ officer, admin) และจังหวัดในทั้งสองฐาน ซึ่งขั้น 10 สร้างไว้แล้ว
+- probe ต้องมีผู้ใช้สังเคราะห์ (officer, profile ที่ไม่ใช่ officer, admin) และจังหวัดในทั้งสองฐาน ผู้ใช้สังเคราะห์มาจากขั้น 10 ส่วนจังหวัดมาจาก seed ของ migration 006 ตอน baseline ในขั้น 2
 - ไฟล์อนุมัติมีแค่ `{"approval": "local_apply_0xx_after_rollback_probe", "migration_sha256": "<sha ของไฟล์ migration>"}` ตัวรันเทียบแบบตรงตัว
 
 ผลที่ควรเห็น (probe `rolled_back_lifecycle` ทั้งสองฐาน · migrate `applied` ทั้งสองฐาน):
@@ -210,9 +231,5 @@ foreach ($db in 'postgres', 'gis_t1_upgrade') {
 - `installed migrations (26): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52`
 
 ## ข้อจำกัดที่ทราบ
-- **เครื่องที่ checkout migration 000–026 เป็น LF จะหยุดที่ขั้น 7 (035) ด้วย `APPLIED_MIGRATION_FILE_CHANGED` แน่นอน** (Linux, macOS หรือ Windows ที่ `core.autocrlf` ไม่ใช่ `true`)
-  - สาเหตุ: `check_frozen` ใน `dev/gis_ui/phase3_local.py` เทียบ sha ของ migration ≤034 บนดิสก์กับ `phase2-evidence-index.json` ซึ่งค่า 000–026 ทั้ง 27 ค่าเป็นค่าของไฟล์แบบ CRLF และ 036 (`phase4_local.py`) เรียกการตรวจเดียวกันผ่าน `super().check_frozen()`
-  - ขั้นก่อนหน้า (ถึง 034) ไม่ล้ม เพราะเทียบกับ `initial-source-state.json` ที่ seed สร้างจากไฟล์บนเครื่องนั้นเอง
-  - วิธีเลี่ยงตอนนี้: สร้าง T0 จาก clone บน Windows ที่ `git config core.autocrlf` เป็น `true` (ขั้น 0)
-  - ทางแก้ถาวร**รอหัวหน้าตัดสิน**: ตั้ง `-text` ให้ migration 000–026 ใน `.gitattributes` แล้วเปลี่ยนค่า 27 ค่าใน `phase2-evidence-index.json` และ `phase3-evidence-index.json` เป็นค่า LF (แตะไฟล์นอก `dev/`)
+- **แก้แล้ว (12 พ.ย. 2569): migration 000–026 ต้องเป็น LF** เดิมค่า sha ของ migration 000–026 ทั้ง 27 ค่าที่ปักไว้เป็นค่าของไฟล์แบบ CRLF ทำให้เครื่องที่ checkout เป็น LF หยุดที่ 035 (`check_frozen` ใน `dev/gis_ui/phase3_local.py` เทียบกับ `phase2-evidence-index.json`) และจะหยุดซ้ำที่ 041 และ 042 (`geotiff_prepare_local.py` และ `geotiff_publication_local.py` เทียบกับ `before.json`) ตอนนี้ `.gitattributes` ตั้ง `-text` ให้ 000–026 แล้ว และค่า 27 ค่าในไฟล์ทั้งสี่ (`phase2-evidence-index.json`, `phase3-evidence-index.json`, `a4-geotiff-prepare-before.json`, `a4-2-geotiff-publication-before.json`) เปลี่ยนเป็นค่า LF แล้ว clone ที่ยังมีไฟล์ CRLF ค้างอยู่ให้ทำตามขั้น 0
 - `gee_mock_checks.py` รับเฉพาะ ledger ถึง 042 หรือ 043 จึงใช้ตรวจ T0 ที่ 052 ไม่ได้
