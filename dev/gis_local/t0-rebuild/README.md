@@ -27,6 +27,10 @@
   docker ps -a --filter name=green-area-gis-t0      # ต้องว่าง
   docker volume ls --filter name=green-area-gis-t0  # ต้องว่าง
   ```
+- clone บน Windows ที่ `core.autocrlf` เป็น `true` (ต้องตั้งก่อน clone ไฟล์ที่ checkout ไว้แล้วจะไม่เปลี่ยนเอง ถ้าไม่ใช่ `true` จะหยุดที่ขั้น 7 ดูข้อจำกัดข้อแรก)
+  ```powershell
+  git config core.autocrlf   # ต้องเป็น true
+  ```
 - `green-area-backend\.venv` ที่ติดตั้ง dependency ของ backend แล้ว
 - อยู่บนบรานช์ **`gis-unlock`** ที่รวมงานในโฟลเดอร์นี้แล้ว (ตัวรันเทียบชื่อบรานช์กับ `GIS_BRANCH` ใน `dev/gis_worker/remediation_local.py` ถ้าไม่ตรงจะหยุดด้วย `WRONG_BRANCH`)
 - เครื่องต่ออินเทอร์เน็ตได้ตอน `prepare` (ดาวน์โหลดสคริปต์ bootstrap ที่ hash ล็อกไว้)
@@ -206,5 +210,9 @@ foreach ($db in 'postgres', 'gis_t1_upgrade') {
 - `installed migrations (26): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52`
 
 ## ข้อจำกัดที่ทราบ
-- รอบ W4 ทำบน Windows ที่ `core.autocrlf=true` · ค่า migration 000–026 ใน `phase2-evidence-index.json` เป็นค่าของไฟล์แบบ CRLF ซึ่งตัวรันตั้งแต่ 035 ตรวจ (`phase3_local.py` `check_frozen`) จึง**ยังไม่ได้ทดสอบบนเครื่องที่ checkout เป็น LF** (Linux, macOS หรือ Windows ที่ปิด autocrlf)
+- **เครื่องที่ checkout migration 000–026 เป็น LF จะหยุดที่ขั้น 7 (035) ด้วย `APPLIED_MIGRATION_FILE_CHANGED` แน่นอน** (Linux, macOS หรือ Windows ที่ `core.autocrlf` ไม่ใช่ `true`)
+  - สาเหตุ: `check_frozen` ใน `dev/gis_ui/phase3_local.py` เทียบ sha ของ migration ≤034 บนดิสก์กับ `phase2-evidence-index.json` ซึ่งค่า 000–026 ทั้ง 27 ค่าเป็นค่าของไฟล์แบบ CRLF และ 036 (`phase4_local.py`) เรียกการตรวจเดียวกันผ่าน `super().check_frozen()`
+  - ขั้นก่อนหน้า (ถึง 034) ไม่ล้ม เพราะเทียบกับ `initial-source-state.json` ที่ seed สร้างจากไฟล์บนเครื่องนั้นเอง
+  - วิธีเลี่ยงตอนนี้: สร้าง T0 จาก clone บน Windows ที่ `git config core.autocrlf` เป็น `true` (ขั้น 0)
+  - ทางแก้ถาวร**รอหัวหน้าตัดสิน**: ตั้ง `-text` ให้ migration 000–026 ใน `.gitattributes` แล้วเปลี่ยนค่า 27 ค่าใน `phase2-evidence-index.json` และ `phase3-evidence-index.json` เป็นค่า LF (แตะไฟล์นอก `dev/`)
 - `gee_mock_checks.py` รับเฉพาะ ledger ถึง 042 หรือ 043 จึงใช้ตรวจ T0 ที่ 052 ไม่ได้
