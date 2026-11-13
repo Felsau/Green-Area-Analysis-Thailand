@@ -15,7 +15,7 @@
     "green-area-backend/gis_worker/gee_live_bridge.py": "5720c887e51893fffc03ccece6ef0da9e926d924ed70281611505cfd950aedce",
     "green-area-backend/gis_worker/gee_live_contracts.py": "6d93e2a9ff90db7f7fd6e338d6c358e6441bc74d362bbe1b52329aa618eefccb",
     "dev/gis_local/gee_genuine_local.py": "b91de387100d2bb415600f758d2587520cf58b6232a8638cb6d442be23dbd3f1",
-    "dev/gis_local/gee_genuine_checks.py": "676dd8f3012db3d36e0d52c09e9c5548e59012545660af66aed60091998b4da3",
+    "dev/gis_local/gee_genuine_checks.py": "6738164524affa51b92f0aa1218d3fae91328a77ef17f91084a1c163e911654b",
     "green-area-backend/migrations/047_gis_genuine_https.sql": "4d8af35d59bc90f81de4bd835a74ec6e957e7803ab6c6cdee268d67a63ff15f8",
     "green-area-backend/tests/test_gee_genuine_foundation.py": "6999778514bae1809e34215a065d5234de4529bc939cc922ed5ad55971c0885b",
     "dev/gis_local/tests/test_gee_genuine_local.py": "764da9c142b6956319fac397bef9cc71f51c62a3992c0ecd1f2b2319f5311227"
@@ -62,5 +62,12 @@
     "tested_working_sha256": "8e8dc88da1865084ad9803c682aa00cc4c647e8bdea511c64cfcfca97d04c7c8",
     "path": "green-area-backend/gis_worker/gee_live_bridge.py",
     "canonical_blob_sha256": "5720c887e51893fffc03ccece6ef0da9e926d924ed70281611505cfd950aedce"
+  },
+  "rereview_2026_11": {
+    "date": "2026-11-13",
+    "reviewer": "team leader (re-review after fixture fix bab4030)",
+    "change": "gee_genuine_checks.py setup_sql: approved_at and expires_at for gis.gee_https_runtimes now come from one clock_timestamp() read (variable t, timestamptz), removing a race against CHECK(expires_at>approved_at AND expires_at<=approved_at+20 minutes).",
+    "checked": "Read migration 047 table definition: column list matches values, approved_at has a DEFAULT and no constraint against an explicit value, no INSERT trigger (only immutable_https BEFORE UPDATE OR DELETE), no later migration touches the table; callers pass interval 20 minutes (equals the upper bound, allowed) and interval 1 second (satisfies the CHECK); only the hash of gee_genuine_checks.py was re-pinned, migration 047 and all other pinned files unchanged.",
+    "executed": "rollback_lifecycle (setup, observation, completion, negative, 1-second expiry cases) run with the fixed SQL in BEGIN..ROLLBACK against both T0 databases (postgres, gis_t1_upgrade) in container green-area-gis-t0-db: exit 0, no errors, gis.gee_https_runtimes count 0 afterwards."
   }
 }
