@@ -171,7 +171,14 @@ END $stub$;
         validated = lambda: running() + self.complete()
         # Catalog checks examine effective ACL/RLS as well as performing rejected calls.
         self.run_case("all_private_tables_force_rls", role("gis_owner", a("NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='gis' AND c.relkind='r' AND (NOT c.relrowsecurity OR NOT c.relforcerowsecurity))")), setup=False)
-        self.run_case("private_functions_owner_and_search_path", a("NOT EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_roles r ON r.oid=p.proowner WHERE n.nspname='gis' AND (r.rolname<>'gis_owner' OR NOT p.prosecdef OR p.proconfig IS NULL))"), setup=False)
+        # Every private function is owned by gis_owner with a pinned search_path and is SECURITY DEFINER,
+        # except the five pure IMMUTABLE helpers added by 044-047. Those touch no table and stay
+        # SECURITY INVOKER on purpose (definer rights would only add privilege); they must remain
+        # IMMUTABLE and not executable by any client role. Named explicitly so a new non-definer
+        # function fails this case instead of passing silently.
+        invoker_helpers = "('gee_live_method','gee_live_canonical','gee_live_geometry','safety_policy','https_endpoint')"
+        client_exec = " OR ".join("has_function_privilege('" + c + "',p.oid,'EXECUTE')" for c in ("anon", "authenticated", "service_role", "gis_worker"))
+        self.run_case("private_functions_owner_and_search_path", a("NOT EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_roles r ON r.oid=p.proowner WHERE n.nspname='gis' AND (r.rolname<>'gis_owner' OR p.proconfig IS NULL OR (NOT p.prosecdef AND (p.proname NOT IN " + invoker_helpers + " OR p.provolatile<>'i' OR " + client_exec + "))))"), setup=False)
         self.run_case("worker_nologin_nonprivileged", a("EXISTS(SELECT 1 FROM pg_roles WHERE rolname='gis_worker' AND NOT rolcanlogin AND NOT rolsuper AND NOT rolbypassrls AND NOT rolcreatedb AND NOT rolcreaterole)"), setup=False)
         for client in ("anon", "authenticated", "service_role", "gis_worker"):
             self.run_case(client + "_private_select_denied", role(client, "SELECT * FROM gis.datasets;"), expected_error="42501", setup=False)
