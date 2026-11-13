@@ -1,4 +1,5 @@
 """Private Local TIFF objects using the existing bounded immutable upload store."""
+import os
 from pathlib import Path
 import re
 import struct
@@ -27,15 +28,15 @@ class LocalGeoTiffStore(LocalLddStore):
     REQUIRED_MIGRATION = 36
     OBJECT_SUFFIX = '.tif'
 
-    @staticmethod
-    def preflight(path: Path):
+    def preflight(self, path: Path):
         # Only a bounded signature/first-IFD check in HTTP. GDAL stays in child.
-        with path.open('rb') as source:
+        with self.disk.open_read(path) as source:
             header = source.read(8)
+            size = source.seek(0, os.SEEK_END)
         if len(header) != 8 or header[:4] not in (b'II*\x00', b'MM\x00*'):
             raise storage_error('GIS_GEOTIFF_INVALID', 422)
         offset = struct.unpack('<I' if header[:2] == b'II' else '>I', header[4:])[0]
-        if not 8 <= offset <= path.stat().st_size - 2:
+        if not 8 <= offset <= size - 2:
             raise storage_error('GIS_GEOTIFF_INVALID', 422)
 
     async def receive(self, *args, **kwargs):
