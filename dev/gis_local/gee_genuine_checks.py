@@ -27,11 +27,11 @@ def sample(product='ndvi'):
 
 def setup_sql(actor,worker,recorder,*,product='ndvi',expiry="interval '20 minutes'"):
     value,raw,out=sample(product)
-    sql="SET LOCAL ROLE gis_owner;DO $setup$ DECLARE i uuid;s uuid;v jsonb;runtime uuid;j jsonb;BEGIN "
+    sql="SET LOCAL ROLE gis_owner;DO $setup$ DECLARE i uuid;s uuid;v jsonb;runtime uuid;j jsonb;t timestamptz;BEGIN t:=clock_timestamp();"
     sql+="INSERT INTO gis.gee_live_inputs(value) VALUES("+quote(json.dumps(value))+"::jsonb) RETURNING id INTO i;"
     sql+="s:=gis.safety_session("+quote(actor)+","+quote(worker)+");v:=gis.safety_enqueue("+quote(actor)+",gen_random_uuid(),i,s);"
-    sql+="INSERT INTO gis.gee_https_runtimes(recorder_id,image_id,network_policy_sha256,credential_issuer_key_sha256,approved_by,expires_at) VALUES("
-    sql+=quote(recorder)+",'sha256:'||repeat('a',64),repeat('b',64),repeat('c',64),"+quote(actor)+",clock_timestamp()+"+expiry+") RETURNING id INTO runtime;"
+    sql+="INSERT INTO gis.gee_https_runtimes(recorder_id,image_id,network_policy_sha256,credential_issuer_key_sha256,approved_by,approved_at,expires_at) VALUES("
+    sql+=quote(recorder)+",'sha256:'||repeat('a',64),repeat('b',64),repeat('c',64),"+quote(actor)+",t,t+"+expiry+") RETURNING id INTO runtime;"
     sql+="PERFORM gis.https_authorize((v->>'job_id')::uuid,"+quote(recorder)+",runtime);"
     sql+="j:=gis.queue_protocol_kind('claim',jsonb_build_object('worker_id',"+quote(worker)+"),'gee_genuine_https')->'job';"
     sql+="IF j->>'id' IS DISTINCT FROM v->>'job_id' THEN RAISE EXCEPTION 'HTTPS_CLAIM_FAILED';END IF;"

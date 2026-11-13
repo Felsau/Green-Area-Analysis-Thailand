@@ -111,6 +111,28 @@ END $test$;
             + ",'checks',jsonb_build_array('synthetic_fixture_match'))")
         return role("gis_worker", "SELECT " + self.worker("complete", payload) + ";")
 
+    def prepare_publication(self):
+        """Put the fixture edition in the state migration 037 requires before a pointer may move.
+
+        Since 037 `gis.guard_publication_pointer` rejects any non-null `active_edition_id` change
+        with GIS_PUBLICATION_NOT_READY unless `gis.publication_ready(edition,dataset)` is true.
+        Real readiness (037 artifacts + 038/052 verified LDD certificate, or 041/042 GeoTIFF
+        certificate + admin acceptance) needs uploaded bytes and a native validation/prepare job;
+        a synthetic SQL fixture cannot produce them. This suite therefore marks the fixture edition
+        as prepared by replacing `gis.publication_ready` inside the case's own transaction. The case
+        always ends in ROLLBACK, so the replacement and every fixture row are discarded and the
+        installed function is untouched. Real prepare/accept/activate behaviour is tested by the
+        ldd_prepare/ldd_publication/geotiff_* checks, not here.
+        """
+        return role("gis_owner", """
+CREATE OR REPLACE FUNCTION gis.publication_ready(p_edition uuid,p_dataset uuid) RETURNS boolean
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,gis AS $stub$
+BEGIN
+ PERFORM gis.assert_environment();
+ RETURN EXISTS(SELECT 1 FROM gis.editions WHERE id=p_edition AND dataset_id=p_dataset);
+END $stub$;
+""")
+
     def expire(self):
         return role("gis_owner", "UPDATE gis.jobs SET lease_until=clock_timestamp()-interval '1 second' WHERE id=current_setting('t1.job')::uuid;")
 
@@ -233,7 +255,9 @@ END $test$;
         self.run_case("invalid_fixture_cannot_complete_successfully", cat(fixture="invalid-v1") + self.enqueue() + self.claim() + self.complete("invalid-v1"), fixture="invalid-v1", expected_error="GIS_INVALID_RESULT")
         self.run_case("db_identity_cannot_change", cat() + role("gis_owner", "UPDATE gis.datasets SET data_year=2024 WHERE id=current_setting('t1.dataset')::uuid;"), expected_error="GIS_DATASET_IDENTITY_IMMUTABLE")
         self.run_case("db_validated_inputs_immutable", validated() + role("gis_owner", "UPDATE gis.editions SET input_revision=2 WHERE id=current_setting('t1.edition')::uuid;"), expected_error="GIS_INPUT_IMMUTABLE")
-        self.run_case("db_unvalidated_active_pointer_rejected", cat() + role("gis_owner", "UPDATE gis.environment SET activation_enabled=true;UPDATE gis.datasets SET active_edition_id=current_setting('t1.edition')::uuid,revision=2 WHERE id=current_setting('t1.dataset')::uuid;"), expected_error="GIS_ACTIVE_INVARIANT")
+        # Migration 037: an unprepared edition can never become the active pointer, validated or not.
+        self.run_case("db_unprepared_active_pointer_rejected", validated() + role("gis_owner", "UPDATE gis.environment SET activation_enabled=true;UPDATE gis.datasets SET active_edition_id=current_setting('t1.edition')::uuid,revision=2 WHERE id=current_setting('t1.dataset')::uuid;"), expected_error="GIS_PUBLICATION_NOT_READY")
+        self.run_case("db_unvalidated_active_pointer_rejected", cat() + self.prepare_publication() + role("gis_owner", "UPDATE gis.environment SET activation_enabled=true;UPDATE gis.datasets SET active_edition_id=current_setting('t1.edition')::uuid,revision=2 WHERE id=current_setting('t1.dataset')::uuid;"), expected_error="GIS_ACTIVE_INVARIANT")
         self.run_case("db_edition_without_active_job_rejected", cat() + role("gis_owner", "UPDATE gis.editions SET state='validating' WHERE id=current_setting('t1.edition')::uuid;"), expected_error="GIS_QUEUE_EDITION_INVARIANT")
         self.run_case("db_audit_append_only", cat() + role("gis_owner", "UPDATE gis.audit SET reason='rewritten';"), expected_error="GIS_HISTORY_IMMUTABLE")
         self.run_case("db_result_append_only", validated() + role("gis_owner", "UPDATE gis.results SET report='{}';"), expected_error="GIS_HISTORY_IMMUTABLE")
@@ -245,19 +269,22 @@ END $test$;
 
     def activation_cases(self, validated):
         gate_on = role("gis_owner", "UPDATE gis.environment SET activation_enabled=true;")
+        # Migration 037: activation also needs the edition prepared for publication (see prepare_publication).
+        prepared = self.prepare_publication()
         payload = "jsonb_build_object('dataset_id',current_setting('t1.dataset'),'edition_id',current_setting('t1.edition'),'expected_revision',1,'expected_active_edition_id',NULL,'reason','synthetic activation test')"
         activate = lambda actor="admin", sandbox="true": role("service_role", "SELECT " + self.rpc("activate", payload, actor=actor, sandbox=sandbox) + ";")
         self.run_case("activation_database_gate_off", validated() + activate(), expected_error="GIS_ACTIVATION_DISABLED")
         self.run_case("activation_backend_gate_off", validated() + gate_on + activate(sandbox="false"), expected_error="GIS_ACTIVATION_DISABLED")
         self.run_case("officer_cannot_activate", validated() + gate_on + activate(actor="officer"), expected_error="42501")
-        self.run_case("activation_success_preserves_edition", validated() + gate_on + activate() + role("gis_owner", assertion("EXISTS(SELECT 1 FROM gis.datasets d JOIN gis.editions e ON e.id=d.active_edition_id WHERE d.id=current_setting('t1.dataset')::uuid AND d.revision=2 AND e.state='validated')")))
-        self.run_case("activation_stale_revision_rejected", validated() + gate_on + activate() + activate(), expected_error="GIS_REVISION")
+        self.run_case("activation_requires_prepared_publication", validated() + gate_on + activate(), expected_error="GIS_PUBLICATION_NOT_READY")
+        self.run_case("activation_success_preserves_edition", validated() + gate_on + prepared + activate() + role("gis_owner", assertion("EXISTS(SELECT 1 FROM gis.datasets d JOIN gis.editions e ON e.id=d.active_edition_id WHERE d.id=current_setting('t1.dataset')::uuid AND d.revision=2 AND e.state='validated')")))
+        self.run_case("activation_stale_revision_rejected", validated() + gate_on + prepared + activate() + activate(), expected_error="GIS_REVISION")
         clone = self.rpc("clone_edition", "jsonb_build_object('edition_id',current_setting('t1.edition'),'expected_revision',1)")
         self.run_case("validated_edition_clone_is_new_draft", validated() + role("service_role", "SELECT " + clone + ";") + role("gis_owner", assertion("(SELECT count(*)=2 FROM gis.editions WHERE dataset_id=current_setting('t1.dataset')::uuid) AND EXISTS(SELECT 1 FROM gis.editions WHERE cloned_from_id=current_setting('t1.edition')::uuid AND state='draft')")))
         edit = self.rpc("edit_edition", "jsonb_build_object('edition_id',current_setting('t1.edition'),'expected_revision',1,'manifest',current_setting('t1.manifest')::jsonb)")
         self.run_case("validated_inputs_cannot_edit", validated() + role("service_role", "SELECT " + edit + ";"), expected_error="GIS_REVISION_CONFLICT")
         withdraw_payload = "jsonb_build_object('edition_id',current_setting('t1.edition'),'expected_revision',1,'expected_dataset_revision',2,'expected_active_edition_id',current_setting('t1.edition'),'replacement_edition_id',NULL,'reason','explicitly clear synthetic pointer')"
-        self.run_case("active_withdrawal_explicitly_clears_pointer", validated() + gate_on + activate()
+        self.run_case("active_withdrawal_explicitly_clears_pointer", validated() + gate_on + prepared + activate()
             + role("service_role", "SELECT " + self.rpc("withdraw", withdraw_payload, actor="admin", sandbox="true") + ";")
             + role("gis_owner", assertion("(SELECT active_edition_id IS NULL AND revision=3 FROM gis.datasets WHERE id=current_setting('t1.dataset')::uuid) AND (SELECT state='withdrawn' FROM gis.editions WHERE id=current_setting('t1.edition')::uuid)")))
         second_edition = role("gis_owner", "SELECT set_config('t1.old_edition',current_setting('t1.edition'),true);")
@@ -266,7 +293,7 @@ END $test$;
         second_edition += self.enqueue() + self.claim() + self.complete()
         second_payload = "jsonb_build_object('dataset_id',current_setting('t1.dataset'),'edition_id',current_setting('t1.edition'),'expected_revision',2,'expected_active_edition_id',current_setting('t1.old_edition'),'reason','synthetic new edition')"
         rollback_payload = "jsonb_build_object('dataset_id',current_setting('t1.dataset'),'edition_id',current_setting('t1.old_edition'),'expected_revision',3,'expected_active_edition_id',current_setting('t1.edition'),'reason','synthetic rollback')"
-        self.run_case("transactional_rollback_preserves_both_results", validated() + gate_on + activate() + second_edition
+        self.run_case("transactional_rollback_preserves_both_results", validated() + gate_on + prepared + activate() + second_edition
             + role("service_role", "SELECT " + self.rpc("activate", second_payload, actor="admin", sandbox="true") + ";SELECT " + self.rpc("rollback", rollback_payload, actor="admin", sandbox="true") + ";")
             + role("gis_owner", assertion("(SELECT active_edition_id=current_setting('t1.old_edition')::uuid AND revision=4 FROM gis.datasets WHERE id=current_setting('t1.dataset')::uuid) AND (SELECT count(*)=2 FROM gis.results WHERE edition_id IN (current_setting('t1.edition')::uuid,current_setting('t1.old_edition')::uuid))")))
         # FK account deletion on test users is rolled back, never an existing account.

@@ -39,6 +39,7 @@ class Suite:
         self.jobs = set()
         self.created = {'datasets': 0, 'editions': 0}
         self.gate_changed = False
+        self.readiness_original = None
         self.client = self.gated_client = None
         self.started = time.monotonic()
 
@@ -98,6 +99,9 @@ class Suite:
         self.local.attest()
         state = self.sql("SELECT jsonb_build_object('active',(SELECT count(*) FROM gis.jobs WHERE state IN ('queued','running')),'gate',(SELECT activation_enabled FROM gis.environment))")
         if state['active'] or state['gate']:
+            raise FixtureFailure()
+        # A killed earlier run may have left the synthetic readiness override installed (see prepare_publication).
+        if self.sql('SELECT to_jsonb(pg_get_functiondef(' + self.READINESS + ') LIKE ' + module.t1.literal('%' + self.READINESS_MARKER + '%') + ')'):
             raise FixtureFailure()
         anon, service = self.local.local_keys()
         admin = self.local.client(service)
@@ -369,6 +373,10 @@ ORDER BY (p.name_en='Bangkok Metropolis') DESC,p.name_en,y,m LIMIT 1""")
         self.sql('UPDATE gis.environment SET activation_enabled=true')
         self.gate_changed = True
         self.expect('database_on_backend_gate_off_503', 'POST', dp + '/activation', 503, actor='admin', body=payload)
+        # Migration 037: an edition that has not been prepared for publication cannot become active,
+        # however valid its synthetic validation result is.
+        self.expect('activation_requires_prepared_publication_409', 'POST', dp + '/activation', 409, actor='admin', body=payload, client=self.gated_client)
+        self.prepare_publication()
         active = self.expect('admin_synthetic_activation', 'POST', dp + '/activation', 200, actor='admin', body=payload, client=self.gated_client, required=True).json()
         self.expect('activation_stale_revision_409', 'POST', dp + '/activation', 409, actor='admin', body=payload, client=self.gated_client)
         second = self.edition(data, 'second_edition_for_rollback')
@@ -388,8 +396,49 @@ ORDER BY (p.name_en='Bangkok Metropolis') DESC,p.name_en,y,m LIMIT 1""")
         self.expect('officer_cannot_withdraw', 'POST', ep, 403, body=withdraw, client=self.gated_client)
         self.expect('admin_withdraw_clears_pointer', 'POST', ep, 200, actor='admin', body=withdraw, client=self.gated_client,
             predicate=lambda value: value['edition']['state'] == 'withdrawn' and value['dataset']['active_edition_id'] is None)
+        self.restore_publication_ready()
         self.sql('UPDATE gis.environment SET activation_enabled=false')
         self.gate_changed = False
+
+    READINESS = "'gis.publication_ready(uuid,uuid)'::regprocedure"
+    READINESS_MARKER = 'T2_SYNTHETIC_PUBLICATION_READY_OVERRIDE'
+
+    def prepare_publication(self):
+        """Mark the synthetic fixture editions as prepared for publication (migration 037 rule).
+
+        gis.guard_publication_pointer rejects any non-null active_edition_id change unless
+        gis.publication_ready(edition,dataset) is true. Real readiness (037 artifacts plus an
+        038/052 LDD certificate, or 041/042 GeoTIFF certificate and admin acceptance) needs uploaded
+        bytes and native prepare jobs, which this synthetic API fixture cannot produce. T2 therefore
+        swaps in a readiness function that only checks the edition belongs to the dataset, keeps the
+        original definition, and restores it (byte for byte) in restore_publication_ready, which
+        cleanup() also calls. Unlike T1 these rows are committed, so the swap is NOT rolled back
+        automatically; a killed run leaves the marker comment in the function and the next run
+        refuses to start until the original definition (saved under t2/) has been re-applied.
+        """
+        self.readiness_original = self.sql('SELECT to_jsonb(pg_get_functiondef(' + self.READINESS + '))')
+        if not isinstance(self.readiness_original, str) or self.READINESS_MARKER in self.readiness_original:
+            raise FixtureFailure()
+        self.local.write('publication-ready-original-' + self.run_id + '.json', {'definition': self.readiness_original})
+        self.sql("""CREATE OR REPLACE FUNCTION gis.publication_ready(p_edition uuid,p_dataset uuid) RETURNS boolean
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,gis AS $stub$
+BEGIN
+ /* """ + self.READINESS_MARKER + """ */
+ PERFORM gis.assert_environment();
+ RETURN EXISTS(SELECT 1 FROM gis.editions WHERE id=p_edition AND dataset_id=p_dataset);
+END $stub$""")
+        self.record('publication_prepared_for_synthetic_editions', True)
+
+    def restore_publication_ready(self):
+        original = getattr(self, 'readiness_original', None)
+        if original is None:
+            return
+        # The SQL transport translates newlines (the installed body may contain CR/LF), so send the
+        # definition as hex and let the server rebuild the exact text.
+        self.sql('DO $restore$ BEGIN EXECUTE convert_from(decode(' + module.t1.literal(original.encode('utf-8').hex()) + ",'hex'),'UTF8'); END $restore$")
+        restored = self.sql('SELECT to_jsonb(pg_get_functiondef(' + self.READINESS + '))')
+        self.record('original_publication_ready_restored_byte_identical', restored == original)
+        self.readiness_original = None
 
     def tail_cases(self):
         self.expect('admin_grant_second_officer_for_page', 'POST', '/gis/officers', 200, actor='admin',
@@ -433,6 +482,7 @@ ORDER BY (p.name_en='Bangkok Metropolis') DESC,p.name_en,y,m LIMIT 1""")
             if self.gate_changed:
                 self.sql('UPDATE gis.environment SET activation_enabled=false')
                 self.gate_changed = False
+            self.restore_publication_ready()
             # Claim order is queue order, not UUID order. Refuse to interfere if
             # another producer has added work to this isolated test queue.
             active = self.sql("SELECT COALESCE(jsonb_agg(id),'[]'::jsonb) FROM gis.jobs WHERE state IN ('queued','running')")

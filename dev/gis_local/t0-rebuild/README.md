@@ -162,10 +162,10 @@ probe ของ 044 ต้องมีแถวใน `gis.officers` ทุก�
 & $py -I -B dev\gis_local\tests\t1_cases.py --runtime-dir $rt --database postgres
 & $py -I -B dev\gis_local\tests\t1_cases.py --runtime-dir $rt --database gis_t1_upgrade
 ```
-ผลที่ควรเห็น (log รอบ W4): ทั้งสองฐาน `{"counts": {"Pass": 78, "Fail": 5}, ...}` และ exit code 1
-- 5 ข้อที่ล้มเป็นเทสต์ activation ที่ได้ `GIS_PUBLICATION_NOT_READY` (เทสต์ชุดนี้เขียนก่อน 037) **ไม่ต้องหยุด** สิ่งที่ต้องการจากขั้นนี้คือ officer
-- ข้อ `committed_concurrent_job_completion` ต้องเป็น `Pass` (ข้อนี้สร้าง officer ที่ค้างไว้)
-- ถ้าหัวหน้าแก้ `t1_cases.py` แล้ว ตัวเลขอาจเปลี่ยน ให้ยึดตามฉบับที่อยู่บนบรานช์
+ผลที่ควรเห็น: ข้อ `committed_concurrent_job_completion` ต้องเป็น `Pass` (ข้อนี้สร้าง officer ที่ค้างไว้) สิ่งที่ต้องการจากขั้นนี้คือ officer
+- `t1_cases.py` ฉบับปัจจุบันเตรียม publication ก่อนทุกเคสที่ย้าย active pointer (กฎของ 037) ดู `prepare_publication()` ในไฟล์ จึงไม่มีเคส activation ล้มด้วย `GIS_PUBLICATION_NOT_READY` อีก และมีเคสใหม่ 2 ข้อที่พิสูจน์กฎนั้น (`db_unprepared_active_pointer_rejected`, `activation_requires_prepared_publication`)
+- วัดจริงบน T0 ที่ migration 052 (ทั้งสองฐาน): `{"counts": {"Pass": 84, "Fail": 1}}` ข้อที่ล้มคือ `private_functions_owner_and_search_path` เพราะ migration 044-047 เพิ่มฟังก์ชันช่วยแบบ IMMUTABLE ที่ไม่ใช่ SECURITY DEFINER (`gee_live_method`, `gee_live_canonical`, `gee_live_geometry`, `safety_policy`, `https_endpoint`) ไม่เกี่ยวกับ 037 และยังไม่ได้แก้
+- ที่ migration 043 (ตอนรันขั้นนี้จริง) ข้อ `private_functions...` ยังไม่เจอฟังก์ชันเหล่านั้น จึงคาดว่าได้ 85 Pass / 0 Fail แต่ **ยังไม่ได้รันซ้ำที่จุดนั้น**
 
 ## 11. 044–047 (probe แล้ว migrate ทีละตัว)
 ```powershell

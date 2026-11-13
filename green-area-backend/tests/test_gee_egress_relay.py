@@ -177,7 +177,7 @@ def test_dry_run_never_dials_and_logs_only_metadata():
             try:
                 c.sendall(b'CONNECT evil.example:443 HTTP/1.1\r\n\r\nsecret-payload')
                 assert c.recv(10) == b''  # closed without forwarding anything
-            except (ConnectionResetError, BrokenPipeError):
+            except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
                 pass
         event = r.wait()[0]
     assert (event['outcome'], event['upstream'], event['host']) == ('dry_run', '142.250.1.10', 'earthengine.googleapis.com')

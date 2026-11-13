@@ -114,6 +114,15 @@ roll back individual fixtures, and explicitly force deferred constraints before
 rollback. Concurrency/lease-wait fixtures commit and are **retained**, with their
 jobs finished through the queue protocol. They do not delete preexisting data.
 
+Since migration 037 an Edition must be prepared for publication before the dataset
+pointer can move (`GIS_PUBLICATION_NOT_READY` otherwise). Every case that sets
+`active_edition_id` therefore calls `prepare_publication()`, which replaces
+`gis.publication_ready` inside that case's transaction (always rolled back, so the
+installed function is never changed). Real readiness needs uploaded bytes and native
+prepare jobs and is tested by the ldd_prepare/ldd_publication/geotiff_* checks.
+Two cases (`db_unprepared_active_pointer_rejected`,
+`activation_requires_prepared_publication`) prove the unprepared path stays rejected.
+
 `t1_preservation.py` records legacy table hashes, columns, constraints, indexes,
 profile functions, Auth trigger and RLS flags before/after migration. The intended
 new SELECT policies/column privileges for `gis_owner` on profiles/provinces are

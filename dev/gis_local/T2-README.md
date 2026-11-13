@@ -95,6 +95,18 @@ The legacy main retains its original origins and adds only Idempotency-Key.
 imports and denies non-loopback network. Unit/regression tests are mocks and do
 not prove actual Auth/RPC. Windows TestClient requires local socket permission.
 
+Since migration 037 an Edition must be prepared for publication before activation
+(`GIS_PUBLICATION_NOT_READY`, HTTP 409). `t2_integration.py` first proves the unprepared
+activation is refused, then `prepare_publication()` swaps in a synthetic
+`gis.publication_ready` (edition belongs to dataset) for the activation cases and
+`restore_publication_ready()` puts the original definition back and checks it byte for
+byte (also called from cleanup). Because T2 commits, a killed run can leave the
+override (marker `T2_SYNTHETIC_PUBLICATION_READY_OVERRIDE`) installed; the next run
+refuses to start, and the original definition is saved as
+`$gisRuntime/t2/publication-ready-original-<run>.json`; re-apply it as `gis_owner`
+without newline translation (the installed body contains CR/LF; the harness sends it as
+hex through `convert_from(decode(...))`).
+
 Integration uses the real local Auth and PostgREST services through the SDK and
 FastAPI TestClient (ASGI), not a browser or hosted backend. It must run alone on an
 idle synthetic queue with no other producer/worker. Per-run positive fixtures are
