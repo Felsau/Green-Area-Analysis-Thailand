@@ -9,16 +9,16 @@ from datetime import datetime, timezone
 import ee
 
 from canopy import build_canopy, canopy_area_bands
-from dependencies import CURRENT_CACHE_VERSION, WHO_STANDARD_M2, MONTH_NAMES
-from gee_utils import (S2_CLOUD_FILTER_FALLBACK_PCT, S2_CLOUD_FILTER_PCT,
-                       s2_clean_collection)
+from dependencies import NDVI_ANNUAL_CACHE_VERSION, WHO_STANDARD_M2, MONTH_NAMES
+from gee_utils import (S2_CLOUD_FILTER_FALLBACK_PCT,  # noqa: F401  re-exported for tests
+                       S2_CLOUD_FILTER_PCT, s2_clean_collection)
 
 
 def _is_stale(row: dict, require_validation: bool = False) -> bool:
     """Cache row ที่ควร invalidate และคำนวณใหม่.
 
     เกณฑ์ (เรียงตาม priority):
-      1. cache_version < CURRENT_CACHE_VERSION → schema/logic เปลี่ยน, recompute
+      1. cache_version < NDVI_ANNUAL_CACHE_VERSION → schema/logic เปลี่ยน, recompute
       2. ขาด field สำคัญ (green_area_pct, total_area_km2)
       3. NDVI Min ต่ำกว่า −0.05 = cache ก่อนยุค water mask (legacy heuristic)
 
@@ -31,7 +31,7 @@ def _is_stale(row: dict, require_validation: bool = False) -> bool:
     flag row ของอำเภอจะ stale ตลอดกาล = recompute ทุกครั้งที่เปิด (GEE quota ไหม้)
     """
     # ใช้ .get default = 1 สำหรับ row จาก legacy schema ที่ยังไม่มี column
-    if row.get("cache_version", 1) < CURRENT_CACHE_VERSION:
+    if row.get("cache_version", 1) < NDVI_ANNUAL_CACHE_VERSION:
         return True
     if row.get("green_area_pct") is None or row.get("total_area_km2") is None:
         return True
@@ -330,9 +330,9 @@ def _compute_ndvi_annual(geom: ee.Geometry, year: int, scale: int,
         times_ms, stats.get('clear_obs_mean'), stats.get('clear_obs_min'),
         stats.get('ndvi_sd_mean'), ndvi_mean, cloud_filter_pct)
 
-    # Two thresholds: 0.3 (vegetation incl. crops) and 0.5 (dense forest)
+    # Two thresholds: > 0.3 (vegetation incl. crops) and >= 0.6 (dense vegetation)
     green_mask = ndvi_raw.gt(0.3)
-    dense_mask = ndvi_raw.gt(0.5)
+    dense_mask = ndvi_raw.gte(0.6)
 
     # total/green/dense area + band เรือนยอดของ FR-17 รวมเป็นก้อนเดียวแล้ว reduceRegion
     # รอบเดียว — ลด GEE round-trip เหลือ 1 (pattern เดียวกับ urban.py) · canopy จึงแทบ

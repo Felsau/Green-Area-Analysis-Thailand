@@ -29,7 +29,7 @@ export const ndviSections = (ctx) => {
 
   const ndviRows = [
     ['NDVI Mean', fmt(ndviStats.ndvi_mean, 3),
-      ndviStats.ndvi_mean >= 0.5 ? 'พืชพรรณหนาแน่น (ป่า/เกษตรเข้มข้น)'
+      ndviStats.ndvi_mean >= 0.6 ? 'พืชพรรณหนาแน่น (ป่า/เกษตรเข้มข้น)'
         : ndviStats.ndvi_mean >= 0.3 ? 'พืชพรรณปานกลาง (เกษตร/ทุ่งหญ้า)'
         : 'พืชพรรณน้อย (เมือง/พื้นที่เปิดโล่ง)'],
     ['NDVI Min (หลัง mask น้ำ)', fmt(ndviStats.ndvi_min, 3),
@@ -43,9 +43,9 @@ export const ndviSections = (ctx) => {
   // เพิ่มแถว dense forest เฉพาะเมื่อมีข้อมูล (หลัง re-compute) — ไม่งั้นซ่อนเพื่อไม่ให้มี TODO ใน PDF
   if (ndviStats.dense_area_pct != null) {
     ndviRows.push([
-      'พื้นที่ป่าหนา (NDVI > 0.5)',
+      'พื้นที่พืชพรรณหนาแน่น (NDVI ≥ 0.6)',
       `${fmt(ndviStats.dense_area_pct, 1)}% (${fmtInt(ndviStats.dense_area_km2)} km²)`,
-      'ป่าเรือนยอดปิด',
+      'พืชพรรณที่มีค่า NDVI สูง รวมป่าและพืชเกษตร',
     ]);
   }
   ndviRows.push(['ประชากร', fmtInt(ndviStats.population), 'จาก WorldPop 100m']);

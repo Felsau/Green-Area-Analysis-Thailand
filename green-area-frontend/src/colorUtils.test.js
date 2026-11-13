@@ -20,7 +20,7 @@ describe('getLstColor', () => {
 
 describe('labels', () => {
   test('ndvi null → dash', () => expect(getNdviLabel(null)).toBe('—'));
-  test('ndvi dense label', () => expect(getNdviLabel(0.7)).toBe('พืชพรรณหนาแน่นมาก'));
+  test('ndvi dense label', () => expect(getNdviLabel(0.7)).toBe('พืชพรรณหนาแน่น'));
   test('lst hot label', () => expect(getLstLabel(40)).toBe('ร้อนมาก'));
   test('lst cool label', () => expect(getLstLabel(20)).toBe('เย็น'));
 });

@@ -37,7 +37,7 @@ export default function DrawResultCard({
           hint={result.green_area_km2 != null ? `${result.green_area_km2.toLocaleString()} km²` : null}
         />
         <KV
-          label="ป่าทึบ"
+          label="พืชพรรณหนาแน่น"
           value={result.dense_area_pct != null ? `${result.dense_area_pct}%` : '—'}
           hint={result.dense_area_km2 != null ? `${result.dense_area_km2.toLocaleString()} km²` : null}
         />

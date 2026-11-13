@@ -15,6 +15,7 @@ from routers.recommend.species import get_recommended_species
 from polygon_utils import (
     validate_polygon_geometry, polygon_area_km2, validate_drawn_polygon)
 from dependencies import (_validate_geojson_path, CURRENT_CACHE_VERSION,
+                          NDVI_ANNUAL_CACHE_VERSION,
                           ensure_province, ensure_district, get_population,
                           get_province_geom, get_district_geom,
                           PROVINCE_GEOMETRIES, DISTRICT_GEOMETRIES)
@@ -29,7 +30,7 @@ def _cached_row(**overrides):
     return {"green_area_pct": 35.2, "total_area_km2": 1234, "ndvi_min": 0.05,
             "data_quality": {"image_count": 120, "level": "threshold"},
             "canopy": {"available": True, "canopy_pct": 12.4},
-            "cache_version": CURRENT_CACHE_VERSION, **overrides}
+            "cache_version": NDVI_ANNUAL_CACHE_VERSION, **overrides}
 
 
 class TestIsStale:
@@ -54,18 +55,18 @@ class TestIsStale:
         assert _is_stale(_cached_row(ndvi_min=None)) is False
 
     def test_old_cache_version_is_stale(self):
-        # cache_version < CURRENT_CACHE_VERSION → stale แม้ field อื่นจะครบ
-        assert _is_stale(_cached_row(cache_version=CURRENT_CACHE_VERSION - 1)) is True
+        # NDVI annual v3 ใช้เกณฑ์ > 0.5; ต้องคำนวณใหม่เมื่อ v4 ใช้ ≥ 0.6
+        assert _is_stale(_cached_row(cache_version=CURRENT_CACHE_VERSION)) is True
 
     def test_current_cache_version_not_stale(self):
         assert _is_stale(_cached_row()) is False
 
     def test_missing_cache_version_treated_as_1(self):
         # row จาก legacy schema (ไม่มี cache_version column) — default = 1
-        # CURRENT_CACHE_VERSION >= 2 (Cloud Score+) → 1 < current = stale
+        # NDVI_ANNUAL_CACHE_VERSION >= 2 (Cloud Score+) → 1 < current = stale
         row = _cached_row()
         del row["cache_version"]
-        assert _is_stale(row) is (CURRENT_CACHE_VERSION > 1)
+        assert _is_stale(row) is (NDVI_ANNUAL_CACHE_VERSION > 1)
 
     def test_missing_data_quality_is_stale(self):
         # row ก่อน NFR-07 — recompute เพื่อให้ทุกค่า NDVI มีตัวเลขความไม่แน่นอนกำกับ

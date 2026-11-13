@@ -1,8 +1,8 @@
 // Color key for the province choropleth (NDVI greenness) drawn on the map.
 // Mirrors the buckets in colorUtils.js (getNdviRgba).
 const NDVI_STOPS = [
-  { color: '#22c55e', label: 'หนาแน่นมาก', range: '≥ 0.60' },
-  { color: '#4ade80', label: 'หนาแน่น',     range: '0.45–0.60' },
+  { color: '#22c55e', label: 'หนาแน่น',       range: '≥ 0.60' },
+  { color: '#4ade80', label: 'ค่อนข้างมาก', range: '0.45–0.60' },
   { color: '#86efac', label: 'ปานกลาง',      range: '0.30–0.45' },
   { color: '#bbf7d0', label: 'น้อย',         range: '< 0.30' },
 ];

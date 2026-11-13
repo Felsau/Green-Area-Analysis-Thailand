@@ -45,11 +45,11 @@ export const conclusionsSection = ({ ndvi, lst, deficitInfo, comparison }) => {
   const lines = [];
 
   if (ndvi.ndvi_mean != null) {
-    const interp = ndvi.ndvi_mean >= 0.5 ? 'หนาแน่นสูง'
+    const interp = ndvi.ndvi_mean >= 0.6 ? 'หนาแน่น'
                 : ndvi.ndvi_mean >= 0.3 ? 'ปานกลาง'
                 : ndvi.ndvi_mean >= 0.15 ? 'น้อย'
                 : 'ต่ำมาก';
-    const detail = ndvi.ndvi_mean >= 0.5
+    const detail = ndvi.ndvi_mean >= 0.6
       ? 'สอดคล้องกับลักษณะพื้นที่ที่มีป่าหรือเกษตรเข้มข้น เช่น ภูเขา/พื้นที่นอกเมือง'
       : ndvi.ndvi_mean >= 0.3
       ? 'พื้นที่ส่วนใหญ่เป็นเกษตร ทุ่งหญ้า หรือเรือนยอดเปิดโปร่ง'
@@ -61,7 +61,7 @@ export const conclusionsSection = ({ ndvi, lst, deficitInfo, comparison }) => {
 
   if (ndvi.green_area_pct != null) {
     const denseTxt = ndvi.dense_area_pct != null
-      ? ` ในจำนวนนี้เป็น <b>ป่าหนา (NDVI &gt; 0.5) ${fmt(ndvi.dense_area_pct, 1)}%</b>`
+      ? ` ในจำนวนนี้เป็น <b>พืชพรรณหนาแน่น (NDVI ≥ 0.6) ${fmt(ndvi.dense_area_pct, 1)}%</b>`
       : '';
     lines.push(
       `พื้นที่สีเขียว (NDVI &gt; 0.3) ครอบคลุม <b>${fmt(ndvi.green_area_pct, 1)}%</b> ของพื้นที่ทั้งหมด${denseTxt} · ` +

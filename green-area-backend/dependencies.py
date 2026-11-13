@@ -45,6 +45,11 @@ WORLDPOP_YEAR = int(os.getenv("WORLDPOP_YEAR", "2020"))
 #              (กรุงเทพฯ ปี 2024: 30.64 → 32.25 m²/คน)
 CURRENT_CACHE_VERSION = 3
 
+# NDVI annual v4: dense_area_pct/km2 now count pixels with NDVI >= 0.6
+# instead of NDVI > 0.5. Keep monthly NDVI, LST and urban caches at v3:
+# their compute logic and values did not change.
+NDVI_ANNUAL_CACHE_VERSION = 4
+
 # Recommend cache version — แยกจาก CURRENT_CACHE_VERSION (NDVI/LST/urban) เพราะ
 # compute logic ของ /recommend เปลี่ยนคนละจังหวะ · bump เมื่อแก้ priority/plantable/
 # impact logic ที่ทำให้ค่า cache เก่าไม่ valid · v1 = plantability mask (ESA WorldCover)

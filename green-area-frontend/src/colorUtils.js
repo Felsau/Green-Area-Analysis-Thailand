@@ -8,8 +8,8 @@ export const getNdviColor = (value) => {
 
 export const getNdviLabel = (value) => {
   if (value == null) return '—';
-  if (value >= 0.6) return 'พืชพรรณหนาแน่นมาก';
-  if (value >= 0.45) return 'พืชพรรณหนาแน่น';
+  if (value >= 0.6) return 'พืชพรรณหนาแน่น';
+  if (value >= 0.45) return 'พืชพรรณค่อนข้างมาก';
   if (value >= 0.3) return 'พืชพรรณปานกลาง';
   return 'พืชพรรณน้อย';
 };

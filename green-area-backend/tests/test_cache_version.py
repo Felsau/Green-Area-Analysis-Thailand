@@ -19,7 +19,8 @@ from types import SimpleNamespace
 import pytest
 from fastapi.testclient import TestClient
 
-from dependencies import (CURRENT_CACHE_VERSION, DISTRICT_GEOMETRIES,
+from dependencies import (CURRENT_CACHE_VERSION, NDVI_ANNUAL_CACHE_VERSION,
+                          DISTRICT_GEOMETRIES,
                           PROVINCE_GEOMETRIES, require_user)
 
 PROVINCE = next(iter(PROVINCE_GEOMETRIES))
@@ -39,6 +40,14 @@ YEAR = 2025
 STALE = CURRENT_CACHE_VERSION - 1
 
 _MONTHLY = [{"month": "ม.ค.", "month_num": 1, "ndvi": 0.4, "image_count": 3}]
+_DATA_QUALITY = {"image_count": 10, "cloud_filter_pct": 20,
+                 "clear_obs_mean": 8.0, "clear_obs_min": 1,
+                 "level": "threshold", "label": "พอใช้", "note": "test"}
+_CANOPY = {"available": False, "target_pct": 30.0, "source": "ESA WorldCover",
+           "epoch_year": 2021, "epoch_offset_years": 4,
+           "label": "ไม่มีข้อมูล", "note": "test"}
+_VALIDATION = {"available": False, "target_pp": 10.0, "year": YEAR,
+               "worldcover_epoch_year": 2021, "note": "test"}
 
 
 class _FakeQuery:
@@ -133,6 +142,21 @@ def env(monkeypatch):
     monkeypatch.setattr(ndvi_mod, "_compute_ndvi_monthly", _ndvi_monthly)
     monkeypatch.setattr(lst_mod, "_compute_lst_monthly", _lst_monthly)
 
+    def _ndvi_annual(*_a, **_k):
+        calls.append("ndvi_annual")
+        return {"ndvi_mean": 0.65, "ndvi_min": 0.1, "ndvi_max": 0.8,
+                "green_area_pct": 40.0, "green_area_km2": 40.0,
+                "dense_area_pct": 10.0, "dense_area_km2": 10.0,
+                "total_area_km2": 100.0, "green_area_m2_raw": 40_000_000,
+                "data_quality": _DATA_QUALITY,
+                "canopy": _CANOPY}
+
+    monkeypatch.setattr(ndvi_mod, "_compute_ndvi_annual", _ndvi_annual)
+    monkeypatch.setattr(ndvi_mod, "_worldcover_reference_pct", lambda _p: None)
+    monkeypatch.setattr(ndvi_mod, "_build_validation",
+                        lambda *_a, **_k: _VALIDATION)
+    monkeypatch.setattr(ndvi_mod, "get_population", lambda *_a: (1000, 2020))
+
     # LST annual ใช้ get_lst_col + reduce_lst แทน helper ก้อนเดียว
     monkeypatch.setattr(lst_mod, "get_lst_col",
                         lambda *_a, **_k: SimpleNamespace(size=lambda: SimpleNamespace(getInfo=lambda: 5)))
@@ -160,6 +184,73 @@ def _inserts(env, table):
 
 def _deletes(env, table):
     return [r for op, t, rows in env.log if op == "delete" and t == table for r in rows]
+
+
+# ---- NDVI รายปี (จังหวัด) — เกณฑ์พืชพรรณหนาแน่น ----
+class TestNdviAnnualDenseThresholdCache:
+    URL = f"/ndvi/{PROVINCE}?year={YEAR}"
+    TABLE = "ndvi_annual"
+
+    def _row(self, version):
+        return {"province": PROVINCE, "year": YEAR,
+                "ndvi_mean": 0.65, "ndvi_min": 0.1, "ndvi_max": 0.8,
+                "green_area_pct": 40.0, "green_area_km2": 40.0,
+                "dense_area_pct": 20.0, "dense_area_km2": 20.0,
+                "total_area_km2": 100.0,
+                "data_quality": _DATA_QUALITY,
+                "canopy": _CANOPY,
+                "validation": _VALIDATION,
+                "cache_version": version}
+
+    def test_current_row_returns_dense_values_without_compute(self, env):
+        _seed(env, self.TABLE, self._row(NDVI_ANNUAL_CACHE_VERSION))
+        r = env.client.get(self.URL)
+        assert r.status_code == 200
+        assert r.json()["from_cache"] is True
+        assert r.json()["dense_area_pct"] == 20.0
+        assert r.json()["dense_area_km2"] == 20.0
+        assert env.calls == []
+
+    def test_old_threshold_row_recomputed_and_new_values_cached(self, env):
+        _seed(env, self.TABLE, self._row(CURRENT_CACHE_VERSION))
+        r = env.client.get(self.URL)
+        assert r.status_code == 200
+        assert r.json()["from_cache"] is False
+        assert r.json()["dense_area_pct"] == 10.0
+        assert env.calls == ["ndvi_annual"]
+        assert _deletes(env, self.TABLE)
+        assert _inserts(env, self.TABLE)[0]["cache_version"] == NDVI_ANNUAL_CACHE_VERSION
+        again = env.client.get(self.URL)
+        assert again.status_code == 200
+        assert again.json()["from_cache"] is True
+        assert again.json()["dense_area_pct"] == 10.0
+        assert env.calls == ["ndvi_annual"]
+
+
+@needs_districts
+class TestDistrictNdviAnnualDenseThresholdCache:
+    URL = f"/ndvi/{DIST_PROVINCE}/districts/{DISTRICT}?year={YEAR}"
+    TABLE = "district_ndvi_annual"
+
+    def test_old_threshold_row_recomputed_and_then_served_from_cache(self, env):
+        _seed(env, self.TABLE,
+              {"province": DIST_PROVINCE, "district": DISTRICT, "year": YEAR,
+               "ndvi_mean": 0.65, "ndvi_min": 0.1, "ndvi_max": 0.8,
+               "green_area_pct": 40.0, "green_area_km2": 40.0,
+               "dense_area_pct": 20.0, "dense_area_km2": 20.0,
+               "total_area_km2": 100.0, "data_quality": _DATA_QUALITY,
+               "canopy": _CANOPY, "cache_version": CURRENT_CACHE_VERSION})
+        r = env.client.get(self.URL)
+        assert r.status_code == 200
+        assert r.json()["from_cache"] is False
+        assert r.json()["dense_area_pct"] == 10.0
+        assert _deletes(env, self.TABLE)
+        assert _inserts(env, self.TABLE)[0]["cache_version"] == NDVI_ANNUAL_CACHE_VERSION
+        again = env.client.get(self.URL)
+        assert again.status_code == 200
+        assert again.json()["from_cache"] is True
+        assert again.json()["dense_area_pct"] == 10.0
+        assert env.calls == ["ndvi_annual"]
 
 
 # ---- NDVI รายเดือน (จังหวัด) ----

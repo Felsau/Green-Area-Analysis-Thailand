@@ -5,7 +5,7 @@ import ee
 from dependencies import (get_population, supa_call, internal_error, ensure_province,
                           get_province_geom, get_district_geom, resolve_year,
                           OptionalYearParam, YEAR_MIN, YEAR_MAX,
-                          CURRENT_CACHE_VERSION)
+                          CURRENT_CACHE_VERSION, NDVI_ANNUAL_CACHE_VERSION)
 from keyed_lock import COMPUTE_LOCK
 from schemas import NDVIResponse, NDVIMonthlyResponse
 from validation import build_breakdown, build_validation, disagreement_sums
@@ -96,6 +96,8 @@ def get_district_ndvi(province_name: str, district_name: str, year: OptionalYear
                     "ndvi_max": row["ndvi_max"],
                     "green_area_pct": row["green_area_pct"],
                     "green_area_km2": row.get("green_area_km2"),
+                    "dense_area_pct": row.get("dense_area_pct"),
+                    "dense_area_km2": row.get("dense_area_km2"),
                     "total_area_km2": row.get("total_area_km2"),
                     "data_quality": row.get("data_quality"),
                     "canopy": row.get("canopy"),
@@ -126,7 +128,7 @@ def get_district_ndvi(province_name: str, district_name: str, year: OptionalYear
             supa_call(lambda s: s.table("district_ndvi_annual").insert({
                 "province": province_name, "district": district_name, "year": year,
                 **result,
-                "cache_version": CURRENT_CACHE_VERSION,
+                "cache_version": NDVI_ANNUAL_CACHE_VERSION,
             }).execute())
 
             return {
@@ -278,6 +280,8 @@ def get_ndvi(province_name: str, year: OptionalYearParam = None):
                     "ndvi_max": row["ndvi_max"],
                     "green_area_pct": row["green_area_pct"],
                     "green_area_km2": row.get("green_area_km2"),
+                    "dense_area_pct": row.get("dense_area_pct"),
+                    "dense_area_km2": row.get("dense_area_km2"),
                     "total_area_km2": row.get("total_area_km2"),
                     "green_area_m2_per_person": row.get("green_area_m2_per_person"),
                     "population": row.get("population"),
@@ -321,7 +325,7 @@ def get_ndvi(province_name: str, year: OptionalYearParam = None):
 
             supa_call(lambda s: s.table("ndvi_annual").insert({
                 "province": province_name, "year": year, **full,
-                "cache_version": CURRENT_CACHE_VERSION,
+                "cache_version": NDVI_ANNUAL_CACHE_VERSION,
             }).execute())
 
             return {"province": province_name, "year": year, **full, "from_cache": False}
