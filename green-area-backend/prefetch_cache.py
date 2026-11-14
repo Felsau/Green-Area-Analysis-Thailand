@@ -19,8 +19,9 @@ stale โดย `_is_stale()` (ขาด `validation`/`data_quality`/`canopy` �
                         เลยสักจังหวัด (ต่ำสุดคือ กทม. ~87) ซึ่งขัดกับความเป็นจริง
     district-ndvi /     ระดับอำเภอ — 928 อำเภอทั้งประเทศ ถ้าไม่ใส่ `--only`
     district-lst        `/analysis/cooling/{province}` ต้องมีทั้งสองชั้นของปีเดียวกัน
-                        และต้องได้อย่างน้อย 5 อำเภอต่อจังหวัด (MIN_DISTRICTS_FOR_STRENGTH)
-                        ถึงจะสรุปความแน่นของความสัมพันธ์ได้ → วอร์มทีละจังหวัดด้วย `--only`
+                        และต้องได้อย่างน้อย 10 อำเภอและครึ่งหนึ่งของจังหวัด
+                        (required_districts ใน cooling.py) ถึงจะคืนความชัน
+                        → วอร์มทีละจังหวัดด้วย `--only`
 
 Run:
     cd green-area-backend

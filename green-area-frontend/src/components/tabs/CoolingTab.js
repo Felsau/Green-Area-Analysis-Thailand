@@ -12,8 +12,28 @@ export default function CoolingTab({ data, handlers }) {
   } = data;
   const { onFetchCooling, setCoolingYear } = handlers;
 
+  // regression is null whenever the backend judged the sample too small
+  // (cooling.py::required_districts) — the dots still show, the slope does not.
   const reg = coolingData?.regression;
   const points = coolingData?.points || [];
+  const betterYear = coolingData?.latest_sufficient_year;
+  const offerBetterYear = !reg && betterYear != null && betterYear !== coolingData?.year;
+  const showYear = (y) => {
+    setCoolingYear(y);
+    onFetchCooling(selectedProvinceEN, y);
+  };
+  const shortfall = coolingData && (
+    <>
+      {coolingData.interpretation}
+      {offerBetterYear && (
+        <div style={{ marginTop: 8 }}>
+          <button className="btn btn--sm" onClick={() => showYear(betterYear)}>
+            ดูปี {betterYear}
+          </button>
+        </div>
+      )}
+    </>
+  );
 
   // Regression line endpoints across the NDVI range actually present in the data
   let segment = null;
@@ -35,10 +55,11 @@ export default function CoolingTab({ data, handlers }) {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
           <select
-            className="field" style={{ width: 100 }}
-            value={coolingYear}
-            onChange={e => setCoolingYear(Number(e.target.value))}
+            className="field" style={{ width: 150 }}
+            value={coolingYear ?? ''}
+            onChange={e => setCoolingYear(e.target.value === '' ? null : Number(e.target.value))}
           >
+            <option value="">ปีล่าสุดที่ข้อมูลพอ</option>
             {AVAILABLE_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
           <button
@@ -55,12 +76,16 @@ export default function CoolingTab({ data, handlers }) {
         </div>
       </section>
 
-      {coolingData && !coolingLoading && (reg ? (
+      {coolingData && !coolingLoading && (points.length > 0 ? (
         <>
           <section className="section">
             <div className="section__head">
-              <span className="section__title">NDVI ↔ อุณหภูมิผิว</span>
-              <span className="section__meta">{coolingData.n_districts} อำเภอ</span>
+              <span className="section__title">NDVI ↔ อุณหภูมิผิว ปี {coolingData.year}</span>
+              <span className="section__meta">
+                {coolingData.total_districts
+                  ? `${coolingData.n_districts} จาก ${coolingData.total_districts} อำเภอ`
+                  : `${coolingData.n_districts} อำเภอ`}
+              </span>
             </div>
             <div style={{ border: '1px solid var(--rule)', background: 'var(--surface)', padding: '8px 4px 0' }}>
               <ResponsiveContainer width="100%" height={220}>
@@ -97,28 +122,28 @@ export default function CoolingTab({ data, handlers }) {
             </div>
           </section>
 
-          <section className="section">
-            <div className="kv-row">
-              <div className="kv">
-                <div className="kv__label">ความชัน</div>
-                <div className="kv__value">{reg.slope.toFixed(1)}</div>
-                <div className="kv__hint">°C ต่อ NDVI 1 หน่วย</div>
-              </div>
-              <div className="kv">
-                <div className="kv__label">R²</div>
-                <div className="kv__value">{reg.r2.toFixed(2)}</div>
-                <div className="kv__hint">
-                  {coolingData.n_districts < 5
-                    ? `n=${coolingData.n_districts} — ยังน้อยเกินสรุปนัยสำคัญ`
-                    : 'ความกระชับของเส้น'}
+          {reg ? (
+            <section className="section">
+              <div className="kv-row">
+                <div className="kv">
+                  <div className="kv__label">ความชัน</div>
+                  <div className="kv__value">{reg.slope.toFixed(1)}</div>
+                  <div className="kv__hint">°C ต่อ NDVI 1 หน่วย</div>
+                </div>
+                <div className="kv">
+                  <div className="kv__label">R²</div>
+                  <div className="kv__value">{reg.r2.toFixed(2)}</div>
+                  <div className="kv__hint">ความกระชับของเส้น</div>
                 </div>
               </div>
-            </div>
-            <div className="note">{coolingData.interpretation}</div>
-          </section>
+              <div className="note">{coolingData.interpretation}</div>
+            </section>
+          ) : (
+            <section className="section"><div className="note">{shortfall}</div></section>
+          )}
         </>
       ) : (
-        <div className="empty">{coolingData.interpretation}</div>
+        <div className="empty">{shortfall}</div>
       ))}
 
       {!coolingData && !coolingLoading && (
