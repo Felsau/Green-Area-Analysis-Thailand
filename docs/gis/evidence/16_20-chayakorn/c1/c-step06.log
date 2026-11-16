@@ -1,0 +1,12 @@
+﻿C1 C step 6  2026-11-16 23:30:13  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_local\t0-rebuild\run_032_033.py $PWD $rt 32
+[23:30:13]
+{"version": 32, "record": {"sha256": "ef58eb7d864c0433f4393b0f52dbb6db00a91e8d3dd397742594d1d909660b7f", "databases": ["postgres", "gis_t1_upgrade"], "reviewer": "/root/remediation_review", "forward_only": true}}
+exit=0  [23:30:22]
+
+PS> & $py -I -B dev\gis_local\t0-rebuild\run_032_033.py $PWD $rt 33
+[23:30:23]
+{"version": 33, "record": {"sha256": "034d6be5c329ec4d2259bb57482f06582fc2dc3c4aa8ea3e14be84fbb8996e5d", "databases": ["postgres", "gis_t1_upgrade"], "reviewer": "/root/remediation_review", "forward_only": true}}
+exit=0  [23:30:32]

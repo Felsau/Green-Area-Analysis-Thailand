@@ -1,0 +1,42 @@
+﻿C1 C step 11  2026-11-16 23:36:40  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_local\gee_live_local.py probe --runtime-dir $rt --review dev\gis_local\gee-live-review.json
+[23:36:40]
+{"sha256": "53e3fc5359ea99a84f22d05714f9972a2e15d62b96bcf4b339d39ea9533b3f17", "databases": {"postgres": "rolled_back_full_lifecycle", "gis_t1_upgrade": "rolled_back_full_lifecycle"}, "forward_only": true, "probe": true, "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394"}
+exit=0  [23:36:56]
+
+PS> & $py -I -B dev\gis_local\gee_live_local.py migrate --runtime-dir $rt --review dev\gis_local\gee-live-review.json
+[23:36:56]
+{"sha256": "53e3fc5359ea99a84f22d05714f9972a2e15d62b96bcf4b339d39ea9533b3f17", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}, "forward_only": true, "probe": false, "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394"}
+exit=0  [23:37:12]
+
+PS> & $py -I -B dev\gis_local\gee_safety_local.py probe --runtime-dir $rt --review dev\gis_local\gee-safety-review.json
+[23:37:12]
+{"sha256": "a7ae1f4cfd99f4bd0d728b3ca290fb4a2734d05f585c3a192c9611a0b317b395", "databases": {"postgres": "rolled_back_full_lifecycle", "gis_t1_upgrade": "rolled_back_full_lifecycle"}, "forward_only": true, "probe": true, "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394"}
+exit=0  [23:37:29]
+
+PS> & $py -I -B dev\gis_local\gee_safety_local.py migrate --runtime-dir $rt --review dev\gis_local\gee-safety-review.json
+[23:37:29]
+{"sha256": "a7ae1f4cfd99f4bd0d728b3ca290fb4a2734d05f585c3a192c9611a0b317b395", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}, "forward_only": true, "probe": false, "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394"}
+exit=0  [23:37:45]
+
+PS> & $py -I -B dev\gis_local\gee_transport_local.py probe --runtime-dir $rt --review dev\gis_local\gee-transport-review.json
+[23:37:45]
+{"sha256": "1efa5e50247afbaf4fbf7d51a1ba3e4ee98921f8aa600de8d337c17b3bfbb4b0", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "rolled_back_lifecycle", "gis_t1_upgrade": "rolled_back_lifecycle"}}
+exit=0  [23:38:01]
+
+PS> & $py -I -B dev\gis_local\gee_transport_local.py migrate --runtime-dir $rt --review dev\gis_local\gee-transport-review.json
+[23:38:01]
+{"sha256": "1efa5e50247afbaf4fbf7d51a1ba3e4ee98921f8aa600de8d337c17b3bfbb4b0", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}}
+exit=0  [23:38:17]
+
+PS> & $py -I -B dev\gis_local\gee_genuine_local.py probe --runtime-dir $rt --review dev\gis_local\gee-genuine-review.json
+[23:38:17]
+{"sha256": "4d8af35d59bc90f81de4bd835a74ec6e957e7803ab6c6cdee268d67a63ff15f8", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "rolled_back_lifecycle", "gis_t1_upgrade": "rolled_back_lifecycle"}}
+exit=0  [23:38:51]
+
+PS> & $py -I -B dev\gis_local\gee_genuine_local.py migrate --runtime-dir $rt --review dev\gis_local\gee-genuine-review.json
+[23:38:51]
+{"sha256": "4d8af35d59bc90f81de4bd835a74ec6e957e7803ab6c6cdee268d67a63ff15f8", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}}
+exit=0  [23:39:07]

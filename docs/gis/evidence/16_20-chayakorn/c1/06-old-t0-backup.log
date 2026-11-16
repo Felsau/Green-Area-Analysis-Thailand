@@ -1,0 +1,42 @@
+﻿C1 B old T0 backup  2026-11-16 23:24:51
+
+## B1 old T0 items (nothing deleted or changed)
+PS> docker ps -a --filter name=green-area-gis-t0 --format '{{.Names}} | {{.Status}} | {{.Image}}'
+green-area-gis-t0-db | Exited (0) 24 seconds ago | f371b5f3f2ac
+green-area-gis-t0-gateway | Exited (255) 5 days ago | 9a2ae6699a2c
+green-area-gis-t0-auth | Exited (255) 5 days ago | 1736a63078f5
+green-area-gis-t0-rest | Exited (255) 5 days ago | c7cd7e265a85
+  (found at A1 22:28 and at B1 23:20: all four Exited (255) since 2026-11-11T16:14:09Z; db now Exited (0) after the B2 start/stop for pg_dump)
+PS> docker volume ls --filter name=green-area-gis-t0
+DRIVER    VOLUME NAME
+local     green-area-gis-t0-data
+local     green-area-gis-t0-db-config
+PS> docker network ls --filter name=green-area-gis-t0
+NETWORK ID     NAME                         DRIVER    SCOPE
+c189d9a2a7d1   green-area-gis-t0-ingress    bridge    local
+0f0a8451feab   green-area-gis-t0-internal   bridge    local
+old runtime dir (path only, from container label com.docker.compose.project.working_dir): <runtime-old>
+old compose file (label com.docker.compose.project.config_files): C:\Users\chaya\Green-Area-Analysis-Thailand\dev\gis_local\compose.yaml
+T0 instance label gis.t0.instance: 8433135feca04402a13dbfb1b7653b95
+
+## B2 steps (full run log: 06-old-t0-backup.run.log, script: shots\run-b2-backup.ps1)
+- db was Exited (255) and pg_dump needs it running: tarred both volumes as found first (read-only, --network=none), then docker start green-area-gis-t0-db only (no published ports), pg_dump -Fc postgres and gis_t1_upgrade via docker exec + docker cp, docker stop, tarred both volumes again while stopped
+- not done (not in B2 list): pg_dumpall --globals-only, copy of the runtime dir
+- verify: pg_restore --list entries postgres 1555, gis_t1_upgrade 1337 · tar entries data as-found 2352 / stopped 2351, db-config 32 / 32
+
+## backup files in <backup-20261117> (name, bytes, sha256)
+gis_t1_upgrade.dump                                        948208  084d7301de669c3de6bbe1320c54754e452ff5ff266c588ccbf9d74e1617b1be
+postgres.dump                                             1050836  2e304c537ff541a83e9dae4d5b12303c0a6a9b9953375937bd80856078abd663
+SHA256SUMS.txt                                                598  b804155b38bfae6286242233e682c9df2d45d2e16038f923ade78f6e97d4ceab  (hash of the sums file itself)
+volume-green-area-gis-t0-data.tar                        83674112  f85a7916a173a89ab5faa29cfdcd640c40d60a2a19b641cf76f3e2920fd63d21
+volume-green-area-gis-t0-data-asfound.tar                85745664  0ba0fcb03308bc72762b96301526c31f09a9ea1f51807f5f0e59c548b587b828
+volume-green-area-gis-t0-db-config.tar                      40448  51e1dc47b6d9daf873875e1036d18f6e27ef3ac8807b19b6cbb0c7ede3665131
+volume-green-area-gis-t0-db-config-asfound.tar              40448  51e1dc47b6d9daf873875e1036d18f6e27ef3ac8807b19b6cbb0c7ede3665131
+
+SHA256SUMS.txt check:
+  OK  gis_t1_upgrade.dump
+  OK  postgres.dump
+  OK  volume-green-area-gis-t0-data.tar
+  OK  volume-green-area-gis-t0-data-asfound.tar
+  OK  volume-green-area-gis-t0-db-config.tar
+  OK  volume-green-area-gis-t0-db-config-asfound.tar

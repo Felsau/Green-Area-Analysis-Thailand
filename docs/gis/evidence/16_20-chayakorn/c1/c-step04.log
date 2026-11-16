@@ -1,0 +1,17 @@
+﻿C1 C step 4  2026-11-16 23:29:27  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_local\t1_database.py migrate --runtime-dir $rt --database postgres --review dev\gis_local\t1-review.json
+[23:29:27]
+{"proof": {"gis": true, "uid": true, "auth": true, "cluster": "green-area-gis-t0", "version": 170006, "database": "postgres", "migrator": "postgres", "auth_users": 0, "create_role": true, "create_database": true, "legacy_functions": true, "application_tables": 16, "legacy_auth_trigger": true, "instance": "c9aebde79d5b449cae5abf5c01e4c394", "container": "cb7298996acb0a0daec05b060792df6706c58d5aa9055065f68fcb015fede9c9", "stage": "gis"}, "migrations": [{"version": 27, "status": "applied", "sha256": "4d1ef87fccc1a484bd4a199b5bd74af2cf7adb4db7e03f55718f6553d43428d0"}, {"version": 28, "status": "applied", "sha256": "fcf5d9530b516d93dda0fc2ea5b01158809aad237c1e90863d09bd324c9000d1"}, {"version": 29, "status": "applied", "sha256": "7faf7bf6abbd4e52ab8389423c3c1876c94af459fe9d7c5d2a7710ffc0f236a5"}], "review": "t1-review.json"}
+exit=0  [23:29:33]
+
+PS> & $py -I -B dev\gis_local\t1_database.py migrate --runtime-dir $rt --database gis_t1_upgrade --review dev\gis_local\t1-review.json
+[23:29:33]
+{"proof": {"gis": true, "uid": true, "auth": true, "cluster": "green-area-gis-t0", "version": 170006, "database": "gis_t1_upgrade", "migrator": "postgres", "auth_users": 0, "create_role": true, "create_database": true, "legacy_functions": true, "application_tables": 16, "legacy_auth_trigger": true, "instance": "c9aebde79d5b449cae5abf5c01e4c394", "container": "cb7298996acb0a0daec05b060792df6706c58d5aa9055065f68fcb015fede9c9", "stage": "gis"}, "migrations": [{"version": 27, "status": "applied", "sha256": "4d1ef87fccc1a484bd4a199b5bd74af2cf7adb4db7e03f55718f6553d43428d0"}, {"version": 28, "status": "applied", "sha256": "fcf5d9530b516d93dda0fc2ea5b01158809aad237c1e90863d09bd324c9000d1"}, {"version": 29, "status": "applied", "sha256": "7faf7bf6abbd4e52ab8389423c3c1876c94af459fe9d7c5d2a7710ffc0f236a5"}], "review": "t1-review.json"}
+exit=0  [23:29:39]
+
+PS> & $py -I -B dev\gis_local\t2_local.py migrate --runtime-dir $rt --review dev\gis_local\t2-review.json
+[23:29:39]
+{"version": 30, "sha256": "6e7cc972d648fe717539c63131f752440c79446a5ffcbe8608b232cd63a4914f", "databases": ["postgres", "gis_t1_upgrade"], "local_only": true}
+exit=0  [23:29:43]

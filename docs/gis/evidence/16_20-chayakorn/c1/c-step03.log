@@ -1,0 +1,14 @@
+﻿C1 C step 3  2026-11-16 23:29:17  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_local\t0-rebuild\seed_runtime.py --runtime-dir $rt
+[23:29:17]
+{
+  "t3-remediation/initial-source-state.json": "8c804e5e19ddbe0ae5e7de10f33a5890ec638aa82079867531a737b5a5d69ec0",
+  "phase2/evidence-index.json": "d10e25311e98148db3f740d74a3be6cc5ff25aded14607e134d771618e18cb14",
+  "phase3/evidence-index.json": "a37ce7d1a6fe420e0a317164c47db7bc946979a59041b611a6bd2587c35cae7d",
+  "phase4/review-036.json": "de809b611dca09ea0098cbd298d2b81b48d8420b4546d3c51cb0acc096dfaeba",
+  "a4-geotiff-prepare/before.json": "b0ec33febf62faa94befd859c5da95e70809f1ca0a67b614998ec503fdccefdd",
+  "a4-2-geotiff-publication/before.json": "9270b5eca719968c24cdb3cfac31ed240f34c3332ff9f53fefa06875be59c5ef"
+}
+exit=0  [23:29:18]

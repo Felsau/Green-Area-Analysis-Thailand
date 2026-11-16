@@ -1,0 +1,17 @@
+﻿C1 C step 7  2026-11-16 23:30:37  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_ui\phase2_local.py migrate --runtime-dir $rt --review dev\gis_local\t0-rebuild\review-034.json
+[23:30:37]
+{"migration": 34, "local_only": true}
+exit=0  [23:30:46]
+
+PS> & $py -I -B dev\gis_ui\phase3_local.py migrate --runtime-dir $rt --review dev\gis_local\t0-rebuild\review-035.json
+[23:30:46]
+{"migration": 35, "local_only": true}
+exit=0  [23:30:55]
+
+PS> & $py -I -B dev\gis_ui\phase4_local.py migrate --runtime-dir $rt --review dev\gis_local\t0-rebuild\review-036.json
+[23:30:55]
+{"migration": 36, "local_only": true}
+exit=0  [23:31:05]

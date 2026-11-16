@@ -1,0 +1,73 @@
+﻿C1 C step 1  2026-11-16 23:28:27  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_local\manage.py prepare --runtime-dir $rt
+[23:28:27]
+{
+  "prepared": true,
+  "GIS_ENABLED": false,
+  "local_values_generated": true,
+  "credentials_printed": false,
+  "repository_env_loaded": false
+}
+exit=0  [23:28:29]
+
+PS> & $py -I -B dev\gis_local\manage.py start --runtime-dir $rt
+[23:28:29]
+{
+  "ready": true,
+  "GIS_ENABLED": false,
+  "app_mutations_enabled": false,
+  "services": {
+    "db": {
+      "id": "cb7298996acb0a0daec05b060792df6706c58d5aa9055065f68fcb015fede9c9",
+      "health": "healthy",
+      "image": "supabase/postgres@sha256:f371b5f3f2ac0a05703f33d6e6134515fb2498cab708fb948a0aeb7481467c00"
+    },
+    "auth": {
+      "id": "79d44c1c694ff5f0bdc3d9b3f999b5c03e74fecca40dd03fd37a978c1568d99d",
+      "health": "healthy",
+      "image": "supabase/gotrue@sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b"
+    },
+    "rest": {
+      "id": "99208a003c0a2f5fbbbd085ced2626ddb731ae705a45fedb942e4150ff652c5c",
+      "health": "healthy",
+      "image": "postgrest/postgrest@sha256:c7cd7e265a85b05248abf53f4473fcec7e327c282d0bd0cf60f1551996d09fcf"
+    },
+    "gateway": {
+      "id": "3c64c4f2591efb75be27ca2f67047e07dd731f92d89b541864ad17addbb7bfbb",
+      "health": "healthy",
+      "image": "kong/kong@sha256:9a2ae6699a2ce0d60592eb176555d3594a22782c20cc6557a61ff3a7e8b559a3"
+    }
+  },
+  "postgres": {
+    "database": "postgres",
+    "version": "17.6",
+    "cluster": "green-area-gis-t0",
+    "auth_schema": true,
+    "gis_schema": false,
+    "legacy_tables": 0,
+    "auth_users": 0
+  },
+  "public_health": {
+    "/auth/v1/health": 200,
+    "/rest/v1/": 401
+  },
+  "internal_network": true,
+  "gateway_ingress_bridge": true,
+  "gateway_has_potential_egress": true,
+  "database_host_port_published": false,
+  "gateway_telemetry_disabled_verified": true,
+  "limits_verified_before_start": true,
+  "repository_migrations_run": false,
+  "manager_cloud_operations": false
+}
+exit=0  [23:28:54]
+
+PS> docker ps -a --filter name=green-area-gis-t0 --format '{{.Names}} | {{.Status}}'
+[23:28:54]
+green-area-gis-t0-db | Up 21 seconds (healthy)
+green-area-gis-t0-gateway | Up 5 seconds (healthy)
+green-area-gis-t0-auth | Up 14 seconds (healthy)
+green-area-gis-t0-rest | Up 10 seconds (healthy)
+exit=0  [23:28:54]

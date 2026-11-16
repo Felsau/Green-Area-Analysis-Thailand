@@ -1,0 +1,17 @@
+﻿C1 C step 2  2026-11-16 23:28:59  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_local\t1_database.py clone-empty --runtime-dir $rt
+[23:28:59]
+{"gis": false, "uid": true, "auth": true, "cluster": "green-area-gis-t0", "version": 170006, "database": "gis_t1_upgrade", "migrator": "postgres", "auth_users": 0, "create_role": true, "create_database": true, "legacy_functions": false, "application_tables": 0, "legacy_auth_trigger": false, "instance": "c9aebde79d5b449cae5abf5c01e4c394", "container": "cb7298996acb0a0daec05b060792df6706c58d5aa9055065f68fcb015fede9c9", "stage": "empty"}
+exit=0  [23:29:04]
+
+PS> & $py -I -B dev\gis_local\t1_database.py baseline --runtime-dir $rt --database postgres
+[23:29:04]
+{"gis": false, "uid": true, "auth": true, "cluster": "green-area-gis-t0", "version": 170006, "database": "postgres", "migrator": "postgres", "auth_users": 0, "create_role": true, "create_database": true, "legacy_functions": true, "application_tables": 16, "legacy_auth_trigger": true, "instance": "c9aebde79d5b449cae5abf5c01e4c394", "container": "cb7298996acb0a0daec05b060792df6706c58d5aa9055065f68fcb015fede9c9", "stage": "baseline"}
+exit=0  [23:29:07]
+
+PS> & $py -I -B dev\gis_local\t1_database.py baseline --runtime-dir $rt --database gis_t1_upgrade
+[23:29:07]
+{"gis": false, "uid": true, "auth": true, "cluster": "green-area-gis-t0", "version": 170006, "database": "gis_t1_upgrade", "migrator": "postgres", "auth_users": 0, "create_role": true, "create_database": true, "legacy_functions": true, "application_tables": 16, "legacy_auth_trigger": true, "instance": "c9aebde79d5b449cae5abf5c01e4c394", "container": "cb7298996acb0a0daec05b060792df6706c58d5aa9055065f68fcb015fede9c9", "stage": "baseline"}
+exit=0  [23:29:10]

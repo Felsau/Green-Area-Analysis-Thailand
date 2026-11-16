@@ -1,0 +1,12 @@
+﻿C1 C step 9  2026-11-16 23:32:53  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_local\gee_mock_local.py probe --runtime-dir $rt --review dev\gis_local\gee-mock-review.json
+[23:32:53]
+{"sha256": "08c516b3098f202d3a9f673771a452113914f65ed455c03a57e24c2c89550f2a", "databases": {"postgres": "rolled_back_probe", "gis_t1_upgrade": "rolled_back_probe"}, "forward_only": true, "rollback_probe": true}
+exit=0  [23:33:09]
+
+PS> & $py -I -B dev\gis_local\gee_mock_local.py migrate --runtime-dir $rt --review dev\gis_local\gee-mock-review.json
+[23:33:09]
+{"sha256": "08c516b3098f202d3a9f673771a452113914f65ed455c03a57e24c2c89550f2a", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}, "forward_only": true, "rollback_probe": false}
+exit=0  [23:33:25]

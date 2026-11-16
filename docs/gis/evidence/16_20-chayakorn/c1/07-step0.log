@@ -1,0 +1,45 @@
+﻿C1 B4/B5  2026-11-16 23:27:20  (approved in chat: 'อนุมัติลบ T0 เดิม')
+
+## B4 delete exactly the B1 items, one name at a time (no image, no runtime dir)
+PS> docker rm green-area-gis-t0-db
+  green-area-gis-t0-db
+  exit=0
+PS> docker rm green-area-gis-t0-gateway
+  green-area-gis-t0-gateway
+  exit=0
+PS> docker rm green-area-gis-t0-auth
+  green-area-gis-t0-auth
+  exit=0
+PS> docker rm green-area-gis-t0-rest
+  green-area-gis-t0-rest
+  exit=0
+PS> docker volume rm green-area-gis-t0-data
+  green-area-gis-t0-data
+  exit=0
+PS> docker volume rm green-area-gis-t0-db-config
+  green-area-gis-t0-db-config
+  exit=0
+PS> docker network rm green-area-gis-t0-ingress
+  green-area-gis-t0-ingress
+  exit=0
+PS> docker network rm green-area-gis-t0-internal
+  green-area-gis-t0-internal
+  exit=0
+
+## B5 step 0 checks
+PS> docker ps -a --filter name=green-area-gis-t0      # must be empty
+  CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+PS> docker volume ls --filter name=green-area-gis-t0  # must be empty
+  DRIVER    VOLUME NAME
+PS> docker network ls --filter name=green-area-gis-t0
+  NETWORK ID   NAME      DRIVER    SCOPE
+PS> docker image inspect sha256:fca4560d8a0d0198c0eb75fbf6598314cd8ed4a5e8bafa00e1d7298126aa04c9 --format '{{.Id}}'
+  sha256:fca4560d8a0d0198c0eb75fbf6598314cd8ed4a5e8bafa00e1d7298126aa04c9
+  exit=0
+PS> runtime dir of old T0 still present (path check only):
+  Test-Path <runtime-old> = True
+PS> images used by old T0 containers still present:
+  f371b5f3f2ac -> sha256:f371b5f3f2ac0a05703f33d6e6134515fb2498cab708fb948a0aeb7481467c00
+  9a2ae6699a2c -> sha256:9a2ae6699a2ce0d60592eb176555d3594a22782c20cc6557a61ff3a7e8b559a3
+  1736a63078f5 -> sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b
+  c7cd7e265a85 -> sha256:c7cd7e265a85b05248abf53f4473fcec7e327c282d0bd0cf60f1551996d09fcf

@@ -1,0 +1,32 @@
+﻿C1 C step 8  2026-11-16 23:31:10  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_local\publication_local.py migrate --runtime-dir $rt --review dev\gis_local\publication-review.json
+[23:31:10]
+{"sha256": "bacd6937efb07d54fb37bef3d2be83a07c2ebff43ff97879d5220096532fcde6", "databases": {"postgres": "apply", "gis_t1_upgrade": "apply"}, "reviewer": "a1_security_review", "forward_only": true}
+exit=0  [23:31:26]
+
+PS> & $py -I -B dev\gis_local\ldd_prepare_local.py migrate --runtime-dir $rt --review dev\gis_local\ldd-prepare-review.json
+[23:31:26]
+{"sha256": "95709b43f9a51001987dc687f98db868ac6f702aac375696d2d51fc8aa2c421d", "databases": {"postgres": "apply", "gis_t1_upgrade": "apply"}, "forward_only": true}
+exit=0  [23:31:43]
+
+PS> & $py -I -B dev\gis_local\ldd_publication_local.py migrate --runtime-dir $rt --version 39 --review dev\gis_local\ldd-publication-review.json
+[23:31:43]
+{"sha256": "287c1259ac685645a8a43275ee0a9fbdb6ca5cf5483aeeb8eaf8f650adeeff59", "databases": {"postgres": "apply", "gis_t1_upgrade": "apply"}, "broad_gate_closed": true}
+exit=0  [23:31:58]
+
+PS> & $py -I -B dev\gis_local\ldd_publication_local.py migrate --runtime-dir $rt --version 40 --review dev\gis_local\ldd-publication-fix-review.json
+[23:31:58]
+{"sha256": "b93d65306e112763cd24019a0abf225a1e02698ba9a3f9ae2da13f33392b083e", "databases": {"postgres": "apply", "gis_t1_upgrade": "apply"}, "broad_gate_closed": true}
+exit=0  [23:32:14]
+
+PS> & $py -I -B dev\gis_local\geotiff_prepare_local.py migrate --runtime-dir $rt --review dev\gis_local\geotiff-prepare-review.json
+[23:32:14]
+{"sha256": "57dc2baee7cf205f76167aacfffd0c9f9db55c63588c2fde280e4482975bfd95", "databases": {"postgres": "apply", "gis_t1_upgrade": "apply"}}
+exit=0  [23:32:30]
+
+PS> & $py -I -B dev\gis_local\geotiff_publication_local.py migrate --runtime-dir $rt --review dev\gis_local\geotiff-publication-review.json
+[23:32:30]
+{"sha256": "a03b3271eb24624b8b033e205d5ce2a30ccd050a66ea4a638fa917822bb1b378", "databases": {"postgres": "apply", "gis_t1_upgrade": "apply"}}
+exit=0  [23:32:46]

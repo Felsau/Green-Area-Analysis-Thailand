@@ -1,0 +1,52 @@
+﻿C1 C step 12  2026-11-16 23:39:13  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_local\gee_dashboard_local.py probe --runtime-dir $rt
+[23:39:13]
+{"sha256": "44d44e3e60fb307e1ccf95b9eee8239fb1b1547ff121c180107f78bc96c844d5", "lifecycle_sha256": "2b9dd2ab13decf5b9f108070d9e1b4febc737b1c921aa2ac5c589400b2660a57", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "rolled_back_lifecycle", "gis_t1_upgrade": "rolled_back_lifecycle"}}
+exit=0  [23:39:34]
+
+PS> & $py -I -B dev\gis_local\gee_dashboard_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\gee-dashboard-048-approval.json
+[23:39:34]
+{"sha256": "44d44e3e60fb307e1ccf95b9eee8239fb1b1547ff121c180107f78bc96c844d5", "lifecycle_sha256": "2b9dd2ab13decf5b9f108070d9e1b4febc737b1c921aa2ac5c589400b2660a57", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}}
+exit=0  [23:39:50]
+
+PS> & $py -I -B dev\gis_local\upload_049_local.py probe --runtime-dir $rt
+[23:39:50]
+{"sha256": "f3cb090958ce86be8d0f05628b4a58f5aa5cf236d900d89ed409eb2dbebc31bb", "lifecycle_sha256": "c4eef33b21b9925e749cfa7e8185c1a474767ca8710ba212ebef95cca57e0746", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "rolled_back_lifecycle", "gis_t1_upgrade": "rolled_back_lifecycle"}}
+exit=0  [23:40:11]
+
+PS> & $py -I -B dev\gis_local\upload_049_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-049-approval.json
+[23:40:11]
+{"sha256": "f3cb090958ce86be8d0f05628b4a58f5aa5cf236d900d89ed409eb2dbebc31bb", "lifecycle_sha256": "c4eef33b21b9925e749cfa7e8185c1a474767ca8710ba212ebef95cca57e0746", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}}
+exit=0  [23:40:27]
+
+PS> & $py -I -B dev\gis_local\upload_050_local.py probe --runtime-dir $rt
+[23:40:27]
+{"sha256": "87a09b59ddeae481a0f927ebde641fa915260837bc82729fd8effcb026bac893", "lifecycle_sha256": "2f6b351b1766d54aee362dabf3bcda7e85ca58d5038c1a2de1855d48ca0cc45b", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "rolled_back_lifecycle", "gis_t1_upgrade": "rolled_back_lifecycle"}}
+exit=0  [23:40:48]
+
+PS> & $py -I -B dev\gis_local\upload_050_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-050-approval.json
+[23:40:48]
+{"sha256": "87a09b59ddeae481a0f927ebde641fa915260837bc82729fd8effcb026bac893", "lifecycle_sha256": "2f6b351b1766d54aee362dabf3bcda7e85ca58d5038c1a2de1855d48ca0cc45b", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}}
+exit=0  [23:41:04]
+
+PS> & $py -I -B dev\gis_local\upload_051_local.py probe --runtime-dir $rt
+[23:41:04]
+{"sha256": "875cd02e5f5bb40f1fd7828c84335b856f097f65e3e496fde087f60c7c32cccc", "lifecycle_sha256": "f9c23f7cd0234e9425d92d0c2faec11aecc70d19eb28899c1ee8715c2f95c5d2", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "rolled_back_lifecycle", "gis_t1_upgrade": "rolled_back_lifecycle"}}
+exit=0  [23:41:25]
+
+PS> & $py -I -B dev\gis_local\upload_051_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-051-approval.json
+[23:41:25]
+{"sha256": "875cd02e5f5bb40f1fd7828c84335b856f097f65e3e496fde087f60c7c32cccc", "lifecycle_sha256": "f9c23f7cd0234e9425d92d0c2faec11aecc70d19eb28899c1ee8715c2f95c5d2", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}}
+exit=0  [23:41:41]
+
+PS> & $py -I -B dev\gis_local\upload_052_local.py probe --runtime-dir $rt
+[23:41:41]
+{"sha256": "329ce1a52a47db9735a8fca99488e00f0881c0403a4878268f07c77f6f229875", "lifecycle_sha256": "24d953f260bf166574863f225c47e01a9a10a89dce6c54e1f6ebb885989233e5", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "rolled_back_lifecycle", "gis_t1_upgrade": "rolled_back_lifecycle"}}
+exit=0  [23:42:08]
+
+PS> & $py -I -B dev\gis_local\upload_052_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-052-approval.json
+[23:42:08]
+{"sha256": "329ce1a52a47db9735a8fca99488e00f0881c0403a4878268f07c77f6f229875", "lifecycle_sha256": "24d953f260bf166574863f225c47e01a9a10a89dce6c54e1f6ebb885989233e5", "runtime_instance": "c9aebde79d5b449cae5abf5c01e4c394", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}}
+exit=0  [23:42:24]

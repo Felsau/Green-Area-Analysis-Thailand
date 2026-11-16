@@ -1,0 +1,24 @@
+﻿C1 C step 5  2026-11-16 23:29:49  repo=C:\Users\chaya\green-area-c1  HEAD=5402805  branch=gis-unlock
+rt = (new runtime dir, path only) <runtime-c1>
+
+PS> & $py -I -B dev\gis_worker\t3_identity.py --runtime-dir $rt --review dev\gis_local\t0-rebuild\t3-identity-independent-review.json
+[23:29:49]
+{"name": "actual_worker_jwt_selects_restricted_sql_role", "status": "Pass"}
+{"name": "worker_role_has_no_privileged_membership", "status": "Pass"}
+{"name": "backend_readiness_rpc_denied", "status": "Pass"}
+{"name": "backend_read_rpc_denied", "status": "Pass"}
+{"name": "admin_command_rpc_denied", "status": "Pass"}
+{"name": "legacy_worker_rpc_denied", "status": "Pass"}
+{"name": "private_gis_table_denied", "status": "Pass"}
+{"name": "direct_profile_read_denied", "status": "Pass"}
+{"name": "legacy_cache_write_denied", "status": "Pass"}
+{"name": "direct_auth_table_denied", "status": "Pass"}
+{"name": "auth_admin_api_denied", "status": "Pass"}
+{"name": "anon_cannot_execute_probe", "status": "Pass"}
+{"counts": {"Pass": 12, "Fail": 0}, "report": "identity-proof.json"}
+exit=0  [23:30:04]
+
+PS> & $py -I -B dev\gis_local\t3_local.py migrate --runtime-dir $rt --review dev\gis_local\t3-review.json
+[23:30:04]
+{"version": 31, "sha256": "7ff49cf8cd2658c8c1ba0c5d015faf26306e310f30a129dd962994bb6d243b86", "databases": ["postgres", "gis_t1_upgrade"], "local_only": true}
+exit=0  [23:30:08]
