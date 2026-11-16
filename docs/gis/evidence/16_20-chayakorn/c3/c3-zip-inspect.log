@@ -1,0 +1,133 @@
+﻿C3 ZIP inspection (read-only, metadata + .dbf header in memory; nothing extracted)  2026-11-17 01:26:24
+
+===== LU_SKM_2568.zip
+members: 37 (limit 64)
+member                                        compressed    expanded   ratio  type  method  verdict
+╩┴╪╖├╩ºñ├╥┴2568/                                       0           0     0.0  dir        0  ok
+╩┴╪╖├╩ºñ├╥┴2568/LUCODE.xls                        38,249     155,648     4.1  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/í╥├π¬Θ╖╒Φ┤╘╣/                          0           0     0.0  dir        0  ok
+╩┴╪╖├╩ºñ├╥┴2568/í╥├π¬Θ╖╒Φ┤╘╣/LU_SKM_2568.dbf     191,557  20,001,687   104.4  file       8  RATIO>100
+╩┴╪╖├╩ºñ├╥┴2568/í╥├π¬Θ╖╒Φ┤╘╣/LU_SKM_2568.prj         256         401     1.6  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/í╥├π¬Θ╖╒Φ┤╘╣/LU_SKM_2568.sbn      74,308     112,028     1.5  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/í╥├π¬Θ╖╒Φ┤╘╣/LU_SKM_2568.sbx       3,287       7,532     2.3  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/í╥├π¬Θ╖╒Φ┤╘╣/LU_SKM_2568.shp   4,325,551   6,090,036     1.4  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/í╥├π¬Θ╖╒Φ┤╘╣/LU_SKM_2568.shp.xml         343         697     2.0  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/í╥├π¬Θ╖╒Φ┤╘╣/LU_SKM_2568.shx      46,924      88,748     1.9  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/                       0           0     0.0  dir        0  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Amp.cpg           7           5     0.7  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Amp.dbf         411       1,228     3.0  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Amp.prj         256         401     1.6  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Amp.sbn          80         148     1.9  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Amp.sbx          59         116     2.0  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Amp.shp      38,569      79,324     2.1  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Amp.shp.xml       5,381      40,881     7.6  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Amp.shx          72         124     1.7  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Pro.cpg           7           5     0.7  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Pro.dbf         213         454     2.1  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Pro.prj         256         401     1.6  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Pro.sbn          67         132     2.0  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Pro.sbx          59         116     2.0  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Pro.shp      16,405      28,396     1.7  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Pro.shp.xml       5,332      39,893     7.5  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Pro.shx          57         108     1.9  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Tam.cpg           7           5     0.7  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Tam.dbf       1,850      15,954     8.6  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Tam.prj         256         401     1.6  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Tam.sbn         344         492     1.4  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Tam.sbx          78         148     1.9  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Tam.shp      98,542     232,228     2.4  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Tam.shp.xml       5,304      41,130     7.8  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Tam.shx         288         388     1.3  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/ñ╙═╕╘║╥┬óΘ═┴┘┼┤Θ╥╣í╥├π¬Θ╖╒Φ┤╘╣ ¿╤º╦╟╤┤╩┴╪╖├╩ºñ├╥┴ ╛.╚. 2568.docx      22,267      25,052     1.1  file       8  ok
+╩┴╪╖├╩ºñ├╥┴2568/╡╥├╥º╩├╪╗╗├╨α└╖í╥├π¬Θ╖╒Φ┤╘╣ ¿╤º╦╟╤┤╩┴╪╖├╩ºñ├╥┴ ╛.╚. 2568.xls      20,735     178,688     8.6  file       8  ok
+total expanded: 27,142,995 bytes (limit 83,886,080)
+
+╩┴╪╖├╩ºñ├╥┴2568/í╥├π¬Θ╖╒Φ┤╘╣/LU_SKM_2568.dbf: records 11,081 · header 481 B · record length 1805 B · fields 14 · text (C) width total 1709 B (95% of each record)
+  LU_CODE68    C width 15
+  LU_DES68     C width 170
+  ORIG_FID     N width 9
+  LU_ID_L1     N width 16.6
+  LU_ID_L2     N width 16.6
+  LU_ID_L3     N width 16.6
+  LU_CODE      C width 254
+  LU_DES_TH    C width 254
+  LU_DES_EN    C width 254
+  LUL1_CODE    C width 254
+  LUL2_CODE    C width 254
+  LU_DES       C width 254
+  Area_Sqm     N width 19
+  Area_Rai     N width 19
+  expanded / compressed = 20,001,687 / 191,557 = 104.42
+
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Amp.dbf: records 3 · header 417 B · record length 270 B · fields 12 · text (C) width total 211 B (78% of each record)
+  OBJECTID     N width 10
+  AMPHOE_IDN   C width 4
+  AMP_CODE     C width 2
+  AMPHOE_T     C width 50
+  AMPHOE_E     C width 50
+  PROV_CODE    C width 2
+  PROV_NAM_T   C width 50
+  PROV_NAM_E   C width 50
+  P_CODE       C width 3
+  ORIG_FID     N width 10
+  Shape_Leng   F width 19.11
+  Shape_Area   F width 19.11
+  expanded / compressed = 1,228 / 411 = 2.99
+
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Pro.dbf: records 1 · header 289 B · record length 164 B · fields 8 · text (C) width total 105 B (64% of each record)
+  OBJECTID     N width 10
+  PROV_CODE    C width 2
+  PROV_NAM_T   C width 50
+  PROV_NAM_E   C width 50
+  P_CODE       C width 3
+  ORIG_FID     N width 10
+  Shape_Leng   F width 19.11
+  Shape_Area   F width 19.11
+  expanded / compressed = 454 / 213 = 2.13
+
+╩┴╪╖├╩ºñ├╥┴2568/ó═║αó╡í╥├╗íñ├═º/╩┴╪╖├╩ºñ├╥┴_Tam.dbf: records 36 · header 545 B · record length 428 B · fields 16 · text (C) width total 369 B (86% of each record)
+  OBJECTID     N width 10
+  TAMBON_IDN   C width 6
+  TAM_CODE     C width 2
+  TAM_NAM_T    C width 100
+  AMPHOE_IDN   C width 4
+  AMP_CODE     C width 2
+  AMPHOE_T     C width 50
+  AMPHOE_E     C width 50
+  PROV_CODE    C width 2
+  PROV_NAM_T   C width 50
+  PROV_NAM_E   C width 50
+  P_CODE       C width 3
+  remark       C width 50
+  ORIG_FID     N width 10
+  Shape_Leng   F width 19.11
+  Shape_Area   F width 19.11
+  expanded / compressed = 15,954 / 1,850 = 8.62
+
+===== LU_ATG_2568.zip
+members: 10 (limit 64)
+member                                        compressed    expanded   ratio  type  method  verdict
+Landuse_═Φ╥º╖═º_2568/                                  0           0     0.0  dir        0  ok
+Landuse_═Φ╥º╖═º_2568/LU_ATG_2568.CPG                   7           5     0.7  file       8  ok
+Landuse_═Φ╥º╖═º_2568/LU_ATG_2568.dbf             218,779  16,534,730    75.6  file       8  ok
+Landuse_═Φ╥º╖═º_2568/LU_ATG_2568.prj                 292         562     1.9  file       8  ok
+Landuse_═Φ╥º╖═º_2568/LU_ATG_2568.sbn             102,764     146,980     1.4  file       8  ok
+Landuse_═Φ╥º╖═º_2568/LU_ATG_2568.sbx               4,756      10,780     2.3  file       8  ok
+Landuse_═Φ╥º╖═º_2568/LU_ATG_2568.shp           7,483,259  10,485,428     1.4  file       8  ok
+Landuse_═Φ╥º╖═º_2568/LU_ATG_2568.shp.xml             416       1,795     4.3  file       8  ok
+Landuse_═Φ╥º╖═º_2568/LU_ATG_2568.shx              64,601     120,132     1.9  file       8  ok
+Landuse_═Φ╥º╖═º_2568/ReadMe_╗╒65-68_Zone-47.pdf      59,720      66,280     1.1  file       8  ok
+total expanded: 27,366,692 bytes (limit 83,886,080)
+
+Landuse_═Φ╥º╖═º_2568/LU_ATG_2568.dbf: records 15,004 · header 321 B · record length 1102 B · fields 9 · text (C) width total 1016 B (92% of each record)
+  LU_ID_L1     N width 19.6
+  LU_ID_L2     N width 19.6
+  LU_ID_L3     N width 19.6
+  LU_CODE      C width 254
+  LU_DES_TH    C width 254
+  LU_DES_EN    C width 254
+  LU_DES       C width 254
+  Area_Sqm     N width 14
+  Area_Rai     N width 14
+  expanded / compressed = 16,534,730 / 218,779 = 75.58
+

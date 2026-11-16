@@ -1,0 +1,45 @@
+﻿C3 part A precheck  2026-11-17 01:16:43  cwd=C:\Users\chaya\green-area-c1
+
+## A1
+
+PS> git rev-parse HEAD
+540280594b1e01dcaa263a250e94c0f772156fa8
+exit=0
+
+PS> git branch --show-current
+gis-unlock
+exit=0
+
+PS> git status --short
+?? c1-backend.xml
+?? c1-dev.xml
+exit=0
+
+## A2
+
+PS> Get-FileHash C:\Users\chaya\gis-handoff-02-cont2\w3-inputs\LU_SKM_2568.zip -Algorithm SHA256 ; (Get-Item C:\Users\chaya\gis-handoff-02-cont2\w3-inputs\LU_SKM_2568.zip).Length
+  sha256 = B39404FA63880223D12B4B0DBCEA11E120ADB02BCFB5C5BBD7EE0C0D0508738F
+  bytes  = 4914393
+  expected B39404FA63880223D12B4B0DBCEA11E120ADB02BCFB5C5BBD7EE0C0D0508738F / 4914393
+  match: True
+
+PS> Get-FileHash C:\Users\chaya\gis-handoff-02-cont2\w3-inputs\LU_ATG_2568.zip -Algorithm SHA256 ; (Get-Item C:\Users\chaya\gis-handoff-02-cont2\w3-inputs\LU_ATG_2568.zip).Length
+  sha256 = A12F00E7A028BF50E09E81E1458CC9AE8EC3129B48D4EDAB01330B4C92DDF1E2
+  bytes  = 7937644
+  expected A12F00E7A028BF50E09E81E1458CC9AE8EC3129B48D4EDAB01330B4C92DDF1E2 / 7937644
+  match: True
+
+## A3
+PS> Get-NetTCPConnection -State Listen -LocalPort 3000,55422
+  port 3000 : LISTEN 127.0.0.1 pid 23204 (node)
+  port 55422 : LISTEN 127.0.0.1 pid 32036 (python)
+
+PS> docker ps -a --filter name=green-area-gis-t0 --format '{{.Names}} | {{.Status}}'
+green-area-gis-t0-db | Up 2 hours (healthy)
+green-area-gis-t0-gateway | Up 2 hours (healthy)
+green-area-gis-t0-auth | Up 2 hours (healthy)
+green-area-gis-t0-rest | Up 2 hours (healthy)
+exit=0
+healthy T0 containers: 4 / 4
+
+ALL CHECKS PASSED  01:16:45
