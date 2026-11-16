@@ -1,0 +1,7 @@
+﻿C2 machine spec  2026-11-17 00:18:57
+
+CPU: AMD Ryzen 5 5600H with Radeon Graphics
+Cores: 6  Logical processors (threads): 12  Max clock: 3301 MHz
+RAM total: 30.9 GB usable (33130868736 bytes) · installed modules: 2 × 16 GB @ 3200 MT/s
+Windows: Microsoft Windows 11 Home Single Language · DisplayVersion 26H2 · version 10.0.26300 build 26300 · 64-bit
+GPU: AMD Radeon(TM) Graphics | NVIDIA GeForce RTX 3050 Ti Laptop GPU

@@ -1,0 +1,72 @@
+﻿C2 part A precheck  2026-11-17 00:18:10  cwd=C:\Users\chaya\green-area-c1
+
+## A1
+
+PS> git rev-parse HEAD
+540280594b1e01dcaa263a250e94c0f772156fa8
+exit=0
+
+PS> git branch --show-current
+gis-unlock
+exit=0
+
+PS> git status --short
+?? c1-backend.xml
+?? c1-dev.xml
+exit=0
+
+## A2
+
+PS> Get-FileHash C:\Users\chaya\gis-handoff-02-cont2\w3-inputs\Landuse_Bangkok_2566_.zip -Algorithm SHA256
+C3EF854CFB3E036B7B94CDBAAC5C15A45FCBDE1D5E6A1971FAE27E7C2EDEDDB8
+exit=0
+
+PS> (Get-Item C:\Users\chaya\gis-handoff-02-cont2\w3-inputs\Landuse_Bangkok_2566_.zip).Length
+5515403
+exit=0
+expected: C3EF854CFB3E036B7B94CDBAAC5C15A45FCBDE1D5E6A1971FAE27E7C2EDEDDB8 / 5515403
+package: OK
+
+## A3
+
+PS> node -v
+v22.17.0
+exit=0
+
+PS> npm -v
+11.4.2
+exit=0
+
+PS> npm ci   (in green-area-frontend)
+npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+
+added 853 packages in 23s
+exit=0
+
+## A4
+PS> Get-NetTCPConnection -State Listen -LocalPort 3000,55422
+  port 3000 : free
+  port 55422 : free
+
+## A5
+
+PS> & $py -I -B dev/gis_ui/phase5_demo.py core-start --runtime-dir $rt
+{"action": "core-start", "owned_local_only": true, "volumes_preserved": true}
+exit=0
+
+PS> docker ps --filter name=green-area-gis-t0 --format '{{.Names}} | {{.Status}}'
+green-area-gis-t0-db | Up 50 minutes (healthy)
+green-area-gis-t0-gateway | Up 49 minutes (healthy)
+green-area-gis-t0-auth | Up 50 minutes (healthy)
+green-area-gis-t0-rest | Up 49 minutes (healthy)
+exit=0
+
+## A6
+
+PS> git status --short
+?? c1-backend.xml
+?? c1-dev.xml
+exit=0
+git status same as A1: True
+
+DONE  00:18:41
