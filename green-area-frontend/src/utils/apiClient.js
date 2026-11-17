@@ -10,12 +10,25 @@ export function setApiAuthToken(token) {
   currentToken = token || null;
 }
 
-// url ต้องขึ้นต้นด้วย API_BASE เท่านั้นถึงจะแนบ token — ทุก call site วันนี้ใช้
-// ${API_BASE}/... อยู่แล้วก็จริง แต่ apiFetch เป็น wrapper ที่ทุกคนเรียกได้ ถ้าวันหลัง
-// เผลอส่ง URL ที่มาจาก response ตรงๆ (เช่น GEE tile_url จาก maps/tiles.py) เข้ามา
-// การเช็คนี้กัน access token หลุดไปโดเมนที่สาม
+// แนบ token เฉพาะเมื่อ origin (protocol + hostname + port) ของ url ตรงกับ API_BASE
+// เท่านั้น — ทุก call site วันนี้ใช้ ${API_BASE}/... อยู่แล้วก็จริง แต่ apiFetch เป็น
+// wrapper ที่ทุกคนเรียกได้ ถ้าวันหลังเผลอส่ง URL ที่มาจาก response ตรงๆ (เช่น GEE
+// tile_url จาก maps/tiles.py) เข้ามา การเช็คนี้กัน access token หลุดไปโดเมนที่สาม
+//
+// เดิมใช้ url.startsWith(API_BASE) ซึ่งหลอกได้ด้วยการต่อท้ายโดเมน เช่น
+// https://green-area-backend.onrender.com.evil.com/x หรือใส่ userinfo เช่น
+// ${API_BASE}@evil.com/x — ทั้งคู่ขึ้นต้นด้วย API_BASE แต่ host จริงคือ evil.com
+// parse ไม่ได้ (relative path, ค่าที่ไม่ใช่ URL) → ถือว่าไม่ใช่เซิร์ฟเวอร์เรา ไม่ throw
+function isApiUrl(url) {
+  try {
+    return new URL(url).origin === new URL(API_BASE).origin;
+  } catch {
+    return false;
+  }
+}
+
 function withAuthHeaders(url, options = {}) {
-  if (!currentToken || !url.startsWith(API_BASE)) return options;
+  if (!currentToken || !isApiUrl(url)) return options;
   return {
     ...options,
     headers: { ...(options.headers || {}), Authorization: `Bearer ${currentToken}` },
