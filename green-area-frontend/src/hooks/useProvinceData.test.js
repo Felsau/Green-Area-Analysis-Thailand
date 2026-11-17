@@ -225,3 +225,38 @@ test('an HTTP error surfaces a toast and leaves stats null', async () => {
   expect(result.current.ndviStats).toBeNull();
   expect(result.current.ndviLoading).toBe(false);
 });
+
+// เดิม .json() ทั้ง 4 ตัวอยู่ใน Promise.all เดียว — body ที่ไม่ใช่ JSON แค่ตัวเดียว
+// (เช่นหน้า HTML 502 จาก proxy) ทำให้ Promise.all reject แล้วทั้งแผงว่างเปล่า
+test('one non-JSON dataset does not wipe out the other three', async () => {
+  const notJson = {
+    ok: true,
+    json: () => Promise.reject(new SyntaxError("Unexpected token '<', \"<html>\" is not valid JSON")),
+  };
+  fetchWithRetry.mockImplementation((url) => {
+    if (url.includes('/lst/') && !url.includes('/monthly')) return Promise.resolve(notJson);
+    if (url.includes('/ndvi/') && url.includes('/monthly')) {
+      return Promise.resolve(okJson({ monthly: [{ month: 1, ndvi: 0.4 }, { month: 2, ndvi: null }] }));
+    }
+    if (url.includes('/lst/') && url.includes('/monthly')) {
+      return Promise.resolve(okJson({ monthly: [{ month: 1, lst: 31 }] }));
+    }
+    return Promise.resolve(okJson({ ndvi_mean: 0.55 }));  // yearly NDVI + urban subset
+  });
+  const setNdviCache = vi.fn();
+  const { result } = renderHook(() => useProvinceData({ setNdviCache }));
+
+  await act(async () => { await result.current.fetchNDVI('Chiang Mai'); });
+
+  // the three good datasets are shown as usual
+  expect(result.current.ndviStats).toEqual(expect.objectContaining({ ndvi_mean: 0.55 }));
+  expect(result.current.ndviMonthly).toEqual([{ month: 1, ndvi: 0.4 }]);
+  expect(result.current.lstMonthly).toEqual([{ month: 1, lst: 31 }]);
+  expect(setNdviCache).toHaveBeenCalled();
+  // the bad one falls back to the same empty value as a failed request
+  expect(result.current.lstStats).toBeNull();
+  expect(result.current.ndviLoading).toBe(false);
+  expect(result.current.lstLoading).toBe(false);
+  // a single unreadable body is not a connection failure — no warning toast
+  expect(pushError).not.toHaveBeenCalled();
+});

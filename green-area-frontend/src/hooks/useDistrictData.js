@@ -5,6 +5,16 @@ import { pushApiError } from '../utils/apiErrors';
 import { fetchWithRetry } from '../utils/fetchRetry';
 import { apiFetch } from '../utils/apiClient';
 
+// อ่าน body ของแต่ละ response แยกกัน — เดิม .json() ทั้ง 4 ตัวอยู่ใน Promise.all
+// เดียว ถ้าตัวใดตัวหนึ่งไม่ใช่ JSON (เช่นหน้า HTML 502 จาก proxy) ทั้งแผงล้มตาม
+// ตัวที่ parse ไม่ได้คืน null → ผู้เรียกใช้ค่าว่างเดียวกับตอนคำขอนั้นไม่ ok
+// AbortError ยังต้องโยนต่อ: คำขอที่ถูกแทนที่แล้วต้องไม่ไปเขียนค่าว่างทับแผงของรอบใหม่
+const readJson = (res) => res.json().catch(err => {
+  if (err?.name === 'AbortError') throw err;
+  console.warn('อ่าน response เป็น JSON ไม่ได้:', res.url || '', err);
+  return null;
+});
+
 export function useDistrictData() {
   const [districtsData, setDistrictsData]               = useState(null);
   const [districtsLoading, setDistrictsLoading]         = useState(false);
@@ -90,16 +100,16 @@ export function useDistrictData() {
         fetchWithRetry(`${API_BASE}/lst/${base}/monthly${qs}`, { signal }),
       ]);
       const [stats, monthly, lst, lstMonthlyJson] = await Promise.all([
-        statsRes.json(), monthlyRes.json(), lstRes.json(), lstMonthlyRes.json(),
+        readJson(statsRes), readJson(monthlyRes), readJson(lstRes), readJson(lstMonthlyRes),
       ]);
-      if (statsRes.ok) setDistrictNdviStats(stats);
-      setDistrictNdviMonthly(monthlyRes.ok ? (monthly.monthly?.filter(m => m.ndvi !== null) ?? []) : []);
-      if (lstRes.ok) setDistrictLstStats(lst);
-      setDistrictLstMonthly(lstMonthlyRes.ok ? (lstMonthlyJson.monthly?.filter(m => m.lst !== null) ?? []) : []);
+      if (statsRes.ok && stats) setDistrictNdviStats(stats);
+      setDistrictNdviMonthly(monthlyRes.ok && monthly ? (monthly.monthly?.filter(m => m.ndvi !== null) ?? []) : []);
+      if (lstRes.ok && lst) setDistrictLstStats(lst);
+      setDistrictLstMonthly(lstMonthlyRes.ok && lstMonthlyJson ? (lstMonthlyJson.monthly?.filter(m => m.lst !== null) ?? []) : []);
       // districtCache is the newest-year value per district (loadDistrictCache
       // reduces /cache/districts the same way) and colours the district layer —
       // keep older years out of it so the map never mixes years.
-      if (statsRes.ok && stats.ndvi_mean != null && year === CURRENT_YEAR) {
+      if (statsRes.ok && stats?.ndvi_mean != null && year === CURRENT_YEAR) {
         const key = `${provinceName}::${districtName}`;
         setDistrictCache(prev => ({ ...prev, [key]: stats.ndvi_mean }));
       }

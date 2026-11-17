@@ -3,6 +3,16 @@ import { API_BASE, CURRENT_YEAR, API_COMPUTE_TIMEOUT_MS } from '../constants';
 import { pushApiError } from '../utils/apiErrors';
 import { fetchWithRetry } from '../utils/fetchRetry';
 
+// อ่าน body ของแต่ละ response แยกกัน — เดิม .json() ทั้ง 4 ตัวอยู่ใน Promise.all
+// เดียว ถ้าตัวใดตัวหนึ่งไม่ใช่ JSON (เช่นหน้า HTML 502 จาก proxy) ทั้งแผงล้มตาม
+// ตัวที่ parse ไม่ได้คืน null → ผู้เรียกใช้ค่าว่างเดียวกับตอนคำขอนั้นไม่ ok
+// AbortError ยังต้องโยนต่อ: คำขอที่ถูกแทนที่แล้วต้องไม่ไปเขียนค่าว่างทับแผงของรอบใหม่
+const readJson = (res) => res.json().catch(err => {
+  if (err?.name === 'AbortError') throw err;
+  console.warn('อ่าน response เป็น JSON ไม่ได้:', res.url || '', err);
+  return null;
+});
+
 export function useProvinceData({ setNdviCache }) {
   const [selectedProvince, setSelectedProvince]     = useState(null);
   const [selectedProvinceEN, setSelectedProvinceEN] = useState(null);
@@ -84,18 +94,18 @@ export function useProvinceData({ setNdviCache }) {
         fetchWithRetry(`${API_BASE}/lst/${enc(provinceName)}/monthly${qs}`, { signal }),
       ]);
       const [stats, monthly, lst, lstMonthlyJson] = await Promise.all([
-        statsRes.json(), monthlyRes.json(), lstRes.json(), lstMonthlyRes.json(),
+        readJson(statsRes), readJson(monthlyRes), readJson(lstRes), readJson(lstMonthlyRes),
       ]);
-      if (statsRes.ok) setNdviStats(stats);
-      setNdviMonthly(monthlyRes.ok ? (monthly.monthly?.filter(m => m.ndvi !== null) ?? []) : []);
-      if (lstRes.ok) setLstStats(lst);
-      setLstMonthly(lstMonthlyRes.ok ? (lstMonthlyJson.monthly?.filter(m => m.lst !== null) ?? []) : []);
+      if (statsRes.ok && stats) setNdviStats(stats);
+      setNdviMonthly(monthlyRes.ok && monthly ? (monthly.monthly?.filter(m => m.ndvi !== null) ?? []) : []);
+      if (lstRes.ok && lst) setLstStats(lst);
+      setLstMonthly(lstMonthlyRes.ok && lstMonthlyJson ? (lstMonthlyJson.monthly?.filter(m => m.lst !== null) ?? []) : []);
       // ndviCache colours the country choropleth and holds ONE value per
       // province, reduced to the newest year (/cache/ndvi-latest). Writing an
       // older year's value into it would leave the map mixing years — one
       // province drawn on 2021 while the rest sit on the latest. Only the
       // current year may refresh it.
-      if (statsRes.ok && stats.ndvi_mean != null && year === CURRENT_YEAR) {
+      if (statsRes.ok && stats?.ndvi_mean != null && year === CURRENT_YEAR) {
         setNdviCache(prev => ({ ...prev, [provinceName]: stats.ndvi_mean }));
       }
     } catch (err) {
