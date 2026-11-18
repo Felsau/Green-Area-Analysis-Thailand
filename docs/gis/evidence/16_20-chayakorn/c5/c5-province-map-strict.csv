@@ -1,0 +1,78 @@
+region,province_th,ldd_name_source,ldd_prov_nam_t,ldd_prov_nam_e,system_province,system_nl_name_1,match_by,has_amp_layer,note
+กรุงเทพฯ,กรุงเทพมหานคร,province layer กรุงเทพ_Pro.shp,กรุงเทพมหานคร,Bangkok,Bangkok Metropolis,จังหวัดเชียงใหม่,package_sha256,yes,"province layer กรุงเทพ_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,กาญจนบุรี,province layer กาญจนบุรี_Pro.shp,จ.กาญจนบุรี,Changwat Kanchanaburi,Kanchanaburi,อำเภอเมืองกาญจนบุรี,package_sha256,yes,"province layer กาญจนบุรี_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,จันทบุรี,province layer จันทบุรี_Pro.shp,จ.จันทบุรี,Changwat Chanthaburi,Chanthaburi,จันทบุรี,package_sha256,yes,"province layer has 9 rows, all ""จ.จันทบุรี"" (parts of one province) | province layer จันทบุรี_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,ฉะเชิงเทรา,province layer ฉะเชิงเทรา_Pro.shp,จ.ฉะเชิงเทรา,Changwat Chachoengsao,Chachoengsao,จังหวัดฉะเชิงเทรา,package_sha256,yes,"province layer ฉะเชิงเทรา_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,ชลบุรี,province layer ชลบุรี_Pro.shp,จ.ชลบุรี,Changwat Chonburi,Chon Buri,จังหวัดชลบุรี,package_sha256,yes,"province layer has 25 rows, all ""จ.ชลบุรี"" (parts of one province) | province layer ชลบุรี_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,ชัยนาท,province layer ชัยนาท_Pro.shp,จ.ชัยนาท,Changwat Chainat,Chai Nat,จังหวัดชัยนาท,package_sha256,yes,"province layer ชัยนาท_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,ตราด,province layer ตราด_Pro.shp,จ.ตราด,Changwat Trat,Trat,จังหวัดตราด,package_sha256,yes,"province layer has 22 rows, all ""จ.ตราด"" (parts of one province) | province layer ตราด_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,นครนายก,province layer นครนายก_Pro.shp,จ.นครนายก,Changwat Nakhon Nayok,Nakhon Nayok,จังหวัดนครนายก,package_sha256,yes,"province layer นครนายก_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,นครปฐม,province layer นครปฐม_Pro.shp,จ.นครปฐม,Changwat Nakhon Prathom,Nakhon Pathom,อำเภอเมืองนครปฐม,package_sha256,yes,"province layer นครปฐม_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,นนทบุรี,province layer นนทบุรี_Pro.shp,จ.นนทบุรี,Changwat Nonthaburi,Nonthaburi,จังหวัดนนทบุรี,package_sha256,yes,"province layer นนทบุรี_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,ปทุมธานี,province layer ปทุมธานี_Pro.shp,จ.ปทุมธานี,Changwat Pathum Thani,Pathum Thani,จังหวัดปทุมธานี,package_sha256,yes,"province layer ปทุมธานี_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,ประจวบคีรีขันธ์,province layer ประจวบคีรีขันธ์_Pro.shp,จ.ประจวบคีรีขันธ์,Changwat Prachuap Khilikhan,Prachuap Khiri Khan,จังหวัดประจวบคีรีขันธ์,package_sha256,yes,"province layer ประจวบคีรีขันธ์_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,ปราจีนบุรี,province layer ปราจีนบุรี_Pro.shp,จ.ปราจีนบุรี,Changwat Prachinburi,Prachin Buri,จังหวัดปราจีนบุรี,package_sha256,yes,"province layer ปราจีนบุรี_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,พระนครศรีอยุธยา,province layer พระนครศรีอยุธยา_Pro.shp,จ.พระนครศรีอยุธยา,Changwat Phra Nakhon Si Ayudhya,Phra Nakhon Si Ayutthaya,จังหวัดพระนครศรีอยุธยา,package_sha256,yes,"province layer พระนครศรีอยุธยา_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,ระยอง,province layer ระยอง_Pro.shp,จ.ระยอง,Changwat Rayong,Rayong,จังหวัดระยอง,package_sha256,yes,"province layer has 12 rows, all ""จ.ระยอง"" (parts of one province) | province layer ระยอง_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,ราชบุรี,province layer ราชบุรี_Pro.shp,จ.ราชบุรี,Changwat Ratchaburi,Ratchaburi,จังหวัดราชบุรี,package_sha256,yes,"province layer ราชบุรี_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,ลพบุรี,C4 file name (no province layer),ลพบุรี,,Lop Buri,ลพบุรี,th,no,nested ZIP read in memory
+ภาคกลาง,สมุทรปราการ,province layer สมุทรปราการ_Pro.shp,จ.สมุทรปราการ,Changwat Samut Prakarn,Samut Prakan,จังหวัดสมุทรปราการ,package_sha256,yes,"province layer สมุทรปราการ_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,สมุทรสงคราม,province layer สมุทรสงคราม_Pro.shp,จ.สมุทรสงคราม,Changwat Samut Songkham,Samut Songkhram,จังหวัดสมุทรสงคราม,package_sha256,yes,"province layer สมุทรสงคราม_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,สมุทรสาคร,province layer สมุทรสาคร_Pro.shp,จ.สมุทรสาคร,Changwat Samut Sakhon,Samut Sakhon,จังหวัดสมุทรสาคร,package_sha256,yes,"province layer สมุทรสาคร_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,สระบุรี,province layer สระบุรี_Pro.shp,จ.สระบุรี,Changwat Saraburi,Saraburi,จังหวัดสระบุรี,package_sha256,yes,"province layer สระบุรี_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,สระแก้ว,province layer สระแก้ว_Pro.shp,จ.สระแก้ว,Changwat Srakaeo,Sa Kaeo,จังหวัดสระแก้ว,package_sha256,yes,"province layer สระแก้ว_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,สิงห์บุรี,province layer prov_สิงบุรี.shp,จ.สิงห์บุรี,Sing Buri,Sing Buri,จังหวัดสิงห์บุรี,en,yes,province layer prov_สิงบุรี.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคกลาง,สุพรรณบุรี,province layer สุพรรณบุรี_Pro.shp,จ.สุพรรณบุรี,Changwat Suphan Buri,Suphan Buri,จังหวัดสุพรรณบุรี,package_sha256,yes,"province layer สุพรรณบุรี_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคกลาง,อ่างทอง,C4 file name (no province layer),อ่างทอง,,Ang Thong,จังหวัดอ่างทอง,th,no,
+ภาคกลาง,เพชรบุรี,province layer เพชรบุรี_Pro.shp,จ.เพชรบุรี,Changwat Phetchaburi,Phetchaburi,จังหวัดเพชรบุรี,package_sha256,yes,"province layer เพชรบุรี_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found; จังหวัดจับคู่จาก package_sha256"
+ภาคตะวันออกเฉียงเหนือ,กาฬสินธุ์,C4 file name (no province layer),กาฬสินธุ์,,Kalasin,จังหวัดกาฬสินธุ์,th,no,
+ภาคตะวันออกเฉียงเหนือ,ขอนแก่น,C4 file name (no province layer),ขอนแก่น,,Khon Kaen,จังหวัดขอนแก่น,th,no,
+ภาคตะวันออกเฉียงเหนือ,ชัยภูมิ,C4 file name (no province layer),ชัยภูมิ,,,,none,no,th_not_found; en_missing
+ภาคตะวันออกเฉียงเหนือ,นครพนม,C4 file name (no province layer),นครพนม,,Nakhon Phanom,จังหวัดนครพนม,th,no,
+ภาคตะวันออกเฉียงเหนือ,นครราชสีมา,C4 file name (no province layer),นครราชสีมา,,Nakhon Ratchasima,จังหวัดนครราชสีมา,th,no,
+ภาคตะวันออกเฉียงเหนือ,บึงกาฬ,C4 file name (no province layer),บึงกาฬ,,Bueng Kan,บึงกาฬ,th,no,
+ภาคตะวันออกเฉียงเหนือ,บุรีรัมย์,C4 file name (no province layer),บุรีรัมย์,,Buri Ram,จังหวัดบุรีรัมย์,th,no,
+ภาคตะวันออกเฉียงเหนือ,มหาสารคาม,C4 file name (no province layer),มหาสารคาม,,Maha Sarakham,จังหวัดมหาสารคาม,th,no,
+ภาคตะวันออกเฉียงเหนือ,มุกดาหาร,C4 row (no file),มุกดาหาร,,Mukdahan,จังหวัดมุกดาหาร,th,no,
+ภาคตะวันออกเฉียงเหนือ,ยโสธร,C4 file name (no province layer),ยโสธร,,Yasothon,จังหวัดยโสธร,th,no,
+ภาคตะวันออกเฉียงเหนือ,ร้อยเอ็ด,C4 file name (no province layer),ร้อยเอ็ด,,Roi Et,ร้อยเอ็ด,th,no,
+ภาคตะวันออกเฉียงเหนือ,ศรีสะเกษ,C4 file name (no province layer),ศรีสะเกษ,,Si Sa Ket,จังหวัดศรีสะเกษ,th,no,
+ภาคตะวันออกเฉียงเหนือ,สกลนคร,C4 file name (no province layer),สกลนคร,,Sakon Nakhon,จังหวัดสกลนคร,th,no,
+ภาคตะวันออกเฉียงเหนือ,สุรินทร์,C4 file name (no province layer),สุรินทร์,,Surin,จังหวัดสุรินทร์,th,no,
+ภาคตะวันออกเฉียงเหนือ,หนองคาย,C4 file name (no province layer),หนองคาย,,Nong Khai,จังหวัดหนองคาย,th,no,
+ภาคตะวันออกเฉียงเหนือ,หนองบัวลำภู,C4 file name (no province layer),หนองบัวลำภู,,Nong Bua Lam Phu,จังหวัดหนองบัวลำภู,th,no,
+ภาคตะวันออกเฉียงเหนือ,อำนาจเจริญ,C4 file name (no province layer),อำนาจเจริญ,,Amnat Charoen,จังหวัดอำนาจเจริญ,th,no,
+ภาคตะวันออกเฉียงเหนือ,อุดรธานี,C4 file name (no province layer),อุดรธานี,,Udon Thani,จังหวัดอุดรธานี,th,no,
+ภาคตะวันออกเฉียงเหนือ,อุบลราชธานี,C4 file name (no province layer),อุบลราชธานี,,Ubon Ratchathani,จังหวัดอุบลราชธานี,th,no,
+ภาคตะวันออกเฉียงเหนือ,เลย,C4 file name (no province layer),เลย,,Loei,จังหวัดเลย,th,no,
+ภาคเหนือ,กำแพงเพชร,province layer กำแพงเพชร_Pro.shp,จ.กำแพงเพชร,Changwat Kampaeng Phet,,,none,yes,"province layer กำแพงเพชร_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found"
+ภาคเหนือ,ตาก,province layer prov_ตาก.shp,จ.ตาก,Tak,Tak,จังหวัดตาก,en,yes,province layer prov_ตาก.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,นครสวรรค์,province layer prov_นครสวรรค์.shp,จ.นครสวรรค์,Nakhon Sawan,Nakhon Sawan,จังหวัดนครสวรรค์,en,yes,province layer prov_นครสวรรค์.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,น่าน,province layer น่าน_Pro.shp,จ.น่าน,Changwat Nan,,,none,yes,"province layer น่าน_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found"
+ภาคเหนือ,พะเยา,province layer พะเยา_Pro.shp,จ.พะเยา,Changwat Phayao,,,none,yes,"province layer พะเยา_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found"
+ภาคเหนือ,พิจิตร,province layer prov_พิจิตร.shp,จ.พิจิตร,Phichit,Phichit,จังหวัดพิจิตร,en,yes,province layer prov_พิจิตร.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,พิษณุโลก,province layer prov_พิษณุโลก.shp,จ.พิษณุโลก,Phitsanulok,Phitsanulok,จังหวัดพิษณุโลก,en,yes,province layer prov_พิษณุโลก.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,ลำปาง,province layer prov_ลำปาง.shp,จ.ลำปาง,Lampang,Lampang,จังหวัดลำปาง,en,yes,province layer prov_ลำปาง.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,ลำพูน,province layer prov_ลำพูน.shp,จ.ลำพูน,Lamphun,Lamphun,จังหวัดลำพูน,en,yes,province layer prov_ลำพูน.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,สุโขทัย,province layer prov_สุโขทัย.shp,จ.สุโขทัย,Sukhothai,Sukhothai,จังหวัดสุโขทัย,en,yes,province layer prov_สุโขทัย.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,อุตรดิตถ์,province layer prov_อุตรดิตถ์.shp,จ.อุตรดิตถ์,Uttaradit,Uttaradit,จังหวัดอุตรดิตถ์,en,yes,province layer prov_อุตรดิตถ์.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,อุทัยธานี,province layer prov_อุทัยธานี.shp,จ.อุทัยธานี,Uthai Thani,Uthai Thani,จังหวัดอุทัยธานี,en,yes,province layer prov_อุทัยธานี.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,เชียงราย,province layer prov_เชียงราย.shp,จ.เชียงราย,Chiang Rai,Chiang Rai,จังหวัดเชียงราย,en,yes,province layer prov_เชียงราย.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,เชียงใหม่,province layer เชียงใหม่_Pro.shp,จ.เชียงใหม่,Changwat Chiang Mai,,,none,yes,"province layer เชียงใหม่_Pro.shp PROV_NAM_T/PROV_NAM_E (.cpg ""UTF-8"" -> UTF-8) | th_not_found; en_not_found"
+ภาคเหนือ,เพชรบูรณ์,province layer prov_เพชรบูรณ์.shp,จ.เพชรบูรณ์,Phetchabun,Phetchabun,อำเภอเมืองเพชรบูรณ์,en,yes,province layer prov_เพชรบูรณ์.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคเหนือ,แพร่,province layer prov_แพร่.shp,จ.แพร่,Phrae,Phrae,จังหวัดแพร่,en,yes,"province layer prov_แพร่.shp PROV_NAM_T/PROV_NAM_E (.cpg ""ANSI 874"" -> cp874) | th_not_found"
+ภาคเหนือ,แม่ฮ่องสอน,province layer prov_แม่ฮ่องสอน.shp,จ.แม่ฮ่องสอน,Mae Hong Son,Mae Hong Son,จังหวัดแม่ฮ่องสอน,en,yes,province layer prov_แม่ฮ่องสอน.shp PROV_NAM_T/PROV_NAM_E (no .cpg -> decoded as cp874) | th_not_found
+ภาคใต้,กระบี่,C4 file name (no province layer),กระบี่,,Krabi,จังหวัดกระบี่,th,no,
+ภาคใต้,ชุมพร,C4 file name (no province layer),ชุมพร,,Chumphon,จังหวัดชุมพร,th,no,
+ภาคใต้,ตรัง,C4 file name (no province layer),ตรัง,,Trang,จังหวัดตรัง,th,no,
+ภาคใต้,นครศรีธรรมราช,C4 file name (no province layer),นครศรีธรรมราช,,Nakhon Si Thammarat,จังหวัดนครศรีธรรมราช,th,no,
+ภาคใต้,นราธิวาส,C4 file name (no province layer),นราธิวาส,,Narathiwat,จังหวัดนราธิวาส,th,no,
+ภาคใต้,ปัตตานี,C4 file name (no province layer),ปัตตานี,,Pattani,จังหวัดปัตตานี,th,no,
+ภาคใต้,พังงา,C4 file name (no province layer),พังงา,,Phangnga,จังหวัดพังงา,th,no,
+ภาคใต้,พัทลุง,C4 file name (no province layer),พัทลุง,,Phatthalung,จังหวัดพัทลุง,th,no,
+ภาคใต้,ภูเก็ต,C4 file name (no province layer),ภูเก็ต,,Phuket,จังหวัดภูเก็ต,th,no,
+ภาคใต้,ยะลา,C4 file name (no province layer),ยะลา,,Yala,จังหวัดยะลา,th,no,
+ภาคใต้,ระนอง,C4 file name (no province layer),ระนอง,,Ranong,จังหวัดระนอง,th,no,
+ภาคใต้,สงขลา,C4 file name (no province layer),สงขลา,,Songkhla,จังหวัดสงขลา,th,no,
+ภาคใต้,สตูล,C4 file name (no province layer),สตูล,,Satun,จังหวัดสตูล,th,no,
+ภาคใต้,สุราษฎร์ธานี,C4 file name (no province layer),สุราษฎร์ธานี,,Surat Thani,จังหวัดสุราษฎร์ธานี,th,no,

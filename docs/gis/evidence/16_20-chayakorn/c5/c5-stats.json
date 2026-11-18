@@ -1,0 +1,51 @@
+{
+ "province_package_sha256": 2,
+ "ldd_amphoe_layer_rows": 506,
+ "ldd_amphoe_districts": 439,
+ "district_th": 429,
+ "district_none": 7,
+ "diff_ldd_th_truncated": 4,
+ "diff_sys_ldd_th_truncated": 4,
+ "province_en": 4,
+ "province_th": 70,
+ "diff_ldd_only": 2,
+ "province_none": 1,
+ "district_en": 3,
+ "diff_system_th_wrong": 1,
+ "diff_sys_system_th_wrong": 1,
+ "system_ldd_no_amphoe_layer": 477,
+ "system_province_unmatched": 16,
+ "rules": "with abbreviations",
+ "system_provinces": 77,
+ "system_districts": 928,
+ "system_districts_matched": 430,
+ "system_districts_matched_th": 427,
+ "unmatched_system_provinces": [
+  "Chaiyaphum"
+ ],
+ "system_file_checks": [
+  "thailand.json Bangkok Metropolis: NL_NAME_1 = จังหวัดเชียงใหม่ (duplicate)",
+  "thailand.json Bueng Kan: NL_NAME_1 = บึงกาฬ",
+  "thailand.json Chai Nat: NL_NAME_1 = จังหวัดชัยนาท (duplicate)",
+  "thailand.json Chaiyaphum: NL_NAME_1 = จังหวัดชัยนาท (duplicate)",
+  "thailand.json Chanthaburi: NL_NAME_1 = จันทบุรี",
+  "thailand.json Chiang Mai: NL_NAME_1 = จังหวัดเชียงใหม่ (duplicate)",
+  "thailand.json Kanchanaburi: NL_NAME_1 = อำเภอเมืองกาญจนบุรี",
+  "thailand.json Lop Buri: NL_NAME_1 = ลพบุรี",
+  "thailand.json Nakhon Pathom: NL_NAME_1 = อำเภอเมืองนครปฐม",
+  "thailand.json Phetchabun: NL_NAME_1 = อำเภอเมืองเพชรบูรณ์",
+  "thailand.json Roi Et: NL_NAME_1 = ร้อยเอ็ด",
+  "thailand_districts.json Nakhon Sawan: name_th ลาดยาว on 2 districts: LatYao, PhayuhaKhiri",
+  "thailand_districts.json Nakhon Sawan: name_th ท่าตะโก on 2 districts: Takhli, ThaTako"
+ ],
+ "name_prefixes_seen": {
+  "en:Amphoe": 385,
+  "en:Changwat": 26,
+  "en:amphoe (lower case)": 2,
+  "en-other:Ampheoe": 1,
+  "en-other:Amphpoe": 1,
+  "th:จ.": 40,
+  "th:อ.": 389
+ },
+ "system_districts_matched_en": 3
+}

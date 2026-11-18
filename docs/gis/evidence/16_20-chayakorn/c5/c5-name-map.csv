@@ -1,0 +1,938 @@
+province_th,system_province,ldd_amphoe_idn,ldd_amphoe_t,ldd_amphoe_e,system_district,match_by,note
+กรุงเทพมหานคร,Bangkok Metropolis,1001,เขตพระนคร,Phra Nakhon District,PhraNakhon (เขตพระนคร),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1002,เขตดุสิต,Dusit District,Dusit (เขตดุสิต),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1003,เขตหนองจอก,Nong Chok District,NongChok (เขตหนองจอก),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1004,เขตบางรัก,Bang Rak District,BangRak (เขตบางรัก),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1005,เขตบางเขน,Bang Khen District,BangKhen (เขตบางเขน),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1006,เขตบางกะปิ,Bang Kapi District,BangKapi (เขตบางกะปิ),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1007,เขตปทุมวัน,Pathum Wan District,PathumWan (เขตปทุมวัน),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1008,เขตป้อมปราบศัตรู,Pom Prap Sattru Phai District,,none,"ldd_th_truncated: field 50 bytes, value 48 bytes; system has PomPramSattru (เขตป้อมปราบศัตรูพ่าย) | th_not_found; en_not_found"
+กรุงเทพมหานคร,Bangkok Metropolis,1009,เขตพระโขนง,Phra Khanong District,Prakanong (เขตพระโขนง),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1010,เขตมีนบุรี,Min Buri District,MinBuri (เขตมีนบุรี),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1011,เขตลาดกระบัง,Lat Krabang District,LatKrabang (เขตลาดกระบัง),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1012,เขตยานนาวา,Yan Nawa District,Yannawa (เขตยานนาวา),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1013,เขตสัมพันธวงศ์,Samphanthawong District,Samphantawong (เขตสัมพันธวงศ์),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1014,เขตพญาไท,Phaya Thai District,PhayaThai (เขตพญาไท),th,2 rows in the LDD layer (parts of one district)
+กรุงเทพมหานคร,Bangkok Metropolis,1015,เขตธนบุรี,Thon Buri District,ThonBuri (เขตธนบุรี),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1016,เขตบางกอกใหญ่,Bangkok Yai District,BangkokYai (เขตบางกอกใหญ่),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1017,เขตห้วยขวาง,Huai Khwang District,HuaiKwang (เขตห้วยขวาง),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1018,เขตคลองสาน,Khlong San District,KhlongSan (เขตคลองสาน),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1019,เขตตลิ่งชัน,Taling Chan District,TalingChan (เขตตลิ่งชัน),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1020,เขตบางกอกน้อย,Bangkok Noi District,BangkokNoi (เขตบางกอกน้อย),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1021,เขตบางขุนเทียน,Bang Khun Thian District,Bangkhuntien (เขตบางขุนเทียน),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1022,เขตภาษีเจริญ,Phasi Charoen District,PhasiCharoen (เขตภาษีเจริญ),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1023,เขตหนองแขม,Nong Khaem District,Nongkheam (เขตหนองแขม),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1024,เขตราษฎร์บูรณะ,Rat Burana District,RatBurana (เขตราษฎร์บูรณะ),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1025,เขตบางพลัด,Bang Phlat District,BangPlad (เขตบางพลัด),th,2 rows in the LDD layer (parts of one district)
+กรุงเทพมหานคร,Bangkok Metropolis,1026,เขตดินแดง,Din Daeng District,DinDang (เขตดินแดง),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1027,เขตบึงกุ่ม,Bueng Kum District,BungKum (เขตบึงกุ่ม),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1028,เขตสาทร,Sathon District,Sathorn (เขตสาทร),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1029,เขตบางซื่อ,Bang Sue District,BangSu (เขตบางซื่อ),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1030,เขตจตุจักร,Chatuchak District,Chatuchak (เขตจตุจักร),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1031,เขตบางคอแหลม,Bang Kho Laem District,BangKhoLaem (เขตบางคอแหลม),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1032,เขตประเวศ,Prawet District,Prawet (เขตประเวศ),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1033,เขตคลองเตย,Khlong Toei District,KhlongToey (เขตคลองเตย),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1034,เขตสวนหลวง,Suan Luang District,SuanLuang (เขตสวนหลวง),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1035,เขตจอมทอง,Chom Thong District,ChomThong (เขตจอมทอง),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1036,เขตดอนเมือง,Don Mueang District,DonMuang (เขตดอนเมือง),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1037,เขตราชเทวี,Ratchathewi District,Ratchathewi (เขตราชเทวี),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1038,เขตลาดพร้าว,Lat Phrao District,LatPhrao (เขตลาดพร้าว),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1039,เขตวัฒนา,Watthana District,Wattana (เขตวัฒนา),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1040,เขตบางแค,Bang Khae District,BangKhae (เขตบางแค),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1041,เขตหลักสี่,Lak Si District,LakSi (เขตหลักสี่),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1042,เขตสายไหม,Sai Mai District,SaiMai (เขตสายไหม),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1043,เขตคันนายาว,Khan Na Yao District,KhanNaYao (เขตคันนายาว),th,2 rows in the LDD layer (parts of one district)
+กรุงเทพมหานคร,Bangkok Metropolis,1044,เขตสะพานสูง,Saphan Sung District,SaphanSung (เขตสะพานสูง),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1045,เขตวังทองหลาง,Wang Thonglang District,WangThonglang (เขตวังทองหลาง),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1046,เขตคลองสามวา,Khlong Sam Wa District,KhlongSamWa (เขตคลองสามวา),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1047,เขตบางนา,Bang Na District,BangNa (เขตบางนา),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1048,เขตทวีวัฒนา,Thawi Watthana District,ThawiWattana (เขตทวีวัฒนา),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1049,เขตทุ่งครุ,Thung Khru District,Thungkru (เขตทุ่งครุ),th,
+กรุงเทพมหานคร,Bangkok Metropolis,1050,เขตบางบอน,Bang Bon District,BangBon (เขตบางบอน),th,
+กรุงเทพมหานคร,Bangkok Metropolis,,,,PomPramSattru (เขตป้อมปราบศัตรูพ่าย),none,ldd_th_truncated: LDD [1008] เขตป้อมปราบศัตรู is the cut-off start of this name_th
+กาญจนบุรี,Kanchanaburi,7101,อ.เมืองกาญจนบุรี,Amphoe Muang Kanchanaburi,MuangKanchanaburi (เมืองกาญจนบุรี),th,
+กาญจนบุรี,Kanchanaburi,7102,อ.ไทรโยค,Amphoe Sai Yok,SaiYok (ไทรโยค),th,
+กาญจนบุรี,Kanchanaburi,7103,อ.บ่อพลอย,Amphoe Bo Phoi,BoPhloi (บ่อพลอย),th,
+กาญจนบุรี,Kanchanaburi,7104,อ.ศรีสวัสดิ์,Amphoe Si Sawat,SiSawat (ศรีสวัสดิ์),th,
+กาญจนบุรี,Kanchanaburi,7105,อ.ท่ามะกา,Amphoe Tha Maka,ThaMaka (ท่ามะกา),th,
+กาญจนบุรี,Kanchanaburi,7106,อ.ท่าม่วง,Amphoe Tha Muang,ThaMuang (ท่าม่วง),th,
+กาญจนบุรี,Kanchanaburi,7107,อ.ทองผาภูมิ,Amphoe Thong Phaphum,ThongPhaPhum (ทองผาภูมิ),th,
+กาญจนบุรี,Kanchanaburi,7108,อ.สังขละบุรี,Amphoe Sangkha Buri,SangkhlaBuri (สังขละบุรี),th,
+กาญจนบุรี,Kanchanaburi,7109,อ.พนมทวน,Amphoe Phanom Thuan,PhanomThuan (พนมทวน),th,
+กาญจนบุรี,Kanchanaburi,7110,อ.เลาขวัญ,Amphoe Lao Khwan,LaoKhwan (เลาขวัญ),th,
+กาญจนบุรี,Kanchanaburi,7111,อ.ด่านมะขามเตี้ย,Amphoe Dan Makham Tia,DanMakhamTia (ด่านมะขามเตี้ย),th,
+กาญจนบุรี,Kanchanaburi,7112,อ.หนองปรือ,Amphoe Nong Pu,NongPrue (หนองปรือ),th,
+กาญจนบุรี,Kanchanaburi,7113,อ.ห้วยกระเจา,Amphoe Huai Krachao,HuaiKraChao (ห้วยกระเจา),th,
+จันทบุรี,Chanthaburi,2201,อ.เมืองจันทบุรี,Amphoe Muang Chanthaburi,MuangChanthaburi (เมืองจันทบุรี),th,
+จันทบุรี,Chanthaburi,2202,อ.ขลุง,Amphoe Khlung,Khlung (ขลุง),th,3 rows in the LDD layer (parts of one district)
+จันทบุรี,Chanthaburi,2203,อ.ท่าใหม่,Amphoe Thamai,ThaMai (ท่าใหม่),th,2 rows in the LDD layer (parts of one district)
+จันทบุรี,Chanthaburi,2204,อ.โป่งน้ำร้อน,Amphoe Pong Nam Ron,PongNamRon (โป่งน้ำร้อน),th,
+จันทบุรี,Chanthaburi,2205,อ.มะขาม,Amphoe Makham,Makham (มะขาม),th,
+จันทบุรี,Chanthaburi,2206,อ.แหลมสิงห์,Amphoe Laem Sing,LaemSing (แหลมสิงห์),th,6 rows in the LDD layer (parts of one district)
+จันทบุรี,Chanthaburi,2207,อ.สอยดาว,Amphoe Soi Dao,Soydow (สอยดาว),th,
+จันทบุรี,Chanthaburi,2208,อ.แก่งหางแมว,Amphoe Kaeng Hang Maeo,KangHangMaeo (แก่งหางแมว),th,
+จันทบุรี,Chanthaburi,2209,อ.นายายอาม,Amphoe Na Yaiarm,K.NaYaiAm (นายายอาม),th,
+จันทบุรี,Chanthaburi,2210,อ.เขาคิชฌกูฏ,Amphoe Khao Khitchakut,K.KaoKichakut (เขาคิชฌกูฏ),th,
+ฉะเชิงเทรา,Chachoengsao,2401,อ.เมืองฉะเชิงเทรา,Amphoe Muang Chachoengsao,MuangChachoengsao (เมืองฉะเชิงเทรา),th,
+ฉะเชิงเทรา,Chachoengsao,2402,อ.บางคล้า,Amphoe Bang Khla,BangKhla (บางคล้า),th,
+ฉะเชิงเทรา,Chachoengsao,2403,อ.บางน้ำเปรี้ยว,Amphoe Bang Nam Pieo,BangNamPrieo (บางน้ำเปรี้ยว),th,
+ฉะเชิงเทรา,Chachoengsao,2404,อ.บางปะกง,Amphoe Bang Pakong,BangPakong (บางปะกง),th,
+ฉะเชิงเทรา,Chachoengsao,2405,อ.บ้านโพธิ์,Amphoe Ban Phoe,BanPho (บ้านโพธิ์),th,
+ฉะเชิงเทรา,Chachoengsao,2406,อ.พนมสารคาม,Amphoe Phanom Sarakham,PhanomSarakham (พนมสารคาม),th,
+ฉะเชิงเทรา,Chachoengsao,2407,อ.ราชสาส์น,Amphoe Ratchasan,Ratchasan (ราชสาส์น),th,
+ฉะเชิงเทรา,Chachoengsao,2408,อ.สนามชัยเขต,Amphoe Sanam Chaikhet,SanamChaikhet (สนามชัยเขต),th,
+ฉะเชิงเทรา,Chachoengsao,2409,อ.แปลงยาว,Amphoe Plaeng Yao,PlaengYao (แปลงยาว),th,
+ฉะเชิงเทรา,Chachoengsao,2410,อ.ท่าตะเกียบ,Amphoe Tha Takiap,ThaTaKieb (ท่าตะเกียบ),th,
+ฉะเชิงเทรา,Chachoengsao,2411,อ.คลองเขื่อน,Amphoe Khong Khuain,K.KhlongKhuan (คลองเขื่อน),th,
+ชลบุรี,Chon Buri,2001,อ.เมืองชลบุรี,Amphoe Muang Chonburi,MuangChonBuri (เมืองชลบุรี),th,
+ชลบุรี,Chon Buri,2002,อ.บ้านบึง,Amphoe Ban Bung,BanBung (บ้านบึง),th,
+ชลบุรี,Chon Buri,2003,อ.หนองใหญ่,Amphoe Nong Yai,NongYai (หนองใหญ่),th,
+ชลบุรี,Chon Buri,2004,อ.บางละมุง,Amphoe Bang La Mung,BangLamung (บางละมุง),th,system district matched by 2 LDD rows
+ชลบุรี,Chon Buri,2005,อ.พานทอง,Amphoe Phan Thong,PhanThong (พานทอง),th,
+ชลบุรี,Chon Buri,2006,อ.พนัสนิคม,Amphoe Panusnikom,PhanatNikhom (พนัสนิคม),th,
+ชลบุรี,Chon Buri,2007,อ.ศรีราชา,Amphoe Siracha,SiRacha (ศรีราชา),th,2 rows in the LDD layer (parts of one district)
+ชลบุรี,Chon Buri,2008,อ.เกาะสีชัง,Amphoe Ko Sichang,KoSichang (เกาะสีชัง),th,
+ชลบุรี,Chon Buri,2009,อ.สัตหีบ,Amphoe Sattahip,Sattahip (สัตหีบ),th,19 rows in the LDD layer (parts of one district)
+ชลบุรี,Chon Buri,2010,อ.บ่อทอง,Amphoe Borthong,BoThong (บ่อทอง),th,
+ชลบุรี,Chon Buri,2011,อ.เกาะจันทร์,Amphoe Ko Jan,K.KoChan (เกาะจันทร์),th,
+ชลบุรี,Chon Buri,2012,อ.บางละมุง,Amphoe Bang La Mung,BangLamung (บางละมุง),th,5 rows in the LDD layer (parts of one district) | system district matched by 2 LDD rows
+ชัยนาท,Chai Nat,1801,อ.เมืองชัยนาท,Amphoe Muang Chainat,MuangChaiNat (เมืองชัยนาท),th,
+ชัยนาท,Chai Nat,1802,อ.มโนรมย์,Amphoe Manorom,Manorom (มโนรมย์),th,
+ชัยนาท,Chai Nat,1803,อ.วัดสิงห์,Amphoe Watsing,WatSing (วัดสิงห์),th,
+ชัยนาท,Chai Nat,1804,อ.สรรพยา,Amphoe Sanphaya,Sanphaya (สรรพยา),th,
+ชัยนาท,Chai Nat,1805,อ.สรรคบุรี,Amphoe Sankhaburi,SankhaBuri (สรรคบุรี),th,
+ชัยนาท,Chai Nat,1806,อ.หันคา,Amphoe Hanka,HanKha (หันคา),th,
+ชัยนาท,Chai Nat,1807,อ.หนองมะโมง,Amphoe Nong Ma Mong,K.NongMaMong (หนองมะโมง),th,
+ชัยนาท,Chai Nat,1808,อ.เนินขาม,Amphoe Noen Kham,K.NoenKham (เนินขาม),th,
+ตราด,Trat,2301,อ.เมืองตราด,Amphoe Muang Trat,MuangTrat (เมืองตราด),th,
+ตราด,Trat,2302,อ.คลองใหญ่,Amphoe Khlong Yai,KhlongYai (คลองใหญ่),th,2 rows in the LDD layer (parts of one district)
+ตราด,Trat,2303,อ.เขาสมิง,Amphoe Khoa Saming,KhaoSaming (เขาสมิง),th,
+ตราด,Trat,2304,อ.บ่อไร่,Amphoe Bo Rai,BoRai (บ่อไร่),th,
+ตราด,Trat,2305,อ.แหลมงอบ,Amphoe Laem Ngop,LaemNgop (แหลมงอบ),th,
+ตราด,Trat,2306,อ.เกาะกูด,Amphoe Ko Kut,K.KoKut (เกาะกูด),th,18 rows in the LDD layer (parts of one district)
+ตราด,Trat,2307,อ.เกาะช้าง,Amphoe  Ko Chang,K.KoChang (เกาะช้าง),th,2 rows in the LDD layer (parts of one district)
+นครนายก,Nakhon Nayok,2601,อ.เมืองนครนายก,Amphoe Muang Nakhon Nayok,MuangNakhonNayok (เมืองนครนายก),th,
+นครนายก,Nakhon Nayok,2602,อ.ปากพลี,Amphoe Pakphli,PakPhli (ปากพลี),th,
+นครนายก,Nakhon Nayok,2603,อ.บ้านนา,Amphoe Banna,BanNa (บ้านนา),th,
+นครนายก,Nakhon Nayok,2604,อ.องครักษ์,Amphoe Ongkhalak,Ongkharak (องครักษ์),th,
+นครปฐม,Nakhon Pathom,7301,อ.เมืองนครปฐม,Amphoe Muang Nakhon Prathom,MuangNakhonPathom (เมืองนครปฐม),th,
+นครปฐม,Nakhon Pathom,7302,อ.กำแพงแสน,Amphoe Kam Paeng Saen,KamphaengSaen (กำแพงแสน),th,
+นครปฐม,Nakhon Pathom,7303,อ.นครชัยศรี,Amphoe Nakhon Chaisi,NakhonChaisi (นครชัยศรี),th,
+นครปฐม,Nakhon Pathom,7304,อ.ดอนตูม,Amphoe Don Tum,DonTum (ดอนตูม),th,
+นครปฐม,Nakhon Pathom,7305,อ.บางเลน,Amphoe Bang Len,BangLen (บางเลน),th,
+นครปฐม,Nakhon Pathom,7306,อ.สามพราน,Amphoe Sam Phran,SamPhran (สามพราน),th,
+นครปฐม,Nakhon Pathom,7307,อ.พุทธมณฑล,Amphoe Phuttamonthon,PhutthaMonThon (พุทธมณฑล),th,
+นนทบุรี,Nonthaburi,1201,อ.เมืองนนทบุรี,Amphoe Muang Nontaburi,MuangNonthaburi (เมืองนนทบุรี),th,
+นนทบุรี,Nonthaburi,1202,อ.บางกรวย,Amphoe Bang Krui,BangKruai (บางกรวย),th,
+นนทบุรี,Nonthaburi,1203,อ.บางใหญ่,Amphoe Bang Yai,BangYai (บางใหญ่),th,
+นนทบุรี,Nonthaburi,1204,อ.บางบัวทอง,Amphoe Bang Bua Thong,BangBuaThong (บางบัวทอง),th,
+นนทบุรี,Nonthaburi,1205,อ.ไทรน้อย,Amphoe Sai Noi,SaiNoi (ไทรน้อย),th,
+นนทบุรี,Nonthaburi,1206,อ.ปากเกร็ด,Amphoe Pak Kret,PakKret (ปากเกร็ด),th,
+ปทุมธานี,Pathum Thani,1301,อ.เมืองปทุมธานี,Amphoe Muang Pathum Thani,MuangPathumThani (เมืองปทุมธานี),th,
+ปทุมธานี,Pathum Thani,1302,อ.คลองหลวง,Amphoe khlong Luang,KhlongLuang (คลองหลวง),th,
+ปทุมธานี,Pathum Thani,1303,อ.ธัญบุรี,Amphoe Thanyaburi,Thanyaburi (ธัญบุรี),th,
+ปทุมธานี,Pathum Thani,1304,อ.หนองเสือ,Amphoe Nong Sua,NongSua (หนองเสือ),th,
+ปทุมธานี,Pathum Thani,1305,อ.ลาดหลุมแก้ว,Amphoe Lat Lum Kaew,LatLumKaeo (ลาดหลุมแก้ว),th,
+ปทุมธานี,Pathum Thani,1306,อ.ลำลูกกา,Amphoe Lum Lukka,LamLukKa (ลำลูกกา),th,
+ปทุมธานี,Pathum Thani,1307,อ.สามโคก,Amphoe Sam Khok,SamKhok (สามโคก),th,
+ประจวบคีรีขันธ์,Prachuap Khiri Khan,7701,อ.เมืองประจวบคีรี,Amphoe Muang Prachuap Khilikhan,,none,"ldd_th_truncated: field 50 bytes, value 49 bytes; system has MuangPrachuapKhiriKhan (เมืองประจวบคีรีขันธ์) | th_not_found; en_not_found"
+ประจวบคีรีขันธ์,Prachuap Khiri Khan,7702,อ.กุยบุรี,Amphoe Kui Buri,KuiBuri (กุยบุรี),th,
+ประจวบคีรีขันธ์,Prachuap Khiri Khan,7703,อ.ทับสะแก,Amphoe Thap Sakae,ThapSakae (ทับสะแก),th,
+ประจวบคีรีขันธ์,Prachuap Khiri Khan,7704,อ.บางสะพาน,Amphoe Bang Saphan,BangSaphan (บางสะพาน),th,
+ประจวบคีรีขันธ์,Prachuap Khiri Khan,7705,อ.บางสะพานน้อย,Amphoe Bang Saphan Noi,BangSaphanNoi (บางสะพานน้อย),th,
+ประจวบคีรีขันธ์,Prachuap Khiri Khan,7706,อ.ปราณบุรี,Amphoe Pran Buri,PranBuri (ปราณบุรี),th,
+ประจวบคีรีขันธ์,Prachuap Khiri Khan,7707,อ.หัวหิน,Amphoe Hua Hin,HuaHin (หัวหิน),th,
+ประจวบคีรีขันธ์,Prachuap Khiri Khan,7708,อ.สามร้อยยอด,Amphoe Sam Roi Yot,K.SamRoiYot (สามร้อยยอด),th,
+ประจวบคีรีขันธ์,Prachuap Khiri Khan,,,,MuangPrachuapKhiriKhan (เมืองประจวบคีรีขันธ์),none,ldd_th_truncated: LDD [7701] อ.เมืองประจวบคีรี is the cut-off start of this name_th
+ปราจีนบุรี,Prachin Buri,2501,อ.เมืองปราจีนบุรี,Amphoe Muang Prachinburi,MuangPrachinBuri (เมืองปราจีนบุรี),th,
+ปราจีนบุรี,Prachin Buri,2502,อ.กบินทร์บุรี,Amphoe Kabinburi,KabinBuri (กบินทร์บุรี),th,
+ปราจีนบุรี,Prachin Buri,2503,อ.นาดี,Amphoe Nadi,NaDi (นาดี),th,
+ปราจีนบุรี,Prachin Buri,2506,อ.บ้านสร้าง,Amphoe Ban Srang,BanSang (บ้านสร้าง),th,
+ปราจีนบุรี,Prachin Buri,2507,อ.ประจันตคาม,Amphoe Prachantakham,Prachantakham (ประจันตคาม),th,
+ปราจีนบุรี,Prachin Buri,2508,อ.ศรีมหาโพธิ,Amphoe Srimahapho,SriMaharPho (ศรีมหาโพธิ),th,
+ปราจีนบุรี,Prachin Buri,2509,อ.ศรีมโหสถ,Amphoe Sri Mahosoit,SiMahosot (ศรีมโหสถ),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1401,อ.พระนครศรีอยุธยา,Amphoe Phra Nakhon Si Ayudhya,PhraNakhonSiAyutthaya (พระนครศรีอยุธยา),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1402,อ.ท่าเรือ,Amphoe Tharua,ThaRua (ท่าเรือ),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1403,อ.นครหลวง,Amphoe Nakhon Luang,NakhonLuang (นครหลวง),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1404,อ.บางไทร,Amphoe Bang Chai,,none,ldd_only | th_not_found; en_not_found
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1405,อ.บางบาล,Amphoe Bang Ban,BangBan (บางบาล),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1406,อ.บางปะอิน,Amphoe Bang Pa-in,BangPa-In (บางปะอิน),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1407,อ.บางปะหัน,Amphoe Bang Pahan,BangPahan (บางปะหัน),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1408,อ.ผักไห่,Amphoe Phak Hai,PhakHai (ผักไห่),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1409,อ.ภาชี,Amphoe Phachi,Phachi (ภาชี),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1410,อ.ลาดบัวหลวง,Amphoe Lat Bua Luang,LatBuaLuang (ลาดบัวหลวง),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1411,อ.วังน้อย,Amphoe Wang Noi,WangNoi (วังน้อย),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1412,อ.เสนา,Amphoe Sena,Sena (เสนา),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1413,อ.บางซ้าย,Amphoe  Bang Sai,BangSai (บางซ้าย),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1414,อ.อุทัย,Amphoe Uthai,Uthai (อุทัย),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1415,อ.มหาราช,Amphoe Maharat,MahaRat (มหาราช),th,
+พระนครศรีอยุธยา,Phra Nakhon Si Ayutthaya,1416,อ.บ้านแพรก,Amphoe Ban Phreak,BanPhraek (บ้านแพรก),th,
+ระยอง,Rayong,2101,อ.เมืองระยอง,Amphoe Muang Rayong,MuangRayong (เมืองระยอง),th,7 rows in the LDD layer (parts of one district)
+ระยอง,Rayong,2102,อ.บ้านฉาง,Amphoe BanChang,BanChang (บ้านฉาง),th,
+ระยอง,Rayong,2103,อ.แกลง,Amphoe Klang,Klaeng (แกลง),th,6 rows in the LDD layer (parts of one district)
+ระยอง,Rayong,2104,อ.วังจันทร์,Amphoe Wangjun,WangChan (วังจันทร์),th,
+ระยอง,Rayong,2105,อ.บ้านค่าย,Amphoe Bankhai,BanKhai (บ้านค่าย),th,
+ระยอง,Rayong,2106,อ.ปลวกแดง,Amphoe Pluagdeang,PluakDaeng (ปลวกแดง),th,
+ระยอง,Rayong,2107,อ.เขาชะเมา,Amphoe Khao Chamao,K.KhaoChamao (เขาชะเมา),th,
+ระยอง,Rayong,2108,อ.นิคมพัฒนา,Amphoe Nikom Pattana,K.NikhomPattan (นิคมพัฒนา),th,
+ราชบุรี,Ratchaburi,7001,อ.เมืองราชบุรี,Amphoe Muang Ratchaburi,MuangRatchaburi (เมืองราชบุรี),th,
+ราชบุรี,Ratchaburi,7002,อ.จอมบึง,Amphoe Chom Bung,ChomBung (จอมบึง),th,
+ราชบุรี,Ratchaburi,7003,อ.สวนผึ้ง,Amphoe Suan Phung,SuanPhung (สวนผึ้ง),th,
+ราชบุรี,Ratchaburi,7004,อ.ดำเนินสะดวก,Amphoe Dam Noen Saduak,DamnoenSaduak (ดำเนินสะดวก),th,
+ราชบุรี,Ratchaburi,7005,อ.บ้านโป่ง,Amphoe Banpong,BanPong (บ้านโป่ง),th,
+ราชบุรี,Ratchaburi,7006,อ.บางแพ,Amphoe Bang Phae,BangPhae (บางแพ),th,
+ราชบุรี,Ratchaburi,7007,อ.โพธาราม,Amphoe Photharam,Photharam (โพธาราม),th,
+ราชบุรี,Ratchaburi,7008,อ.ปากท่อ,Amphoe Paktho,PakTho (ปากท่อ),th,
+ราชบุรี,Ratchaburi,7009,อ.วัดเพลง,Amphoe Wat Phleng,WatPhleng (วัดเพลง),th,
+ราชบุรี,Ratchaburi,7010,อ.บ้านคา,Amphoe Ban Kha,K.BanKha (บ้านคา),th,
+สมุทรปราการ,Samut Prakan,1101,อ.เมืองสมุทรปรากา,Amphoe Muang Samut prakarn,,none,"ldd_th_truncated: field 50 bytes, value 49 bytes; system has MuangSamutPrakan (เมืองสมุทรปราการ) | th_not_found; en_not_found"
+สมุทรปราการ,Samut Prakan,1102,อ.บางบ่อ,Amphoe Bang Bo,BangBo (บางบ่อ),th,
+สมุทรปราการ,Samut Prakan,1103,อ.บางพลี,Amphoe Bang Phi,BangPlee (บางพลี),th,
+สมุทรปราการ,Samut Prakan,1104,อ.พระประแดง,Amphoe Phra Pradaeng,PhraPraDaeng (พระประแดง),th,
+สมุทรปราการ,Samut Prakan,1105,อ.พระสมุทรเจดีย์,Amphoe Phra Samut Chedi,PhraSamutJadee (พระสมุทรเจดีย์),th,
+สมุทรปราการ,Samut Prakan,1106,อ.บางเสาธง,Amphoe  Bang Sao Thong,K.BangSaoThon (บางเสาธง),th,
+สมุทรปราการ,Samut Prakan,,,,MuangSamutPrakan (เมืองสมุทรปราการ),none,ldd_th_truncated: LDD [1101] อ.เมืองสมุทรปรากา is the cut-off start of this name_th
+สมุทรสงคราม,Samut Songkhram,7501,อ.เมืองสมุทรสงครา,Amphoe Muang Samut Songkham,,none,"ldd_th_truncated: field 50 bytes, value 49 bytes; system has MuangSamutSongkhram (เมืองสมุทรสงคราม) | th_not_found; en_not_found"
+สมุทรสงคราม,Samut Songkhram,7502,อ.บางคนที,Amphoe Bang Khonthi,BangKhonTi (บางคนที),th,
+สมุทรสงคราม,Samut Songkhram,7503,อ.อัมพวา,Amphoe Amphawa,Amphawa (อัมพวา),th,
+สมุทรสงคราม,Samut Songkhram,,,,MuangSamutSongkhram (เมืองสมุทรสงคราม),none,ldd_th_truncated: LDD [7501] อ.เมืองสมุทรสงครา is the cut-off start of this name_th
+สมุทรสาคร,Samut Sakhon,7401,อ.เมืองสมุทรสาคร,Amphoe Muang Samut Sakhon,MuangSamutSakhon (เมืองสมุทรสาคร),th,
+สมุทรสาคร,Samut Sakhon,7402,อ.กระทุ่มแบน,Amphoe Krathumbaen,KrathumBaen (กระทุ่มแบน),th,
+สมุทรสาคร,Samut Sakhon,7403,อ.บ้านแพ้ว,Amphoe Ban Paeo,BanPhaeo (บ้านแพ้ว),th,
+สระบุรี,Saraburi,1901,อ.เมืองสระบุรี,Amphoe Muang Saraburi,MuangSaraburi (เมืองสระบุรี),th,
+สระบุรี,Saraburi,1902,อ.แก่งคอย,Amphoe Kengkoi,KaengKhoi (แก่งคอย),th,
+สระบุรี,Saraburi,1903,อ.หนองแค,Amphoe NongKhae,NongKhae (หนองแค),th,
+สระบุรี,Saraburi,1904,อ.วิหารแดง,Amphoe Wihan Daeng,WihanDaeng (วิหารแดง),th,
+สระบุรี,Saraburi,1905,อ.หนองแซง,Amphoe Nongseang,NongSaeng (หนองแซง),th,
+สระบุรี,Saraburi,1906,อ.บ้านหมอ,Amphoe Ban Mor,BanMo (บ้านหมอ),th,
+สระบุรี,Saraburi,1907,อ.ดอนพุด,Amphoe Donput,DonPhut (ดอนพุด),th,
+สระบุรี,Saraburi,1908,อ.หนองโดน,Amphoe Nong Done,NongDon (หนองโดน),th,
+สระบุรี,Saraburi,1909,อ.พระพุทธบาท,Amphoe Phraputthabath,PhraPhutthabat (พระพุทธบาท),th,
+สระบุรี,Saraburi,1910,อ.เสาไห้,Amphoe Sao Hai,SaoHai (เสาไห้),th,
+สระบุรี,Saraburi,1911,อ.มวกเหล็ก,Amphoe Muak Lek,MuakLek (มวกเหล็ก),th,
+สระบุรี,Saraburi,1912,อ.วังม่วง,Amphoe Wang Muang,WangMuang (วังม่วง),th,
+สระบุรี,Saraburi,1913,อ.เฉลิมพระเกียรติ,Amphoe Cha Lerm Phra Kiet,Chalermphrakiet (เฉลิมพระเกียรติ),th,
+สระแก้ว,Sa Kaeo,2701,อ.เมืองสระแก้ว,Amphoe Muang Srakaeo,MuangSaKaeo (เมืองสระแก้ว),th,
+สระแก้ว,Sa Kaeo,2702,อ.คลองหาด,Amphoe Khlong Hat,KhlongHat (คลองหาด),th,
+สระแก้ว,Sa Kaeo,2703,อ.ตาพระยา,Amphoe Taphaya,TaPhraya (ตาพระยา),th,
+สระแก้ว,Sa Kaeo,2704,อ.วังน้ำเย็น,Amphoe Wang Nam Yen,WangNamYen (วังน้ำเย็น),th,
+สระแก้ว,Sa Kaeo,2705,อ.วัฒนานคร,Amphoe Wattana Nakhon,WatthanaNakhon (วัฒนานคร),th,
+สระแก้ว,Sa Kaeo,2706,อ.อรัญประเทศ,Amphoe Aranyaprathet,Aranyaprathet (อรัญประเทศ),th,
+สระแก้ว,Sa Kaeo,2707,อ.เขาฉกรรจ์,Amphoe Khao Chakan,KaoChaKan (เขาฉกรรจ์),th,
+สระแก้ว,Sa Kaeo,2708,อ.โคกสูง,Amphoe Khoksung,K.KokSung (โคกสูง),th,
+สระแก้ว,Sa Kaeo,2709,อ.วังสมบูรณ์,Amphoe Wang Sombun,K.WangSombun (วังสมบูรณ์),th,
+สิงห์บุรี,Sing Buri,1701,อ.เมืองสิงห์บุรี,Amphoe Muang Singburi,MuangSingBuri (เมืองสิงห์บุรี),th,
+สิงห์บุรี,Sing Buri,1702,อ.บางระจัน,Amphoe bang Rachan,BangRachan (บางระจัน),th,
+สิงห์บุรี,Sing Buri,1703,อ.ค่ายบางระจัน,Amphoe Khai Bang Rachan,KhaiBangRachan (ค่ายบางระจัน),th,
+สิงห์บุรี,Sing Buri,1704,อ.พรหมบุรี,Amphoe Phromburi,PhromBuri (พรหมบุรี),th,
+สิงห์บุรี,Sing Buri,1705,อ.ท่าช้าง,Amphoe Tha Chang,ThaChang (ท่าช้าง),th,
+สิงห์บุรี,Sing Buri,1706,อ.อินทร์บุรี,Amphoe Inburi,InBuri (อินทร์บุรี),th,
+สุพรรณบุรี,Suphan Buri,7201,อ.เมืองสุพรรณบุรี,Amphoe Muang Saphan Buri,MuangSuphanburi (เมืองสุพรรณบุรี),th,
+สุพรรณบุรี,Suphan Buri,7202,อ.เดิมบางนางบวช,Amphoe Doem Bang Nang Buat,DoembangNangbua (เดิมบางนางบวช),th,
+สุพรรณบุรี,Suphan Buri,7203,อ.ด่านช้าง,Amphoe Dan Chang,DanChang (ด่านช้าง),th,
+สุพรรณบุรี,Suphan Buri,7204,อ.บางปลาม้า,Amphoe Bang Pa Ma,BangPlaMa (บางปลาม้า),th,
+สุพรรณบุรี,Suphan Buri,7205,อ.ศรีประจันต์,Amphoe Si Prachan,SiPrachan (ศรีประจันต์),th,
+สุพรรณบุรี,Suphan Buri,7206,อ.ดอนเจดีย์,Amphoe Don Chadi,DonChedi (ดอนเจดีย์),th,
+สุพรรณบุรี,Suphan Buri,7207,อ.สองพี่น้อง,Amphoe Song Phi Nong,SongPhiNong (สองพี่น้อง),th,
+สุพรรณบุรี,Suphan Buri,7208,อ.สามชุก,Amphoe Sam Chuk,SamChuk (สามชุก),th,
+สุพรรณบุรี,Suphan Buri,7209,อ.อู่ทอง,Amphoe U Thong,UThong (อู่ทอง),th,
+สุพรรณบุรี,Suphan Buri,7210,อ.หนองหญ้าไซ,Amphoe Nong Ya Sai,NongYaSai (หนองหญ้าไซ),th,
+เพชรบุรี,Phetchaburi,7601,อ.เมืองเพชรบุรี,Amphoe Muang Phetchaburi,MuangPhetchaburi (เมืองเพชรบุรี),th,
+เพชรบุรี,Phetchaburi,7602,อ.เขาย้อย,Amphoe Khao Yoi,KhaoYoi (เขาย้อย),th,
+เพชรบุรี,Phetchaburi,7603,อ.หนองหญ้าปล้อง,Amphoe Nong Ya Plong,NongYaPlong (หนองหญ้าปล้อง),th,
+เพชรบุรี,Phetchaburi,7604,อ.ชะอำ,Amphoe Cha Am,Cha-Am (ชะอำ),th,
+เพชรบุรี,Phetchaburi,7605,อ.ท่ายาง,Amphoe Tha Yang,ThaYang (ท่ายาง),th,
+เพชรบุรี,Phetchaburi,7606,อ.บ้านลาด,Amphoe Ban Lat,BanLat (บ้านลาด),th,
+เพชรบุรี,Phetchaburi,7607,อ.บ้านแหลม,Amphoe Ban Laem,BanLaem (บ้านแหลม),th,
+เพชรบุรี,Phetchaburi,7608,อ.แก่งกระจาน,Amphoe Kaeng Krachan,KaengKrachan (แก่งกระจาน),th,
+กำแพงเพชร,Kamphaeng Phet,6201,อ.เมืองกำแพงเพชร,Amphoe Muang Kampaeng Phet,MueangKamphaengPhet (เมืองกำแพงเพชร),th,
+กำแพงเพชร,Kamphaeng Phet,6202,อ.ไทรงาม,Amphoe Sai Ngam,SaiNgam (ไทรงาม),th,
+กำแพงเพชร,Kamphaeng Phet,6203,อ.คลองลาน,Amphoe Khlong Lan,KlongLan (คลองลาน),th,
+กำแพงเพชร,Kamphaeng Phet,6204,อ.ขาณุวรลักษบุรี,Amphoe Khanu Woralaksaburi,KhanuWoralaksaburi (ขาณุวรลักษบุรี),th,
+กำแพงเพชร,Kamphaeng Phet,6205,อ.คลองขลุง,Amphoe Khlong khlung,KlongKhlung (คลองขลุง),th,
+กำแพงเพชร,Kamphaeng Phet,6206,อ.พรานกระต่าย,Amphoe Phran Kratai,PhranKratai (พรานกระต่าย),th,
+กำแพงเพชร,Kamphaeng Phet,6207,อ.ลานกระบือ,Amphoe Krabu,LanKrabu (ลานกระบือ),th,
+กำแพงเพชร,Kamphaeng Phet,6208,อ.ทรายทองวัฒนา,Amphoe Sai Thong Phattana,SaiThongWatthana (ทรายทองวัฒนา),th,
+กำแพงเพชร,Kamphaeng Phet,6209,อ.ปางศิลาทอง,Amphoe Pang Sila Thong,PangSilaThong (ปางศิลาทอง),th,
+กำแพงเพชร,Kamphaeng Phet,6210,อ.บึงสามัคคี,Amphoe Bung Samakkhi,K.BungSamakki (บึงสามัคคี),th,
+กำแพงเพชร,Kamphaeng Phet,6211,อ.โกสัมพีนคร,Amphoe Kosamphi Nakhon,K.KoSamPiNakhon (โกสัมพีนคร),th,
+ตาก,Tak,6301,อ.เมืองตาก,Amphoe Muang Tak,MuangTak (เมืองตาก),th,
+ตาก,Tak,6302,อ.บ้านตาก,Amphoe Ban Tak,BanTak (บ้านตาก),th,
+ตาก,Tak,6303,อ.สามเงา,Amphoe Samngao,SamNgao (สามเงา),th,
+ตาก,Tak,6304,อ.แม่ระมาด,Amphoe Mae Ramat,MaeRamat (แม่ระมาด),th,
+ตาก,Tak,6305,อ.ท่าสองยาง,Amphoe Tha Songyang,ThaSongYang (ท่าสองยาง),th,
+ตาก,Tak,6306,อ.แม่สอด,Amphoe Mae Sot,MaeSot (แม่สอด),th,
+ตาก,Tak,6307,อ.พบพระ,Amphoe Phop Phra,PhopPhra (พบพระ),th,
+ตาก,Tak,6308,อ.อุ้มผาง,Amphoe Um Phang,Umphang (อุ้มผาง),th,
+ตาก,Tak,6309,อ.วังเจ้า,Amphoe Wang Chao,K.WangChao (วังเจ้า),th,
+นครสวรรค์,Nakhon Sawan,6001,อ.เมืองนครสวรรค์,Amphoe Muang Nakhon Sawan,MuangNakhonSawan (เมืองนครสวรรค์),th,
+นครสวรรค์,Nakhon Sawan,6002,อ.โกรกพระ,Amphoe Krok Phra,KrokPhra (โกรกพระ),th,
+นครสวรรค์,Nakhon Sawan,6003,อ.ชุมแสง,Amphoe Chum Saeng,Chumsaeng (ชุมแสง),th,
+นครสวรรค์,Nakhon Sawan,6004,อ.หนองบัว,Amphoe Nongbua,NongBua (หนองบัว),th,
+นครสวรรค์,Nakhon Sawan,6005,อ.บรรพตพิสัย,Amphoe Banphot Phisai,BanphotPhisai (บรรพตพิสัย),th,
+นครสวรรค์,Nakhon Sawan,6006,อ.เก้าเลี้ยว,Amphoe Kao Liew,KaoLieo (เก้าเลี้ยว),th,
+นครสวรรค์,Nakhon Sawan,6007,อ.ตาคลี,Amphoe Ta Khi,,none,"system_th_wrong: the one LDD row and the one system row left unmatched in the province; system Takhli has a wrong name_th (ท่าตะโก) - not a match, left for review | th_not_found; en_not_found"
+นครสวรรค์,Nakhon Sawan,6008,อ.ท่าตะโก,Amphoe Tha Ta Ko,ThaTako (ท่าตะโก),en,"th_ambiguous: Takhli, ThaTako"
+นครสวรรค์,Nakhon Sawan,6009,อ.ไพศาลี,Amphoe Phai Sali,Phaisali (ไพศาลี),th,
+นครสวรรค์,Nakhon Sawan,6010,อ.พยุหะคีรี,Amphoe Phayuhakhiri,PhayuhaKhiri (ลาดยาว),en,th_not_found
+นครสวรรค์,Nakhon Sawan,6011,อ.ลาดยาว,Amphoe Lat Yao,LatYao (ลาดยาว),en,"th_ambiguous: LatYao, PhayuhaKhiri"
+นครสวรรค์,Nakhon Sawan,6012,อ.ตากฟ้า,Amphoe Tak Fa,TakFa (ตากฟ้า),th,
+นครสวรรค์,Nakhon Sawan,6013,อ.แม่วงก์,Amphoe Mae Wong,MaeWong (แม่วงก์),th,
+นครสวรรค์,Nakhon Sawan,6014,อ.แม่เปิน,Amphoe Mae Wong,K.MaePoen (แม่เปิน),th,
+นครสวรรค์,Nakhon Sawan,6015,อ.ชุมตาบง,Amphoe Chum Ta Bong,K.ChumTaBong (ชุมตาบง),th,
+นครสวรรค์,Nakhon Sawan,,,,Takhli (ท่าตะโก),none,system_th_wrong: name_th ท่าตะโก is also the name_th of ThaTako
+น่าน,Nan,5501,อ.เมืองน่าน,Amphoe Muang Nan,MuangNan (เมืองน่าน),th,
+น่าน,Nan,5502,อ.แม่จริม,Amphoe Mae Charim,MaeCharim (แม่จริม),th,
+น่าน,Nan,5503,อ.บ้านหลวง,Amphoe Ban Luang,BanLuang (บ้านหลวง),th,
+น่าน,Nan,5504,อ.นาน้อย,Amphoe Na Noi,NaNoi (นาน้อย),th,
+น่าน,Nan,5505,อ.ปัว,Amphoe Pua,Pua (ปัว),th,
+น่าน,Nan,5506,อ.ท่าวังผา,Amphoe Tha Wangpha,ThaWangPha (ท่าวังผา),th,
+น่าน,Nan,5507,อ.เวียงสา,Amphoe Wiang Sa,WiangSa (เวียงสา),th,
+น่าน,Nan,5508,อ.ทุ่งช้าง,Amphoe Thung Chang,ThungChang (ทุ่งช้าง),th,
+น่าน,Nan,5509,อ.เชียงกลาง,Amphoe Chiang Klang,ChiangKlang (เชียงกลาง),th,
+น่าน,Nan,5510,อ.นาหมื่น,Amphoe Na Mun,NaMun (นาหมื่น),th,
+น่าน,Nan,5511,อ.สันติสุข,Amphoe Santisuk,SantiSuk (สันติสุข),th,
+น่าน,Nan,5512,อ.บ่อเกลือ,Amphoe Bokuai,BoKlue (บ่อเกลือ),th,
+น่าน,Nan,5513,อ.สองแคว,Amphoe Song Khwae,SongKwae (สองแคว),th,
+น่าน,Nan,5514,อ.ภูเพียง,Amphoe Phuphiang,K.PhuPieng (ภูเพียง),th,
+น่าน,Nan,5515,อ.เฉลิมพระเกียรติ,Amphoe Charoem Phrakiat,Chalermphrakiet (เฉลิมพระเกียรติ),th,
+พะเยา,Phayao,5601,อ.เมืองพะเยา,Amphoe Muang Phayao,MuangPhayao (เมืองพะเยา),th,
+พะเยา,Phayao,5602,อ.จุน,Amphoe Chun,Chun (จุน),th,
+พะเยา,Phayao,5603,อ.เชียงคำ,Amphoe Chiang Kham,ChiangKham (เชียงคำ),th,
+พะเยา,Phayao,5604,อ.เชียงม่วน,Amphoe Chiang Muan,ChiangMuan (เชียงม่วน),th,
+พะเยา,Phayao,5605,อ.ดอกคำใต้,Amphoe Dok Kham Tai,DokKhamTai (ดอกคำใต้),th,
+พะเยา,Phayao,5606,อ.ปง,Amphoe Pong,Pong (ปง),th,
+พะเยา,Phayao,5607,อ.แม่ใจ,Amphoe Mae Chai,MaeChai (แม่ใจ),th,
+พะเยา,Phayao,5608,อ.ภูซาง,Amphoe Phu Sang,K.PhuSang (ภูซาง),th,
+พะเยา,Phayao,5609,อ.ภูกามยาว,Amphoe Phu Kam Yao,K.PhuKamYao (ภูกามยาว),th,
+พิจิตร,Phichit,6601,อ.เมืองพิจิตร,Amphoe Muang Phichit,MuangPhichit (เมืองพิจิตร),th,
+พิจิตร,Phichit,6602,อ.วังทรายพูน,Amphoe Wang Sai Phun,WangSaiPhun (วังทรายพูน),th,
+พิจิตร,Phichit,6603,อ.โพธิ์ประทับช้าง,Amphoe Pho Prathap Chang,PhoPrathapChan (โพธิ์ประทับช้าง),th,
+พิจิตร,Phichit,6604,อ.ตะพานหิน,Amphoe Taphan Hin,TaphanHin (ตะพานหิน),th,
+พิจิตร,Phichit,6605,อ.บางมูลนาก,Amphoe Bang Mun Nak,BangMunNak (บางมูลนาก),th,
+พิจิตร,Phichit,6606,อ.โพทะเล,Amphoe Pho Thale,PhoThale (โพทะเล),th,
+พิจิตร,Phichit,6607,อ.สามง่าม,Amphoe Sam Ngam,SamNgam (สามง่าม),th,
+พิจิตร,Phichit,6608,อ.ทับคล้อ,Amphoe Thap Khlo,ThapKhlo (ทับคล้อ),th,
+พิจิตร,Phichit,6609,อ.สากเหล็ก,Amphoe Sak Lek,K.SakLek (สากเหล็ก),th,
+พิจิตร,Phichit,6610,อ.บึงนาราง,Amphoe Bung Na Rang,K.BungNarang (บึงนาราง),th,
+พิจิตร,Phichit,6611,อ.ดงเจริญ,Amphoe Dong Charoen,K.DongCharoen (ดงเจริญ),th,
+พิจิตร,Phichit,6612,อ.วชิรบารมี,Amphoe Wachira Barami,WachiraBarami (วชิรบารมี),th,
+พิษณุโลก,Phitsanulok,6501,อ.เมืองพิษณุโลก,Amphoe Muang Phitsanu Lok,MuangPhitsanulok (เมืองพิษณุโลก),th,2 rows in the LDD layer (parts of one district)
+พิษณุโลก,Phitsanulok,6502,อ.นครไทย,Amphoe Nakhon Thai,NakhonThai (นครไทย),th,
+พิษณุโลก,Phitsanulok,6503,อ.ชาติตระการ,Amphoe Chattakan,ChatTrakan (ชาติตระการ),th,
+พิษณุโลก,Phitsanulok,6504,อ.บางระกำ,Amphoe Bang Rakam,BangRakam (บางระกำ),th,
+พิษณุโลก,Phitsanulok,6505,อ.บางกระทุ่ม,Amphoe Bang Krathum,BangKrathum (บางกระทุ่ม),th,
+พิษณุโลก,Phitsanulok,6506,อ.พรหมพิราม,Amphoe Phom Phiram,PhromPhiram (พรหมพิราม),th,
+พิษณุโลก,Phitsanulok,6507,อ.วัดโบสถ์,Amphoe Wat Bot,WatBot (วัดโบสถ์),th,
+พิษณุโลก,Phitsanulok,6508,อ.วังทอง,Amphoe Wang Thong,WangThong (วังทอง),th,
+พิษณุโลก,Phitsanulok,6509,อ.เนินมะปราง,Amphoe Noen Mapang,NoenMaprang (เนินมะปราง),th,
+ลำปาง,Lampang,5201,อ.เมืองลำปาง,Amphoe Muang Lampang,MuangLampang (เมืองลำปาง),th,
+ลำปาง,Lampang,5202,อ.แม่เมาะ,Amphoe Mae Mo,MaeMo (แม่เมาะ),th,
+ลำปาง,Lampang,5203,อ.เกาะคา,Amphoe Ko Kha,KoKha (เกาะคา),th,
+ลำปาง,Lampang,5204,อ.เสริมงาม,Amphoe Soem Ngam,SoemNgam (เสริมงาม),th,
+ลำปาง,Lampang,5205,อ.งาว,Amphoe Ngao,Ngao (งาว),th,
+ลำปาง,Lampang,5206,อ.แจ้ห่ม,Amphoe Chae Hom,ChaeHom (แจ้ห่ม),th,
+ลำปาง,Lampang,5207,อ.วังเหนือ,Amphoe Wang Nuea,WangNua (วังเหนือ),th,
+ลำปาง,Lampang,5208,อ.เถิน,Amphoe Thoen,Thoen (เถิน),th,
+ลำปาง,Lampang,5209,อ.แม่พริก,Amphoe Mae Phrik,MaePhrik (แม่พริก),th,
+ลำปาง,Lampang,5210,อ.แม่ทะ,Amphoe Mae Tha,MaeTha (แม่ทะ),th,
+ลำปาง,Lampang,5211,อ.สบปราบ,Amphoe Som Prap,SopPrap (สบปราบ),th,
+ลำปาง,Lampang,5212,อ.ห้างฉัตร,Amphoe Hang Chat,HangChat (ห้างฉัตร),th,
+ลำปาง,Lampang,5213,อ.เมืองปาน,Amphoe Muang Pan,MueangPan (เมืองปาน),th,
+ลำพูน,Lamphun,5101,อ.เมืองลำพูน,Amphoe Muang Lamphun,MuangLamphun (เมืองลำพูน),th,
+ลำพูน,Lamphun,5102,อ.แม่ทา,Amphoe Mae Tha,MaeTha (แม่ทา),th,
+ลำพูน,Lamphun,5103,อ.บ้านโฮ่ง,Amphoe Ban Hong,BanHong (บ้านโฮ่ง),th,
+ลำพูน,Lamphun,5104,อ.ลี้,Amphoe Li,Li (ลี้),th,
+ลำพูน,Lamphun,5105,อ.ทุ่งหัวช้าง,Amphoe Thung Hua Chang,ThungHuaChang (ทุ่งหัวช้าง),th,
+ลำพูน,Lamphun,5106,อ.ป่าซาง,Amphoe Pa Sang,PaSang (ป่าซาง),th,
+ลำพูน,Lamphun,5107,อ.บ้านธิ,Amphoe Ban Thi,BanThi (บ้านธิ),th,
+ลำพูน,Lamphun,5108,อ.เวียงหนองล่อง,Amphoe Wiang Nong Long,K.WiangNongLong (เวียงหนองล่อง),th,
+สุโขทัย,Sukhothai,6401,อ.เมืองสุโขทัย,Amphoe Muang Sukhothai,MuangSukhothai (เมืองสุโขทัย),th,
+สุโขทัย,Sukhothai,6402,อ.บ้านด่านลานหอย,Amphoe Bandan Lanhoi,BanDanLanHoi (บ้านด่านลานหอย),th,
+สุโขทัย,Sukhothai,6403,อ.คีรีมาศ,Amphoe Khiri Mat,KhiriMat (คีรีมาศ),th,
+สุโขทัย,Sukhothai,6404,อ.กงไกรลาศ,Amphoe Kong Kai Lat,KongKrailat (กงไกรลาศ),th,
+สุโขทัย,Sukhothai,6405,อ.ศรีสัชนาลัย,Amphoe Si Satchanalai,SiSatchanalai (ศรีสัชนาลัย),th,
+สุโขทัย,Sukhothai,6406,อ.ศรีสำโรง,Amphoe Si Samrong,SiSamRong (ศรีสำโรง),th,
+สุโขทัย,Sukhothai,6407,อ.สวรรคโลก,Amphoe Sawan Khalok,Sawankhalok (สวรรคโลก),th,
+สุโขทัย,Sukhothai,6408,อ.ศรีนคร,Amphoe Si Nakhon,SiNakhon (ศรีนคร),th,
+สุโขทัย,Sukhothai,6409,อ.ทุ่งเสลี่ยม,Amphoe Thung Saliam,ThungSaliam (ทุ่งเสลี่ยม),th,
+อุตรดิตถ์,Uttaradit,5301,อ.เมืองอุตรดิตถ์,Amphoe Muang Auttaradit,MuangUttaradit (เมืองอุตรดิตถ์),th,
+อุตรดิตถ์,Uttaradit,5302,อ.ตรอน,Amphoe Tron,Tron (ตรอน),th,
+อุตรดิตถ์,Uttaradit,5303,อ.ท่าปลา,Amphoe Thapa,ThaPla (ท่าปลา),th,
+อุตรดิตถ์,Uttaradit,5304,อ.น้ำปาด,Amphoe Nam Pat,NamPat (น้ำปาด),th,
+อุตรดิตถ์,Uttaradit,5305,อ.ฟากท่า,Amphoe Fak Tha,FakTha (ฟากท่า),th,
+อุตรดิตถ์,Uttaradit,5306,อ.บ้านโคก,Amphoe Ban Khok,BanKhok (บ้านโคก),th,
+อุตรดิตถ์,Uttaradit,5307,อ.พิชัย,Ampheoe Phichai,Phichai (พิชัย),th,
+อุตรดิตถ์,Uttaradit,5308,อ.ลับแล,Amphoe Laplae,Laplae (ลับแล),th,
+อุตรดิตถ์,Uttaradit,5309,อ.ทองแสนขัน,Amphoe Thong saengkhan,ThongSaenKhan (ทองแสนขัน),th,
+อุทัยธานี,Uthai Thani,6101,อ.เมืองอุทัยธานี,Amphoe Muang Uthai Thani,MuangUthaiThani (เมืองอุทัยธานี),th,
+อุทัยธานี,Uthai Thani,6102,อ.ทัพทัน,Amphoe Thap Than,ThapThan (ทัพทัน),th,
+อุทัยธานี,Uthai Thani,6103,อ.สว่างอารมณ์,Amphoe Sawang Arom,SawangArom (สว่างอารมณ์),th,
+อุทัยธานี,Uthai Thani,6104,อ.หนองฉาง,Amphoe Nong Chang,NongChang (หนองฉาง),th,
+อุทัยธานี,Uthai Thani,6105,อ.หนองขาหย่าง,Amphoe Nong Kha Yang,NongKhayang (หนองขาหย่าง),th,
+อุทัยธานี,Uthai Thani,6106,อ.บ้านไร่,Amphoe Ban Rai,BanRai (บ้านไร่),th,
+อุทัยธานี,Uthai Thani,6107,อ.ลานสัก,Amphoe Lan Sak,LanSak (ลานสัก),th,
+อุทัยธานี,Uthai Thani,6108,อ.ห้วยคต,Amphoe Huai Khot,HuaiKhot (ห้วยคต),th,
+เชียงราย,Chiang Rai,5701,อ.เมืองเชียงราย,Amphoe Muang Chiang Mai,MuangChiangRai (เมืองเชียงราย),th,
+เชียงราย,Chiang Rai,5702,อ.เวียงชัย,Amphoe Wiang Chai,WiangChai (เวียงชัย),th,
+เชียงราย,Chiang Rai,5703,อ.เชียงของ,Amphoe Chiang Khong,ChiangKhong (เชียงของ),th,
+เชียงราย,Chiang Rai,5704,อ.เทิง,Amphoe Thoeng,Thoeng (เทิง),th,
+เชียงราย,Chiang Rai,5705,อ.พาน,Amphoe Phan,Phan (พาน),th,
+เชียงราย,Chiang Rai,5706,อ.ป่าแดด,Amphoe Padaet,PaDaet (ป่าแดด),th,
+เชียงราย,Chiang Rai,5707,อ.แม่จัน,Amphoe Mae Chan,MaeChan (แม่จัน),th,
+เชียงราย,Chiang Rai,5708,อ.เชียงแสน,Amphoe Chiangsaen,ChiangSaen (เชียงแสน),th,
+เชียงราย,Chiang Rai,5709,อ.แม่สาย,Amphoe Mae Sai,MaeSai (แม่สาย),th,
+เชียงราย,Chiang Rai,5710,อ.แม่สรวย,Amphoe Mae Saluai,MaeSuai (แม่สรวย),th,
+เชียงราย,Chiang Rai,5711,อ.เวียงป่าเป้า,Amphoe Wiang Papao,WiangPaPao (เวียงป่าเป้า),th,
+เชียงราย,Chiang Rai,5712,อ.พญาเม็งราย,Amphoe Phaya Mengrai,PhayaMengrai (พญาเม็งราย),th,
+เชียงราย,Chiang Rai,5713,อ.เวียงแก่น,Amphoe Wiang Kaen,WiengKaen (เวียงแก่น),th,
+เชียงราย,Chiang Rai,5714,อ.ขุนตาล,Amphoe Khun Tan,KhunTan (ขุนตาล),th,
+เชียงราย,Chiang Rai,5715,อ.แม่ฟ้าหลวง,Amphoe Mae Faluang,MaeFaLuang (แม่ฟ้าหลวง),th,
+เชียงราย,Chiang Rai,5716,อ.แม่ลาว,Amphoe Mae Lao,MaeLao (แม่ลาว),th,
+เชียงราย,Chiang Rai,5717,อ.เวียงเชียงรุ้ง,Amphoe Wiang Chiang Rung,K.WiengChiang (เวียงเชียงรุ้ง),th,
+เชียงราย,Chiang Rai,5718,อ.ดอยหลวง,Amphoe Doi Luang,K.DoiLuang (ดอยหลวง),th,
+เชียงใหม่,Chiang Mai,5001,อ.เมืองเชียงใหม่,Amphoe Muang Chiang Mai,MuangChiangMai (เมืองเชียงใหม่),th,
+เชียงใหม่,Chiang Mai,5002,อ.จอมทอง,Amphoe Chom Thong,ChomThong (จอมทอง),th,
+เชียงใหม่,Chiang Mai,5003,อ.แม่แจ่ม,Amphoe Mae Chaem,MaeChaem (แม่แจ่ม),th,
+เชียงใหม่,Chiang Mai,5004,อ.เชียงดาว,amphoe Chiang Dao,ChiangDao (เชียงดาว),th,2 rows in the LDD layer (parts of one district) | AMPHOE_E differs between its rows: Amphoe Chiang Dao / amphoe Chiang Dao
+เชียงใหม่,Chiang Mai,5005,อ.ดอยสะเก็ด,Amphoe Doi Saket,DoiSaket (ดอยสะเก็ด),th,
+เชียงใหม่,Chiang Mai,5006,อ.แม่แตง,Amphoe Mae Taeng,MaeTaeng (แม่แตง),th,
+เชียงใหม่,Chiang Mai,5007,อ.แม่ริม,Amphoe Mae Rim,MaeRim (แม่ริม),th,
+เชียงใหม่,Chiang Mai,5008,อ.สะเมิง,Amphoe Sa Moeng,Samoeng (สะเมิง),th,
+เชียงใหม่,Chiang Mai,5009,อ.ฝาง,Amphoe Fang,Fang (ฝาง),th,
+เชียงใหม่,Chiang Mai,5010,อ.แม่อาย,Amphoe Mae Ai,MaeAi (แม่อาย),th,
+เชียงใหม่,Chiang Mai,5011,อ.พร้าว,Amphoe Phrao,Phrao (พร้าว),th,
+เชียงใหม่,Chiang Mai,5012,อ.สันป่าตอง,Amphoe San Patong,SanPaTong (สันป่าตอง),th,
+เชียงใหม่,Chiang Mai,5013,อ.สันกำแพง,Amphoe San Kamphang,SanKamphaeng (สันกำแพง),th,
+เชียงใหม่,Chiang Mai,5014,อ.สันทราย,Amphoe San Sai,SanSai (สันทราย),th,
+เชียงใหม่,Chiang Mai,5015,อ.หางดง,Amphoe Hang Dong,HangDong (หางดง),th,
+เชียงใหม่,Chiang Mai,5016,อ.ฮอด,Amphoe Hot,Hot (ฮอด),th,
+เชียงใหม่,Chiang Mai,5017,อ.ดอยเต่า,Amphoe Doi Tao,DoiTao (ดอยเต่า),th,
+เชียงใหม่,Chiang Mai,5018,อ.อมก๋อย,Amphoe Omkoi,Omkoi (อมก๋อย),th,
+เชียงใหม่,Chiang Mai,5019,อ.สารภี,Amphoe Saraphi,Saraphi (สารภี),th,
+เชียงใหม่,Chiang Mai,5020,อ.เวียงแหง,amphoe Wiang Haeng,WiangHaeng (เวียงแหง),th,2 rows in the LDD layer (parts of one district) | AMPHOE_E differs between its rows: Amphoe Wiang Haeng / amphoe Wiang Haeng
+เชียงใหม่,Chiang Mai,5021,อ.ไชยปราการ,Amphoe Chai Pakan,ChaiPrakarn (ไชยปราการ),th,
+เชียงใหม่,Chiang Mai,5022,อ.แม่วาง,Amphoe Mae Wang,MaeWang (แม่วาง),th,
+เชียงใหม่,Chiang Mai,5023,อ.แม่ออน,Amphoe Mae On,K.MaeOn (แม่ออน),th,
+เชียงใหม่,Chiang Mai,5024,อ.ดอยหล่อ,Amphoe Doi Lo,K.DoiLo (ดอยหล่อ),th,
+เชียงใหม่,Chiang Mai,5025,อ.กัลยาณิวัฒนา,Amphoe Kanlaya Ni Watthana,,none,ldd_only | th_not_found; en_not_found
+เพชรบูรณ์,Phetchabun,6701,อ.เมืองเพชรบูรณ์,Amphoe Muang Phetchabun,MuangPhetchabun (เมืองเพชรบูรณ์),th,
+เพชรบูรณ์,Phetchabun,6702,อ.ชนแดน,Amphoe Chondaen,ChonDaen (ชนแดน),th,
+เพชรบูรณ์,Phetchabun,6703,อ.หล่มสัก,Amphoe Lhomsak,LomSak (หล่มสัก),th,
+เพชรบูรณ์,Phetchabun,6704,อ.หล่มเก่า,Amphoe Lhomkao,LomKao (หล่มเก่า),th,
+เพชรบูรณ์,Phetchabun,6705,อ.วิเชียรบุรี,Amphoe Wachian Buri,WichianBuri (วิเชียรบุรี),th,
+เพชรบูรณ์,Phetchabun,6706,อ.ศรีเทพ,Amphoe Si Thep,SiThep (ศรีเทพ),th,
+เพชรบูรณ์,Phetchabun,6707,อ.หนองไผ่,Amphoe Nong Phai,NongPhai (หนองไผ่),th,
+เพชรบูรณ์,Phetchabun,6708,อ.บึงสามพัน,Amphoe Bung Samphan,BuangSamPhan (บึงสามพัน),th,
+เพชรบูรณ์,Phetchabun,6709,อ.น้ำหนาว,Amphoe Nam Nao,NamNao (น้ำหนาว),th,
+เพชรบูรณ์,Phetchabun,6710,อ.วังโป่ง,Amphoe Wang Pong,WangPong (วังโป่ง),th,
+เพชรบูรณ์,Phetchabun,6711,อ.เขาค้อ,Amphoe Khao Khlo,KhaoKho (เขาค้อ),th,
+แพร่,Phrae,4502,อ.ร้องกวาง,Amphoe Rong Kwang,RongKwang (ร้องกวาง),th,system district matched by 2 LDD rows
+แพร่,Phrae,5401,อ.เมืองแพร่,Amphoe Muang phrae,MuangPhrae (เมืองแพร่),th,
+แพร่,Phrae,5402,อ.ร้องกวาง,Amphoe Rong Kwang,RongKwang (ร้องกวาง),th,system district matched by 2 LDD rows
+แพร่,Phrae,5403,อ.ลอง,Amphoe Long,Long (ลอง),th,
+แพร่,Phrae,5404,อ.สูงเม่น,Amphpoe Sungmen,SungMen (สูงเม่น),th,
+แพร่,Phrae,5405,อ.เด่นชัย,Amphoe Denchai,DenChai (เด่นชัย),th,
+แพร่,Phrae,5406,อ.สอง,Amphoe Song,Song (สอง),th,
+แพร่,Phrae,5407,อ.วังชิ้น,Amphoe Wang Chin,WangChin (วังชิ้น),th,
+แพร่,Phrae,5408,อ.หนองม่วงไข่,Amphoe  Nong Muang Khai,NongMuangKai (หนองม่วงไข่),th,
+แม่ฮ่องสอน,Mae Hong Son,5801,อ.เมืองแม่ฮ่องสอน,Amphoe Muang Mae Hong Son,MuangMaeHongSon (เมืองแม่ฮ่องสอน),th,
+แม่ฮ่องสอน,Mae Hong Son,5802,อ.ขุนยวม,Amphoe Khun Yuam,KhunYuam (ขุนยวม),th,
+แม่ฮ่องสอน,Mae Hong Son,5803,อ.ปาย,Amphoe Phai,Pai (ปาย),th,
+แม่ฮ่องสอน,Mae Hong Son,5804,อ.แม่สะเรียง,Amphoe Mae Sariang,MaeSariang (แม่สะเรียง),th,
+แม่ฮ่องสอน,Mae Hong Son,5805,อ.แม่ลาน้อย,Amphoe Mae La Noi,MaeLaNoi (แม่ลาน้อย),th,
+แม่ฮ่องสอน,Mae Hong Son,5806,อ.สบเมย,Amphoe Sop Moei,SopMoei (สบเมย),th,
+แม่ฮ่องสอน,Mae Hong Son,5807,อ.ปางมะผ้า,Amphoe Pang Mapha,PangMaPha (ปางมะผ้า),th,
+อำนาจเจริญ,Amnat Charoen,,,,Chanuman (ชานุมาน),none,ldd_no_amphoe_layer
+อำนาจเจริญ,Amnat Charoen,,,,HuaTaphan (หัวตะพาน),none,ldd_no_amphoe_layer
+อำนาจเจริญ,Amnat Charoen,,,,LuAmnat (ลืออำนาจ),none,ldd_no_amphoe_layer
+อำนาจเจริญ,Amnat Charoen,,,,MuangAmnatCharoen (เมืองอำนาจเจริญ),none,ldd_no_amphoe_layer
+อำนาจเจริญ,Amnat Charoen,,,,PathumRatwongsa (ปทุมราชวงศา),none,ldd_no_amphoe_layer
+อำนาจเจริญ,Amnat Charoen,,,,Phana (พนา),none,ldd_no_amphoe_layer
+อำนาจเจริญ,Amnat Charoen,,,,Senangkhanikhom (เสนางคนิคม),none,ldd_no_amphoe_layer
+อ่างทอง,Ang Thong,,,,Chaiyo (ไชโย),none,ldd_no_amphoe_layer
+อ่างทอง,Ang Thong,,,,MuangAngThong (เมืองอ่างทอง),none,ldd_no_amphoe_layer
+อ่างทอง,Ang Thong,,,,PaMok (ป่าโมก),none,ldd_no_amphoe_layer
+อ่างทอง,Ang Thong,,,,PhoThong (โพธิ์ทอง),none,ldd_no_amphoe_layer
+อ่างทอง,Ang Thong,,,,Samko (สามโก้),none,ldd_no_amphoe_layer
+อ่างทอง,Ang Thong,,,,Sawaengha (แสวงหา),none,ldd_no_amphoe_layer
+อ่างทอง,Ang Thong,,,,WisetChaiChan (วิเศษชัยชาญ),none,ldd_no_amphoe_layer
+บึงกาฬ,Bueng Kan,,,,BungKan (เมืองบึงกาฬ),none,ldd_no_amphoe_layer
+บึงกาฬ,Bueng Kan,,,,BungKhongLong (บึงโขงหลง),none,ldd_no_amphoe_layer
+บึงกาฬ,Bueng Kan,,,,K.BungKhla (บุ่งคล้า),none,ldd_no_amphoe_layer
+บึงกาฬ,Bueng Kan,,,,PakKhat (ปากคาด),none,ldd_no_amphoe_layer
+บึงกาฬ,Bueng Kan,,,,PhonCharoen (พรเจริญ),none,ldd_no_amphoe_layer
+บึงกาฬ,Bueng Kan,,,,Seka (เซกา),none,ldd_no_amphoe_layer
+บึงกาฬ,Bueng Kan,,,,SiWilai (ศรีวิไล),none,ldd_no_amphoe_layer
+บึงกาฬ,Bueng Kan,,,,SoPhisai (โซ่พิสัย),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,BanKruat (บ้านกรวด),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,BanMaiChaiPho (บ้านใหม่ไชยพจน์),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,Chalermphrakiet (เฉลิมพระเกียรติ),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,ChamNi (ชำนิ),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,HuaiRat (ห้วยราช),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,K.BanDan (บ้านด่าน),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,K.DaenKong (แคนดง),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,KhuMuang (คูเมือง),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,Krasang (กระสัง),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,LahanSai (ละหานทราย),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,LamPlaiMat (ลำปลายมาศ),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,MuangBuriRam (เมืองบุรีรัมย์),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,NaPho (นาโพธิ์),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,NangRong (นางรอง),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,NonDinDaeng (โนนดินแดง),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,NonSuwan (โนนสุวรรณ),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,NongHong (หนองหงส์),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,NongKi (หนองกี่),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,PaKham (ปะคำ),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,Phlapphlachai (พลับพลาชัย),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,Phutthaisong (พุทไธสง),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,PrakhonChai (ประโคนชัย),none,ldd_no_amphoe_layer
+บุรีรัมย์,Buri Ram,,,,Satuk (สตึก),none,ldd_no_amphoe_layer
+,Chaiyaphum,,,,BamnetNarong (บำเหน็จณรงค์),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,BanKhwao (บ้านเขว้า),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,BanThaen (บ้านแท่น),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,Chatturat (จัตุรัส),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,K.SapYai (ซับใหญ่),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,KaengKhlo (แก้งคร้อ),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,KasetSombon (เกษตรสมบูรณ์),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,KhonSan (คอนสาร),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,KhonSawan (คอนสวรรค์),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,MuangChaiyaphum (เมืองชัยภูมิ),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,NoenSa-Nga (เนินสง่า),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,NongBuaDaeng (หนองบัวแดง),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,NongBuaRawae (หนองบัวระเหว),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,PhakdiChumphol (ภักดีชุมพล),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,PhuKhieo (ภูเขียว),none,system_province_unmatched: the system province is not matched to any LDD province
+,Chaiyaphum,,,,ThepSathit (เทพสถิต),none,system_province_unmatched: the system province is not matched to any LDD province
+ชุมพร,Chumphon,,,,Lamae (ละแม),none,ldd_no_amphoe_layer
+ชุมพร,Chumphon,,,,LangSuan (หลังสวน),none,ldd_no_amphoe_layer
+ชุมพร,Chumphon,,,,MuangChumphon (เมืองชุมพร),none,ldd_no_amphoe_layer
+ชุมพร,Chumphon,,,,Pathiu (ปะทิว),none,ldd_no_amphoe_layer
+ชุมพร,Chumphon,,,,Phato (พะโต๊ะ),none,ldd_no_amphoe_layer
+ชุมพร,Chumphon,,,,Sawi (สวี),none,ldd_no_amphoe_layer
+ชุมพร,Chumphon,,,,ThaSae (ท่าแซะ),none,ldd_no_amphoe_layer
+ชุมพร,Chumphon,,,,ThungTako (ทุ่งตะโก),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,HuaiMek (ห้วยเม็ก),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,HuaiPhung (ห้วยผึ้ง),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,K.DonChan (ดอนจาน),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,K.KongChai (ฆ้องชัย),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,K.NaDu (นาคู),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,K.SamChai (สามชัย),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,Kamalasai (กมลาไสย),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,KhamMuang (คำม่วง),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,KhaoWong (เขาวง),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,Kuchinarai (กุฉินารายณ์),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,MuangKalasin (เมืองกาฬสินธุ์),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,NaMon (นามน),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,NongKungSi (หนองกุงศรี),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,RongKham (ร่องคำ),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,Sahatsakhan (สหัสขันธ์),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,Somdet (สมเด็จ),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,ThaKhantho (ท่าคันโท),none,ldd_no_amphoe_layer
+กาฬสินธุ์,Kalasin,,,,YangTalat (ยางตลาด),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,BanFang (บ้านฝาง),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,BanPhai (บ้านไผ่),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,Chonnabot (ชนบท),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,ChumPhae (ชุมแพ),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,K.BanHaet (บ้านแฮด),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,K.KhokPhoCha (โคกโพธิ์ไชย),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,K.NonSila (โนนศิลา),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,K.NongNaKham (หนองนาคำ),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,K.SamSung (ซำสูง),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,KhaoSuanKwang (เขาสวนกวาง),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,Kranuan (กระนวน),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,ManchaKhiri (มัญจาคีรี),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,MuangKhonKaen (เมืองขอนแก่น),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,NamPhong (น้ำพอง),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,NongRua (หนองเรือ),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,NongSongHong (หนองสองห้อง),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,Phon (พล),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,PhraYun (พระยืน),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,PhuWiang (ภูเวียง),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,PhupaMan (ภูผาม่าน),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,PuaiNoi (เปือยน้อย),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,SiChomphu (สีชมพู),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,UbolRatana (อุบลรัตน์),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,WaengNoi (แวงน้อย),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,WaengYai (แวงใหญ่),none,ldd_no_amphoe_layer
+ขอนแก่น,Khon Kaen,,,,WiangKao (เวียงเก่า),none,ldd_no_amphoe_layer
+กระบี่,Krabi,,,,AoLuk (อ่าวลึก),none,ldd_no_amphoe_layer
+กระบี่,Krabi,,,,KhaoPhanom (เขาพนม),none,ldd_no_amphoe_layer
+กระบี่,Krabi,,,,KhlongThom (คลองท่อม),none,ldd_no_amphoe_layer
+กระบี่,Krabi,,,,KoLanta (เกาะลันตา),none,ldd_no_amphoe_layer
+กระบี่,Krabi,,,,LamThap (ลำทับ),none,ldd_no_amphoe_layer
+กระบี่,Krabi,,,,MuangKrabi (เมืองกระบี่),none,ldd_no_amphoe_layer
+กระบี่,Krabi,,,,NuaKhlong (เหนือคลอง),none,ldd_no_amphoe_layer
+กระบี่,Krabi,,,,PlaiPhraya (ปลายพระยา),none,ldd_no_amphoe_layer
+เลย,Loei,,,,ChiangKhan (เชียงคาน),none,ldd_no_amphoe_layer
+เลย,Loei,,,,DanSai (ด่านซ้าย),none,ldd_no_amphoe_layer
+เลย,Loei,,,,K.Erawan (เอราวัณ),none,ldd_no_amphoe_layer
+เลย,Loei,,,,K.NongHin (หนองหิน),none,ldd_no_amphoe_layer
+เลย,Loei,,,,MuangLoei (เมืองเลย),none,ldd_no_amphoe_layer
+เลย,Loei,,,,NaDuang (นาด้วง),none,ldd_no_amphoe_layer
+เลย,Loei,,,,NaHaeo (นาแห้ว),none,ldd_no_amphoe_layer
+เลย,Loei,,,,PakChom (ปากชม),none,ldd_no_amphoe_layer
+เลย,Loei,,,,PhaKhao (ผาขาว),none,ldd_no_amphoe_layer
+เลย,Loei,,,,PhuKradung (ภูกระดึง),none,ldd_no_amphoe_layer
+เลย,Loei,,,,PhuLuang (ภูหลวง),none,ldd_no_amphoe_layer
+เลย,Loei,,,,PhuRua (ภูเรือ),none,ldd_no_amphoe_layer
+เลย,Loei,,,,ThaLi (ท่าลี่),none,ldd_no_amphoe_layer
+เลย,Loei,,,,WangSaphung (วังสะพุง),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,BanMi (บ้านหมี่),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,ChaiBadan (ชัยบาดาล),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,KhokCharoen (โคกเจริญ),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,KhokSamrong (โคกสำโรง),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,LamSonThi (ลำสนธิ),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,MuangLopBuri (เมืองลพบุรี),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,NongMuang (หนองม่วง),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,PhatthanaNikhom (พัฒนานิคม),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,SraBoth (สระโบสถ์),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,ThaLuang (ท่าหลวง),none,ldd_no_amphoe_layer
+ลพบุรี,Lop Buri,,,,ThaWung (ท่าวุ้ง),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,Borabu (บรบือ),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,ChiangYun (เชียงยืน),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,K.ChunChom (ชื่นชม),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,K.KutRang (กุดรัง),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,KaeDam (แกดำ),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,Kantharawichai (กันทรวิชัย),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,KosumPhisai (โกสุมพิสัย),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,MuangMahaSarakam (เมืองมหาสารคาม),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,NaChuak (นาเชือก),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,NaDun (นาดูน),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,PhayakkhaphumPhisai (พยัคฆภูมิพิสัย),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,WapiPathum (วาปีปทุม),none,ldd_no_amphoe_layer
+มหาสารคาม,Maha Sarakham,,,,YangSiSurat (ยางสีสุราช),none,ldd_no_amphoe_layer
+มุกดาหาร,Mukdahan,,,,DonTan (ดอนตาล),none,ldd_no_amphoe_layer; no LDD file
+มุกดาหาร,Mukdahan,,,,DongLuang (ดงหลวง),none,ldd_no_amphoe_layer; no LDD file
+มุกดาหาร,Mukdahan,,,,Khamcha-i (คำชะอี),none,ldd_no_amphoe_layer; no LDD file
+มุกดาหาร,Mukdahan,,,,MuangMukdahan (เมืองมุกดาหาร),none,ldd_no_amphoe_layer; no LDD file
+มุกดาหาร,Mukdahan,,,,NikhomKhamSoi (นิคมคำสร้อย),none,ldd_no_amphoe_layer; no LDD file
+มุกดาหาร,Mukdahan,,,,NongSung (หนองสูง),none,ldd_no_amphoe_layer; no LDD file
+มุกดาหาร,Mukdahan,,,,WanYai (หว้านใหญ่),none,ldd_no_amphoe_layer; no LDD file
+นครพนม,Nakhon Phanom,,,,BanPhaeng (บ้านแพง),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,K.WangYang (วังยาง),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,MuangNakhonPhanom (เมืองนครพนม),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,NaKae (นาแก),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,NaThom (นาทม),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,NaWa (นาหว้า),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,PhonSawan (โพนสวรรค์),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,PlaPak (ปลาปาก),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,RenuNakhon (เรณูนคร),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,SiSongkhram (ศรีสงคราม),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,ThaUthen (ท่าอุเทน),none,ldd_no_amphoe_layer
+นครพนม,Nakhon Phanom,,,,ThatPhanom (ธาตุพนม),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,BanLuam (บ้านเหลื่อม),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,BuaYai (บัวใหญ่),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,Chakkarat (จักราช),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,Chalermphrakiet (เฉลิมพระเกียรติ),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,ChokChai (โชคชัย),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,ChumPhuang (ชุมพวง),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,DanKhunThot (ด่านขุนทด),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,HuaiThalang (ห้วยแถลง),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,K.BuaLai (บัวลาย),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,K.LamThaMenChai (ลำทะเมนชัย),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,K.MuangYang (เมืองยาง),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,K.PhraThongKham (พระทองคำ),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,K.Sida (สีดา),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,K.ThePhaRak (เทพารักษ์),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,KaengSanamNang (แก้งสนามนาง),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,KhamSakaeSaeng (ขามสะแกแสง),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,KhamThalaSo (ขามทะเลสอ),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,KhonBuri (ครบุรี),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,Khong (คง),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,MuangNakhonRatchasima (เมืองนครราชสีมา),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,NonDaeng (โนนแดง),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,NonSung (โนนสูง),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,NonThai (โนนไทย),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,NongBunnak (หนองบุญมาก),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,PakChong (ปากช่อง),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,PakThongChai (ปักธงชัย),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,Phimai (พิมาย),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,PraThai (ประทาย),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,Sikhiu (สีคิ้ว),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,SoengSang (เสิงสาง),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,SungNoen (สูงเนิน),none,ldd_no_amphoe_layer
+นครราชสีมา,Nakhon Ratchasima,,,,WangNumKhiaw (วังน้ำเขียว),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,BangKhan (บางขัน),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,Cha-uat (ชะอวด),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,Chalermphrakiet (เฉลิมพระเกียรติ),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,Chawang (ฉวาง),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,ChianYai (เชียรใหญ่),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,Chulaphon (จุฬาภรณ์),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,HuaSai (หัวไทร),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,K.ChangKlang (ช้างกลาง),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,K.NophiTam (นบพิตำ),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,Khanom (ขนอม),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,LanSaka (ลานสกา),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,MuangNakhonSiThammarat (เมืองนครศรีธรรมราช),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,NaBon (นาบอน),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,PakPhanang (ปากพนัง),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,PhiPun (พิปูน),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,PhraPhrom (พระพรหม),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,Phrommakhiri (พรหมคีรี),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,RonPhiPun (ร่อนพิบูลย์),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,Sichon (สิชล),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,ThaSala (ท่าศาลา),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,ThamPhannara (ถ้ำพรรณรา),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,ThungSong (ทุ่งสง),none,ldd_no_amphoe_layer
+นครศรีธรรมราช,Nakhon Si Thammarat,,,,ThungYai (ทุ่งใหญ่),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,Bacho (บาเจาะ),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,Cho-I-rong (เจาะไอร้อง),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,Ja-Nae (จะแนะ),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,MuangNarathiwat (เมืองนราธิวาส),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,Rangae (ระแงะ),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,Ruso (รือเสาะ),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,SiSakhon (ศรีสาคร),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,Su-ngaiKoLok (สุไหงโก-ลก),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,Sukhirin (สุคิริน),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,SungaiPadi (สุไหงปาดี),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,TakBai (ตากใบ),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,Waeng (แว้ง),none,ldd_no_amphoe_layer
+นราธิวาส,Narathiwat,,,,Yi-ngo (ยี่งอ),none,ldd_no_amphoe_layer
+หนองบัวลำภู,Nong Bua Lam Phu,,,,MuangNongBuaLamPhu (เมืองหนองบัวลำภู),none,ldd_no_amphoe_layer
+หนองบัวลำภู,Nong Bua Lam Phu,,,,NaKlang (นากลาง),none,ldd_no_amphoe_layer
+หนองบัวลำภู,Nong Bua Lam Phu,,,,NaWang (นาวัง),none,ldd_no_amphoe_layer
+หนองบัวลำภู,Nong Bua Lam Phu,,,,NonSang (โนนสัง),none,ldd_no_amphoe_layer
+หนองบัวลำภู,Nong Bua Lam Phu,,,,SiBunRuang (ศรีบุญเรือง),none,ldd_no_amphoe_layer
+หนองบัวลำภู,Nong Bua Lam Phu,,,,SuwanKhuha (สุวรรณคูหา),none,ldd_no_amphoe_layer
+หนองคาย,Nong Khai,,,,K.FaoRai (เฝ้าไร่),none,ldd_no_amphoe_layer
+หนองคาย,Nong Khai,,,,K.PhoTak (โพธิ์ตาก),none,ldd_no_amphoe_layer
+หนองคาย,Nong Khai,,,,K.RattanaWapi (รัตนวาปี),none,ldd_no_amphoe_layer
+หนองคาย,Nong Khai,,,,K.SaKhrai (สระใคร),none,ldd_no_amphoe_layer
+หนองคาย,Nong Khai,,,,MuangNongKhai (เมืองหนองคาย),none,ldd_no_amphoe_layer
+หนองคาย,Nong Khai,,,,PhonPhisai (โพนพิสัย),none,ldd_no_amphoe_layer
+หนองคาย,Nong Khai,,,,SangKhom (สังคม),none,ldd_no_amphoe_layer
+หนองคาย,Nong Khai,,,,SiChiangMai (ศรีเชียงใหม่),none,ldd_no_amphoe_layer
+หนองคาย,Nong Khai,,,,ThaBo (ท่าบ่อ),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,KaPho (กะพ้อ),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,KhokPho (โคกโพธิ์),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,MaeLan (แม่ลาน),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,MaiKaen (ไม้แก่น),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,Mayo (มายอ),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,MuangPattani (เมืองปัตตานี),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,NongChik (หนองจิก),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,Panare (ปะนาเระ),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,SaiBuri (สายบุรี),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,ThungYangDaeng (ทุ่งยางแดง),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,Yarang (ยะรัง),none,ldd_no_amphoe_layer
+ปัตตานี,Pattani,,,,Yaring (ยะหริ่ง),none,ldd_no_amphoe_layer
+พังงา,Phangnga,,,,Kapong (กะปง),none,ldd_no_amphoe_layer
+พังงา,Phangnga,,,,KhuraBuri (คุระบุรี),none,ldd_no_amphoe_layer
+พังงา,Phangnga,,,,KoYao (เกาะยาว),none,ldd_no_amphoe_layer
+พังงา,Phangnga,,,,MuangPhangnga (เมืองพังงา),none,ldd_no_amphoe_layer
+พังงา,Phangnga,,,,TakuaPa (ตะกั่วป่า),none,ldd_no_amphoe_layer
+พังงา,Phangnga,,,,TakuaThung (ตะกั่วทุ่ง),none,ldd_no_amphoe_layer
+พังงา,Phangnga,,,,ThaiMuang (ท้ายเหมือง),none,ldd_no_amphoe_layer
+พังงา,Phangnga,,,,ThapPut (ทับปุด),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,BangKaeo (บางแก้ว),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,K.SriNakarin (ศรีนครินทร์),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,KhaoChaison (เขาชัยสน),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,KhuanKhanun (ควนขนุน),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,KongRa (กงหรา),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,MuangPhatthalung (เมืองพัทลุง),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,PaBon (ป่าบอน),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,PaPayom (ป่าพะยอม),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,PakPhayun (ปากพะยูน),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,SiBanphot (ศรีบรรพต),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,SongkhlaLake (ทะเลสาบสงขลา),none,ldd_no_amphoe_layer
+พัทลุง,Phatthalung,,,,Tamot (ตะโหมด),none,ldd_no_amphoe_layer
+ภูเก็ต,Phuket,,,,Kathu (กะทู้),none,ldd_no_amphoe_layer
+ภูเก็ต,Phuket,,,,MuangPhuket (เมืองภูเก็ต),none,ldd_no_amphoe_layer
+ภูเก็ต,Phuket,,,,Thalang (ถลาง),none,ldd_no_amphoe_layer
+ระนอง,Ranong,,,,K.SukSamran (สุขสำราญ),none,ldd_no_amphoe_layer
+ระนอง,Ranong,,,,Kapoe (กะเปอร์),none,ldd_no_amphoe_layer
+ระนอง,Ranong,,,,KraBuri (กระบุรี),none,ldd_no_amphoe_layer
+ระนอง,Ranong,,,,La-Un (ละอุ่น),none,ldd_no_amphoe_layer
+ระนอง,Ranong,,,,MuangRanong (เมืองระนอง),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,AtSamat (อาจสามารถ),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,Changhan (จังหาร),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,ChaturaphakPhim (จตุรพักตรพิมาน),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,K.ChiangKwan (เชียงขวัญ),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,K.NongHi (หนองฮี),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,K.ThungKaoLua (ทุ่งเขาหลวง),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,KasetWisai (เกษตรวิสัย),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,MoeiWadi (เมยวดี),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,MuangRoiEt (เมืองร้อยเอ็ด),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,MuangSuang (เมืองสรวง),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,NongPhok (หนองพอก),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,PanomPhrai (พนมไพร),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,PathumRat (ปทุมรัตต์),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,PhoChai (โพธิ์ชัย),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,PhonSai (โพนทราย),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,PhonThong (โพนทอง),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,Selaphum (เสลภูมิ),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,SiSomdet (ศรีสมเด็จ),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,Suwannaphum (สุวรรณภูมิ),none,ldd_no_amphoe_layer
+ร้อยเอ็ด,Roi Et,,,,Thawatchaburi (ธวัชบุรี),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,AkatAmnuai (อากาศอำนวย),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,BanMuang (บ้านม่วง),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,ChareonSilp (เจริญศิลป์),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,KhamTaKla (คำตากล้า),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,KhokSriSupan (โคกศรีสุพรรณ),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,Kusuman (กุสุมาลย์),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,KutBak (กุดบาก),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,MuangSakonNakhon (เมืองสกลนคร),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,NikhomNamUn (นิคมน้ำอูน),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,PhangKhon (พังโคน),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,PhannaNikhom (พรรณานิคม),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,PhonNaKaeo (โพนนาแก้ว),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,PhuPhan (ภูพาน),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,SawangDaenDin (สว่างแดนดิน),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,SongDao (ส่องดาว),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,TaoNgoi (เต่างอย),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,WanonNiwat (วานรนิวาส),none,ldd_no_amphoe_layer
+สกลนคร,Sakon Nakhon,,,,Waritchaphum (วาริชภูมิ),none,ldd_no_amphoe_layer
+สตูล,Satun,,,,K.MaNang (มะนัง),none,ldd_no_amphoe_layer
+สตูล,Satun,,,,KhuanDon (ควนโดน),none,ldd_no_amphoe_layer
+สตูล,Satun,,,,KhuanKaLong (ควนกาหลง),none,ldd_no_amphoe_layer
+สตูล,Satun,,,,Langu (ละงู),none,ldd_no_amphoe_layer
+สตูล,Satun,,,,MuangSatun (เมืองสตูล),none,ldd_no_amphoe_layer
+สตูล,Satun,,,,ThaPhae (ท่าแพ),none,ldd_no_amphoe_layer
+สตูล,Satun,,,,ThungWa (ทุ่งหว้า),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,Benchalak (เบญจลักษ์),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,BungBun (บึงบูรพ์),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,HuaiThapThan (ห้วยทับทัน),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,K.PhoSiSuwan (โพธิ์ศรีสุวรรณ),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,K.SilaLat (ศิลาลาด),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,Kantharalak (กันทรลักษ์),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,Kanthararom (กันทรารมย์),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,Khukhan (ขุขันธ์),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,KhunHan (ขุนหาญ),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,MuangChan (เมืองจันทร์),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,MuangSiSaKet (เมืองศรีสะเกษ),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,NamKliang (น้ำเกลี้ยง),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,NonKhun (โนนคูณ),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,Phayu (พยุห์),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,PhraiBung (ไพรบึง),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,PhuSing (ภูสิงห์),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,PrangKu (ปรางค์กู่),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,RasiSalai (ราษีไศล),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,SriRatana (ศรีรัตนะ),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,UthumphonPhisai (อุทุมพรพิสัย),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,WangHin (วังหิน),none,ldd_no_amphoe_layer
+ศรีสะเกษ,Si Sa Ket,,,,YangChumNoi (ยางชุมน้อย),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,BangKlam (บางกล่ำ),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,Chana (จะนะ),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,HatYai (หาดใหญ่),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,KhlongHoiKong (คลองหอยโข่ง),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,KhuanNiang (ควนเนียง),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,KrasaeSinthu (กระแสสินธุ์),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,MuangSongkhla (เมืองสงขลา),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,NaMom (นาหม่อม),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,NaThawi (นาทวี),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,Ranot (ระโนด),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,Rattaphum (รัตภูมิ),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,SabaYoi (สะบ้าย้อย),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,Sadao (สะเดา),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,SathingPhra (สทิงพระ),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,SinghaNakhon (สิงหนคร),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,SongkhlaLake (ทะเลสาบสงขลา),none,ldd_no_amphoe_layer
+สงขลา,Songkhla,,,,Thepha (เทพา),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,BanNaDoem (บ้านนาเดิม),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,BanNaSan (บ้านนาสาร),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,BanTaKhun (บ้านตาขุน),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,Chaiburi (ชัยบุรี),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,Chaiya (ไชยา),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,DonSak (ดอนสัก),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,K.Wipawadi (วิภาวดี),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,Kanchanadit (กาญจนดิษฐ์),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,KhianSa (เคียนซา),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,KhiriRatthanikhom (คีรีรัฐนิคม),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,KoPhangan (เกาะพะงัน),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,KoSamui (เกาะสมุย),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,MuangSuratThani (เมืองสุราษฎร์ธานี),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,Phanom (พนม),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,Phunphin (พุนพิน),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,Prasaeng (พระแสง),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,ThaChana (ท่าชนะ),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,ThaChang (ท่าฉาง),none,ldd_no_amphoe_layer
+สุราษฎร์ธานี,Surat Thani,,,,WiangSa (เวียงสระ),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,BuaChet (บัวเชด),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,ChomPhra (จอมพระ),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,ChumphonBuri (ชุมพลบุรี),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,K.KwaoSiNarin (เขวาสินรินทร์),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,K.NonNarai (โนนนารายณ์),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,K.PhanomDongRak (พนมดงรัก),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,K.SriNarong (ศรีณรงค์),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,KapChoeng (กาบเชิง),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,Lamduan (ลำดวน),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,MuangSurin (เมืองสุรินทร์),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,Phrasat (ปราสาท),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,RattanaBuri (รัตนบุรี),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,SamrongThap (สำโรงทาบ),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,Sangkha (สังขะ),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,Sanom (สนม),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,Sikhoraphum (ศีขรภูมิ),none,ldd_no_amphoe_layer
+สุรินทร์,Surin,,,,ThaTum (ท่าตูม),none,ldd_no_amphoe_layer
+ตรัง,Trang,,,,HuaiYot (ห้วยยอด),none,ldd_no_amphoe_layer
+ตรัง,Trang,,,,K.HatSamran (หาดสำราญ),none,ldd_no_amphoe_layer
+ตรัง,Trang,,,,Kantrang (กันตัง),none,ldd_no_amphoe_layer
+ตรัง,Trang,,,,MuangTrang (เมืองตรัง),none,ldd_no_amphoe_layer
+ตรัง,Trang,,,,NaYong (นาโยง),none,ldd_no_amphoe_layer
+ตรัง,Trang,,,,Palian (ปะเหลียน),none,ldd_no_amphoe_layer
+ตรัง,Trang,,,,Rasada (รัษฎา),none,ldd_no_amphoe_layer
+ตรัง,Trang,,,,Sikao (สิเกา),none,ldd_no_amphoe_layer
+ตรัง,Trang,,,,WangWiset (วังวิเศษ),none,ldd_no_amphoe_layer
+ตรัง,Trang,,,,YanTaKhao (ย่านตาขาว),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,Buntharik (บุณฑริก),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,DetUdom (เดชอุดม),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,Donmotdaeng (ดอนมดแดง),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,K.LaoSuaKok (เหล่าเสือโก้ก),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,K.NaTan (นาตาล),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,K.NaYia (นาเยีย),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,K.NamKhun (น้ำขุ่น),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,K.SawangWeeraw (สว่างวีระวงศ์),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,Khemarat (เขมราฐ),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,KhongChiam (โขงเจียม),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,KhuangNai (เขื่องใน),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,KutKhaoPun (กุดข้าวปุ้น),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,MuangSamsip (ม่วงสามสิบ),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,MuangUbonRatchatani (เมืองอุบลราชธานี),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,NaChaluai (นาจะหลวย),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,NamYun (น้ำยืน),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,PhibunMangsahan (พิบูลมังสาหาร),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,PhoSi (โพธิ์ไทร),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,Samrong (สำโรง),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,SiMuangMai (ศรีเมืองใหม่),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,SiRinTon (สิรินธร),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,TanSum (ตาลสุม),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,ThungSiUdom (ทุ่งศรีอุดม),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,TrakanPhutphon (ตระการพืชผล),none,ldd_no_amphoe_layer
+อุบลราชธานี,Ubon Ratchathani,,,,WarinChamrap (วารินชำราบ),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,BanDung (บ้านดุง),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,BanPhu (บ้านผือ),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,ChaiWan (ไชยวาน),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,K.KuKaeo (กู่แก้ว),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,K.PrachakSilapakhom (ประจักษ์ศิลปาคม),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,Kumphawapi (กุมภวาปี),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,KutChap (กุดจับ),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,MuangUdonThani (เมืองอุดรธานี),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,NaYung (นายูง),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,NamSom (น้ำโสม),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,NonSa-at (โนนสะอาด),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,NongHan (หนองหาน),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,NongSaeng (หนองแสง),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,NongWuaSo (หนองวัวซอ),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,Phen (เพ็ญ),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,PhibunRak (พิบูลย์รักษ์),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,SangKhom (สร้างคอม),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,SiThat (ศรีธาตุ),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,ThungFon (ทุ่งฝน),none,ldd_no_amphoe_layer
+อุดรธานี,Udon Thani,,,,WangSamMo (วังสามหมอ),none,ldd_no_amphoe_layer
+ยะลา,Yala,,,,BannangStar (บันนังสตา),none,ldd_no_amphoe_layer
+ยะลา,Yala,,,,Batong (เบตง),none,ldd_no_amphoe_layer
+ยะลา,Yala,,,,K.KrongPiNung (กรงปินัง),none,ldd_no_amphoe_layer
+ยะลา,Yala,,,,KaBang (กาบัง),none,ldd_no_amphoe_layer
+ยะลา,Yala,,,,MuangYala (เมืองยะลา),none,ldd_no_amphoe_layer
+ยะลา,Yala,,,,Raman (รามัน),none,ldd_no_amphoe_layer
+ยะลา,Yala,,,,ThanTo (ธารโต),none,ldd_no_amphoe_layer
+ยะลา,Yala,,,,Yaha (ยะหา),none,ldd_no_amphoe_layer
+ยโสธร,Yasothon,,,,AmphoeMuangYasothon (เมืองยโสธร),none,ldd_no_amphoe_layer
+ยโสธร,Yasothon,,,,AmphoeSaiMun (ทรายมูล),none,ldd_no_amphoe_layer
+ยโสธร,Yasothon,,,,KhamKhuanKaeo (คำเขื่อนแก้ว),none,ldd_no_amphoe_layer
+ยโสธร,Yasothon,,,,KhoWang (ค้อวัง),none,ldd_no_amphoe_layer
+ยโสธร,Yasothon,,,,KutChum (กุดชุม),none,ldd_no_amphoe_layer
+ยโสธร,Yasothon,,,,LoengNokTha (เลิงนกทา),none,ldd_no_amphoe_layer
+ยโสธร,Yasothon,,,,MahaChanaChai (มหาชนะชัย),none,ldd_no_amphoe_layer
+ยโสธร,Yasothon,,,,PaTiu (ป่าติ้ว),none,ldd_no_amphoe_layer
+ยโสธร,Yasothon,,,,ThaiCharoen (ไทยเจริญ),none,ldd_no_amphoe_layer
