@@ -1,0 +1,222 @@
+﻿C4 run  2026-11-18 10:33:49
+
+## 1 disk and input files
+free space on C: 118.2 GB (need >= 6 GB)
+outer region ZIPs: NOT PROVIDED. <ldd-zips> holds four region folders that already contain the per-province ZIPs plus the Bangkok ZIP.
+Decision (user, in chat): use the per-province ZIPs as they are; skip the outer-ZIP size/SHA256 check and the outer extraction (step 2). Nothing moved or renamed.
+Bangkok: <ldd-zips>\Landuse_Bangkok_2566_.zip  5515403 bytes  sha256 c3ef854cfb3e036b7b94cdbaac5c15a45fcbde1d5e6a1971fae27e7c2ededdb8  (expected 5,515,403 bytes)
+
+region folders under <ldd-zips> (name as found -> ZIP count, extracted sub-folders):
+  ภาคกลาง -> 25 zip · sub-folders: 0 · other files: 0
+  ภาคตะวันตะวันออกเฉียงเหนือ -> 19 zip · sub-folders: 0 · other files: 0
+  ภาคเหนือ -> 17 zip · sub-folders: 0 · other files: 0
+  ภาคใต้ -> 14 zip · sub-folders: 0 · other files: 0
+  note: the north-east folder is spelled "ภาคตะวันตะวันออกเฉียงเหนือ"; the CSV uses "ภาคตะวันออกเฉียงเหนือ".
+  note: no extracted province folders (เพชรบุรี2568, แม่ฮ่องสอน2564) are present; both provinces have a ZIP.
+
+Python and modules: <clone-c6>\green-area-backend\.venv (Python 3.11.9) · code <clone-c6> @ 7501cc8
+pyproj is NOT installed in that venv (ModuleNotFoundError). prj_epsg uses rasterio.crs.CRS (rasterio 1.4.4 from requirements-native, PROJ inside) instead; nothing was installed.
+
+## 2 outer ZIPs: skipped (no outer ZIPs; see section 1)
+
+## 3 survey units
+one per-province ZIP per province as placed under <ldd-zips>\<region>; no province has two years; Bangkok from <ldd-zips>\Landuse_Bangkok_2566_.zip
+Lop Buri: <ldd-zips>\ภาคกลาง\ลพบุรีs.zip is a wrapper holding LUCODE.zip and Landuse_ลพบุรี_2566(ปีล่าสุด).zip; the inner ZIP is read in memory (zipfile over bytes; nothing written to disk)
+counts: กรุงเทพฯ 1 · ภาคกลาง 25 · ภาคตะวันออกเฉียงเหนือ 19 (+ มุกดาหาร row with no file) · ภาคเหนือ 17 · ภาคใต้ 14 = 76 (matches)
+
+## 4-5 inventory  2026-11-18 10:38:45
+PS> <clone-c6>\green-area-backend\.venv\Scripts\python.exe -I c4_inventory.py --code <clone-c6> --zips <ldd-zips> --bangkok <ldd-zips>\Landuse_Bangkok_2566_.zip --out c4-ldd-inventory.csv --missing "ภาคตะวันออกเฉียงเหนือ=มุกดาหาร=ไม่มีไฟล์ หัวหน้าจะขอจาก LDD"
+import gis_ldd_storage: OK (MAX_RATIO 100, MAX_UPLOAD 20971520, MAX_EXPANDED 83886080, MAX_MEMBERS 64); preflight_zip called for every ZIP
+กรุงเทพฯ                 กรุงเทพมหานคร      11073 ldd-lu-text-v1             pass; caps=ok
+ภาคกลาง                  สิงห์บุรี          10820 ldd-lu-text-v1             pass; caps=ok
+ภาคกลาง                  อ่างทอง            15004 ldd-lu-id-l1-area-sqm-v1   pass; caps=ok
+ภาคกลาง                  กาญจนบุรี         102466 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  จันทบุรี           63572 ldd-lu-id-l1-area-sqm-v1   GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB
+ภาคกลาง                  ฉะเชิงเทรา         52128 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  ชลบุรี             88339 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  ชัยนาท             25809 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคกลาง                  ตราด               40783 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  นครนายก            29312 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคกลาง                  นครปฐม             65137 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  นนทบุรี             9635 ldd-lu-text-v1             pass; caps=ok
+ภาคกลาง                  ปทุมธานี           21832 ldd-lu-id-l1-area-sqm-v1   pass; caps=ok
+ภาคกลาง                  ประจวบคีรีขันธ์    70005 ldd-lu-id-l1-area-sqm-v1   GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB
+ภาคกลาง                  ปราจีนบุรี         42916 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  พระนครศรีอยุธยา    26520 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคกลาง                  ระยอง              65136 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  ราชบุรี            63130 ldd-lu-id-l1-area-sqm-v1   GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  ลพบุรี             42494 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  สมุทรปราการ         8819 ldd-lu-text-v1             pass; caps=ok
+ภาคกลาง                  สมุทรสงคราม        11081 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=ratio>100
+ภาคกลาง                  สมุทรสาคร          18313 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคกลาง                  สระบุรี            32698 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB
+ภาคกลาง                  สระแก้ว            61720 ldd-lu-id-l1-area-sqm-v1   GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  สุพรรณบุรี         69303 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  เพชรบุรี           69305 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB+ratio>100
+ภาคตะวันออกเฉียงเหนือ    กาฬสินธุ์         125443 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    ขอนแก่น           119172 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    ชัยภูมิ            93996 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    นครพนม             88309 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    นครราชสีมา        153319 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    บึงกาฬ             57970 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    บุรีรัมย์         105653 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    มหาสารคาม          55941 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    ยโสธร              48411 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    ร้อยเอ็ด           44764 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    ศรีสะเกษ           74256 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    สกลนคร            110350 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    สุรินทร์           93890 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    หนองคาย            54567 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    หนองบัวลำภู        50121 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    อำนาจเจริญ         42270 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    อุดรธานี          130863 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    อุบลราชธานี       127003 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    เลย               151489 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 กำแพงเพชร          71518 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 ตาก                68076 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 นครสวรรค์          58003 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 น่าน               88118 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 พะเยา              68678 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 พิจิตร             34090 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 พิษณุโลก           73709 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 ลำปาง              54448 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 ลำพูน              34268 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 สุโขทัย            40043 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 อุตรดิตถ์          51169 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 อุทัยธานี          39207 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 เชียงราย          110997 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 เชียงใหม่         162832 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 เพชรบูรณ์          58565 ATTRIBUTES_MISSING         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 แพร่               36711 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 แม่ฮ่องสอน         52298 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   กระบี่             43946 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   ชุมพร              65777 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   ตรัง               34299 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   นครศรีธรรมราช     152711 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   นราธิวาส           30693 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB
+ภาคใต้                   ปัตตานี            20197 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคใต้                   พังงา              35253 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   พัทลุง             41604 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB+expanded>80MiB
+ภาคใต้                   ภูเก็ต              6451 ldd-lu-text-v1             pass; caps=ok
+ภาคใต้                   ยะลา               18497 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคใต้                   ระนอง              21070 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคใต้                   สงขลา              49822 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   สตูล               22917 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคใต้                   สุราษฎร์ธานี      146503 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+rows: 77 {'กรุงเทพฯ': 1, 'ภาคกลาง': 25, 'ภาคตะวันออกเฉียงเหนือ': 20, 'ภาคเหนือ': 17, 'ภาคใต้': 14}
+
+CSV sha256: 5efc0f6fa5340796a3f807becca27bbd492c73057c194368f1618d804d126df5  rows: 77
+
+## rerun (round 2)  2026-11-18 11:17:26
+1. region ZIPs: the user gave no path. Search by size found only <home>\Downloads\zip.zip = 555,825,522 bytes (central). None of 365,605,631 / 1,092,904,833 / 894,513,258 found.
+PS> python -I c4_outer_check.py <home>\Downloads\zip.zip <ldd-zips>\ภาคกลาง
+region ZIP: zip.zip · 555825522 bytes · sha256 ed99291b51814efe56b2b22248cadebcd67f58244ab75a2aa903387a8cb0684e
+members 26 · UTF-8 flag on 26 · others decoded as cp874
+  match        Landuse_Sing Buri_2566_ปีล่าสุด.zip  size 5177892 / 5177892  crc 9167e325 / 9167e325
+  match        Landuse_อ่างทอง_2568.zip  size 7937644 / 7937644  crc 5beacc29 / 5beacc29
+  match        กาญจนบุรี2568.zip  size 80402532 / 80402532  crc f7cbaa16 / f7cbaa16
+  match        จันทบุรี2568.zip  size 29689116 / 29689116  crc 5914aa1a / 5914aa1a
+  match        ฉะเชิงเทรา2567_ปีล่าสุด.zip  size 28384159 / 28384159  crc e6037d4a / e6037d4a
+  match        ชลบุรี2567.zip  size 34908322 / 34908322  crc 976d655e / 976d655e
+  match        ชัยนาท2567_ปีล่าสุด.zip  size 14677744 / 14677744  crc 83299ac9 / 83299ac9
+  match        ตราด2568.zip  size 27479434 / 27479434  crc 96ee74dc / 96ee74dc
+  match        นครนายก2568.zip  size 10139185 / 10139185  crc 4e68c580 / 4e68c580
+  match        นครปฐม2567_ปีล่าสุด.zip  size 22029394 / 22029394  crc eb031871 / eb031871
+  match        นนทบุรี2567.zip  size 3071244 / 3071244  crc eab1ecd5 / eab1ecd5
+  match        ปทุมธานี2568.zip  size 7278928 / 7278928  crc 2e8efb5d / 2e8efb5d
+  match        ประจวบคีรีขันธ์2568.zip  size 35377497 / 35377497  crc f6e018a5 / f6e018a5
+  match        ปราจีนบุรี2568.zip  size 21186904 / 21186904  crc 9c29152e / 9c29152e
+  match        พระนครศรีอยุธยา2568.zip  size 11812166 / 11812166  crc 6994bf0a / 6994bf0a
+  match        ระยอง2567.zip  size 23377280 / 23377280  crc 21f2f43b / 21f2f43b
+  match        ราชบุรี2568.zip  size 31521763 / 31521763  crc 60728dd0 / 60728dd0
+  match        ลพบุรีs.zip  size 28113426 / 28113426  crc e00962d8 / e00962d8
+  match        สมุทรปราการ2567.zip  size 4392520 / 4392520  crc dc7db087 / dc7db087
+  match        สมุทรสงคราม2568.zip  size 4914393 / 4914393  crc 48e530b4 / 48e530b4
+  match        สมุทรสาคร2567.zip  size 6358952 / 6358952  crc b8f8daf1 / b8f8daf1
+  match        สระบุรี2568.zip  size 22580883 / 22580883  crc f463d083 / f463d083
+  match        สระแก้ว2568.zip  size 33911215 / 33911215  crc 325d4985 / 325d4985
+  match        สุพรรณบุรี2568.zip  size 28607883 / 28607883  crc 5276618c / 5276618c
+  match        เพชรบุรี2568.zip  size 32489126 / 32489126  crc 527c82be / 527c82be
+summary {'match': 25, 'differs': 0, 'missing': 0} only on disk: 0
+
+2-3. c4_inventory.py changed: nested ZIP (Lop Buri) -> content columns from the inner ZIP in memory, name/size/sha256/sizes/preflight from the uploaded wrapper; .shp header bbox converted with the declared EPSG (rasterio) and compared with the same province box in data/thailand.json
+PS> <clone-c6>\green-area-backend\.venv\Scripts\python.exe -I c4_inventory.py --code <clone-c6> --zips <ldd-zips> --bangkok <ldd-zips>\Landuse_Bangkok_2566_.zip --out c4-ldd-inventory.csv --missing "ภาคตะวันออกเฉียงเหนือ=มุกดาหาร=ไม่มีไฟล์ หัวหน้าจะขอจาก LDD"
+กรุงเทพฯ                 กรุงเทพมหานคร      11073 ldd-lu-text-v1             pass; caps=ok
+ภาคกลาง                  สิงห์บุรี          10820 ldd-lu-text-v1             pass; caps=ok
+ภาคกลาง                  อ่างทอง            15004 ldd-lu-id-l1-area-sqm-v1   pass; caps=ok
+ภาคกลาง                  กาญจนบุรี         102466 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  จันทบุรี           63572 ldd-lu-id-l1-area-sqm-v1   GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB
+ภาคกลาง                  ฉะเชิงเทรา         52128 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  ชลบุรี             88339 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  ชัยนาท             25809 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคกลาง                  ตราด               40783 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  นครนายก            29312 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคกลาง                  นครปฐม             65137 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  นนทบุรี             9635 ldd-lu-text-v1             pass; caps=ok
+ภาคกลาง                  ปทุมธานี           21832 ldd-lu-id-l1-area-sqm-v1   pass; caps=ok
+ภาคกลาง                  ประจวบคีรีขันธ์    70005 ldd-lu-id-l1-area-sqm-v1   GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB
+ภาคกลาง                  ปราจีนบุรี         42916 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  พระนครศรีอยุธยา    26520 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคกลาง                  ระยอง              65136 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  ราชบุรี            63130 ldd-lu-id-l1-area-sqm-v1   GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  ลพบุรี             42494 ldd-lu-text-v1             GIS_LDD_ZIP_NESTED; caps=zip>20MiB+member>20MiB
+ภาคกลาง                  สมุทรปราการ         8819 ldd-lu-text-v1             pass; caps=ok
+ภาคกลาง                  สมุทรสงคราม        11081 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=ratio>100
+ภาคกลาง                  สมุทรสาคร          18313 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคกลาง                  สระบุรี            32698 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB
+ภาคกลาง                  สระแก้ว            61720 ldd-lu-id-l1-area-sqm-v1   GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  สุพรรณบุรี         69303 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคกลาง                  เพชรบุรี           69305 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB+ratio>100
+ภาคตะวันออกเฉียงเหนือ    กาฬสินธุ์         125443 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    ขอนแก่น           119172 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    ชัยภูมิ            93996 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    นครพนม             88309 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    นครราชสีมา        153319 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    บึงกาฬ             57970 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    บุรีรัมย์         105653 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    มหาสารคาม          55941 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    ยโสธร              48411 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    ร้อยเอ็ด           44764 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    ศรีสะเกษ           74256 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    สกลนคร            110350 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    สุรินทร์           93890 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    หนองคาย            54567 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    หนองบัวลำภู        50121 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    อำนาจเจริญ         42270 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    อุดรธานี          130863 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    อุบลราชธานี       127003 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคตะวันออกเฉียงเหนือ    เลย               151489 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 กำแพงเพชร          71518 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 ตาก                68076 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 นครสวรรค์          58003 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 น่าน               88118 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 พะเยา              68678 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 พิจิตร             34090 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 พิษณุโลก           73709 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 ลำปาง              54448 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 ลำพูน              34268 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 สุโขทัย            40043 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 อุตรดิตถ์          51169 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 อุทัยธานี          39207 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 เชียงราย          110997 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 เชียงใหม่         162832 ldd-lu-area-sqm-v1         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 เพชรบูรณ์          58565 ATTRIBUTES_MISSING         GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 แพร่               36711 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคเหนือ                 แม่ฮ่องสอน         52298 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   กระบี่             43946 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   ชุมพร              65777 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   ตรัง               34299 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   นครศรีธรรมราช     152711 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   นราธิวาส           30693 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB
+ภาคใต้                   ปัตตานี            20197 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคใต้                   พังงา              35253 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   พัทลุง             41604 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB+expanded>80MiB
+ภาคใต้                   ภูเก็ต              6451 ldd-lu-text-v1             pass; caps=ok
+ภาคใต้                   ยะลา               18497 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคใต้                   ระนอง              21070 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคใต้                   สงขลา              49822 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+ภาคใต้                   สตูล               22917 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=member>20MiB
+ภาคใต้                   สุราษฎร์ธานี      146503 ldd-lu-text-v1             GIS_LDD_ZIP_UNSAFE; caps=zip>20MiB+member>20MiB+expanded>80MiB
+rows: 77 {'กรุงเทพฯ': 1, 'ภาคกลาง': 25, 'ภาคตะวันออกเฉียงเหนือ': 20, 'ภาคเหนือ': 17, 'ภาคใต้': 14}
+changes vs round 1: ลพบุรี row (zip_name/bytes/sha256/largest_*/expanded_total/member_count/preflight now from the uploaded wrapper; preflight GIS_LDD_ZIP_NESTED) · expanded>80MiB 56 -> 55 · system preflight ZIP_UNSAFE 69 -> 68 + ZIP_NESTED 1
+CSV sha256: dae2c8cbf967d8494120312ccd66fc13fbb0510c21a902ce6e77731061a8d801  rows: 77

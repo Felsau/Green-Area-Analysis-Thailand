@@ -1,0 +1,28 @@
+﻿region ZIP: zip.zip · 555825522 bytes · sha256 ed99291b51814efe56b2b22248cadebcd67f58244ab75a2aa903387a8cb0684e
+members 26 · UTF-8 flag on 26 · others decoded as cp874
+  match        Landuse_Sing Buri_2566_ปีล่าสุด.zip  size 5177892 / 5177892  crc 9167e325 / 9167e325
+  match        Landuse_อ่างทอง_2568.zip  size 7937644 / 7937644  crc 5beacc29 / 5beacc29
+  match        กาญจนบุรี2568.zip  size 80402532 / 80402532  crc f7cbaa16 / f7cbaa16
+  match        จันทบุรี2568.zip  size 29689116 / 29689116  crc 5914aa1a / 5914aa1a
+  match        ฉะเชิงเทรา2567_ปีล่าสุด.zip  size 28384159 / 28384159  crc e6037d4a / e6037d4a
+  match        ชลบุรี2567.zip  size 34908322 / 34908322  crc 976d655e / 976d655e
+  match        ชัยนาท2567_ปีล่าสุด.zip  size 14677744 / 14677744  crc 83299ac9 / 83299ac9
+  match        ตราด2568.zip  size 27479434 / 27479434  crc 96ee74dc / 96ee74dc
+  match        นครนายก2568.zip  size 10139185 / 10139185  crc 4e68c580 / 4e68c580
+  match        นครปฐม2567_ปีล่าสุด.zip  size 22029394 / 22029394  crc eb031871 / eb031871
+  match        นนทบุรี2567.zip  size 3071244 / 3071244  crc eab1ecd5 / eab1ecd5
+  match        ปทุมธานี2568.zip  size 7278928 / 7278928  crc 2e8efb5d / 2e8efb5d
+  match        ประจวบคีรีขันธ์2568.zip  size 35377497 / 35377497  crc f6e018a5 / f6e018a5
+  match        ปราจีนบุรี2568.zip  size 21186904 / 21186904  crc 9c29152e / 9c29152e
+  match        พระนครศรีอยุธยา2568.zip  size 11812166 / 11812166  crc 6994bf0a / 6994bf0a
+  match        ระยอง2567.zip  size 23377280 / 23377280  crc 21f2f43b / 21f2f43b
+  match        ราชบุรี2568.zip  size 31521763 / 31521763  crc 60728dd0 / 60728dd0
+  match        ลพบุรีs.zip  size 28113426 / 28113426  crc e00962d8 / e00962d8
+  match        สมุทรปราการ2567.zip  size 4392520 / 4392520  crc dc7db087 / dc7db087
+  match        สมุทรสงคราม2568.zip  size 4914393 / 4914393  crc 48e530b4 / 48e530b4
+  match        สมุทรสาคร2567.zip  size 6358952 / 6358952  crc b8f8daf1 / b8f8daf1
+  match        สระบุรี2568.zip  size 22580883 / 22580883  crc f463d083 / f463d083
+  match        สระแก้ว2568.zip  size 33911215 / 33911215  crc 325d4985 / 325d4985
+  match        สุพรรณบุรี2568.zip  size 28607883 / 28607883  crc 5276618c / 5276618c
+  match        เพชรบุรี2568.zip  size 32489126 / 32489126  crc 527c82be / 527c82be
+summary {'match': 25, 'differs': 0, 'missing': 0} only on disk: 0
