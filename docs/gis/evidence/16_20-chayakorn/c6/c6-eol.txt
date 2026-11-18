@@ -1,0 +1,6 @@
+﻿i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_lst_no_data.json
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_lst_standard.json
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_lst_transient_once.json
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_ndvi_no_data.json
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_ndvi_standard.json
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_ndvi_transient_once.json

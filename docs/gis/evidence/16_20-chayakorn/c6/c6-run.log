@@ -1,0 +1,359 @@
+﻿C6 run  2026-11-18 10:01:31
+
+## 1
+
+PS> git config --get core.autocrlf
+true
+exit=0
+
+## 2
+PS> $url = (git -C <clone-c1> remote get-url origin)
+  https://github.com/Felsau/Green-Area-Analysis-Thailand
+
+PS> git clone -b gis-unlock $url <clone-c6>
+exit=0
+
+## 3
+
+PS> git rev-parse HEAD
+7501cc87782a1441dc5678fa5504cf37bc1495d2
+exit=0
+
+PS> git branch --show-current
+gis-unlock
+exit=0
+
+PS> git status --short
+exit=0
+check: HEAD starts 7501cc8 = True · branch gis-unlock = True · status empty = True
+
+PS> git log --oneline -3
+7501cc8 fix(gis): keep processing fixtures LF on CRLF checkouts
+5402805 chore(gis): re-review the 047 fixture after the single-timestamp fix
+81422e1 test(gis): allow the five pure IMMUTABLE helpers from 044-047 to stay invoker
+exit=0
+
+## 4
+
+PS> git ls-files --eol -- green-area-backend/gis_worker/processing_fixtures/
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_lst_no_data.json
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_lst_standard.json
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_lst_transient_once.json
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_ndvi_no_data.json
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_ndvi_standard.json
+i/lf    w/lf    attr/-text            	green-area-backend/gis_worker/processing_fixtures/processing_ndvi_transient_once.json
+exit=0
+
+PS> git check-attr text eol -- green-area-backend/gis_worker/processing_fixtures/processing_ndvi_standard.json
+green-area-backend/gis_worker/processing_fixtures/processing_ndvi_standard.json: text: unset
+green-area-backend/gis_worker/processing_fixtures/processing_ndvi_standard.json: eol: unspecified
+exit=0
+check: w/lf 6 / 6 (expected 6/6)
+PART1 OK  10:01:48
+
+## 5  2026-11-18 10:02:10
+
+PS> py -3.11 --version
+Python 3.11.9
+exit=0  [10:02:10]
+
+PS> py -3.11 -m venv green-area-backend\.venv
+exit=0  [10:02:39]
+
+PS> green-area-backend\.venv\Scripts\python.exe --version
+Python 3.11.9
+exit=0  [10:02:39]
+
+PS> green-area-backend\.venv\Scripts\python.exe -m pip install -r green-area-backend\requirements.txt
+Collecting annotated-doc==0.0.4 (from -r green-area-backend\requirements.txt (line 3))
+  Using cached annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+Collecting annotated-types==0.7.0 (from -r green-area-backend\requirements.txt (line 7))
+  Using cached annotated_types-0.7.0-py3-none-any.whl (13 kB)
+Collecting anyio==4.13.0 (from -r green-area-backend\requirements.txt (line 11))
+  Using cached anyio-4.13.0-py3-none-any.whl (114 kB)
+Collecting certifi==2026.5.20 (from -r green-area-backend\requirements.txt (line 18))
+  Using cached certifi-2026.5.20-py3-none-any.whl (134 kB)
+Collecting cffi==2.0.0 (from -r green-area-backend\requirements.txt (line 25))
+  Using cached cffi-2.0.0-cp311-cp311-win_amd64.whl (182 kB)
+Collecting charset-normalizer==3.4.7 (from -r green-area-backend\requirements.txt (line 111))
+  Using cached charset_normalizer-3.4.7-cp311-cp311-win_amd64.whl (159 kB)
+Collecting click==8.4.1 (from -r green-area-backend\requirements.txt (line 242))
+  Using cached click-8.4.1-py3-none-any.whl (116 kB)
+Collecting colorama==0.4.6 (from -r green-area-backend\requirements.txt (line 246))
+  Using cached colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Collecting contourpy==1.3.3 (from -r green-area-backend\requirements.txt (line 253))
+  Using cached contourpy-1.3.3-cp311-cp311-win_amd64.whl (225 kB)
+Collecting cryptography==49.0.0 (from -r green-area-backend\requirements.txt (line 327))
+  Using cached cryptography-49.0.0-cp311-abi3-win_amd64.whl (3.8 MB)
+Collecting cycler==0.12.1 (from -r green-area-backend\requirements.txt (line 377))
+  Using cached cycler-0.12.1-py3-none-any.whl (8.3 kB)
+Collecting deprecated==1.3.1 (from -r green-area-backend\requirements.txt (line 381))
+  Using cached deprecated-1.3.1-py2.py3-none-any.whl (11 kB)
+Collecting deprecation==2.1.0 (from -r green-area-backend\requirements.txt (line 385))
+  Using cached deprecation-2.1.0-py2.py3-none-any.whl (11 kB)
+Collecting earthengine-api==1.7.30 (from -r green-area-backend\requirements.txt (line 391))
+  Using cached earthengine_api-1.7.30-py3-none-any.whl (480 kB)
+Collecting fastapi==0.136.3 (from -r green-area-backend\requirements.txt (line 395))
+  Using cached fastapi-0.136.3-py3-none-any.whl (117 kB)
+Collecting fonttools==4.63.0 (from -r green-area-backend\requirements.txt (line 399))
+  Using cached fonttools-4.63.0-cp311-cp311-win_amd64.whl (2.4 MB)
+Collecting google-api-core==2.31.0 (from -r green-area-backend\requirements.txt (line 451))
+  Using cached google_api_core-2.31.0-py3-none-any.whl (173 kB)
+Collecting google-api-python-client==2.197.0 (from -r green-area-backend\requirements.txt (line 458))
+  Using cached google_api_python_client-2.197.0-py3-none-any.whl (15.3 MB)
+Collecting google-auth==2.54.0 (from -r green-area-backend\requirements.txt (line 462))
+  Using cached google_auth-2.54.0-py3-none-any.whl (249 kB)
+Collecting google-auth-httplib2==0.4.0 (from -r green-area-backend\requirements.txt (line 472))
+  Using cached google_auth_httplib2-0.4.0-py3-none-any.whl (9.5 kB)
+Collecting google-cloud-core==2.6.0 (from -r green-area-backend\requirements.txt (line 478))
+  Using cached google_cloud_core-2.6.0-py3-none-any.whl (29 kB)
+Collecting google-cloud-storage==3.12.0 (from -r green-area-backend\requirements.txt (line 482))
+  Using cached google_cloud_storage-3.12.0-py3-none-any.whl (340 kB)
+Collecting google-crc32c==1.8.0 (from -r green-area-backend\requirements.txt (line 486))
+  Using cached google_crc32c-1.8.0-cp311-cp311-win_amd64.whl (34 kB)
+Collecting google-resumable-media==2.10.0 (from -r green-area-backend\requirements.txt (line 523))
+  Using cached google_resumable_media-2.10.0-py3-none-any.whl (81 kB)
+Collecting googleapis-common-protos==1.75.0 (from -r green-area-backend\requirements.txt (line 527))
+  Using cached googleapis_common_protos-1.75.0-py3-none-any.whl (300 kB)
+Collecting h11==0.16.0 (from -r green-area-backend\requirements.txt (line 531))
+  Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+Collecting h2==4.3.0 (from -r green-area-backend\requirements.txt (line 537))
+  Using cached h2-4.3.0-py3-none-any.whl (61 kB)
+Collecting hpack==4.1.0 (from -r green-area-backend\requirements.txt (line 541))
+  Using cached hpack-4.1.0-py3-none-any.whl (34 kB)
+Collecting httpcore==1.0.9 (from -r green-area-backend\requirements.txt (line 545))
+  Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+Collecting httplib2==0.31.2 (from -r green-area-backend\requirements.txt (line 549))
+  Using cached httplib2-0.31.2-py3-none-any.whl (91 kB)
+Collecting httptools==0.8.0 (from -r green-area-backend\requirements.txt (line 556))
+  Using cached httptools-0.8.0-cp311-cp311-win_amd64.whl (90 kB)
+Collecting httpx==0.28.1 (from -r green-area-backend\requirements.txt (line 608))
+  Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+Collecting hyperframe==6.1.0 (from -r green-area-backend\requirements.txt (line 618))
+  Using cached hyperframe-6.1.0-py3-none-any.whl (13 kB)
+Collecting idna==3.18 (from -r green-area-backend\requirements.txt (line 622))
+  Using cached idna-3.18-py3-none-any.whl (65 kB)
+Collecting iniconfig==2.3.0 (from -r green-area-backend\requirements.txt (line 630))
+  Using cached iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+Collecting kiwisolver==1.5.0 (from -r green-area-backend\requirements.txt (line 634))
+  Using cached kiwisolver-1.5.0-cp311-cp311-win_amd64.whl (73 kB)
+Collecting limits==5.8.0 (from -r green-area-backend\requirements.txt (line 753))
+  Using cached limits-5.8.0-py3-none-any.whl (60 kB)
+Collecting matplotlib==3.10.9 (from -r green-area-backend\requirements.txt (line 757))
+  Using cached matplotlib-3.10.9-cp311-cp311-win_amd64.whl (8.2 MB)
+Collecting multidict==6.7.1 (from -r green-area-backend\requirements.txt (line 814))
+  Using cached multidict-6.7.1-cp311-cp311-win_amd64.whl (45 kB)
+Collecting numpy==2.4.6 (from -r green-area-backend\requirements.txt (line 962))
+  Using cached numpy-2.4.6-cp311-cp311-win_amd64.whl (12.6 MB)
+Collecting packaging==26.2 (from -r green-area-backend\requirements.txt (line 1038))
+  Using cached packaging-26.2-py3-none-any.whl (100 kB)
+Collecting pillow==12.2.0 (from -r green-area-backend\requirements.txt (line 1046))
+  Using cached pillow-12.2.0-cp311-cp311-win_amd64.whl (7.1 MB)
+Collecting pluggy==1.6.0 (from -r green-area-backend\requirements.txt (line 1141))
+  Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+Collecting postgrest==2.31.0 (from -r green-area-backend\requirements.txt (line 1145))
+  Using cached postgrest-2.31.0-py3-none-any.whl (23 kB)
+Collecting propcache==0.5.2 (from -r green-area-backend\requirements.txt (line 1149))
+  Using cached propcache-0.5.2-cp311-cp311-win_amd64.whl (42 kB)
+Collecting proto-plus==1.28.0 (from -r green-area-backend\requirements.txt (line 1272))
+  Using cached proto_plus-1.28.0-py3-none-any.whl (50 kB)
+Collecting protobuf==7.35.1 (from -r green-area-backend\requirements.txt (line 1276))
+  Using cached protobuf-7.35.1-cp310-abi3-win_amd64.whl (439 kB)
+Collecting pyasn1==0.6.3 (from -r green-area-backend\requirements.txt (line 1289))
+  Using cached pyasn1-0.6.3-py3-none-any.whl (83 kB)
+Collecting pyasn1-modules==0.4.2 (from -r green-area-backend\requirements.txt (line 1293))
+  Using cached pyasn1_modules-0.4.2-py3-none-any.whl (181 kB)
+Collecting pycparser==3.0 (from -r green-area-backend\requirements.txt (line 1297))
+  Using cached pycparser-3.0-py3-none-any.whl (48 kB)
+Collecting pydantic==2.13.4 (from -r green-area-backend\requirements.txt (line 1301))
+  Using cached pydantic-2.13.4-py3-none-any.whl (472 kB)
+Collecting pydantic-core==2.46.4 (from -r green-area-backend\requirements.txt (line 1310))
+  Using cached pydantic_core-2.46.4-cp311-cp311-win_amd64.whl (2.1 MB)
+Collecting pygments==2.20.0 (from -r green-area-backend\requirements.txt (line 1432))
+  Using cached pygments-2.20.0-py3-none-any.whl (1.2 MB)
+Collecting pyjwt==2.13.0 (from -r green-area-backend\requirements.txt (line 1436))
+  Using cached pyjwt-2.13.0-py3-none-any.whl (31 kB)
+Collecting pyparsing==3.3.2 (from -r green-area-backend\requirements.txt (line 1442))
+  Using cached pyparsing-3.3.2-py3-none-any.whl (122 kB)
+Collecting pytest==9.0.3 (from -r green-area-backend\requirements.txt (line 1448))
+  Using cached pytest-9.0.3-py3-none-any.whl (375 kB)
+Collecting python-dateutil==2.9.0.post0 (from -r green-area-backend\requirements.txt (line 1452))
+  Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+Collecting python-dotenv==1.2.2 (from -r green-area-backend\requirements.txt (line 1456))
+  Using cached python_dotenv-1.2.2-py3-none-any.whl (22 kB)
+Collecting pyyaml==6.0.3 (from -r green-area-backend\requirements.txt (line 1462))
+  Using cached pyyaml-6.0.3-cp311-cp311-win_amd64.whl (158 kB)
+Collecting realtime==2.31.0 (from -r green-area-backend\requirements.txt (line 1537))
+  Using cached realtime-2.31.0-py3-none-any.whl (22 kB)
+Collecting requests==2.34.2 (from -r green-area-backend\requirements.txt (line 1541))
+  Using cached requests-2.34.2-py3-none-any.whl (73 kB)
+Collecting six==1.17.0 (from -r green-area-backend\requirements.txt (line 1549))
+  Using cached six-1.17.0-py2.py3-none-any.whl (11 kB)
+Collecting slowapi==0.1.9 (from -r green-area-backend\requirements.txt (line 1553))
+  Using cached slowapi-0.1.9-py3-none-any.whl (14 kB)
+Collecting starlette==1.3.1 (from -r green-area-backend\requirements.txt (line 1557))
+  Using cached starlette-1.3.1-py3-none-any.whl (73 kB)
+Collecting storage3==2.31.0 (from -r green-area-backend\requirements.txt (line 1561))
+  Using cached storage3-2.31.0-py3-none-any.whl (28 kB)
+Collecting strenum==0.4.15 (from -r green-area-backend\requirements.txt (line 1565))
+  Using cached StrEnum-0.4.15-py3-none-any.whl (8.9 kB)
+Collecting supabase==2.31.0 (from -r green-area-backend\requirements.txt (line 1569))
+  Using cached supabase-2.31.0-py3-none-any.whl (16 kB)
+Collecting supabase-auth==2.31.0 (from -r green-area-backend\requirements.txt (line 1573))
+  Using cached supabase_auth-2.31.0-py3-none-any.whl (48 kB)
+Collecting supabase-functions==2.31.0 (from -r green-area-backend\requirements.txt (line 1577))
+  Using cached supabase_functions-2.31.0-py3-none-any.whl (8.8 kB)
+Collecting typing-extensions==4.15.0 (from -r green-area-backend\requirements.txt (line 1581))
+  Using cached typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+Collecting typing-inspection==0.4.2 (from -r green-area-backend\requirements.txt (line 1593))
+  Using cached typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+Collecting uritemplate==4.2.0 (from -r green-area-backend\requirements.txt (line 1599))
+  Using cached uritemplate-4.2.0-py3-none-any.whl (11 kB)
+Collecting urllib3==2.7.0 (from -r green-area-backend\requirements.txt (line 1603))
+  Using cached urllib3-2.7.0-py3-none-any.whl (131 kB)
+Collecting uvicorn==0.49.0 (from -r green-area-backend\requirements.txt (line 1607))
+  Using cached uvicorn-0.49.0-py3-none-any.whl (71 kB)
+Collecting watchfiles==1.2.0 (from -r green-area-backend\requirements.txt (line 1611))
+  Using cached watchfiles-1.2.0-cp311-cp311-win_amd64.whl (290 kB)
+Collecting websockets==15.0.1 (from -r green-area-backend\requirements.txt (line 1720))
+  Using cached websockets-15.0.1-cp311-cp311-win_amd64.whl (176 kB)
+Collecting wrapt==2.2.1 (from -r green-area-backend\requirements.txt (line 1793))
+  Using cached wrapt-2.2.1-cp311-cp311-win_amd64.whl (80 kB)
+Collecting yarl==1.24.2 (from -r green-area-backend\requirements.txt (line 1885))
+  Using cached yarl-1.24.2-cp311-cp311-win_amd64.whl (92 kB)
+Installing collected packages: strenum, wrapt, websockets, urllib3, uritemplate, typing-extensions, six, pyyaml, python-dotenv, pyparsing, pyjwt, pygments, pycparser, pyasn1, protobuf, propcache, pluggy, pillow, packaging, numpy, multidict, kiwisolver, iniconfig, idna, hyperframe, httptools, hpack, h11, google-crc32c, fonttools, cycler, colorama, charset-normalizer, certifi, annotated-types, annotated-doc, yarl, typing-inspection, requests, python-dateutil, pytest, pydantic-core, pyasn1-modules, proto-plus, httplib2, httpcore, h2, googleapis-common-protos, google-resumable-media, deprecation, deprecated, contourpy, click, cffi, anyio, watchfiles, uvicorn, starlette, pydantic, matplotlib, limits, httpx, cryptography, slowapi, realtime, google-auth, fastapi, supabase-functions, supabase-auth, storage3, postgrest, google-auth-httplib2, google-api-core, supabase, google-cloud-core, google-api-python-client, google-cloud-storage, earthengine-api
+Successfully installed annotated-doc-0.0.4 annotated-types-0.7.0 anyio-4.13.0 certifi-2026.5.20 cffi-2.0.0 charset-normalizer-3.4.7 click-8.4.1 colorama-0.4.6 contourpy-1.3.3 cryptography-49.0.0 cycler-0.12.1 deprecated-1.3.1 deprecation-2.1.0 earthengine-api-1.7.30 fastapi-0.136.3 fonttools-4.63.0 google-api-core-2.31.0 google-api-python-client-2.197.0 google-auth-2.54.0 google-auth-httplib2-0.4.0 google-cloud-core-2.6.0 google-cloud-storage-3.12.0 google-crc32c-1.8.0 google-resumable-media-2.10.0 googleapis-common-protos-1.75.0 h11-0.16.0 h2-4.3.0 hpack-4.1.0 httpcore-1.0.9 httplib2-0.31.2 httptools-0.8.0 httpx-0.28.1 hyperframe-6.1.0 idna-3.18 iniconfig-2.3.0 kiwisolver-1.5.0 limits-5.8.0 matplotlib-3.10.9 multidict-6.7.1 numpy-2.4.6 packaging-26.2 pillow-12.2.0 pluggy-1.6.0 postgrest-2.31.0 propcache-0.5.2 proto-plus-1.28.0 protobuf-7.35.1 pyasn1-0.6.3 pyasn1-modules-0.4.2 pycparser-3.0 pydantic-2.13.4 pydantic-core-2.46.4 pygments-2.20.0 pyjwt-2.13.0 pyparsing-3.3.2 pytest-9.0.3 python-dateutil-2.9.0.post0 python-dotenv-1.2.2 pyyaml-6.0.3 realtime-2.31.0 requests-2.34.2 six-1.17.0 slowapi-0.1.9 starlette-1.3.1 storage3-2.31.0 strenum-0.4.15 supabase-2.31.0 supabase-auth-2.31.0 supabase-functions-2.31.0 typing-extensions-4.15.0 typing-inspection-0.4.2 uritemplate-4.2.0 urllib3-2.7.0 uvicorn-0.49.0 watchfiles-1.2.0 websockets-15.0.1 wrapt-2.2.1 yarl-1.24.2
+System.Management.Automation.RemoteException
+[notice] A new release of pip is available: 24.0 -> 26.3
+[notice] To update, run: <clone-c6>\green-area-backend\.venv\Scripts\python.exe -m pip install --upgrade pip
+exit=0  [10:05:31]
+
+PS> green-area-backend\.venv\Scripts\python.exe -m pip install -r green-area-backend\requirements-native.txt
+Collecting rasterio==1.4.4 (from -r green-area-backend\requirements-native.txt (line 18))
+  Using cached rasterio-1.4.4-cp311-cp311-win_amd64.whl.metadata (9.6 kB)
+Collecting fiona==1.10.1 (from -r green-area-backend\requirements-native.txt (line 19))
+  Using cached fiona-1.10.1-cp311-cp311-win_amd64.whl.metadata (58 kB)
+Collecting shapely==2.2.0 (from -r green-area-backend\requirements-native.txt (line 20))
+  Using cached shapely-2.2.0-cp311-cp311-win_amd64.whl.metadata (6.8 kB)
+Collecting affine (from rasterio==1.4.4->-r green-area-backend\requirements-native.txt (line 18))
+  Using cached affine-3.0.1-py3-none-any.whl.metadata (4.5 kB)
+Collecting attrs (from rasterio==1.4.4->-r green-area-backend\requirements-native.txt (line 18))
+  Using cached attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+Requirement already satisfied: certifi in <clone-c6>\green-area-backend\.venv\lib\site-packages (from rasterio==1.4.4->-r green-area-backend\requirements-native.txt (line 18)) (2026.5.20)
+Requirement already satisfied: click!=8.2.*,>=4.0 in <clone-c6>\green-area-backend\.venv\lib\site-packages (from rasterio==1.4.4->-r green-area-backend\requirements-native.txt (line 18)) (8.4.1)
+Collecting cligj>=0.5 (from rasterio==1.4.4->-r green-area-backend\requirements-native.txt (line 18))
+  Using cached cligj-0.7.2-py3-none-any.whl.metadata (5.0 kB)
+Requirement already satisfied: numpy>=1.24 in <clone-c6>\green-area-backend\.venv\lib\site-packages (from rasterio==1.4.4->-r green-area-backend\requirements-native.txt (line 18)) (2.4.6)
+Collecting click-plugins (from rasterio==1.4.4->-r green-area-backend\requirements-native.txt (line 18))
+  Using cached click_plugins-1.1.1.2-py2.py3-none-any.whl.metadata (6.5 kB)
+Requirement already satisfied: pyparsing in <clone-c6>\green-area-backend\.venv\lib\site-packages (from rasterio==1.4.4->-r green-area-backend\requirements-native.txt (line 18)) (3.3.2)
+Requirement already satisfied: colorama in <clone-c6>\green-area-backend\.venv\lib\site-packages (from click!=8.2.*,>=4.0->rasterio==1.4.4->-r green-area-backend\requirements-native.txt (line 18)) (0.4.6)
+Using cached rasterio-1.4.4-cp311-cp311-win_amd64.whl (25.7 MB)
+Using cached fiona-1.10.1-cp311-cp311-win_amd64.whl (24.5 MB)
+Using cached shapely-2.2.0-cp311-cp311-win_amd64.whl (1.8 MB)
+Using cached attrs-26.1.0-py3-none-any.whl (67 kB)
+Using cached click_plugins-1.1.1.2-py2.py3-none-any.whl (11 kB)
+Using cached cligj-0.7.2-py3-none-any.whl (7.1 kB)
+Using cached affine-3.0.1-py3-none-any.whl (10 kB)
+Installing collected packages: shapely, attrs, cligj, click-plugins, affine, rasterio, fiona
+Successfully installed affine-3.0.1 attrs-26.1.0 click-plugins-1.1.1.2 cligj-0.7.2 fiona-1.10.1 rasterio-1.4.4 shapely-2.2.0
+System.Management.Automation.RemoteException
+[notice] A new release of pip is available: 24.0 -> 26.3
+[notice] To update, run: <clone-c6>\green-area-backend\.venv\Scripts\python.exe -m pip install --upgrade pip
+exit=0  [10:05:49]
+
+PS> git status --short   (after venv)
+exit=0  [10:05:49]
+
+## 6  2026-11-18 10:05:49
+
+PS> .\.venv\Scripts\python.exe -m pytest tests/ -q -rs --junitxml=<evidence-c6>\c6-backend.xml
+........................................................................ [  3%]
+........................................................................ [  6%]
+........................................................................ [  9%]
+..............................................................ssssssssss [ 12%]
+sssss................................................................... [ 15%]
+.........sssssssssssssssssssssssssssssssssssssssssssssssssss.........ss. [ 19%]
+........................................................................ [ 22%]
+........................................................................ [ 25%]
+.ssssssssssss........................................................... [ 28%]
+........................................................................ [ 31%]
+........................................................................ [ 35%]
+........................................................................ [ 38%]
+........................................................................ [ 41%]
+........................................................................ [ 44%]
+........................................................................ [ 47%]
+........................................................................ [ 50%]
+........................................................................ [ 54%]
+........................................................................ [ 57%]
+........................................................................ [ 60%]
+........................................................................ [ 63%]
+........................................................................ [ 66%]
+......................s................................................. [ 70%]
+........................................................................ [ 73%]
+........................................................................ [ 76%]
+........................................................................ [ 79%]
+........................................................................ [ 82%]
+........................................................................ [ 85%]
+........................................................................ [ 89%]
+........................................................................ [ 92%]
+........................................................................ [ 95%]
+........................................................................ [ 98%]
+..............................                                           [100%]
+============================== warnings summary ===============================
+.venv\Lib\site-packages\google\api_core\_python_version_support.py:255
+  <clone-c6>\green-area-backend\.venv\Lib\site-packages\google\api_core\_python_version_support.py:255: FutureWarning: You are using a Python version (3.11.9) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2027-10-24). Please upgrade to the latest Python version, or at least Python 3.12, to continue receiving updates for google.api_core past that date.
+    warnings.warn(message, FutureWarning)
+
+.venv\Lib\site-packages\rasterio\transform.py:178: 5 warnings
+tests/test_geotiff_bands_native.py: 1 warning
+tests/test_geotiff_native.py: 37 warnings
+tests/test_geotiff_prepare_native.py: 28 warnings
+tests/test_geotiff_publication_native.py: 12 warnings
+  <clone-c6>\green-area-backend\.venv\Lib\site-packages\rasterio\transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[ndvi_ready-0-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[ndvi_ready-0-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_celsius_ready-20-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_celsius_ready-20-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_kelvin_ready-20-1]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_kelvin_ready-20-1]
+tests/test_geotiff_publication_native.py::test_explicit_matching_month_remains_unverified
+tests/test_geotiff_publication_native.py::test_display_mercator_asymmetric_grid_known_nearest_positions
+tests/test_geotiff_publication_native.py::test_display_mercator_asymmetric_grid_known_nearest_positions
+  <clone-c6>\green-area-backend\.venv\Lib\site-packages\rasterio\transform.py:189: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(west, north) * Affine.scale(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [3] tests\test_gee_credential_boundary.py:135: Linux kernel boundary
+SKIPPED [1] tests\test_gee_credential_boundary.py:144: Linux kernel boundary
+SKIPPED [1] tests\test_gee_credential_boundary.py:158: Linux thread-wide kernel installation boundary
+SKIPPED [1] tests\test_gee_credential_boundary.py:174: Linux credential-bearing IPC
+SKIPPED [2] tests\test_gee_credential_boundary.py:181: Linux UID credential parser checks
+SKIPPED [7] tests\test_gee_credential_boundary.py:201: Isolated Linux root supervisor drops child UIDs
+SKIPPED [1] tests\test_gee_credential_boundary.py:428: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [1] tests\test_gee_credential_boundary.py:521: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [2] tests\test_gee_credential_boundary.py:530: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [4] tests\test_gee_credential_boundary.py:541: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [13] tests\test_gee_credential_boundary.py:553: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [5] tests\test_gee_credential_boundary.py:575: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [1] tests\test_gee_credential_boundary.py:588: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [1] tests\test_gee_credential_boundary.py:621: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [20] tests\test_gee_credential_boundary.py:628: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [1] tests\test_gee_credential_boundary.py:658: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [2] tests\test_gee_credential_boundary.py:668: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [1] tests\test_gee_credential_boundary.py:796: Linux /proc
+SKIPPED [1] tests\test_gee_credential_boundary.py:817: Linux non-root process self-measurement
+SKIPPED [8] tests\test_gee_execution_safety.py:143: real isolated child requires Linux
+SKIPPED [1] tests\test_gee_execution_safety.py:154: real isolated child requires Linux
+SKIPPED [1] tests\test_gee_execution_safety.py:161: real isolated child requires Linux
+SKIPPED [2] tests\test_gee_execution_safety.py:168: real isolated child requires Linux
+SKIPPED [1] tests\test_ldd_policy_native.py:563: frozen artifact bytes are only meaningful inside the pinned worker runtime; set GIS_NATIVE_RUNTIME=pinned when running there
+2181 passed, 81 skipped, 93 warnings in 207.92s (0:03:27)
+exit=0  [10:09:21]
+
+PS> git status --short   (after pytest)
+exit=0  [10:09:22]
+PART2 DONE  10:09:22
