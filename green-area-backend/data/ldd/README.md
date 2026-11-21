@@ -83,3 +83,36 @@ edition นี้เป็น **กทม.เท่านั้น** — UI โ�
 
 > `ldd_codes.py` ถูก generate จาก DBF (LU_CODE → ประเภทหลัก + ชื่อ TH/EN) — อย่าแก้มือ
 > ถ้าชุดข้อมูลเปลี่ยน ให้ generate ใหม่จาก shapefile ต้นทาง
+
+---
+
+## อัปโหลดทุกจังหวัดด้วยสคริปต์ `upload_ldd_to_gee.py`
+
+สคริปต์นี้เตรียม shapefile LDD (ตัดเหลือ `LU_CODE`, `LU_DES_TH`, `LU_ID_L1` แปลงเป็น UTF-8
+พร้อม `.cpg`) แล้วอัปโหลดเป็น FeatureCollection asset จังหวัดละ 1 ตัว ชื่อ
+`<asset-root>/LU_<ABBR>_<ปี พ.ศ.>` และเติมทะเบียน `gee_assets.json` ที่ `ldd.py` อ่าน
+รับ `--src` ได้ทั้งโฟลเดอร์, ZIP ภาค, ZIP จังหวัด และ ZIP ซ้อน ZIP (เดินให้ทั้งหมด)
+
+ใช้ Python ของ venv (ต้องมี `fiona`, `earthengine-api`) และตั้ง `GEE_PROJECT` ใน `.env`:
+
+```bash
+cd green-area-backend
+earthengine authenticate        # ครั้งแรกครั้งเดียว (หรือเมื่อ token หมดอายุ)
+
+# 1) dry run ก่อนเสมอ — อ่าน/ตรวจ/ทำ zip ย่อ แต่ไม่ส่งอะไรขึ้น GEE
+python data/ldd/upload_ldd_to_gee.py --src "D:/ldd/ภาคกลาง" --workdir D:/ldd-work
+
+# ดูตารางสรุปและ D:/ldd-work/ldd_upload_report.csv (encoding, thai_ok_pct, lu_code_ok_pct, ...)
+# เช็กว่า thai_ok_pct ~100 และไม่มี error/WARN ก่อนไปต่อ
+
+# 2) อัปโหลดจริง + รอ task เสร็จ + ลงทะเบียนอัตโนมัติ
+python data/ldd/upload_ldd_to_gee.py --src "D:/ldd/ภาคกลาง" --upload --wait
+
+# 3) ตรวจ git diff ของ data/ldd/gee_assets.json แล้ว commit ไฟล์นี้
+```
+
+ตัวเลือกที่ใช้บ่อย: `--province กาญจนบุรี` (ซ้ำได้ ชื่อไทยหรืออังกฤษ) · `--asset-root`
+(ค่าเริ่มต้น `projects/<GEE_PROJECT>/assets/ldd`) · `--overwrite` (ยอมแทนจังหวัดที่ลงทะเบียนแล้ว
+และลบ asset id เดิมก่อนอัปโหลด; แทนของเดิมแล้วต้องล้างแคช recommend ของจังหวัดนั้นจากหน้าแอดมิน)
+ถ้ามีหลายปีของจังหวัดเดียวกันใน `--src` สคริปต์เลือกปีล่าสุด · ถ้า `--wait` ถูกตัดกลางคัน task
+ยังรันต่อบน GEE (ดูแท็บ Tasks) แล้วเติมทะเบียนด้วยมือหรือรันซ้ำพร้อม `--overwrite`
