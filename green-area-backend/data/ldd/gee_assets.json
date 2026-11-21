@@ -1,0 +1,4 @@
+{
+  "_comment": "LDD land-use shapefiles uploaded to Google Earth Engine as FeatureCollection assets, one per province. Key = English province name exactly as in thailand.json / get_province_geom. year_be = survey edition (Buddhist era). code_field/name_field default to LU_CODE/LU_DES_TH. Bangkok falls back to env LDD_LANDUSE_ASSET (2566) when it has no entry here. Adding a province makes its cached recommendations recompute automatically (rows without LDD labels count as stale); replacing an existing province's asset needs its recommend cache cleared from the admin page.",
+  "provinces": {}
+}

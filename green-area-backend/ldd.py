@@ -15,7 +15,10 @@ ldd_available() = False → endpoint ตอบ 404 ที่อ่านรู�
 ระดับ 1:25,000) ไม่ใช่ประมาณจาก pixel — แม่นกว่าและได้ตัวเลขไร่/ตร.กม.ตรงกับเอกสาร LDD
 ส่วน tiles ยัง rasterize polygon → ee.Image เพื่อวาดทับ basemap แบบ pixel เหมือน DW
 """
+import json
 import os
+from functools import lru_cache
+from pathlib import Path
 
 import ee
 
@@ -162,3 +165,82 @@ def ldd_meta() -> dict:
             "data_year": _DATA_YEAR_BE,
             "data_year_ce": _DATA_YEAR_CE,
             "coverage": "กรุงเทพมหานคร"}
+
+
+# LDD รายจังหวัดสำหรับตรวจจุดแนะนำปลูก (ระบบแนะนำ ไม่ใช่ชั้นแสดงผล)
+# asset ต่อจังหวัดลงทะเบียนใน data/ldd/gee_assets.json (asset id ไม่ใช่ความลับ ไม่ต้องตั้ง
+# env บน Render ทีละจังหวัด) · กทม. ใช้ env LDD_LANDUSE_ASSET เดิมได้ถ้าไม่มีในไฟล์
+_ASSET_REGISTRY = Path(__file__).resolve().parent / "data" / "ldd" / "gee_assets.json"
+_DEFAULT_CODE_FIELD = "LU_CODE"
+_DEFAULT_NAME_FIELD = "LU_DES_TH"
+
+
+@lru_cache(maxsize=1)
+def _registry() -> dict:
+    try:
+        with open(_ASSET_REGISTRY, encoding="utf-8") as f:
+            return json.load(f).get("provinces") or {}
+    except FileNotFoundError:
+        return {}
+
+
+def ldd_source_for(province_name: str | None) -> dict | None:
+    """asset LDD ของจังหวัด → {asset, year_be, code_field, name_field} หรือ None.
+
+    None = จังหวัดนี้ยังไม่มีข้อมูล LDD บน GEE → ระบบแนะนำทำงานแบบเดิม (ไม่ตรวจ LDD)
+    """
+    if not province_name:
+        return None
+    entry = _registry().get(province_name)
+    if entry and entry.get("asset"):
+        return {"asset": entry["asset"],
+                "year_be": int(entry["year_be"]),
+                "code_field": entry.get("code_field") or _DEFAULT_CODE_FIELD,
+                "name_field": entry.get("name_field") or _DEFAULT_NAME_FIELD}
+    if province_name in LDD_COVERAGE_PROVINCES and LDD_ASSET_ID:
+        return {"asset": LDD_ASSET_ID, "year_be": _DATA_YEAR_BE,
+                "code_field": _DEFAULT_CODE_FIELD, "name_field": _DEFAULT_NAME_FIELD}
+    return None
+
+
+def ldd_filter_meta(source: dict) -> dict:
+    """metadata แนบ response ระบบแนะนำ บอกว่าจุดถูกตรวจกับ LDD edition ไหน"""
+    return {"source": "ldd", "source_label": "กรมพัฒนาที่ดิน (LDD)",
+            "edition_year": source["year_be"]}
+
+
+def ldd_codes_at_points(candidates: list[dict], source: dict) -> dict[int, dict]:
+    """รหัส LU_CODE ของแปลง LDD ที่ candidate แต่ละจุดตกอยู่ → {index: {code, name_th}}.
+
+    GEE roundtrip เดียวทั้ง pool: spatial join (intersects) จุดกับแปลงที่ filterBounds
+    ด้วยกลุ่มจุดก่อน (ไม่สแกนทั้งจังหวัด) · จุดที่ไม่ตกในแปลงใดไม่อยู่ในผล · ชื่อไทย
+    อ่านจาก field ของ asset ก่อน แล้ว fallback ตาราง ldd_codes (มีแค่รหัสของ กทม.)
+    """
+    if not candidates:
+        return {}
+    code_field, name_field = source["code_field"], source["name_field"]
+    points = ee.FeatureCollection([
+        ee.Feature(ee.Geometry.Point([c["lng"], c["lat"]]), {"idx": i})
+        for i, c in enumerate(candidates)])
+    parcels = ee.FeatureCollection(source["asset"]).filterBounds(points.geometry())
+    joined = ee.Join.saveFirst("parcel").apply(
+        points, parcels,
+        ee.Filter.intersects(leftField=".geo", rightField=".geo", maxError=1))
+
+    def _slim(f):
+        parcel = ee.Feature(f.get("parcel"))
+        return ee.Feature(None, {"idx": f.get("idx"),
+                                 "code": parcel.get(code_field),
+                                 "name": parcel.get(name_field)})
+
+    info = joined.map(_slim).getInfo()
+    out: dict[int, dict] = {}
+    for feat in info.get("features", []):
+        p = feat.get("properties") or {}
+        code = p.get("code")
+        if code is None:
+            continue
+        code = str(code).strip()
+        name = p.get("name") or (LDD_LU_CODES.get(code) or (None, None))[1]
+        out[int(p["idx"])] = {"code": code, "name_th": name}
+    return out

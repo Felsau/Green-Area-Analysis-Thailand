@@ -14,6 +14,8 @@ from gee_utils import (get_lst_col, worldpop_pop_collection, dynamic_world_built
                        s2_clean_collection, s2_scene_count)
 from impact import IMPACT_DEFAULTS
 from landuse import CATEGORY_BY_VALUE, PLANTING_GUIDANCE, landuse_image
+from ldd import ldd_codes_at_points
+from ldd_planting import apply_ldd_codes
 
 logger = logging.getLogger(__name__)
 
@@ -404,7 +406,8 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
                       lst_heat: ee.Image, pop_need: ee.Image, access_need: ee.Image,
                       peri_need: ee.Image, feasibility_need: ee.Image,
                       geom: ee.Geometry, plantable: ee.Image, n: int = 10,
-                      landuse: ee.Image | None = None):
+                      landuse: ee.Image | None = None,
+                      ldd_source: dict | None = None):
     """หา top-n pixels ที่มี priority สูงสุด — เฉพาะบนพื้นที่ที่ปลูกได้จริง.
 
     sample แบบ multi-band (priority + 6 องค์ประกอบ) ที่จุดเดียวกัน → คืน `factors`
@@ -427,6 +430,12 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
 
     อาจคืนน้อยกว่า n จุดถ้า candidate ผ่านการตรวจพิกัดไม่พอ — ตั้งใจให้เป็นแบบนั้น
     (คืนจุดน้อยกว่าที่ขอ ดีกว่าคืนจุดที่ปลูกจริงไม่ได้)
+
+    ldd_source (optional, จาก ldd.ldd_source_for): จังหวัดที่มี LDD บน GEE → ตรวจจุด
+    กับแปลงการใช้ที่ดินจริงอีกชั้น ตัดรหัสต้องห้าม (สนามบิน ถนน แหล่งน้ำ ฯลฯ ดู
+    ldd_planting) และติด `ldd` ให้ทุกจุด · ตรวจไม่สำเร็จ (asset หาย/สิทธิ์) ไม่ล้ม
+    ทั้งคำขอ: log แล้วคืนผลแบบไม่มี LDD (จุดจะไม่มี key `ldd` — endpoint ใช้เป็นสัญญาณ
+    ไม่ cache ผลนั้น)
     """
     # priority เฉพาะ pixel ที่ปลูกได้ — reduceRegion ข้าม pixel ที่ถูก mask อยู่แล้ว
     # → percentile คิดบน distribution ของ "ที่ปลูกได้" เท่านั้น (ไม่ปนน้ำ/อาคาร/ป่าเดิม)
@@ -481,6 +490,17 @@ def get_top_locations(priority: ee.Image, ndvi_deficit: ee.Image,
     # ระยะห่างก่อนแล้วค่อยตัด จะเหลือจุดน้อยกว่าที่ควรได้
     candidates = _drop_non_plantable(
         candidates, _plantable_at_points(candidates, plantable))
+    # ตรวจกับแปลง LDD ก่อนคัดระยะห่างด้วยเหตุผลเดียวกับข้างบน (ให้ยังได้ n จุดครบ)
+    if ldd_source is not None and candidates:
+        try:
+            codes = ldd_codes_at_points(candidates, ldd_source)
+            candidates, dropped = apply_ldd_codes(candidates, codes,
+                                                  ldd_source['year_be'])
+            logger.info("LDD %s ตัดจุดแนะนำ %d จุด เหลือ %d", ldd_source['year_be'],
+                        dropped, len(candidates))
+        except ee.EEException as ldd_err:
+            logger.warning("⚠️  LDD point check failed, continuing without it: %s",
+                           ldd_err)
     # candidates เรียงตาม priority มาแล้ว → คัดให้กระจาย ≥ TOP_MIN_SEPARATION_M
     return _space_out(candidates, n, TOP_MIN_SEPARATION_M)
 

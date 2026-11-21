@@ -135,6 +135,11 @@ export default function RecommendTab({ data, handlers }) {
               <span className="section__title">จุดที่ควรปลูกสูงสุด · Top 10</span>
               <span className="section__meta">คลิกเพื่อเปิด Google Maps</span>
             </div>
+            {recommendData.ldd_filter && (
+              <div className="helper" style={{ color: 'var(--ink-4)', fontSize: 11 }}>
+                ตรวจจุดกับข้อมูลการใช้ที่ดินของกรมพัฒนาที่ดิน ปี {recommendData.ldd_filter.edition_year} แล้ว จุดที่อยู่ในสนามบิน ถนน แหล่งน้ำ บ่อเลี้ยงสัตว์น้ำ เขตอุตสาหกรรม และป่าเดิม ถูกตัดออก
+              </div>
+            )}
             <div className="rank-table">
               {recommendData.top_locations?.length > 0 ? recommendData.top_locations.map((p, i) => (
                 <a
@@ -154,7 +159,14 @@ export default function RecommendTab({ data, handlers }) {
                   {/* ประเภทการใช้ที่ดินที่จุดนี้ (5 ประเภทหลักตามนิยาม LDD) — จุดจาก
                       cache รุ่นก่อนยังไม่มี field นี้ จึงต้องเช็คก่อนแสดง ·
                       guidance (แนวทางการปลูกตามประเภทที่ดิน) มาตั้งแต่ cache v8 */}
-                  {p.landuse && (
+                  {(p.ldd?.name_th || p.ldd?.code) ? (
+                    <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+                      การใช้ที่ดิน (กรมพัฒนาที่ดิน ปี {p.ldd.edition_year}): {p.ldd.name_th || p.ldd.code}
+                      {/* ไม่ต่อ guidance ของ DW เพราะเขียนตามประเภทจากดาวเทียม อาจขัดกับ
+                          ประเภทจริงของ LDD (เช่น DW ว่าชุมชน แต่ LDD ว่าทุ่งหญ้า) */}
+                      {p.ldd.rule === 'prefer' && ' · ที่ว่าง/ที่ร้าง เหมาะปลูก'}
+                    </div>
+                  ) : p.landuse && (
                     <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>
                       การใช้ที่ดิน: {p.landuse.name_th}
                       {p.landuse.guidance && (

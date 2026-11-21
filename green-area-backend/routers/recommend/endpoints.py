@@ -26,6 +26,7 @@ from dependencies import (supa_call, internal_error, RECOMMEND_CACHE_VERSION,
                           WORLDPOP_YEAR)
 from impact import estimate_impact
 from landuse import build_summary
+from ldd import ldd_filter_meta, ldd_source_for
 from polygon_utils import validate_drawn_polygon
 
 from .scoring import (W_NDVI, W_LST, W_POP, W_ACCESS,
@@ -90,7 +91,8 @@ def _imagery_unavailable_error(year: int, district_name: str | None) -> HTTPExce
 def _compute_recommendation_payload(geom: ee.Geometry, year: int,
                                     weights: tuple[float, float, float, float],
                                     species_info: dict,
-                                    lst_mean=None, ndvi_mean=None):
+                                    lst_mean=None, ndvi_mean=None,
+                                    ldd_source: dict | None = None):
     """Shared compute: assert imagery → priority heatmap URL + top-10 + plantable impact.
 
     คืน (tile_url, top_locations, impact, species_info) · species_info ขาออกถูก
@@ -107,13 +109,23 @@ def _compute_recommendation_payload(geom: ee.Geometry, year: int,
     tile_url = get_heatmap_url(priority)
     top = get_top_locations(priority, ndvi_deficit, lst_heat, pop_need, access_need,
                             peri_need, feasibility_need, geom, plantable, n=10,
-                            landuse=landuse)
+                            landuse=landuse, ldd_source=ldd_source)
     species_info = rerank_species_for_spots(species_info, top, lst_mean, ndvi_mean)
     plantable_m2, plantable_by_lu = compute_plantable_area(priority, plantable,
                                                            landuse, geom)
     impact = estimate_impact(plantable_m2, species_info.get("species", []))
     impact["plantable_landuse"] = build_summary(plantable_by_lu)
     return tile_url, top, impact, species_info
+
+
+def _ldd_checked(top: list[dict], ldd_source: dict | None) -> bool:
+    """ผลนี้ผ่านการตรวจ LDD ครบหรือยัง — จังหวัดที่ไม่มี LDD ถือว่าครบ (ไม่มีอะไรให้ตรวจ).
+
+    get_top_locations ติด key `ldd` ให้ทุกจุดเมื่อตรวจสำเร็จ · ถ้าตรวจล้ม (GEE พลาด
+    ชั่วคราว) จุดจะไม่มี key นี้ → ไม่ cache ผลนั้น กันผลที่ไม่ได้ตรวจค้างใน DB
+    จนกว่าจะ bump RECOMMEND_CACHE_VERSION
+    """
+    return ldd_source is None or all("ldd" in p for p in top)
 
 
 def _run_recommendation(province_name: str, district_name: str | None,
@@ -147,6 +159,7 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
     lst_mean, ndvi_mean = _site_metrics(province_name, district_name, year)
     species_info = get_recommended_species(province_name, lst_mean, ndvi_mean)
     label = province_name if district_name is None else f"{province_name}/{district_name}"
+    ldd_source = ldd_source_for(province_name)
 
     def _base_response(**extra):
         resp = {"province": province_name, "year": year,
@@ -158,6 +171,9 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
                 "recommended_species": species_info, **extra}
         if district_name is not None:
             resp["district"] = district_name
+        if ldd_source is not None and _ldd_checked(resp.get("top_locations") or [],
+                                                   ldd_source):
+            resp["ldd_filter"] = ldd_filter_meta(ldd_source)
         return resp
 
     # Custom weights → bypass DB cache (top_locations จะต่างไปทุก combination)
@@ -173,7 +189,10 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
         # row ที่ cache_version < ปัจจุบัน = คำนวณก่อนยุค plantability mask → stale,
         # ลบทิ้งแล้วตกไปคำนวณใหม่ด้านล่าง (ลบก่อน ไม่งั้น insert รอบใหม่ชน
         # UNIQUE(province,district,year)) — pattern เดียวกับ ndvi/urban cache
-        if row and row.get("cache_version", 0) < RECOMMEND_CACHE_VERSION:
+        # รวมถึง row ที่คำนวณก่อนจังหวัดนี้มี LDD บน GEE (จุดไม่มีป้าย ldd) → คำนวณใหม่
+        # เองอัตโนมัติเมื่อเพิ่มจังหวัดใน gee_assets.json ไม่ต้องล้างแคชด้วยมือ
+        if row and (row.get("cache_version", 0) < RECOMMEND_CACHE_VERSION
+                    or not _ldd_checked(row.get("top_locations") or [], ldd_source)):
             logger.info("♻️ Recommend stale cache: %s/%d — recomputing", label, year)
             supa_call(lambda s: s.table("planting_recommendations")
                       .delete().eq("id", row["id"]).execute())
@@ -222,10 +241,11 @@ def _run_recommendation_inner(province_name: str, district_name: str | None,
         geom = ee.Geometry(raw_geom)
         tile_url, top, impact, species_info = _compute_recommendation_payload(
             geom, year, (w_ndvi, w_lst, w_pop, w_access), species_info,
-            lst_mean, ndvi_mean)
+            lst_mean, ndvi_mean, ldd_source)
 
         # Cache เฉพาะ default weights (ไม่งั้นจะปนกัน + DB บวมโดยเปล่าประโยชน์)
-        if is_default:
+        # และเฉพาะผลที่ตรวจ LDD ครบแล้ว (ดู _ldd_checked)
+        if is_default and _ldd_checked(top, ldd_source):
             store_tile_url(province_name, district_name, year, tile_url)
             try:
                 # ไม่เก็บ tile_url ลง DB — URL ผูก GEE session ที่หมดอายุใน ~ชั่วโมง
@@ -308,14 +328,18 @@ def recommend_custom_area(req: CustomAreaRecommendRequest):
     species_info = (get_recommended_species(province, lst_mean, ndvi_mean) if province
                     else {"region": None, "species": []})
 
+    # จุดใน polygon ที่วาดตรวจกับ LDD ของจังหวัดที่ centroid ตกอยู่ · จุดที่อยู่นอก
+    # จังหวัดนั้นไม่ตกในแปลงใด → neutral ไม่ถูกตัด
+    ldd_source = ldd_source_for(province)
+
     logger.info("⏳ Custom-area recommend: %.1f km² · ปี %d (w=%.2f/%.2f/%.2f/%.2f)",
                 area_km2, year, w_ndvi, w_lst, w_pop, w_access)
     try:
         geom = ee.Geometry(req.geometry)
         tile_url, top, impact, species_info = _compute_recommendation_payload(
             geom, year, (w_ndvi, w_lst, w_pop, w_access), species_info,
-            lst_mean, ndvi_mean)
-        return {
+            lst_mean, ndvi_mean, ldd_source)
+        resp = {
             "year": year,
             "area_km2": round(area_km2, 2),
             "province": province,
@@ -327,6 +351,9 @@ def recommend_custom_area(req: CustomAreaRecommendRequest):
             "recommended_species": species_info,
             "impact": impact,
         }
+        if ldd_source is not None and _ldd_checked(top, ldd_source):
+            resp["ldd_filter"] = ldd_filter_meta(ldd_source)
+        return resp
     except HTTPException:
         raise
     except ee.EEException as ee_err:

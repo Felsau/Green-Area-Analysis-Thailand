@@ -39,7 +39,8 @@ export const buildRecommendReport = async (data) => {
 
   if (recommendData.top_locations?.length > 0) {
     // จุดจาก cache รุ่นเก่าอาจไม่มีป้าย landuse — โชว์คอลัมน์เมื่อมีอย่างน้อยหนึ่งจุด
-    const hasLanduse = recommendData.top_locations.some((p) => p.landuse);
+    const lduName = (p) => p.ldd?.name_th || p.ldd?.code;
+    const hasLanduse = recommendData.top_locations.some((p) => p.landuse || lduName(p));
     let th = sectionTitle(`Top ${recommendData.top_locations.length} จุดที่ควรปลูกต้นไม้`) +
       table(
         ['อันดับ', 'Latitude', 'Longitude', 'Score', 'ความเร่งด่วน',
@@ -49,12 +50,15 @@ export const buildRecommendReport = async (data) => {
           p.lat.toFixed(5), p.lng.toFixed(5),
           p.score.toFixed(3),
           p.score >= 0.7 ? 'เร่งด่วนสูง' : p.score >= 0.5 ? 'เร่งด่วน' : 'ปานกลาง',
-          ...(hasLanduse ? [p.landuse?.name_th || '–'] : []),
+          ...(hasLanduse ? [lduName(p) || p.landuse?.name_th || '–'] : []),
         ])
       );
+    if (recommendData.ldd_filter) {
+      th += paragraph(`การใช้ที่ดินรายจุดอ้างอิงข้อมูลกรมพัฒนาที่ดิน ปี ${esc(recommendData.ldd_filter.edition_year)}`);
+    }
     // แนวทางการปลูกตามประเภทที่ดินที่พบในจุดแนะนำ (unique ต่อประเภท)
     const guides = [...new Map(recommendData.top_locations
-      .filter((p) => p.landuse?.guidance)
+      .filter((p) => p.landuse?.guidance && !lduName(p))
       .map((p) => [p.landuse.code, p.landuse])).values()];
     if (guides.length > 0) {
       th += paragraph(guides
