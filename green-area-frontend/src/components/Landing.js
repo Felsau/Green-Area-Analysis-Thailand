@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { API_BASE, CURRENT_YEAR, PROVINCE_TH, TOTAL_DISTRICTS, DATA_YEAR_SPAN } from '../constants';
 import { fetchWithRetry } from '../utils/fetchRetry';
 import { WHO_REFERENCE_M2 } from '../utils/greenMetric';
+import { meanUrbanNdvi, splitIndexRows } from '../utils/rankingRows';
 
 // Public-facing intro page shown before the dashboard ("Atlas Index" direction):
 // an editorial, magazine-grade cover for the dataset. Pure presentation plus a
@@ -127,8 +128,9 @@ export default function Landing({ onEnter, theme, onToggleTheme, onCookieSetting
       base: Math.max(0.18, Math.min(0.8, d.ndvi_mean_urban ?? 0.4)),
     });
     const n = data.length;
-    const top = data.slice(-4).reverse().map((d, i) => toRow(d, i + 1));
-    const low = data.slice(0, 4).map((d, i) => toRow(d, n - 3 + i));
+    const split = splitIndexRows(data, 4);
+    const top = split.top.map(({ d, rank }) => toRow(d, rank));
+    const low = split.low.map(({ d, rank }) => toRow(d, rank));
     return {
       topRows: top,
       lowRows: low,
@@ -242,9 +244,7 @@ export default function Landing({ onEnter, theme, onToggleTheme, onCookieSetting
 
                 <div className="c__plate c__hero-plate">
                   <div className="c__plate-badge" aria-label="ค่า NDVI เฉลี่ยทั่วประเทศ">
-                    <b>{ranking?.data?.length
-                      ? (ranking.data.reduce((s, d) => s + (d.ndvi_mean ?? 0), 0) / ranking.data.length).toFixed(2)
-                      : '0.41'}</b>
+                    <b>{meanUrbanNdvi(ranking?.data ?? [])?.toFixed(2) ?? '0.41'}</b>
                     <span>μ NDVI</span>
                   </div>
                   <div className="c__plate-frame">
@@ -255,8 +255,8 @@ export default function Landing({ onEnter, theme, onToggleTheme, onCookieSetting
                       loading="eager"
                     />
                     <div className="c__plate-tag">
-                      <b>{lowRows[3]?.th ?? 'กรุงเทพมหานคร'}</b>
-                      <span>{lowRows[3] ? `${lowRows[3].val} m²/คน · ต่ำสุดของประเทศ` : 'NDVI 0.27 · 4.1 m²/คน'}</span>
+                      <b>{lowRows.at(-1)?.th ?? 'กรุงเทพมหานคร'}</b>
+                      <span>{lowRows.length ? `${lowRows.at(-1).val} m²/คน · ต่ำสุดของประเทศ` : 'NDVI 0.27 · 4.1 m²/คน'}</span>
                     </div>
                   </div>
                 </div>

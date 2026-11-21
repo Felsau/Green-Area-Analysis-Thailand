@@ -3,6 +3,7 @@ import { WHO_CAVEAT_SHORT } from '../../utils/greenMetric';
 import { exportRankingCsv } from '../../utils/exportUtils';
 import ExportBar from '../ui/ExportBar';
 import { Note } from '../ui/Metric';
+import { splitLeastMost } from '../../utils/rankingRows';
 
 // 77 — total Thai provinces. The ranking only covers provinces that already have
 // cached data, so we show coverage (X/77) to avoid implying it's the whole country.
@@ -143,7 +144,7 @@ export default function OverviewPanel({ data, handlers }) {
                 <span className="section__title">ห้าจังหวัดที่มีพื้นที่สีเขียวในเขตเมืองต่อคนน้อยที่สุด</span>
               </div>
               <div className="rank-table">
-                {rankingData.slice(0, 5).map(r => (
+                {splitLeastMost(rankingData).least.map(r => (
                   <div className="rank-row" key={r.province}>
                     <span className="rank-row__num">{String(r.rank).padStart(2, '0')}</span>
                     <span className="rank-row__name">{PROVINCE_TH[r.province] || r.province}</span>
@@ -154,13 +155,13 @@ export default function OverviewPanel({ data, handlers }) {
             </section>
           )}
 
-          {rankingData.length > 0 && (
+          {splitLeastMost(rankingData).most.length > 0 && (
             <section className="section">
               <div className="section__head">
                 <span className="section__title">ห้าจังหวัดที่มีพื้นที่สีเขียวในเขตเมืองต่อคนมากที่สุด</span>
               </div>
               <div className="rank-table">
-                {[...rankingData].reverse().slice(0, 5).map(r => (
+                {splitLeastMost(rankingData).most.map(r => (
                   <div className="rank-row" key={r.province}>
                     <span className="rank-row__num">{String(r.rank).padStart(2, '0')}</span>
                     <span className="rank-row__name">{PROVINCE_TH[r.province] || r.province}</span>
