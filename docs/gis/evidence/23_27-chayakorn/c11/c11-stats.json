@@ -1,0 +1,475 @@
+{
+ "layers": 77,
+ "parcels_total": 4701499,
+ "no_geometry_total": 0,
+ "area_rai_total": 323282163.36,
+ "codes_total": 1478,
+ "codes_composite": 1266,
+ "legend_codes": 96,
+ "legend_codes_seen": 96,
+ "legend_codes_not_seen": [],
+ "per_layer": {
+  "LU_ACR_2566": {
+   "parcels": 42270,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_ATG_2568": {
+   "parcels": 15004,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_AYU_2568": {
+   "parcels": 26520,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_BKK_2566": {
+   "parcels": 11073,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_BKN_2566": {
+   "parcels": 57970,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_BRM_2565": {
+   "parcels": 105653,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_CBI_2567": {
+   "parcels": 88339,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_CCO_2567": {
+   "parcels": 52128,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_CMI_2567": {
+   "parcels": 162832,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_CNT_2567": {
+   "parcels": 25809,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_CPM_2565": {
+   "parcels": 93996,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_CPN_2564": {
+   "parcels": 65777,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_CRI_2564": {
+   "parcels": 110997,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_CTI_2568": {
+   "parcels": 63572,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_KBI_2563": {
+   "parcels": 43946,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_KKN_2565": {
+   "parcels": 119172,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_KPT_2567": {
+   "parcels": 71518,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_KRI_2568": {
+   "parcels": 102466,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_KSN_2566": {
+   "parcels": 125443,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_LEI_2565": {
+   "parcels": 151489,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_LPG_2564": {
+   "parcels": 54448,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_LPN_2564": {
+   "parcels": 34268,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_LRI_2566": {
+   "parcels": 42494,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_MDH_2566": {
+   "parcels": 63892,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_MHS_2564": {
+   "parcels": 52298,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_MKM_2565": {
+   "parcels": 55941,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NAN_2567": {
+   "parcels": 88118,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NBI_2567": {
+   "parcels": 9635,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NBP_2566": {
+   "parcels": 50121,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NKI_2566": {
+   "parcels": 54567,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NMA_2566": {
+   "parcels": 153319,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NPM_2565": {
+   "parcels": 88309,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NPT_2567": {
+   "parcels": 65137,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NRT_2564": {
+   "parcels": 152711,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NSN_2564": {
+   "parcels": 58003,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NWT_2564": {
+   "parcels": 30693,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_NYK_2568": {
+   "parcels": 29312,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PBI_2568": {
+   "parcels": 69305,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PCK_2564": {
+   "parcels": 34090,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PKN_2568": {
+   "parcels": 70005,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PKT_2563": {
+   "parcels": 6451,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PLG_2563": {
+   "parcels": 41604,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PLK_2564": {
+   "parcels": 73709,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PNA_2564": {
+   "parcels": 35253,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PNB_2564": {
+   "parcels": 58565,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PRE_2564": {
+   "parcels": 36711,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PRI_2568": {
+   "parcels": 42916,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PTE_2568": {
+   "parcels": 21832,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PTN_2564": {
+   "parcels": 20197,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_PYO_2567": {
+   "parcels": 68678,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_RBR_2568": {
+   "parcels": 63130,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_RET_2565": {
+   "parcels": 44764,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_RNG_2564": {
+   "parcels": 21070,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_RYG_2567": {
+   "parcels": 65136,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SBR_2566": {
+   "parcels": 10820,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SKA_2563": {
+   "parcels": 49822,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SKM_2568": {
+   "parcels": 11081,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SKN_2567": {
+   "parcels": 18313,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SKW_2568": {
+   "parcels": 61720,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SNI_2564": {
+   "parcels": 146503,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SNK_2565": {
+   "parcels": 110350,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SPB_2568": {
+   "parcels": 69303,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SPK_2567": {
+   "parcels": 8819,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SRI_2568": {
+   "parcels": 32698,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SRN_2565": {
+   "parcels": 93890,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_SSK_2565": {
+   "parcels": 74256,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_STI_2564": {
+   "parcels": 40043,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_STN_2564": {
+   "parcels": 22917,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_TAK_2564": {
+   "parcels": 68076,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_TRG_2563": {
+   "parcels": 34299,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_TRT_2568": {
+   "parcels": 40783,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_UBN_2565": {
+   "parcels": 127003,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_UDN_2565": {
+   "parcels": 130863,
+   "epsg": 32648,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_UTI_2564": {
+   "parcels": 39207,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_UTT_2564": {
+   "parcels": 51169,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_YLA_2564": {
+   "parcels": 18497,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  },
+  "LU_YST_2566": {
+   "parcels": 48411,
+   "epsg": 32647,
+   "units": "metre",
+   "no_geometry": 0
+  }
+ }
+}
