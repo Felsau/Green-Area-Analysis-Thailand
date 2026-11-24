@@ -1,0 +1,42 @@
+# C9 run log · paths replaced: <gis-w4-hdx> <clone-c6> <ldd-77> <c9> <clone-rec> <scratch>
+# python = <clone-rec>\green-area-backend\.venv\Scripts\python.exe (3.11.9 · fiona 1.10.1 · shapely 2.2.0)
+
+## A. pre-check (green-area-c6)
+branch 23_27-chayakorn · 7501cc8..HEAD = 4 commits (8375c1f C7, 0c4c584 C8, 1bb973f C10, 073a137 C11) · local tags C7 C8 C10 C11
+ls-remote: refs/heads/23_27-chayakorn = 073a137 and tags C7 C8 C10 C11 already on origin (pushed with approval before C9)
+-> reported to the user; user chose: continue, adapt the checks (C9 = 1 new commit on top, check origin has no C9 tag)
+git status: ## 23_27-chayakorn...origin/23_27-chayakorn (clean)
+
+## B. HDX
+PS> curl -sS -L -o <gis-w4-hdx>\package_show_cod-ab-tha.json "https://data.humdata.org/api/3/action/package_show?id=cod-ab-tha"
+http 200 · 21141 bytes · application/json · downloaded 2026-11-24T11:59:13Z
+resources: tha_admin_boundaries.gdb.zip 174679979 · tha_admin_boundaries.shp.zip 376696781 · tha_admin_boundaries.geojson.zip 436725731 · tha_admin_boundaries.xlsx 1850520 (all last_modified 2026-01-26)
+tha_adm_rtsd_itos_20210121_SHP.zip: not listed -> asked the user; user chose tha_admin_boundaries.shp.zip
+PS> curl -sS -L -o <gis-w4-hdx>	ha_admin_boundaries.shp.zip https://data.humdata.org/dataset/d24bdc45-eb4c-4e3d-8b16-44db02667c27/resource/10dde461-b781-4904-9559-7deb3e960913/download/tha_admin_boundaries.shp.zip
+start 2026-11-24T12:04:39Z · http 200 · 376696781 bytes · 194.1 s · done 2026-11-24T12:07:53Z
+sha256 cc62b47b3d38a83b958673c3dc6ec888326180aa437b2cd9224d7a8b1eff64aa
+ZIP: 30 members = tha_admin0..3, tha_adminlines, tha_adminpoints (.shp .shx .dbf .prj .cpg each)
+extracted only tha_admin1.* and tha_admin2.* to <gis-w4-hdx>\shp
+tha_admin1: 77 rows · EPSG:4326 · Polygon · cpg UTF-8 · fields adm1_name, adm1_name1, adm1_name2, adm1_name3, adm1_pcode, adm0_name, adm0_name1, adm0_name2, adm0_name3, adm0_pcode, valid_on, valid_to, area_sqkm, version, lang, lang1, lang2, lang3, adm1_ref_n, center_lat, center_lon
+tha_admin2: 928 rows · EPSG:4326 · Polygon · fields adm2_name, adm2_name1, adm2_name2, adm2_name3, adm2_pcode, adm1_name, adm1_name1, adm1_name2, adm1_name3, adm1_pcode, adm0_name, adm0_name1, adm0_name2, adm0_name3, adm0_pcode, valid_on, valid_to, area_sqkm, version, lang, lang1, lang2, lang3, adm2_ref_n, center_lat, center_lon
+used: adm1_pcode, adm1_name1 (lang1=th), adm1_name (lang=en) · adm2_pcode, adm2_name1, adm2_name, adm1_pcode
+
+## C. names
+PS> git -C <clone-c6> show C5:docs/gis/evidence/16_20-chayakorn/c5/c5_name_map.py > <scratch>\c5_name_map.py   (tag C5 already local -> b99b0f9, blob bffbed4e9298; no fetch)
+PS> python -I -B <c9>\c9_hdx_check.py names --code <clone-c6> --c5-script <scratch>\c5_name_map.py --adm1 <gis-w4-hdx>\shp	ha_admin1.shp --adm2 <gis-w4-hdx>\shp	ha_admin2.shp --adm1-fields adm1_pcode,adm1_name1,adm1_name --adm2-fields adm2_pcode,adm2_name1,adm2_name,adm1_pcode --out c9-hdx-names.csv --stats <scratch>\c9-names-stats.json
+default: {"adm1_none": 1, "adm1_th": 70, "adm1_en": 6, "adm1_system_only": 1, "adm2_province_unmatched": 50, "adm2_th": 871, "adm2_en": 5, "adm2_none": 2, "adm2_system_only": 3, "adm2_system_matched_twice": 1}
+strict:  {"adm1_none": 1, "adm1_th": 70, "adm1_en": 6, "adm1_system_only": 1, "adm2_province_unmatched": 50, "adm2_th": 871, "adm2_en": 5, "adm2_none": 2, "adm2_system_only": 3, "adm2_system_matched_twice": 1}
+counts:  {"adm1_rows": 77, "adm1_unique_pcode": 77, "adm2_rows": 928, "adm2_unique_pcode": 928, "system_provinces": 77, "system_districts": 928, "adm1_crs": "EPSG:4326", "adm2_crs": "EPSG:4326"}
+
+## D. Ang Thong
+PS> python -I -B <c9>\c9_hdx_check.py angthong --code <clone-c6> --zip <ldd-77>\Landuse_อ่างทอง_2568.zip --expect-sha A12F00E7A028BF50E09E81E1458CC9AE8EC3129B48D4EDAB01330B4C92DDF1E2 --expect-bytes 7937644 --adm1 <gis-w4-hdx>\shp	ha_admin1.shp --adm1-pcode-field adm1_pcode --ocha-pcode TH15 --out c9-angthong.json
+package: {"name": "Landuse_อ่างทอง_2568.zip", "bytes": 7937644, "sha256": "a12f00e7a028bf50e09e81e1458cc9ae8ec3129b48d4edab01330b4c92ddf1e2", "land_use_layer": "LU_ATG_2568.shp"}
+system asset: {"file": "green-area-backend/gis_worker/province_boundaries_ldd.json", "sha256": "1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac", "BOUNDARY_LDD_SHA256": "1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac", "match": true, "ang_thong_source": "gadm-approx"}
+round_system: {"parcels": 15004, "inside": 14404, "outside_minor": 358, "review_required": 25, "outside_province": 217, "repaired": 31, "other_issues": {}, "total_area_m2": 950387556.97, "outside_area_m2": 17267868.113, "outside_share_pct": 1.8169, "dataset_flag_BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED": true, "boundary_vertices": 169, "seconds": 1.9}
+round_ocha:   {"parcels": 15004, "inside": 14426, "outside_minor": 478, "review_required": 22, "outside_province": 78, "repaired": 31, "other_issues": {}, "total_area_m2": 950387556.97, "outside_area_m2": 12061405.153, "outside_share_pct": 1.2691, "dataset_flag_BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED": true, "boundary_vertices": 8444, "seconds": 2.2}
+wall time 6.2 s
+
+## E. compare
+Bangkok Metropolis has no name match (system NL_NAME_1 wrong, en Bangkok vs Bangkok Metropolis); for this geometric comparison only it was paired by area overlap with GADM: IoU 0.974 with TH10 (rule of build_ldd_boundaries.py: >= 0.8 and no other > 0.2)
+PS> python -I -B <c9>\c9_hdx_check.py compare --ldd-asset <clone-c6>\docs\gis\evidence_27-chayakorn\province_boundaries_ldd.json --gadm-asset <clone-c6>\green-area-backend\gis_worker\province_boundaries.json --adm1 <gis-w4-hdx>\shp	ha_admin1.shp --adm1-pcode-field adm1_pcode --name-map <scratch>\c9-name-to-pcode.json --out c9-boundary-compare.csv --max-seconds 1200
+rows 77 · 170.8 s (wall 2 m 51 s)

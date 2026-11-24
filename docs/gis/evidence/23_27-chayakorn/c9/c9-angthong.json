@@ -1,0 +1,58 @@
+{
+ "package": {
+  "name": "Landuse_อ่างทอง_2568.zip",
+  "bytes": 7937644,
+  "sha256": "a12f00e7a028bf50e09e81e1458cc9ae8ec3129b48d4edab01330b4c92ddf1e2",
+  "land_use_layer": "LU_ATG_2568.shp"
+ },
+ "system_asset": {
+  "file": "green-area-backend/gis_worker/province_boundaries_ldd.json",
+  "sha256": "1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac",
+  "BOUNDARY_LDD_SHA256": "1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac",
+  "match": true,
+  "ang_thong_source": "gadm-approx"
+ },
+ "source_crs": "EPSG:32647",
+ "policy": {
+  "BOUNDARY_MINOR_M": 225.0,
+  "BOUNDARY_REVIEW_M": 1000.0,
+  "BOUNDARY_REVIEW_PART_MAX": 0.05,
+  "DATASET_OUTSIDE_SHARE_MAX": 0.01,
+  "DATASET_OUTSIDE_MIN_M2": 10000.0
+ },
+ "round_system": {
+  "parcels": 15004,
+  "inside": 14404,
+  "outside_minor": 358,
+  "review_required": 25,
+  "outside_province": 217,
+  "repaired": 31,
+  "other_issues": {},
+  "total_area_m2": 950387556.97,
+  "outside_area_m2": 17267868.113,
+  "outside_share_pct": 1.8169,
+  "dataset_flag_BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED": true,
+  "boundary_vertices": 169,
+  "seconds": 1.9
+ },
+ "ocha_boundary": {
+  "pcode": "TH15",
+  "source_crs": "EPSG:4326",
+  "vertices": 8444
+ },
+ "round_ocha": {
+  "parcels": 15004,
+  "inside": 14426,
+  "outside_minor": 478,
+  "review_required": 22,
+  "outside_province": 78,
+  "repaired": 31,
+  "other_issues": {},
+  "total_area_m2": 950387556.97,
+  "outside_area_m2": 12061405.153,
+  "outside_share_pct": 1.2691,
+  "dataset_flag_BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED": true,
+  "boundary_vertices": 8444,
+  "seconds": 2.2
+ }
+}
