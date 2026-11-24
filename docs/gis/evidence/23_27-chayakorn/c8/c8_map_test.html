@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C8 วัดเวลาวาด GeoJSON</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<style>
+  :root { --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5b6475; --line: #d9dde5; --accent: #1f6feb; --bad: #c62828; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, "Segoe UI", Tahoma, sans-serif; color: var(--text); background: var(--bg); }
+  #wrap { display: grid; grid-template-columns: 380px 1fr; height: 100vh; }
+  #panel { background: var(--panel); border-right: 1px solid var(--line); padding: 14px; overflow: auto; }
+  #map { height: 100vh; }
+  h1 { font-size: 16px; margin: 0 0 4px; }
+  .muted { color: var(--muted); font-size: 12px; }
+  label { display: block; margin: 12px 0 4px; font-weight: 600; }
+  select, button { font: inherit; width: 100%; padding: 7px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  button { background: var(--accent); color: #fff; border: 0; margin-top: 10px; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
+  th, td { border-bottom: 1px solid var(--line); padding: 5px 4px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  tr.median td { font-weight: 700; }
+  .bad { color: var(--bad); font-weight: 700; }
+  #status { margin-top: 10px; min-height: 20px; }
+  #info { margin-top: 8px; }
+  @media (max-width: 760px) { #wrap { grid-template-columns: 1fr; grid-template-rows: auto 60vh; height: auto; } #map { height: 60vh; } }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="panel">
+    <h1>C8 · วัดเวลาวาด GeoJSON</h1>
+    <div class="muted">maplibre-gl <span id="ver"></span> · พื้นหลังว่าง ไม่มีแผนที่ฐาน · โหลดด้วย cache: 'no-store' · จับเวลาตั้งแต่เริ่ม fetch จนเกิด idle · เกิน 5 นาทีนับเป็น "ล้ม"</div>
+    <label for="file">ไฟล์ GeoJSON</label>
+    <select id="file"></select>
+    <div id="info" class="muted"></div>
+    <button id="run">วัด 3 ครั้ง</button>
+    <div id="status" class="muted"></div>
+    <table>
+      <thead><tr><th>ครั้ง</th><th>fetch+parse (s)</th><th>ถึง idle (s)</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="ua" class="muted" style="margin-top:12px"></div>
+  </div>
+  <div id="map"></div>
+</div>
+<script>
+const LIMIT_MS = 5 * 60 * 1000;
+const $ = (id) => document.getElementById(id);
+$('ver').textContent = maplibregl.version || '?';
+$('ua').textContent = navigator.userAgent;
+
+const map = new maplibregl.Map({
+  container: 'map',
+  style: { version: 8, sources: {}, layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#eef1f4' } }] },
+  center: [101.0, 15.0], zoom: 5, attributionControl: false
+});
+
+async function listFiles() {
+  const html = await (await fetch('./', { cache: 'no-store' })).text();
+  const names = [...html.matchAll(/href="([^"]+\.geojson)"/g)].map(m => decodeURIComponent(m[1]));
+  const sel = $('file');
+  sel.innerHTML = '';
+  for (const n of [...new Set(names)].sort()) {
+    const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
+  }
+  if (!names.length) $('status').textContent = 'ไม่พบไฟล์ .geojson ในโฟลเดอร์นี้';
+}
+
+function clearData() {
+  for (const id of ['ldd-line', 'ldd-fill']) if (map.getLayer(id)) map.removeLayer(id);
+  if (map.getSource('ldd')) map.removeSource('ldd');
+}
+
+function bbox(fc) {
+  let x0 = 180, y0 = 90, x1 = -180, y1 = -90;
+  const walk = (c) => { if (typeof c[0] === 'number') { x0 = Math.min(x0, c[0]); y0 = Math.min(y0, c[1]); x1 = Math.max(x1, c[0]); y1 = Math.max(y1, c[1]); } else c.forEach(walk); };
+  for (const f of fc.features) if (f.geometry) walk(f.geometry.coordinates);
+  return [[x0, y0], [x1, y1]];
+}
+
+function waitIdle() {
+  return new Promise((resolve) => map.once('idle', () => resolve(performance.now())));
+}
+
+async function once(url, fit) {
+  clearData();
+  await waitIdleIfBusy();
+  const t0 = performance.now();
+  const res = await fetch(url, { cache: 'no-store' });
+  const data = await res.json();
+  const t1 = performance.now();
+  if (fit) { map.fitBounds(bbox(data), { padding: 20, animate: false }); }
+  const idle = waitIdle();
+  map.addSource('ldd', { type: 'geojson', data });
+  map.addLayer({ id: 'ldd-fill', type: 'fill', source: 'ldd', paint: {
+    'fill-color': ['match', ['get', 'classification'], 'U', '#d1495b', 'A', '#edae49', 'F', '#2e8b57', 'W', '#3a86ff', 'M', '#8d99ae', '#999'],
+    'fill-opacity': 0.6 } });
+  map.addLayer({ id: 'ldd-line', type: 'line', source: 'ldd', paint: { 'line-color': '#333', 'line-width': 0.3 } });
+  const t2 = await Promise.race([idle, new Promise((r) => setTimeout(() => r(null), LIMIT_MS))]);
+  return { features: data.features.length, parse: (t1 - t0) / 1000, idle: t2 === null ? null : (t2 - t0) / 1000 };
+}
+
+function waitIdleIfBusy() {
+  return map.loaded() ? Promise.resolve() : new Promise((r) => map.once('idle', r));
+}
+
+function median(v) { const s = [...v].sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; }
+
+$('run').onclick = async () => {
+  const name = $('file').value; if (!name) return;
+  $('run').disabled = true; $('rows').innerHTML = '';
+  const head = await fetch(name, { method: 'HEAD', cache: 'no-store' });
+  const mb = (Number(head.headers.get('content-length')) / 1024 / 1024).toFixed(2);
+  const out = [];
+  try {
+    for (let i = 1; i <= 3; i++) {
+      $('status').textContent = `ครั้งที่ ${i} กำลังโหลด ${name} ...`;
+      const r = await once(name, i === 1);
+      out.push(r);
+      $('info').textContent = `${name} · ${mb} MB · ${r.features.toLocaleString()} แปลง`;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${i}</td><td>${r.parse.toFixed(2)}</td><td>${r.idle === null ? '<span class="bad">ล้ม (เกิน 5 นาที)</span>' : r.idle.toFixed(2)}</td>`;
+      $('rows').appendChild(tr);
+      if (r.idle === null) break;
+    }
+    const ok = out.filter(r => r.idle !== null);
+    if (ok.length === 3) {
+      const tr = document.createElement('tr'); tr.className = 'median';
+      tr.innerHTML = `<td>ค่ากลาง</td><td>${median(ok.map(r => r.parse)).toFixed(2)}</td><td>${median(ok.map(r => r.idle)).toFixed(2)}</td>`;
+      $('rows').appendChild(tr);
+    }
+    $('status').textContent = `เสร็จ · ${name}`;
+  } catch (e) {
+    $('status').innerHTML = `<span class="bad">ล้ม: ${e}</span>`;
+  } finally { $('run').disabled = false; }
+};
+
+map.on('load', listFiles);
+
+// Evidence image: the map canvas plus the timing table, drawn into one PNG (not used while timing).
+window.c8Snapshot = () => new Promise((resolve) => {
+  map.once('render', () => {
+    const mc = map.getCanvas();
+    const pw = 420, w = pw + mc.width, h = Math.max(mc.height, 420);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
+    g.drawImage(mc, pw, 0);
+    g.fillStyle = '#1d2330'; g.font = 'bold 18px Tahoma, sans-serif';
+    let y = 30; const line = (t, font) => { if (font) g.font = font; g.fillText(t, 14, y); y += 24; };
+    line('C8 · วัดเวลาวาด GeoJSON');
+    line('maplibre-gl ' + $('ver').textContent, '14px Tahoma, sans-serif');
+    line($('info').textContent);
+    y += 8;
+    line('ครั้ง    fetch+parse (s)    ถึง idle (s)', 'bold 15px Tahoma, sans-serif');
+    g.font = '15px Tahoma, sans-serif';
+    for (const tr of document.querySelectorAll('#rows tr')) {
+      const t = [...tr.cells].map(td => td.innerText);
+      line(t[0].padEnd(8) + '   ' + t[1].padStart(10) + '         ' + t[2]);
+    }
+    y += 8; g.font = '12px Tahoma, sans-serif';
+    for (const part of navigator.userAgent.match(/.{1,58}(\s|$)/g) || []) line(part.trim());
+    resolve(c.toDataURL('image/png'));
+  });
+  map.triggerRepaint();
+});
+</script>
+</body>
+</html>

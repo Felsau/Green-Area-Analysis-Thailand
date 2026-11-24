@@ -1,0 +1,167 @@
+{
+ "caps": {
+  "MAX_FEATURES": 100000,
+  "MAX_COORDINATES": 1000000
+ },
+ "provinces": [
+  {
+   "province_en": "Bangkok Metropolis",
+   "slug": "BKK",
+   "layer": "LU_BKK_2566",
+   "zip": "Landuse_Bangkok_2566_.zip",
+   "chain": [],
+   "extract_s": 0.06,
+   "member_bytes": {
+    ".cpg": 5,
+    ".dbf": 17008578,
+    ".prj": 401,
+    ".shp": 5680908,
+    ".shx": 88684
+   },
+   "encoding": "utf-8",
+   "read": {
+    "features": 11073,
+    "vertices": 315943,
+    "epsg": 32647,
+    "read_s": 0.43,
+    "peak_wset_mb": 46.1,
+    "peak_wset_after_import_mb": 33.4
+   },
+   "geojson": {
+    "raw": {
+     "features": 11073,
+     "vertices": 315943,
+     "bytes": 9551822,
+     "mb": 9.11,
+     "build_s": 8.63,
+     "file": "BKK_raw.geojson"
+    },
+    "5m": {
+     "features": 11073,
+     "vertices": 168135,
+     "bytes": 6184845,
+     "mb": 5.9,
+     "build_s": 8.82,
+     "file": "BKK_5m.geojson"
+    },
+    "20m": {
+     "features": 11073,
+     "vertices": 121958,
+     "bytes": 5132842,
+     "mb": 4.9,
+     "build_s": 8.86,
+     "file": "BKK_20m.geojson"
+    },
+    "peak_wset_mb": 70.7
+   },
+   "over_feature_cap": false,
+   "over_vertex_cap": false
+  },
+  {
+   "province_en": "Nong Bua Lam Phu",
+   "slug": "NBP",
+   "layer": "LU_NBP_2566",
+   "zip": "Landuse_หนองบัวลำภู_2566 (ปีล่าสุด).zip",
+   "chain": [],
+   "extract_s": 0.37,
+   "member_bytes": {
+    ".cpg": 5,
+    ".dbf": 75532733,
+    ".prj": 563,
+    ".shp": 43682240,
+    ".shx": 401068
+   },
+   "encoding": "utf-8",
+   "read": {
+    "features": 50121,
+    "vertices": 2553311,
+    "epsg": 32648,
+    "read_s": 2.01,
+    "peak_wset_mb": 55.6,
+    "peak_wset_after_import_mb": 33.4
+   },
+   "geojson": {
+    "raw": {
+     "features": 50121,
+     "vertices": 2553311,
+     "bytes": 68854399,
+     "mb": 65.66,
+     "build_s": 307.4,
+     "file": "NBP_raw.geojson"
+    },
+    "5m": {
+     "features": 50121,
+     "vertices": 1168401,
+     "bytes": 37309662,
+     "mb": 35.58,
+     "build_s": 305.9,
+     "file": "NBP_5m.geojson"
+    },
+    "20m": {
+     "features": 50121,
+     "vertices": 675485,
+     "bytes": 26082596,
+     "mb": 24.87,
+     "build_s": 304.27,
+     "file": "NBP_20m.geojson"
+    },
+    "peak_wset_mb": 96.5
+   },
+   "over_feature_cap": false,
+   "over_vertex_cap": true
+  },
+  {
+   "province_en": "Nakhon Ratchasima",
+   "slug": "NMA",
+   "layer": "LU_NMA_2566",
+   "zip": "Landuse_นครราชสีมา_2566 (ปีล่าสุด).zip",
+   "chain": [],
+   "extract_s": 1.55,
+   "member_bytes": {
+    ".cpg": 5,
+    ".dbf": 235498434,
+    ".prj": 402,
+    ".shp": 191135376,
+    ".shx": 1226652
+   },
+   "encoding": "utf-8",
+   "read": {
+    "features": 153319,
+    "vertices": 11404194,
+    "epsg": 32648,
+    "read_s": 7.08,
+    "peak_wset_mb": 55.1,
+    "peak_wset_after_import_mb": 33.4
+   },
+   "geojson": {
+    "raw": {
+     "features": 153319,
+     "vertices": 11404194,
+     "bytes": 292573467,
+     "mb": 279.02,
+     "build_s": 145.9,
+     "file": "NMA_raw.geojson"
+    },
+    "5m": {
+     "features": 153319,
+     "vertices": 3864131,
+     "bytes": 120825827,
+     "mb": 115.23,
+     "build_s": 142.16,
+     "file": "NMA_5m.geojson"
+    },
+    "20m": {
+     "features": 153319,
+     "vertices": 2170436,
+     "bytes": 82246858,
+     "mb": 78.44,
+     "build_s": 135.08,
+     "file": "NMA_20m.geojson"
+    },
+    "peak_wset_mb": 102.3
+   },
+   "over_feature_cap": true,
+   "over_vertex_cap": true
+  }
+ ]
+}
