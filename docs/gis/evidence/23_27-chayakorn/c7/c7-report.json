@@ -1,0 +1,1006 @@
+{
+ "asset_sha256": "49473e7e59aeecfe4b3dff1c9b6ebc21ffe859fa76de47c46c45e1d55dae93a3",
+ "bytes": 8413889,
+ "features": 77,
+ "replaced": [
+  "Bangkok Metropolis",
+  "Chachoengsao",
+  "Chai Nat",
+  "Chanthaburi",
+  "Chiang Mai",
+  "Chiang Rai",
+  "Chon Buri",
+  "Kamphaeng Phet",
+  "Kanchanaburi",
+  "Lampang",
+  "Lamphun",
+  "Mae Hong Son",
+  "Nakhon Nayok",
+  "Nakhon Pathom",
+  "Nakhon Sawan",
+  "Nan",
+  "Nonthaburi",
+  "Pathum Thani",
+  "Phayao",
+  "Phetchabun",
+  "Phetchaburi",
+  "Phichit",
+  "Phitsanulok",
+  "Phra Nakhon Si Ayutthaya",
+  "Phrae",
+  "Prachin Buri",
+  "Prachuap Khiri Khan",
+  "Ratchaburi",
+  "Rayong",
+  "Sa Kaeo",
+  "Samut Prakan",
+  "Samut Sakhon",
+  "Samut Songkhram",
+  "Saraburi",
+  "Sing Buri",
+  "Sukhothai",
+  "Suphan Buri",
+  "Tak",
+  "Trat",
+  "Uthai Thani",
+  "Uttaradit"
+ ],
+ "kept_gadm": [
+  "Amnat Charoen",
+  "Ang Thong",
+  "Bueng Kan",
+  "Buri Ram",
+  "Chaiyaphum",
+  "Chumphon",
+  "Kalasin",
+  "Khon Kaen",
+  "Krabi",
+  "Loei",
+  "Lop Buri",
+  "Maha Sarakham",
+  "Mukdahan",
+  "Nakhon Phanom",
+  "Nakhon Ratchasima",
+  "Nakhon Si Thammarat",
+  "Narathiwat",
+  "Nong Bua Lam Phu",
+  "Nong Khai",
+  "Pattani",
+  "Phangnga",
+  "Phatthalung",
+  "Phuket",
+  "Ranong",
+  "Roi Et",
+  "Sakon Nakhon",
+  "Satun",
+  "Si Sa Ket",
+  "Songkhla",
+  "Surat Thani",
+  "Surin",
+  "Trang",
+  "Ubon Ratchathani",
+  "Udon Thani",
+  "Yala",
+  "Yasothon"
+ ],
+ "packages": [
+  {
+   "package": "'Landuse_Bangkok_2566_.zip'",
+   "package_sha256": "c3ef854cfb3e036b7b94cdbaac5c15a45fcbde1d5e6a1971fae27e7c2ededdb8",
+   "province": "Bangkok Metropolis",
+   "iou_with_gadm": 0.9676,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 161,
+   "vertices_official": 1841,
+   "area_ratio_official_to_gadm": 0.9997,
+   "land_use_check": {
+    "parcels": 11073,
+    "inside": 10494,
+    "within_minor": 579,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 2e-08
+   }
+  },
+  {
+   "package": "'Landuse_Sing Buri_2566_\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "d8d92e398975a2a3e1694e2cabec0aed5541528cd4ebd72d5bde6646055a3ce1",
+   "province": "Sing Buri",
+   "iou_with_gadm": 0.9311,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 174,
+   "vertices_official": 2208,
+   "area_ratio_official_to_gadm": 0.9741,
+   "land_use_check": {
+    "parcels": 10820,
+    "inside": 10501,
+    "within_minor": 319,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 6.884e-05
+   }
+  },
+  {
+   "package": "'Landuse_\\u0e01\\u0e23\\u0e30\\u0e1a\\u0e35\\u0e48_2563 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "92cc3971fea5710571f86cd8149d1d065e6e29a9b89002c1b94c7ac9c84c84f0",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e01\\u0e32\\u0e2c\\u0e2a\\u0e34\\u0e19\\u0e18\\u0e38\\u0e4c_2566 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "db986c3aa43525a4a8dab4a3f285ae6496063112118c17b1a47064adaaa2e5bc",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e02\\u0e2d\\u0e19\\u0e41\\u0e01\\u0e48\\u0e19_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "e711b6a668f8f2e47e60eee8e9620c0e54d515dd76d27234412143eac64b0898",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e0a\\u0e31\\u0e22\\u0e20\\u0e39\\u0e21\\u0e34_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "8c6e816dd324920d5f3b853b9d1fef0d2025ddb6e35aece9b7d527a9d8241bdf",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e0a\\u0e38\\u0e21\\u0e1e\\u0e23_2564 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "6a534214f4f15dea22a852ddc9813686ece766e401938ddb6c638b21a0f8afd0",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e15\\u0e23\\u0e31\\u0e07_2563 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "eb88a24e2ed96699b49b5b64673df40613693813e402534e0632a66184736c59",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e19\\u0e04\\u0e23\\u0e1e\\u0e19\\u0e21_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "13f0cbadd99a39c5b42598dce59f48c7f00edcc7917fece097fb38b1309ae825",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e19\\u0e04\\u0e23\\u0e23\\u0e32\\u0e0a\\u0e2a\\u0e35\\u0e21\\u0e32_2566 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "18fdad1a185cf277f5ca06a39b41778e5f31e2d22fd87a4dd4ed3d3160598c44",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e19\\u0e04\\u0e23\\u0e28\\u0e23\\u0e35\\u0e18\\u0e23\\u0e23\\u0e21\\u0e23\\u0e32\\u0e0a_2564 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "1240f497aae2f2e09d804fb482d136bfe99c32ea7ef8558c6fbbe0a20ae91bb6",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e19\\u0e23\\u0e32\\u0e18\\u0e34\\u0e27\\u0e32\\u0e2a_2564 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "a2851b6a5bc1f52f587bba4ae7d7c68ab8c1b5789a19fff6403f8de83d48f487",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e1a\\u0e36\\u0e07\\u0e01\\u0e32\\u0e2c_2566 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "b33fe405837f8429fdd96e6793cbf2002bf291891fe72e4068a431aa1a17ee1e",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e1a\\u0e38\\u0e23\\u0e35\\u0e23\\u0e31\\u0e21\\u0e22\\u0e4c_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "5c5cd719d92fa56700be947ff762ad6957107c614c312095e38112c4a8dda60a",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e1b\\u0e31\\u0e15\\u0e15\\u0e32\\u0e19\\u0e35_2564 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "cadd575dfee432b8cb348fcccd48d737db41001afa28f0bbf7127963e04cfc4f",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e1e\\u0e31\\u0e07\\u0e07\\u0e32_2564 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "1b547a090e6043b6f81746967436d1c2814d8c666cbf685105a743fd1adc575d",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e1e\\u0e31\\u0e17\\u0e25\\u0e38\\u0e07_2563 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "8ba9f19f4ae260a9c8649db83080a1dc079f82caf50284aea6668933399599ec",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e20\\u0e39\\u0e40\\u0e01\\u0e47\\u0e15_2563 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "bbcbb65e4b4d6177b7eb9ebdae12d6bdaa90b9133b2e68d1b77d173b6be6eb78",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e21\\u0e2b\\u0e32\\u0e2a\\u0e32\\u0e23\\u0e04\\u0e32\\u0e21_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "fbe1c3c471d5641a608e942c5015cb1fd70dab79f2185276edc1c78b00a74405",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e21\\u0e38\\u0e01\\u0e14\\u0e32\\u0e2b\\u0e32\\u0e23_2566 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "f23b9be0dae9b3506ba764ec12664e802a61d8da29b053e7d604484edb4a6367",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e22\\u0e30\\u0e25\\u0e32_2564 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "a36cd8ba3506ed54e8c4eb8d639a227abf8e492697f01b5b51360e811509953d",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e22\\u0e42\\u0e2a\\u0e18\\u0e23_2566 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "03a0d70670ffe26b539cd4030c001cb0d9f237f8662a5cee5e94d794d27bc907",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e23\\u0e30\\u0e19\\u0e2d\\u0e07_2564 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "47effda981e1cef34eb8b723ffe948471280d19aff7877f4cb364401255f3996",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e23\\u0e49\\u0e2d\\u0e22\\u0e40\\u0e2d\\u0e47\\u0e14_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "11b7541d18dac054d2b5708418c51a538aa93d01a774f9d1a69a730d8a302cb4",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e28\\u0e23\\u0e35\\u0e2a\\u0e30\\u0e40\\u0e01\\u0e29_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "f78a3dd315d12ae77616ce09eec105e211d72a0a41b6d963eb37eb77bb91e4df",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2a\\u0e01\\u0e25\\u0e19\\u0e04\\u0e23_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "0f78844acc71abf264c1468789964aca1e7f0d857ba151088a07a6dbf884fcbf",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2a\\u0e07\\u0e02\\u0e25\\u0e32_2563 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "ce87c827e4862538197fe0cc0bf61df5f4784afaa7b4fca18f17ececdf967dd0",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2a\\u0e15\\u0e39\\u0e25_2564 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "fcf50fbe9263a166797f2e9be6db7c8d3e6ff28ae396095d5535ae2807ea986a",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2a\\u0e38\\u0e23\\u0e32\\u0e29\\u0e0e\\u0e23\\u0e4c\\u0e18\\u0e32\\u0e19\\u0e35_2564 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "9d80b25119496f67611802c3f0d036bef38913e3aa1b482d7400cdf7fd0500f7",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2a\\u0e38\\u0e23\\u0e34\\u0e19\\u0e17\\u0e23\\u0e4c_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "d8d2e0d02ba3608089d0d35c14455ff05e2ef0d512cc0652e37195208d5e93c6",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2b\\u0e19\\u0e2d\\u0e07\\u0e04\\u0e32\\u0e22_2566 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "0cf3745ca45d3b4bca14473eac8d913fe8725c3defa86849c91c683556b523fe",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2b\\u0e19\\u0e2d\\u0e07\\u0e1a\\u0e31\\u0e27\\u0e25\\u0e33\\u0e20\\u0e39_2566 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "15a26d677ef9e282532132527c93e36a671ddf5338cc044506f2c909933681be",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2d\\u0e33\\u0e19\\u0e32\\u0e08\\u0e40\\u0e08\\u0e23\\u0e34\\u0e0d_2566 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "55576e65a328b6da7b40e3da38b2fe13cee8cc85c16c31ed3e7656808487bde0",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2d\\u0e38\\u0e14\\u0e23\\u0e18\\u0e32\\u0e19\\u0e35_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "d14024724456fc452022bccd502eb45b2c8b45247dccb13cc17a54e48adbdf0e",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2d\\u0e38\\u0e1a\\u0e25\\u0e23\\u0e32\\u0e0a\\u0e18\\u0e32\\u0e19\\u0e35_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "1f9eba667123434916aaa1da17d8b41685db250fadbce4d1a83039ea73295443",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e2d\\u0e48\\u0e32\\u0e07\\u0e17\\u0e2d\\u0e07_2568.zip'",
+   "package_sha256": "a12f00e7a028bf50e09e81e1458cc9ae8ec3129b48d4edab01330b4c92ddf1e2",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'Landuse_\\u0e40\\u0e25\\u0e22_2565 (\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14).zip'",
+   "package_sha256": "ca0adfd64250db4157ff0fdbef4de91143e864fade1f35dd55bc5ca5af811915",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'\\u0e01\\u0e32\\u0e0d\\u0e08\\u0e19\\u0e1a\\u0e38\\u0e23\\u0e352568.zip'",
+   "package_sha256": "fe4b6e7182f753fb62cc304b9513c0cf43ed53bdc991a7cb9a5e6abf54771eed",
+   "province": "Kanchanaburi",
+   "iou_with_gadm": 0.9874,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 804,
+   "vertices_official": 8722,
+   "area_ratio_official_to_gadm": 1.0023,
+   "land_use_check": {
+    "parcels": 102466,
+    "inside": 101587,
+    "within_minor": 879,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 0.0
+   }
+  },
+  {
+   "package": "'\\u0e01\\u0e33\\u0e41\\u0e1e\\u0e07\\u0e40\\u0e1e\\u0e0a\\u0e232567.zip'",
+   "package_sha256": "6cf644d751b7e88abd068c6f14cceca1055aa8ca219b96fe0e793a69614e704e",
+   "province": "Kamphaeng Phet",
+   "iou_with_gadm": 0.9746,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 558,
+   "vertices_official": 5409,
+   "area_ratio_official_to_gadm": 0.9866,
+   "land_use_check": {
+    "parcels": 71518,
+    "inside": 70495,
+    "within_minor": 1023,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e08\\u0e31\\u0e19\\u0e17\\u0e1a\\u0e38\\u0e23\\u0e352568.zip'",
+   "package_sha256": "e243fb9231ec5454ec3523b810e72c83d19d5c62224f5cf7121d133cc6bd61a3",
+   "province": "Chanthaburi",
+   "iou_with_gadm": 0.9706,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 983,
+   "vertices_official": 8561,
+   "area_ratio_official_to_gadm": 1.0237,
+   "land_use_check": {
+    "parcels": 63572,
+    "inside": 62561,
+    "within_minor": 1011,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1.1e-07
+   }
+  },
+  {
+   "package": "'\\u0e09\\u0e30\\u0e40\\u0e0a\\u0e34\\u0e07\\u0e40\\u0e17\\u0e23\\u0e322567_\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "5af79a3c4ee2ea5569de4875f0e71bcf1085dbe4692cb2a988e505794e8f240d",
+   "province": "Chachoengsao",
+   "iou_with_gadm": 0.9693,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 473,
+   "vertices_official": 7655,
+   "area_ratio_official_to_gadm": 0.9894,
+   "land_use_check": {
+    "parcels": 52128,
+    "inside": 50807,
+    "within_minor": 1321,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e0a\\u0e25\\u0e1a\\u0e38\\u0e23\\u0e352567.zip'",
+   "package_sha256": "a3deb30ba55dc8d874072b236f624395ec399c5557281581805359b127293571",
+   "province": "Chon Buri",
+   "iou_with_gadm": 0.9682,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 801,
+   "vertices_official": 13497,
+   "area_ratio_official_to_gadm": 1.0069,
+   "land_use_check": {
+    "parcels": 88339,
+    "inside": 86907,
+    "within_minor": 1432,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e0a\\u0e31\\u0e22\\u0e19\\u0e32\\u0e172567_\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "395b99ec3a337503c2cae3944afffefae36bcb385cb837f3cb2be5919e0084dc",
+   "province": "Chai Nat",
+   "iou_with_gadm": 0.9581,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 252,
+   "vertices_official": 4061,
+   "area_ratio_official_to_gadm": 1.0172,
+   "land_use_check": {
+    "parcels": 25809,
+    "inside": 25029,
+    "within_minor": 780,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e15\\u0e23\\u0e32\\u0e142568.zip'",
+   "package_sha256": "64685ac5714a9e4a322a9d8ca76dacf89494f0c73640836a0c3224117a288fb3",
+   "province": "Trat",
+   "iou_with_gadm": 0.9721,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 1121,
+   "vertices_official": 16449,
+   "area_ratio_official_to_gadm": 1.0019,
+   "land_use_check": {
+    "parcels": 40783,
+    "inside": 39695,
+    "within_minor": 1088,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 3.965e-05
+   }
+  },
+  {
+   "package": "'\\u0e15\\u0e32\\u0e012564- \\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "618a83055dab6c4a00115229d350aa1cb087266ff7d134a12059dde8acfc71df",
+   "province": "Tak",
+   "iou_with_gadm": 0.9769,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 1658,
+   "vertices_official": 14277,
+   "area_ratio_official_to_gadm": 1.0062,
+   "land_use_check": {
+    "parcels": 68076,
+    "inside": 66545,
+    "within_minor": 1531,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e19\\u0e04\\u0e23\\u0e19\\u0e32\\u0e22\\u0e012568.zip'",
+   "package_sha256": "6ff0a13ffe6db0c9a3eb52fd54e7d29a150cc917a633e32362c417c925bdbab8",
+   "province": "Nakhon Nayok",
+   "iou_with_gadm": 0.9752,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 225,
+   "vertices_official": 3062,
+   "area_ratio_official_to_gadm": 0.9994,
+   "land_use_check": {
+    "parcels": 29312,
+    "inside": 28893,
+    "within_minor": 419,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e19\\u0e04\\u0e23\\u0e1b\\u0e10\\u0e212567_\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "edb903c9c4464384c344fe70cbd4dc0c181655238c1a851a2d634ef3f9c5df5d",
+   "province": "Nakhon Pathom",
+   "iou_with_gadm": 0.9642,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 157,
+   "vertices_official": 2165,
+   "area_ratio_official_to_gadm": 0.9989,
+   "land_use_check": {
+    "parcels": 65137,
+    "inside": 64169,
+    "within_minor": 968,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e19\\u0e04\\u0e23\\u0e2a\\u0e27\\u0e23\\u0e23\\u0e04\\u0e4c2564- \\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "ea394e5c59400620a8749ab2ec583d1e1f52d59d0c5f7d4554328844819c6606",
+   "province": "Nakhon Sawan",
+   "iou_with_gadm": 0.9717,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 661,
+   "vertices_official": 6585,
+   "area_ratio_official_to_gadm": 1.0024,
+   "land_use_check": {
+    "parcels": 58003,
+    "inside": 56597,
+    "within_minor": 1406,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e19\\u0e19\\u0e17\\u0e1a\\u0e38\\u0e23\\u0e352567.zip'",
+   "package_sha256": "e38d498e9c6fe0b5b2c79fc084073de3e0df07bec4672cee7e7bcd39ee58db04",
+   "province": "Nonthaburi",
+   "iou_with_gadm": 0.9714,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 67,
+   "vertices_official": 864,
+   "area_ratio_official_to_gadm": 1.0039,
+   "land_use_check": {
+    "parcels": 9635,
+    "inside": 9303,
+    "within_minor": 332,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 2e-08
+   }
+  },
+  {
+   "package": "'\\u0e19\\u0e48\\u0e32\\u0e192567_\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "ad6897c673a7c779440eb540e7d4f9b1800bcca50eadccabadb20c54b4004475",
+   "province": "Nan",
+   "iou_with_gadm": 0.9744,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 825,
+   "vertices_official": 13338,
+   "area_ratio_official_to_gadm": 0.9912,
+   "land_use_check": {
+    "parcels": 88118,
+    "inside": 87761,
+    "within_minor": 357,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e1b\\u0e17\\u0e38\\u0e21\\u0e18\\u0e32\\u0e19\\u0e352568.zip'",
+   "package_sha256": "aef20813c2bf222213d1dd05398adfa90e28b83e31685104c6f90648721bd15c",
+   "province": "Pathum Thani",
+   "iou_with_gadm": 0.9804,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 95,
+   "vertices_official": 908,
+   "area_ratio_official_to_gadm": 1.0033,
+   "land_use_check": {
+    "parcels": 21832,
+    "inside": 21213,
+    "within_minor": 619,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e1b\\u0e23\\u0e30\\u0e08\\u0e27\\u0e1a\\u0e04\\u0e35\\u0e23\\u0e35\\u0e02\\u0e31\\u0e19\\u0e18\\u0e4c2568.zip'",
+   "package_sha256": "c59b6ee43e64dac84e3385345505abc0af87f7ab0ac2f1b781a3b4dfb17ec231",
+   "province": "Prachuap Khiri Khan",
+   "iou_with_gadm": 0.9835,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 868,
+   "vertices_official": 7710,
+   "area_ratio_official_to_gadm": 1.0001,
+   "land_use_check": {
+    "parcels": 70005,
+    "inside": 69294,
+    "within_minor": 711,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e1b\\u0e23\\u0e32\\u0e08\\u0e35\\u0e19\\u0e1a\\u0e38\\u0e23\\u0e352568.zip'",
+   "package_sha256": "80a87ede6272421d84dfcd1fb8a5dd2c42a61029e207a3be7809847b3b74eb14",
+   "province": "Prachin Buri",
+   "iou_with_gadm": 0.9662,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 480,
+   "vertices_official": 7119,
+   "area_ratio_official_to_gadm": 1.0054,
+   "land_use_check": {
+    "parcels": 42916,
+    "inside": 41948,
+    "within_minor": 968,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e1e\\u0e23\\u0e30\\u0e19\\u0e04\\u0e23\\u0e28\\u0e23\\u0e35\\u0e2d\\u0e22\\u0e38\\u0e18\\u0e22\\u0e322568.zip'",
+   "package_sha256": "20c349531fea8e73ec8ecf87174abe72f84f71bba790ba435c80e128604fd8b5",
+   "province": "Phra Nakhon Si Ayutthaya",
+   "iou_with_gadm": 0.9735,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 236,
+   "vertices_official": 3503,
+   "area_ratio_official_to_gadm": 1.0002,
+   "land_use_check": {
+    "parcels": 26520,
+    "inside": 25704,
+    "within_minor": 816,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e1e\\u0e30\\u0e40\\u0e22\\u0e322567_\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "ef71809e2f738d56df908d3286e6e07eb684b4fb974f9607723c014da3ef3737",
+   "province": "Phayao",
+   "iou_with_gadm": 0.9601,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 537,
+   "vertices_official": 6436,
+   "area_ratio_official_to_gadm": 1.0127,
+   "land_use_check": {
+    "parcels": 68678,
+    "inside": 68182,
+    "within_minor": 496,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e1e\\u0e34\\u0e08\\u0e34\\u0e15\\u0e232564_\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "5973c2a273180a3fff596557dacbd0c61886af041b016f4a501ed00020032fd5",
+   "province": "Phichit",
+   "iou_with_gadm": 0.9494,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 344,
+   "vertices_official": 5164,
+   "area_ratio_official_to_gadm": 1.0007,
+   "land_use_check": {
+    "parcels": 34090,
+    "inside": 32851,
+    "within_minor": 1239,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e1e\\u0e34\\u0e29\\u0e13\\u0e38\\u0e42\\u0e25\\u0e012564_ \\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "dd9cd70104f7c6537b59c5d29bf8130e4de83e2046ef28cf7dbe604956f0c501",
+   "province": "Phitsanulok",
+   "iou_with_gadm": 0.9735,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 793,
+   "vertices_official": 13842,
+   "area_ratio_official_to_gadm": 0.9994,
+   "land_use_check": {
+    "parcels": 73709,
+    "inside": 72342,
+    "within_minor": 1367,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e23\\u0e30\\u0e22\\u0e2d\\u0e072567.zip'",
+   "package_sha256": "284e99a3beb243ee841ba0aba4f3a0546dd23e38132911ee24d904538c9fecea",
+   "province": "Rayong",
+   "iou_with_gadm": 0.9745,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 488,
+   "vertices_official": 6793,
+   "area_ratio_official_to_gadm": 0.99,
+   "land_use_check": {
+    "parcels": 65136,
+    "inside": 64261,
+    "within_minor": 875,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 5.71e-06
+   }
+  },
+  {
+   "package": "'\\u0e23\\u0e32\\u0e0a\\u0e1a\\u0e38\\u0e23\\u0e352568.zip'",
+   "package_sha256": "78a917f098473274669da160c045f215470f88e7251e4594ba6d35355231dafa",
+   "province": "Ratchaburi",
+   "iou_with_gadm": 0.9853,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 449,
+   "vertices_official": 3685,
+   "area_ratio_official_to_gadm": 1.0027,
+   "land_use_check": {
+    "parcels": 63130,
+    "inside": 62115,
+    "within_minor": 1015,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e25\\u0e1e\\u0e1a\\u0e38\\u0e23\\u0e35s.zip'",
+   "package_sha256": "95530646bc35d35a05ddb9a673a728b2e97b60f486f428a3db8885aca78259f3",
+   "skipped": "province layers found: 0"
+  },
+  {
+   "package": "'\\u0e25\\u0e33\\u0e1b\\u0e32\\u0e072564_\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "60803fd957a2b527dccae370792f2c021a34377172bb4140c3b14015c591a12b",
+   "province": "Lampang",
+   "iou_with_gadm": 0.9886,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 1022,
+   "vertices_official": 10159,
+   "area_ratio_official_to_gadm": 0.9984,
+   "land_use_check": {
+    "parcels": 54448,
+    "inside": 54210,
+    "within_minor": 238,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e25\\u0e33\\u0e1e\\u0e39\\u0e192564_ \\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "edfb99bdaf87b764cb2c9448179d31bb0070680e8a25aeaf6122ce03198f25b9",
+   "province": "Lamphun",
+   "iou_with_gadm": 0.981,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 603,
+   "vertices_official": 6519,
+   "area_ratio_official_to_gadm": 0.9985,
+   "land_use_check": {
+    "parcels": 34268,
+    "inside": 33925,
+    "within_minor": 343,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e2a\\u0e21\\u0e38\\u0e17\\u0e23\\u0e1b\\u0e23\\u0e32\\u0e01\\u0e32\\u0e232567.zip'",
+   "package_sha256": "4153f7e48a95a2602d617c3bc676248356f38a55d58ab9b9fdb608006e6c98c3",
+   "province": "Samut Prakan",
+   "iou_with_gadm": 0.9396,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 183,
+   "vertices_official": 1074,
+   "area_ratio_official_to_gadm": 1.0071,
+   "land_use_check": {
+    "parcels": 8819,
+    "inside": 8440,
+    "within_minor": 379,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 2e-08
+   }
+  },
+  {
+   "package": "'\\u0e2a\\u0e21\\u0e38\\u0e17\\u0e23\\u0e2a\\u0e07\\u0e04\\u0e23\\u0e32\\u0e212568.zip'",
+   "package_sha256": "b39404fa63880223d12b4b0dbcea11e120adb02bcfb5c5bbd7ee0c0d0508738f",
+   "province": "Samut Songkhram",
+   "iou_with_gadm": 0.959,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 98,
+   "vertices_official": 1765,
+   "area_ratio_official_to_gadm": 1.0195,
+   "land_use_check": {
+    "parcels": 11081,
+    "inside": 10718,
+    "within_minor": 363,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 3e-08
+   }
+  },
+  {
+   "package": "'\\u0e2a\\u0e21\\u0e38\\u0e17\\u0e23\\u0e2a\\u0e32\\u0e04\\u0e232567.zip'",
+   "package_sha256": "245b96ad2a9fc1b64f8b3415267c55243390c26011c8f0a0f2653afebd775a7c",
+   "province": "Samut Sakhon",
+   "iou_with_gadm": 0.961,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 158,
+   "vertices_official": 1568,
+   "area_ratio_official_to_gadm": 1.0167,
+   "land_use_check": {
+    "parcels": 18313,
+    "inside": 17796,
+    "within_minor": 517,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 2e-08
+   }
+  },
+  {
+   "package": "'\\u0e2a\\u0e23\\u0e30\\u0e1a\\u0e38\\u0e23\\u0e352568.zip'",
+   "package_sha256": "35b03824d9d8dc5bf3e91c7931d5321ea75bad0f75a4d64ec568ec49bc8face6",
+   "province": "Saraburi",
+   "iou_with_gadm": 0.9475,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 463,
+   "vertices_official": 5409,
+   "area_ratio_official_to_gadm": 0.9821,
+   "land_use_check": {
+    "parcels": 32698,
+    "inside": 31629,
+    "within_minor": 1069,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e2a\\u0e23\\u0e30\\u0e41\\u0e01\\u0e49\\u0e272568.zip'",
+   "package_sha256": "f3ebda0f3ea333f780559c00d2b305526948f9b965adb8947a0df040c89bf1be",
+   "province": "Sa Kaeo",
+   "iou_with_gadm": 0.9793,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 596,
+   "vertices_official": 6318,
+   "area_ratio_official_to_gadm": 0.9936,
+   "land_use_check": {
+    "parcels": 61720,
+    "inside": 60569,
+    "within_minor": 1151,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1.5e-07
+   }
+  },
+  {
+   "package": "'\\u0e2a\\u0e38\\u0e1e\\u0e23\\u0e23\\u0e13\\u0e1a\\u0e38\\u0e23\\u0e352568.zip'",
+   "package_sha256": "4bd12cf994d10cb6fe3ce13abdddb12a561d34392bf48bce6b85b3a031fd6038",
+   "province": "Suphan Buri",
+   "iou_with_gadm": 0.9611,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 459,
+   "vertices_official": 5118,
+   "area_ratio_official_to_gadm": 0.9992,
+   "land_use_check": {
+    "parcels": 69303,
+    "inside": 68011,
+    "within_minor": 1292,
+    "beyond_minor": 0,
+    "layer_crs": "PROJCRS[\"WGS 84 / UTM zone 47N\",BASEGEOGCRS[\"WGS 84\",DATUM[\"World Geodetic System 1984\",ELLIPSOID[\"WGS 84\",6378137,298.257223563,LENGTHUNIT[\"metre\",1]],ID[\"EPSG\",6326]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"Degree\",0.0174532925199433]]],CONVERSION[\"UTM zone 47N\",METHOD[\"Transverse Mercator\",ID[\"EPSG\",9807]],PARAMETER[\"Latitude of natural origin\",0,ANGLEUNIT[\"Degree\",0.0174532925199433],ID[\"EPSG\",8801]],PARAMETER[\"Longitude of natural origin\",99,ANGLEUNIT[\"Degree\",0.0174532925199433],ID[\"EPSG\",8802]],PARAMETER[\"Scale factor at natural origin\",0.9996,SCALEUNIT[\"unity\",1],ID[\"EPSG\",8805]],PARAMETER[\"False easting\",500000,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]],ID[\"EPSG\",16047]],CS[Cartesian,3],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"ellipsoidal height (h)\",up,ORDER[3],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]",
+    "outside_area_share": 2.8e-07
+   }
+  },
+  {
+   "package": "'\\u0e2a\\u0e38\\u0e42\\u0e02\\u0e17\\u0e31\\u0e222564- \\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "9ce52eebb13e0d3594739f08ddd02b85ae7aef1ae796c2c487b5bd77f8bba195",
+   "province": "Sukhothai",
+   "iou_with_gadm": 0.9722,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 650,
+   "vertices_official": 8454,
+   "area_ratio_official_to_gadm": 0.9962,
+   "land_use_check": {
+    "parcels": 40043,
+    "inside": 39132,
+    "within_minor": 911,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32648",
+    "outside_area_share": 1.9e-07
+   }
+  },
+  {
+   "package": "'\\u0e2d\\u0e38\\u0e15\\u0e23\\u0e14\\u0e34\\u0e15\\u0e16\\u0e4c2564_ \\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "d25d1abff787d6310b8de17bf4d2ddcddbb28065305113a85c5c3a48298ecf05",
+   "province": "Uttaradit",
+   "iou_with_gadm": 0.9698,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 634,
+   "vertices_official": 12908,
+   "area_ratio_official_to_gadm": 1.0136,
+   "land_use_check": {
+    "parcels": 51169,
+    "inside": 50640,
+    "within_minor": 529,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e2d\\u0e38\\u0e17\\u0e31\\u0e22\\u0e18\\u0e32\\u0e19\\u0e352564_ \\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "ff2a4906f3506b0e98e3e291c9c8180d04e73fd248eeb565244dc2c55640e066",
+   "province": "Uthai Thani",
+   "iou_with_gadm": 0.9853,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 536,
+   "vertices_official": 6212,
+   "area_ratio_official_to_gadm": 0.9985,
+   "land_use_check": {
+    "parcels": 39207,
+    "inside": 38389,
+    "within_minor": 818,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e40\\u0e0a\\u0e35\\u0e22\\u0e07\\u0e23\\u0e32\\u0e222563-2564- \\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "30e6789ed51db314fd9a4297b2eac1abdaf76c706f9ee6653a6fddcee22417ea",
+   "province": "Chiang Rai",
+   "iou_with_gadm": 0.9817,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 795,
+   "vertices_official": 5822,
+   "area_ratio_official_to_gadm": 0.9943,
+   "land_use_check": {
+    "parcels": 110997,
+    "inside": 110107,
+    "within_minor": 890,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e40\\u0e0a\\u0e35\\u0e22\\u0e07\\u0e43\\u0e2b\\u0e21\\u0e482567_\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "c775df5115b739f2f0fcd29df0fc3fdc25dc6459fd436efeec08d86fc9d856a2",
+   "province": "Chiang Mai",
+   "iou_with_gadm": 0.9724,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 1527,
+   "vertices_official": 20348,
+   "area_ratio_official_to_gadm": 1.0101,
+   "land_use_check": {
+    "parcels": 162832,
+    "inside": 161107,
+    "within_minor": 1725,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e40\\u0e1e\\u0e0a\\u0e23\\u0e1a\\u0e38\\u0e23\\u0e352568.zip'",
+   "package_sha256": "ddff5d6eb12f22e43d518d0e2a6f8f096b755d8073896ede792a376493d6f8fe",
+   "province": "Phetchaburi",
+   "iou_with_gadm": 0.985,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 461,
+   "vertices_official": 3963,
+   "area_ratio_official_to_gadm": 0.9999,
+   "land_use_check": {
+    "parcels": 69305,
+    "inside": 68775,
+    "within_minor": 530,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e40\\u0e1e\\u0e0a\\u0e23\\u0e1a\\u0e39\\u0e23\\u0e13\\u0e4c2564_\\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "f36dc5a60d4a58263825137c38903490567c1a135c447b624e222b04b0af9c43",
+   "province": "Phetchabun",
+   "iou_with_gadm": 0.9532,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 816,
+   "vertices_official": 8981,
+   "area_ratio_official_to_gadm": 0.9954,
+   "land_use_check": {
+    "parcels": 58565,
+    "inside": 57309,
+    "within_minor": 1256,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e41\\u0e1e\\u0e23\\u0e482564_ \\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "397a971aa5e7e39d0262f33c8939bbfd16a5d8ded37afd6399fbc55748461b1e",
+   "province": "Phrae",
+   "iou_with_gadm": 0.9826,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 680,
+   "vertices_official": 11295,
+   "area_ratio_official_to_gadm": 1.0015,
+   "land_use_check": {
+    "parcels": 36711,
+    "inside": 36279,
+    "within_minor": 432,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  },
+  {
+   "package": "'\\u0e41\\u0e21\\u0e48\\u0e2e\\u0e48\\u0e2d\\u0e07\\u0e2a\\u0e2d\\u0e192564 _ \\u0e1b\\u0e35\\u0e25\\u0e48\\u0e32\\u0e2a\\u0e38\\u0e14.zip'",
+   "package_sha256": "157cf5d3a03181313f0eddfa8bd9cbdce3cb6dd106ed42b1822cb684cacfd295",
+   "province": "Mae Hong Son",
+   "iou_with_gadm": 0.9794,
+   "source_crs": "EPSG:32647",
+   "vertices_gadm": 1153,
+   "vertices_official": 18110,
+   "area_ratio_official_to_gadm": 1.0066,
+   "land_use_check": {
+    "parcels": 52298,
+    "inside": 51446,
+    "within_minor": 852,
+    "beyond_minor": 0,
+    "layer_crs": "EPSG:32647",
+    "outside_area_share": 1e-08
+   }
+  }
+ ]
+}
