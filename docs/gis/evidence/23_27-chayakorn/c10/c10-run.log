@@ -1,0 +1,243 @@
+# PS> cd <clone-rec>\green-area-backend
+# PS> .venv\Scripts\python.exe data/ldd/upload_ldd_to_gee.py --src <ldd-77> --asset-root projects/dry-run/assets/ldd --workdir <c10-work>
+# (no --upload, no --wait; clone has no .env; GEE env vars unset)
+# started 2026-11-24T15:20:34
+mode      : dry run (nothing sent to Earth Engine)
+asset root: projects/dry-run/assets/ldd
+workdir   : <c10-work>
+
+[Amnat Charoen] ldd-77 > Landuse_อำนาจเจริญ_2566 (ปีล่าสุด).zip :: Landuse_อำนาจเจริญ_2566/LU_ACR_2566.shp
+
+[Ang Thong] ldd-77 > Landuse_อ่างทอง_2568.zip :: Landuse_อ่างทอง_2568/LU_ATG_2568.shp
+
+[Bangkok Metropolis] ldd-77 > Landuse_Bangkok_2566_.zip :: Landuse_Bangkok_2566/LU_BKK_2566.shp
+
+[Bueng Kan] ldd-77 > Landuse_บึงกาฬ_2566 (ปีล่าสุด).zip :: Landuse_บึงกาฬ_2566/LU_BKN_2566.shp
+
+[Buri Ram] ldd-77 > Landuse_บุรีรัมย์_2565 (ปีล่าสุด).zip :: Landuse_บุรีรัมย์_2565/LU_BRM_2565.shp
+
+[Chachoengsao] ldd-77 > ฉะเชิงเทรา2567_ปีล่าสุด.zip :: ฉะเชิงเทรา2567/การใช้ที่ดิน/LU_CCO_2567.shp
+
+[Chai Nat] ldd-77 > ชัยนาท2567_ปีล่าสุด.zip :: ชัยนาท2567/การใช้ที่ดิน/LU_CNT_2567.shp
+
+[Chaiyaphum] ldd-77 > Landuse_ชัยภูมิ_2565 (ปีล่าสุด).zip :: Landuse_ชัยภูมิ_2565/LU_CPM_2565.shp
+
+[Chanthaburi] ldd-77 > จันทบุรี2568.zip :: จันทบุรี2568/การใช้ที่ดิน/LU_CTI_2568.shp
+
+[Chiang Mai] ldd-77 > เชียงใหม่2567_ปีล่าสุด.zip :: เชียงใหม่2567/การใช้ที่ดิน/LU_CMI_2567.shp
+
+[Chiang Rai] ldd-77 > เชียงราย2563-2564- ปีล่าสุด.zip :: เชียงราย2564/LU_CRI_2564.shp
+
+[Chon Buri] ldd-77 > ชลบุรี2567.zip :: ชลบุรี2567/การใช้ที่ดิน/LU_CBI_2567.shp
+
+[Chumphon] ldd-77 > Landuse_ชุมพร_2564 (ปีล่าสุด).zip :: Landuse_ชุมพร_2564/LU_CPN_2564.shp
+
+[Kalasin] ldd-77 > Landuse_กาฬสินธุ์_2566 (ปีล่าสุด).zip :: Landuse_กาฬสินธุ์_2566/LU_KSN_2566.shp
+
+[Kamphaeng Phet] ldd-77 > กำแพงเพชร2567.zip :: กำแพงเพชร2567/การใช้ที่ดิน/LU_KPT_2567.shp
+
+[Kanchanaburi] ldd-77 > กาญจนบุรี2568.zip :: กาญจนบุรี2568/การใช้ที่ดิน/LU_KRI_2568.shp
+
+[Khon Kaen] ldd-77 > Landuse_ขอนแก่น_2565 (ปีล่าสุด).zip :: Landuse_ขอนแก่น_2565/LU_KKN_2565.shp
+
+[Krabi] ldd-77 > Landuse_กระบี่_2563 (ปีล่าสุด).zip :: Landuse_กระบี่_2563/LU_KBI_2563.shp
+
+[Lampang] ldd-77 > ลำปาง2564_ปีล่าสุด.zip :: ลำปาง2564/การใช้ที่ดิน/LU_LPG_2564.shp
+
+[Lamphun] ldd-77 > ลำพูน2564_ ปีล่าสุด.zip :: ลำพูน2564/การใช้ที่ดิน/LU_LPN_2564.shp
+
+[Loei] ldd-77 > Landuse_เลย_2565 (ปีล่าสุด).zip :: Landuse_เลย_2565/LU_LEI_2565.shp
+
+[Lop Buri] ldd-77 > ลพบุรีs.zip > Landuse_ลพบุรี_2566(ปีล่าสุด).zip :: Landuse_ลพบุรี_2566/LU_LRI_2566.shp
+
+[Mae Hong Son] ldd-77 > แม่ฮ่องสอน2564 _ ปีล่าสุด.zip :: แม่ฮ่องสอน2564/การใช้ที่ดิน/LU_MHS_2564.shp
+
+[Maha Sarakham] ldd-77 > Landuse_มหาสารคาม_2565 (ปีล่าสุด).zip :: Landuse_มหาสารคาม_2565/LU_MKM_2565.shp
+
+[Mukdahan] ldd-77 > Landuse_มุกดาหาร_2566 (ปีล่าสุด).zip :: Landuse_มุกดาหาร_2566/LU_MDH_2566.shp
+
+[Nakhon Nayok] ldd-77 > นครนายก2568.zip :: นครนายก2568/การใช้ที่ดิน/LU_NYK_2568.shp
+
+[Nakhon Pathom] ldd-77 > นครปฐม2567_ปีล่าสุด.zip :: นครปฐม2567/การใช้ที่ดิน/LU_NPT_2567.shp
+
+[Nakhon Phanom] ldd-77 > Landuse_นครพนม_2565 (ปีล่าสุด).zip :: Landuse_นครพนม_2565/LU_NPM_2565.shp
+
+[Nakhon Ratchasima] ldd-77 > Landuse_นครราชสีมา_2566 (ปีล่าสุด).zip :: Landuse_นครราชสีมา_2566/LU_NMA_2566.shp
+
+[Nakhon Sawan] ldd-77 > นครสวรรค์2564- ปีล่าสุด.zip :: นครสวรรค์2564/การใช้ที่ดิน/LU_NSN_2564.shp
+
+[Nakhon Si Thammarat] ldd-77 > Landuse_นครศรีธรรมราช_2564 (ปีล่าสุด).zip :: Landuse_นครศรีธรรมราช_2564/LU_NRT_2564.shp
+
+[Nan] ldd-77 > น่าน2567_ปีล่าสุด.zip :: น่าน2567/การใช้ที่ดิน/LU_NAN_2567.shp
+
+[Narathiwat] ldd-77 > Landuse_นราธิวาส_2564 (ปีล่าสุด).zip :: Landuse_นราธิวาส_2564/LU_NWT_2564.shp
+
+[Nong Bua Lam Phu] ldd-77 > Landuse_หนองบัวลำภู_2566 (ปีล่าสุด).zip :: Landuse_หนองบัวลำภู_2566/LU_NBP_2566.shp
+
+[Nong Khai] ldd-77 > Landuse_หนองคาย_2566 (ปีล่าสุด).zip :: Landuse_หนองคาย_2566/LU_NKI_2566.shp
+
+[Nonthaburi] ldd-77 > นนทบุรี2567.zip :: นนทบุรี2567/การใช้ที่ดิน/LU_NBI_2567.shp
+
+[Pathum Thani] ldd-77 > ปทุมธานี2568.zip :: ปทุมธานี2568/การใช้ที่ดิน/LU_PTE_2568.shp
+
+[Pattani] ldd-77 > Landuse_ปัตตานี_2564 (ปีล่าสุด).zip :: Landuse_ปัตตานี_2564/LU_PTN_2564.shp
+
+[Phangnga] ldd-77 > Landuse_พังงา_2564 (ปีล่าสุด).zip :: Landuse_พังงา_2564/LU_PNA_2564.shp
+
+[Phatthalung] ldd-77 > Landuse_พัทลุง_2563 (ปีล่าสุด).zip :: Landuse_พัทลุง_2563/LU_PLG_2563.shp
+
+[Phayao] ldd-77 > พะเยา2567_ปีล่าสุด.zip :: พะเยา2567/การใช้ที่ดิน/LU_PYO_2567.shp
+
+[Phetchabun] ldd-77 > เพชรบูรณ์2564_ปีล่าสุด.zip :: เพชรบูรณ์2564/การใช้ที่ดิน/LU_PNB_2564.shp
+
+[Phetchaburi] ldd-77 > เพชรบุรี2568.zip :: เพชรบุรี2568/การใช้ที่ดิน/LU_PBI_2568.shp
+
+[Phichit] ldd-77 > พิจิตร2564_ปีล่าสุด.zip :: พิจิตร2564/การใช้ที่ดิน/LU_PCK_2564.shp
+
+[Phitsanulok] ldd-77 > พิษณุโลก2564_ ปีล่าสุด.zip :: พิษณุโลก2564/การใช้ที่ดิน/LU_PLK_2564.shp
+
+[Phra Nakhon Si Ayutthaya] ldd-77 > พระนครศรีอยุธยา2568.zip :: พระนครศรีอยุธยา2568/การใช้ที่ดิน/LU_AYU_2568.shp
+
+[Phrae] ldd-77 > แพร่2564_ ปีล่าสุด.zip :: แพร่2564/การใช้ที่ดิน/LU_PRE_2564.shp
+
+[Phuket] ldd-77 > Landuse_ภูเก็ต_2563 (ปีล่าสุด).zip :: Landuse_ภูเก็ต_2563/LU_PKT_2563.shp
+
+[Prachin Buri] ldd-77 > ปราจีนบุรี2568.zip :: ปราจีนบุรี2568/การใช้ที่ดิน/LU_PRI_2568.shp
+
+[Prachuap Khiri Khan] ldd-77 > ประจวบคีรีขันธ์2568.zip :: ประจวบคีรีขันธ์2568/การใช้ที่ดิน/LU_PKN_2568.shp
+
+[Ranong] ldd-77 > Landuse_ระนอง_2564 (ปีล่าสุด).zip :: Landuse_ระนอง_2564/LU_RNG_2564.shp
+
+[Ratchaburi] ldd-77 > ราชบุรี2568.zip :: ราชบุรี2568/การใช้ที่ดิน/LU_RBR_2568.shp
+
+[Rayong] ldd-77 > ระยอง2567.zip :: ระยอง2567/การใช้ที่ดิน/LU_RYG_2567.shp
+
+[Roi Et] ldd-77 > Landuse_ร้อยเอ็ด_2565 (ปีล่าสุด).zip :: Landuse_ร้อยเอ็ด_2565/LU_RET_2565.shp
+
+[Sa Kaeo] ldd-77 > สระแก้ว2568.zip :: สระแก้ว2568/การใช้ที่ดิน/LU_SKW_2568.shp
+
+[Sakon Nakhon] ldd-77 > Landuse_สกลนคร_2565 (ปีล่าสุด).zip :: Landuse_สกลนคร_2565/LU_SNK_2565.shp
+
+[Samut Prakan] ldd-77 > สมุทรปราการ2567.zip :: สมุทรปราการ2567/การใช้ที่ดิน/LU_SPK_2567.shp
+
+[Samut Sakhon] ldd-77 > สมุทรสาคร2567.zip :: สมุทรสาคร2567/การใช้ที่ดิน/LU_SKN_2567.shp
+
+[Samut Songkhram] ldd-77 > สมุทรสงคราม2568.zip :: สมุทรสงคราม2568/การใช้ที่ดิน/LU_SKM_2568.shp
+
+[Saraburi] ldd-77 > สระบุรี2568.zip :: สระบุรี2568/การใช้ที่ดิน/LU_SRI_2568.shp
+
+[Satun] ldd-77 > Landuse_สตูล_2564 (ปีล่าสุด).zip :: Landuse_สตูล_2564/LU_STN_2564.shp
+
+[Si Sa Ket] ldd-77 > Landuse_ศรีสะเกษ_2565 (ปีล่าสุด).zip :: Landuse_ศรีสะเกษ_2565/LU_SSK_2565.shp
+
+[Sing Buri] ldd-77 > Landuse_Sing Buri_2566_ปีล่าสุด.zip :: Landuse_Sing Buri_2566/LU_SBR_2566.shp
+
+[Songkhla] ldd-77 > Landuse_สงขลา_2563 (ปีล่าสุด).zip :: Landuse_สงขลา_2563/LU_SKA_2563.shp
+
+[Sukhothai] ldd-77 > สุโขทัย2564- ปีล่าสุด.zip :: สุโขทัย2564/การใช้ที่ดิน/LU_STI_2564.shp
+
+[Suphan Buri] ldd-77 > สุพรรณบุรี2568.zip :: สุพรรณบุรี2568/การใช้ที่ดิน/LU_SPB_2568.shp
+
+[Surat Thani] ldd-77 > Landuse_สุราษฎร์ธานี_2564 (ปีล่าสุด).zip :: Landuse_สุราษฎร์ธานี_2564/LU_SNI_2564.shp
+
+[Surin] ldd-77 > Landuse_สุรินทร์_2565 (ปีล่าสุด).zip :: Landuse_สุรินทร์_2565/LU_SRN_2565.shp
+
+[Tak] ldd-77 > ตาก2564- ปีล่าสุด.zip :: ตาก2564/การใช้ที่ดิน/LU_TAK_2564.shp
+
+[Trang] ldd-77 > Landuse_ตรัง_2563 (ปีล่าสุด).zip :: Landuse_ตรัง_2563/LU_TRG_2563.shp
+
+[Trat] ldd-77 > ตราด2568.zip :: ตราด2568/การใช้ที่ดิน/LU_TRT_2568.shp
+
+[Ubon Ratchathani] ldd-77 > Landuse_อุบลราชธานี_2565 (ปีล่าสุด).zip :: Landuse_อุบลราชธานี_2565/LU_UBN_2565.shp
+
+[Udon Thani] ldd-77 > Landuse_อุดรธานี_2565 (ปีล่าสุด).zip :: Landuse_อุดรธานี_2565/LU_UDN_2565.shp
+
+[Uthai Thani] ldd-77 > อุทัยธานี2564_ ปีล่าสุด.zip :: อุทัยธานี2564/การใช้ที่ดิน/LU_UTI_2564.shp
+
+[Uttaradit] ldd-77 > อุตรดิตถ์2564_ ปีล่าสุด.zip :: อุตรดิตถ์2564/การใช้ที่ดิน/LU_UTT_2564.shp
+
+[Yala] ldd-77 > Landuse_ยะลา_2564 (ปีล่าสุด).zip :: Landuse_ยะลา_2564/LU_YLA_2564.shp
+
+[Yasothon] ldd-77 > Landuse_ยโสธร_2566 (ปีล่าสุด).zip :: Landuse_ยโสธร_2566/LU_YST_2566.shp
+
+province              year   feat     enc     thai%   code%   codes  cmpd%   MB      status                                  
+Amnat Charoen         2566   42270    utf-8   100.0   100.0   136    0.31    26.46   dry-run ok                              
+Ang Thong             2568   15004    utf-8   100.0   100.0   140    4.16    7.2     dry-run ok                              
+Bangkok Metropolis    2566   11073    utf-8   100.0   100.0   96     0.76    3.41    dry-run ok                              
+Bueng Kan             2566   57970    utf-8   100.0   100.0   169    0.31    31.42   dry-run ok                              
+Buri Ram              2565   105653   utf-8   100.0   100.0   151    0.16    47.24   dry-run ok                              
+Chachoengsao          2567   52128    utf-8   100.0   100.0   191    1.08    24.06   dry-run ok                              
+Chai Nat              2567   25809    utf-8   100.0   100.0   160    1.12    12.57   dry-run ok                              
+Chaiyaphum            2565   93996    utf-8   100.0   100.0   219    0.34    74.16   dry-run ok                              
+Chanthaburi           2568   63572    utf-8   100.0   100.0   262    10.88   26.69   dry-run ok                              
+Chiang Mai            2567   162832   utf-8   100.0   100.0   355    1.95    110.67  dry-run ok                              
+Chiang Rai            2564   110997   utf-8   100.0   100.0   364    3.53    80.17   dry-run ok                              
+Chon Buri             2567   88339    utf-8   100.0   100.0   262    2.23    28.75   dry-run ok                              
+Chumphon              2564   65777    utf-8   100.0   100.0   190    13.82   32.46   dry-run ok                              
+Kalasin               2566   125443   utf-8   100.0   100.0   204    0.26    41.99   dry-run ok                              
+Kamphaeng Phet        2567   71518    utf-8   100.0   100.0   286    1.36    36.31   dry-run ok                              
+Kanchanaburi          2568   102466   cp874   100.0   100.0   256    0.53    73.48   dry-run ok                              
+Khon Kaen             2565   119172   utf-8   100.0   100.0   199    0.22    64.94   dry-run ok                              
+Krabi                 2563   43946    utf-8   100.0   100.0   88     0.18    20.85   dry-run ok                              
+Lampang               2564   54448    utf-8   100.0   100.0   208    1.29    50.53   dry-run ok                              
+Lamphun               2564   34268    utf-8   100.0   100.0   174    8.8     20.22   dry-run ok                              
+Loei                  2565   151489   utf-8   100.0   100.0   357    1.56    85.85   dry-run ok                              
+Lop Buri              2566   42494    utf-8   100.0   100.0   151    0.12    25.41   dry-run ok                              
+Mae Hong Son          2564   52298    utf-8   100.0   100.0   265    1.84    49.56   dry-run ok                              
+Maha Sarakham         2565   55941    utf-8   100.0   100.0   138    0.19    27.07   dry-run ok                              
+Mukdahan              2566   63892    utf-8   100.0   100.0   198    1.34    27.01   dry-run ok                              
+Nakhon Nayok          2568   29312    utf-8   100.0   100.0   144    0.86    8.66    dry-run ok                              
+Nakhon Pathom         2567   65137    utf-8   100.0   100.0   255    2.0     17.81   dry-run ok                              
+Nakhon Phanom         2565   88309    utf-8   100.0   100.0   219    0.34    38.37   dry-run ok                              
+Nakhon Ratchasima     2566   153319   utf-8   100.0   100.0   352    1.04    115.61  dry-run ok                              
+Nakhon Sawan          2564   58003    utf-8   100.0   100.0   206    1.05    38.56   dry-run ok                              
+Nakhon Si Thammarat   2564   152711   utf-8   100.0   100.0   202    2.42    50.88   dry-run ok                              
+Nan                   2567   88118    utf-8   100.0   100.0   272    2.18    90.29   dry-run ok                              
+Narathiwat            2564   30693    utf-8   100.0   100.0   68     4.39    21.88   dry-run ok                              
+Nong Bua Lam Phu      2566   50121    utf-8   100.0   100.0   138    0.26    26.36   dry-run ok                              
+Nong Khai             2566   54567    utf-8   100.0   100.0   197    0.79    23.46   dry-run ok                              
+Nonthaburi            2567   9635     utf-8   100.0   100.0   87     0.95    2.27    dry-run ok                              
+Pathum Thani          2568   21832    cp874   100.0   100.0   126    0.81    6.43    dry-run ok                              
+Pattani               2564   20197    utf-8   100.0   100.0   71     1.22    8.84    dry-run ok                              
+Phangnga              2564   35253    utf-8   100.0   100.0   167    2.5     23.22   dry-run ok                              
+Phatthalung           2563   41604    utf-8   100.0   100.0   147    0.48    16.29   dry-run ok                              
+Phayao                2567   68678    utf-8   100.0   100.0   257    1.77    35.81   dry-run ok                              
+Phetchabun            2564   58565    utf-8   100.0   100.0   237    2.22    46.83   dry-run ok                              
+Phetchaburi           2568   69305    cp874   100.0   100.0   277    5.0     29.04   dry-run ok                              
+Phichit               2564   34090    utf-8   100.0   100.0   184    1.16    18.69   dry-run ok                              
+Phitsanulok           2564   73709    utf-8   100.0   100.0   283    1.35    49.01   dry-run ok                              
+Phra Nakhon Si Ayutt  2568   26520    utf-8   100.0   100.0   142    0.87    9.99    dry-run ok                              
+Phrae                 2564   36711    utf-8   100.0   100.0   184    1.32    29.45   dry-run ok                              
+Phuket                2563   6451     utf-8   100.0   100.0   115    2.19    3.69    dry-run ok                              
+Prachin Buri          2568   42916    utf-8   100.0   100.0   207    0.7     18.57   dry-run ok                              
+Prachuap Khiri Khan   2568   70005    cp874   100.0   100.0   304    10.23   32.24   dry-run ok                              
+Ranong                2564   21070    utf-8   100.0   100.0   165    9.65    9.03    dry-run ok                              
+Ratchaburi            2568   63130    cp874   100.0   100.0   234    1.06    28.58   dry-run ok                              
+Rayong                2567   65136    utf-8   100.0   100.0   221    5.9     19.26   dry-run ok                              
+Roi Et                2565   44764    utf-8   100.0   100.0   122    0.11    28.71   dry-run ok                              
+Sa Kaeo               2568   61720    cp874   100.0   100.0   175    0.28    30.59   dry-run ok                              
+Sakon Nakhon          2565   110350   utf-8   100.0   100.0   184    0.15    63.32   dry-run ok                              
+Samut Prakan          2567   8819     utf-8   100.0   100.0   65     0.18    3.43    dry-run ok                              
+Samut Sakhon          2567   18313    utf-8   100.0   100.0   163    4.26    5.15    dry-run ok                              
+Samut Songkhram       2568   11081    cp874   100.0   100.0   100    7.17    4.19    dry-run ok                              
+Saraburi              2568   32698    cp874   100.0   100.0   163    0.88    20.3    dry-run ok                              
+Satun                 2564   22917    utf-8   100.0   100.0   155    3.59    17.84   dry-run ok                              
+Si Sa Ket             2565   74256    utf-8   100.0   100.0   236    0.91    39.73   dry-run ok                              
+Sing Buri             2566   10820    utf-8   100.0   100.0   136    2.1     4.28    dry-run ok                              
+Songkhla              2563   49822    utf-8   100.0   100.0   128    0.33    26.55   dry-run ok                              
+Sukhothai             2564   40043    utf-8   100.0   100.0   202    0.85    29.28   dry-run ok                              
+Suphan Buri           2568   69303    utf-8   100.0   100.0   191    1.16    25.36   dry-run ok                              
+Surat Thani           2564   146503   utf-8   100.0   100.0   238    2.12    57.76   dry-run ok                              
+Surin                 2565   93890    utf-8   100.0   100.0   119    0.03    41.78   dry-run ok                              
+Tak                   2564   68076    utf-8   100.0   100.0   261    0.44    55.13   dry-run ok                              
+Trang                 2563   34299    utf-8   100.0   100.0   90     0.04    26.39   dry-run ok                              
+Trat                  2568   40783    cp874   100.0   100.0   233    10.78   24.52   dry-run ok                              
+Ubon Ratchathani      2565   127003   utf-8   100.0   100.0   217    0.25    113.58  dry-run ok                              
+Udon Thani            2565   130863   utf-8   100.0   100.0   169    0.13    83.23   dry-run ok                              
+Uthai Thani           2564   39207    utf-8   100.0   100.0   175    0.53    21.49   dry-run ok                              
+Uttaradit             2564   51169    utf-8   100.0   100.0   247    2.08    36.06   dry-run ok                              
+Yala                  2564   18497    utf-8   100.0   100.0   53     0.32    16.19   dry-run ok                              
+Yasothon              2566   48411    utf-8   100.0   100.0   115    0.07    26.24   dry-run ok                              
+
+report: <c10-work>\ldd_upload_report.csv
+# exit 0 · elapsed 736 s
