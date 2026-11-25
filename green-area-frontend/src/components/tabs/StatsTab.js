@@ -317,7 +317,7 @@ export default function StatsTab({ data, handlers }) {
         onCsv={() => exportStatsCsv({
           selectedProvince, selectedProvinceEN, selectedDistrict, selectedDistrictEN,
           provinceArea, districtArea,
-          ndviStats, ndviMonthly, lstStats, lstMonthly,
+          ndviStats, ndviMonthly, urbanStats, lstStats, lstMonthly,
           districtNdviStats, districtNdviMonthly, districtLstStats, districtLstMonthly,
         })}
         onPdf={() => import('../../utils/reportPdf').then(m => m.buildStatsReport({

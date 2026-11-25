@@ -75,7 +75,7 @@ export const exportStatsCsv = (data) => {
   const {
     selectedProvince, selectedProvinceEN, selectedDistrict,
     provinceArea, districtArea,
-    ndviStats, ndviMonthly, lstStats, lstMonthly,
+    ndviStats, ndviMonthly, urbanStats, lstStats, lstMonthly,
     districtNdviStats, districtNdviMonthly, districtLstStats, districtLstMonthly,
   } = data;
 
@@ -94,8 +94,11 @@ export const exportStatsCsv = (data) => {
     rows.push(['NDVI Max', ndviStats.ndvi_max]);
     rows.push(['Green Area (%)', ndviStats.green_area_pct]);
     rows.push(['Green Area (km²)', ndviStats.green_area_km2]);
+    // ค่าหลักบนจอคือเขตเมือง ค่าทั้งจังหวัดเป็นค่ากำกับ (StatsTab) — ติดป้ายขอบเขตทั้งสองแถว
+    if (urbanStats?.m2_per_person_urban != null)
+      rows.push(['Green Area m²/คน (เขตเมือง)', urbanStats.m2_per_person_urban]);
     if (ndviStats.green_area_m2_per_person != null)
-      rows.push(['Green Area m²/คน', ndviStats.green_area_m2_per_person]);
+      rows.push(['Green Area m²/คน (ทั้งจังหวัด)', ndviStats.green_area_m2_per_person]);
     if (ndviStats.population) rows.push(['ประชากร', ndviStats.population]);
     // ไม่ export who_status (ข้อความใน DB ที่กำลังเลิกใช้) — คิดสดจากตัวเลขแทน
     if (ndviStats.green_area_m2_per_person != null)
