@@ -61,7 +61,7 @@ export const buildRecommendReport = async (data) => {
         .map((lu) => `<b>${esc(lu.name_th)}:</b> ${esc(lu.guidance)}`)
         .join('<br/>'));
     }
-    sections.push({ label: 'Top จุดปลูก', html: th });
+    sections.push({ label: 'Top Locations', html: th });
   }
 
   const sp = recommendData.recommended_species;
