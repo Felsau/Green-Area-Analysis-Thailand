@@ -1,0 +1,21 @@
+# C16 run log · paths replaced: <clone-c6> <gis-w4-evidence> <gis-w4-hdx> <scratch>
+# python = <clone-c6>\green-area-backend\.venv\Scripts\python.exe 3.11.9, run with -I -B
+
+git show C5:docs/gis/evidence/16_20-chayakorn/c5/c5_name_map.py -> <scratch>\c5_name_map.py (git hash-object = bffbed4e929857885d889c6fdef1b7d967ffb764, as C9)
+python -I -B <gis-w4-evidence>\c16\c16_name_fixes.py --data <clone-c6>\green-area-backend\data --c5-script <scratch>\c5_name_map.py
+  --c9-dir <gis-w4-evidence>\c9 --adm1 <gis-w4-hdx>\shp\tha_admin1.shp --adm2 <gis-w4-hdx>\shp\tha_admin2.shp
+  --out c16-name-fixes.csv --stats c16-stats.json
+provinces paired: th 70 · en 6 · pcode 1 (TH10 Bangkok) · districts paired: th 921 · en 4 · collisions 1 (BangSai)
+thailand.json: wrong 5 · prefix 68 · thailand_districts.json: wrong 2 · prefix 50 · missing_in_system 3 · not_in_ocha 3
+(second run only added the "เมือง" label to the two one-sided Nakhon Si Thammarat rows; counts unchanged)
+
+## copies (Get-FileHash in <clone-c6>, = 7501cc8)
+ac2b2825…6a21 1017305 green-area-backend/data/thailand.json
+ac2b2825…6a21 1017305 green-area-frontend/public/thailand.json
+ac2b2825…6a21 1017305 green-area-backend/gis_worker/province_boundaries.json
+f4231a76…768d 2631549 green-area-backend/data/thailand_districts.json
+f4231a76…768d 2631549 green-area-frontend/public/thailand_districts.json
+
+## code search
+git grep -n -I -e NL_NAME_1 -e name_th -- green-area-backend green-area-frontend dev ":!*.json"
+git grep -n -I -i -e NL_NAME -- . ":!*.json"   -> only C9 evidence

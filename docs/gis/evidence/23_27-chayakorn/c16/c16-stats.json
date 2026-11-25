@@ -1,0 +1,18 @@
+{
+ "adm1": 77,
+ "adm2": 928,
+ "district_collisions": 1,
+ "districts_paired_en": 4,
+ "districts_paired_th": 921,
+ "districts_system": 928,
+ "provinces_paired_en": 6,
+ "provinces_paired_pcode": 1,
+ "provinces_paired_th": 70,
+ "provinces_system": 77,
+ "thailand.json:prefix": 68,
+ "thailand.json:wrong": 5,
+ "thailand_districts.json:missing_in_system": 3,
+ "thailand_districts.json:not_in_ocha": 3,
+ "thailand_districts.json:prefix": 50,
+ "thailand_districts.json:wrong": 2
+}

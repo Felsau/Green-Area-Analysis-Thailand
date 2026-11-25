@@ -1,0 +1,132 @@
+﻿file,name_en,field,current,proposed,ocha_pcode,kind,note
+thailand.json,Bangkok Metropolis (NAME_1 BangkokMetropolis),NL_NAME_1,จังหวัดเชียงใหม่,กรุงเทพมหานคร,TH10,wrong,จับคู่ด้วย PCODE TH10 (กฎ C5 จับไม่ได้เพราะ NL_NAME_1 ในระบบผิด)
+thailand.json,Samut Prakan (NAME_1 SamutPrakan),NL_NAME_1,จังหวัดสมุทรปราการ,สมุทรปราการ,TH11,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Nonthaburi (NAME_1 Nonthaburi),NL_NAME_1,จังหวัดนนทบุรี,นนทบุรี,TH12,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Pathum Thani (NAME_1 PathumThani),NL_NAME_1,จังหวัดปทุมธานี,ปทุมธานี,TH13,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Phra Nakhon Si Ayutthaya (NAME_1 PhraNakhonSiAyutthaya),NL_NAME_1,จังหวัดพระนครศรีอยุธยา,พระนครศรีอยุธยา,TH14,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Ang Thong (NAME_1 AngThong),NL_NAME_1,จังหวัดอ่างทอง,อ่างทอง,TH15,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Sing Buri (NAME_1 SingBuri),NL_NAME_1,จังหวัดสิงห์บุรี,สิงห์บุรี,TH17,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Chai Nat (NAME_1 ChaiNat),NL_NAME_1,จังหวัดชัยนาท,ชัยนาท,TH18,prefix,"จับคู่ด้วยชื่ออังกฤษ (th_ambiguous: Chai Nat, Chaiyaphum)"
+thailand.json,Saraburi (NAME_1 Saraburi),NL_NAME_1,จังหวัดสระบุรี,สระบุรี,TH19,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Chon Buri (NAME_1 ChonBuri),NL_NAME_1,จังหวัดชลบุรี,ชลบุรี,TH20,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Rayong (NAME_1 Rayong),NL_NAME_1,จังหวัดระยอง,ระยอง,TH21,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Trat (NAME_1 Trat),NL_NAME_1,จังหวัดตราด,ตราด,TH23,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Chachoengsao (NAME_1 Chachoengsao),NL_NAME_1,จังหวัดฉะเชิงเทรา,ฉะเชิงเทรา,TH24,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Prachin Buri (NAME_1 PrachinBuri),NL_NAME_1,จังหวัดปราจีนบุรี,ปราจีนบุรี,TH25,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Nakhon Nayok (NAME_1 NakhonNayok),NL_NAME_1,จังหวัดนครนายก,นครนายก,TH26,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Sa Kaeo (NAME_1 SaKaeo),NL_NAME_1,จังหวัดสระแก้ว,สระแก้ว,TH27,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Nakhon Ratchasima (NAME_1 NakhonRatchasima),NL_NAME_1,จังหวัดนครราชสีมา,นครราชสีมา,TH30,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Buri Ram (NAME_1 BuriRam),NL_NAME_1,จังหวัดบุรีรัมย์,บุรีรัมย์,TH31,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Surin (NAME_1 Surin),NL_NAME_1,จังหวัดสุรินทร์,สุรินทร์,TH32,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Si Sa Ket (NAME_1 SiSaKet),NL_NAME_1,จังหวัดศรีสะเกษ,ศรีสะเกษ,TH33,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Ubon Ratchathani (NAME_1 UbonRatchathani),NL_NAME_1,จังหวัดอุบลราชธานี,อุบลราชธานี,TH34,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Yasothon (NAME_1 Yasothon),NL_NAME_1,จังหวัดยโสธร,ยโสธร,TH35,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Chaiyaphum (NAME_1 Chaiyaphum),NL_NAME_1,จังหวัดชัยนาท,ชัยภูมิ,TH36,wrong,จับคู่ด้วยชื่ออังกฤษ (th_not_found)
+thailand.json,Amnat Charoen (NAME_1 AmnatCharoen),NL_NAME_1,จังหวัดอำนาจเจริญ,อำนาจเจริญ,TH37,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Nong Bua Lam Phu (NAME_1 NongBuaLamPhu),NL_NAME_1,จังหวัดหนองบัวลำภู,หนองบัวลำภู,TH39,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Khon Kaen (NAME_1 KhonKaen),NL_NAME_1,จังหวัดขอนแก่น,ขอนแก่น,TH40,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Udon Thani (NAME_1 UdonThani),NL_NAME_1,จังหวัดอุดรธานี,อุดรธานี,TH41,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Loei (NAME_1 Loei),NL_NAME_1,จังหวัดเลย,เลย,TH42,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Nong Khai (NAME_1 NongKhai),NL_NAME_1,จังหวัดหนองคาย,หนองคาย,TH43,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Maha Sarakham (NAME_1 MahaSarakham),NL_NAME_1,จังหวัดมหาสารคาม,มหาสารคาม,TH44,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Kalasin (NAME_1 Kalasin),NL_NAME_1,จังหวัดกาฬสินธุ์,กาฬสินธุ์,TH46,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Sakon Nakhon (NAME_1 SakonNakhon),NL_NAME_1,จังหวัดสกลนคร,สกลนคร,TH47,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Nakhon Phanom (NAME_1 NakhonPhanom),NL_NAME_1,จังหวัดนครพนม,นครพนม,TH48,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Mukdahan (NAME_1 Mukdahan),NL_NAME_1,จังหวัดมุกดาหาร,มุกดาหาร,TH49,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Chiang Mai (NAME_1 ChiangMai),NL_NAME_1,จังหวัดเชียงใหม่,เชียงใหม่,TH50,prefix,"จับคู่ด้วยชื่ออังกฤษ (th_ambiguous: Bangkok Metropolis, Chiang Mai)"
+thailand.json,Lamphun (NAME_1 Lamphun),NL_NAME_1,จังหวัดลำพูน,ลำพูน,TH51,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Lampang (NAME_1 Lampang),NL_NAME_1,จังหวัดลำปาง,ลำปาง,TH52,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Uttaradit (NAME_1 Uttaradit),NL_NAME_1,จังหวัดอุตรดิตถ์,อุตรดิตถ์,TH53,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Phrae (NAME_1 Phrae),NL_NAME_1,จังหวัดแพร่,แพร่,TH54,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Nan (NAME_1 Nan),NL_NAME_1,จังหวัดน่าน,น่าน,TH55,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Phayao (NAME_1 Phayao),NL_NAME_1,จังหวัดพะเยา,พะเยา,TH56,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Chiang Rai (NAME_1 ChiangRai),NL_NAME_1,จังหวัดเชียงราย,เชียงราย,TH57,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Mae Hong Son (NAME_1 MaeHongSon),NL_NAME_1,จังหวัดแม่ฮ่องสอน,แม่ฮ่องสอน,TH58,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Nakhon Sawan (NAME_1 NakhonSawan),NL_NAME_1,จังหวัดนครสวรรค์,นครสวรรค์,TH60,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Uthai Thani (NAME_1 UthaiThani),NL_NAME_1,จังหวัดอุทัยธานี,อุทัยธานี,TH61,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Kamphaeng Phet (NAME_1 KamphaengPhet),NL_NAME_1,จังหวัดกำแพงเพชร,กำแพงเพชร,TH62,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Tak (NAME_1 Tak),NL_NAME_1,จังหวัดตาก,ตาก,TH63,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Sukhothai (NAME_1 Sukhothai),NL_NAME_1,จังหวัดสุโขทัย,สุโขทัย,TH64,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Phitsanulok (NAME_1 Phitsanulok),NL_NAME_1,จังหวัดพิษณุโลก,พิษณุโลก,TH65,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Phichit (NAME_1 Phichit),NL_NAME_1,จังหวัดพิจิตร,พิจิตร,TH66,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Phetchabun (NAME_1 Phetchabun),NL_NAME_1,อำเภอเมืองเพชรบูรณ์,เพชรบูรณ์,TH67,wrong,จับคู่ด้วยชื่ออังกฤษ (th_not_found)
+thailand.json,Ratchaburi (NAME_1 Ratchaburi),NL_NAME_1,จังหวัดราชบุรี,ราชบุรี,TH70,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Kanchanaburi (NAME_1 Kanchanaburi),NL_NAME_1,อำเภอเมืองกาญจนบุรี,กาญจนบุรี,TH71,wrong,จับคู่ด้วยชื่ออังกฤษ (th_not_found)
+thailand.json,Suphan Buri (NAME_1 SuphanBuri),NL_NAME_1,จังหวัดสุพรรณบุรี,สุพรรณบุรี,TH72,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Nakhon Pathom (NAME_1 NakhonPathom),NL_NAME_1,อำเภอเมืองนครปฐม,นครปฐม,TH73,wrong,จับคู่ด้วยชื่ออังกฤษ (th_not_found)
+thailand.json,Samut Sakhon (NAME_1 SamutSakhon),NL_NAME_1,จังหวัดสมุทรสาคร,สมุทรสาคร,TH74,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Samut Songkhram (NAME_1 SamutSongkhram),NL_NAME_1,จังหวัดสมุทรสงคราม,สมุทรสงคราม,TH75,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Phetchaburi (NAME_1 Phetchaburi),NL_NAME_1,จังหวัดเพชรบุรี,เพชรบุรี,TH76,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Prachuap Khiri Khan (NAME_1 PrachuapKhiriKhan),NL_NAME_1,จังหวัดประจวบคีรีขันธ์,ประจวบคีรีขันธ์,TH77,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Nakhon Si Thammarat (NAME_1 NakhonSiThammarat),NL_NAME_1,จังหวัดนครศรีธรรมราช,นครศรีธรรมราช,TH80,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Krabi (NAME_1 Krabi),NL_NAME_1,จังหวัดกระบี่,กระบี่,TH81,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Phangnga (NAME_1 Phangnga),NL_NAME_1,จังหวัดพังงา,พังงา,TH82,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Phuket (NAME_1 Phuket),NL_NAME_1,จังหวัดภูเก็ต,ภูเก็ต,TH83,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Surat Thani (NAME_1 SuratThani),NL_NAME_1,จังหวัดสุราษฎร์ธานี,สุราษฎร์ธานี,TH84,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Ranong (NAME_1 Ranong),NL_NAME_1,จังหวัดระนอง,ระนอง,TH85,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Chumphon (NAME_1 Chumphon),NL_NAME_1,จังหวัดชุมพร,ชุมพร,TH86,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Songkhla (NAME_1 Songkhla),NL_NAME_1,จังหวัดสงขลา,สงขลา,TH90,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Satun (NAME_1 Satun),NL_NAME_1,จังหวัดสตูล,สตูล,TH91,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Trang (NAME_1 Trang),NL_NAME_1,จังหวัดตรัง,ตรัง,TH92,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Phatthalung (NAME_1 Phatthalung),NL_NAME_1,จังหวัดพัทลุง,พัทลุง,TH93,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Pattani (NAME_1 Pattani),NL_NAME_1,จังหวัดปัตตานี,ปัตตานี,TH94,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Yala (NAME_1 Yala),NL_NAME_1,จังหวัดยะลา,ยะลา,TH95,prefix,จับคู่ด้วยชื่อไทย
+thailand.json,Narathiwat (NAME_1 Narathiwat),NL_NAME_1,จังหวัดนราธิวาส,นราธิวาส,TH96,prefix,จับคู่ด้วยชื่อไทย
+thailand_districts.json,PhraNakhon,name_th,เขตพระนคร,พระนคร,TH1001,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Dusit,name_th,เขตดุสิต,ดุสิต,TH1002,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,NongChok,name_th,เขตหนองจอก,หนองจอก,TH1003,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangRak,name_th,เขตบางรัก,บางรัก,TH1004,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangKhen,name_th,เขตบางเขน,บางเขน,TH1005,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangKapi,name_th,เขตบางกะปิ,บางกะปิ,TH1006,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,PathumWan,name_th,เขตปทุมวัน,ปทุมวัน,TH1007,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,PomPramSattru,name_th,เขตป้อมปราบศัตรูพ่าย,ป้อมปราบศัตรูพ่าย,TH1008,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Prakanong,name_th,เขตพระโขนง,พระโขนง,TH1009,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,MinBuri,name_th,เขตมีนบุรี,มีนบุรี,TH1010,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,LatKrabang,name_th,เขตลาดกระบัง,ลาดกระบัง,TH1011,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Yannawa,name_th,เขตยานนาวา,ยานนาวา,TH1012,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Samphantawong,name_th,เขตสัมพันธวงศ์,สัมพันธวงศ์,TH1013,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,PhayaThai,name_th,เขตพญาไท,พญาไท,TH1014,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,ThonBuri,name_th,เขตธนบุรี,ธนบุรี,TH1015,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangkokYai,name_th,เขตบางกอกใหญ่,บางกอกใหญ่,TH1016,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,HuaiKwang,name_th,เขตห้วยขวาง,ห้วยขวาง,TH1017,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,KhlongSan,name_th,เขตคลองสาน,คลองสาน,TH1018,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,TalingChan,name_th,เขตตลิ่งชัน,ตลิ่งชัน,TH1019,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangkokNoi,name_th,เขตบางกอกน้อย,บางกอกน้อย,TH1020,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Bangkhuntien,name_th,เขตบางขุนเทียน,บางขุนเทียน,TH1021,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,PhasiCharoen,name_th,เขตภาษีเจริญ,ภาษีเจริญ,TH1022,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Nongkheam,name_th,เขตหนองแขม,หนองแขม,TH1023,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,RatBurana,name_th,เขตราษฎร์บูรณะ,ราษฎร์บูรณะ,TH1024,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangPlad,name_th,เขตบางพลัด,บางพลัด,TH1025,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,DinDang,name_th,เขตดินแดง,ดินแดง,TH1026,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BungKum,name_th,เขตบึงกุ่ม,บึงกุ่ม,TH1027,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Sathorn,name_th,เขตสาทร,สาทร,TH1028,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangSu,name_th,เขตบางซื่อ,บางซื่อ,TH1029,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Chatuchak,name_th,เขตจตุจักร,จตุจักร,TH1030,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangKhoLaem,name_th,เขตบางคอแหลม,บางคอแหลม,TH1031,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Prawet,name_th,เขตประเวศ,ประเวศ,TH1032,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,KhlongToey,name_th,เขตคลองเตย,คลองเตย,TH1033,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,SuanLuang,name_th,เขตสวนหลวง,สวนหลวง,TH1034,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,ChomThong,name_th,เขตจอมทอง,จอมทอง,TH1035,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,DonMuang,name_th,เขตดอนเมือง,ดอนเมือง,TH1036,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Ratchathewi,name_th,เขตราชเทวี,ราชเทวี,TH1037,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,LatPhrao,name_th,เขตลาดพร้าว,ลาดพร้าว,TH1038,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Wattana,name_th,เขตวัฒนา,วัฒนา,TH1039,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangKhae,name_th,เขตบางแค,บางแค,TH1040,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,LakSi,name_th,เขตหลักสี่,หลักสี่,TH1041,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,SaiMai,name_th,เขตสายไหม,สายไหม,TH1042,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,KhanNaYao,name_th,เขตคันนายาว,คันนายาว,TH1043,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,SaphanSung,name_th,เขตสะพานสูง,สะพานสูง,TH1044,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,WangThonglang,name_th,เขตวังทองหลาง,วังทองหลาง,TH1045,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,KhlongSamWa,name_th,เขตคลองสามวา,คลองสามวา,TH1046,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangNa,name_th,เขตบางนา,บางนา,TH1047,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,ThawiWattana,name_th,เขตทวีวัฒนา,ทวีวัฒนา,TH1048,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Thungkru,name_th,เขตทุ่งครุ,ทุ่งครุ,TH1049,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,BangBon,name_th,เขตบางบอน,บางบอน,TH1050,prefix,จังหวัด Bangkok Metropolis · จับคู่ด้วยชื่อไทย · จังหวัดจับคู่ด้วย PCODE TH10
+thailand_districts.json,Takhli,name_th,ท่าตะโก,ตาคลี,TH6007,wrong,จังหวัด Nakhon Sawan · จับคู่ด้วยชื่ออังกฤษ (th_not_found)
+thailand_districts.json,PhayuhaKhiri,name_th,ลาดยาว,พยุหะคีรี,TH6010,wrong,จังหวัด Nakhon Sawan · จับคู่ด้วยชื่ออังกฤษ (th_not_found)
+thailand_districts.json,MuangNakhonSiThammarat,name_th,เมืองนครศรีธรรมราช,,,not_in_ocha,"จังหวัด Nakhon Si Thammarat · อาจเป็นอำเภอเดียวกับแถวฝั่งเดียวอีกแถว (ต่างแค่คำว่า ""เมือง"") กฎ C5 ไม่จับคู่ จึงไม่เสนอแก้"
+thailand_districts.json,SongkhlaLake,name_th,ทะเลสาบสงขลา,,,not_in_ocha,จังหวัด Phatthalung
+thailand_districts.json,SongkhlaLake,name_th,ทะเลสาบสงขลา,,,not_in_ocha,จังหวัด Songkhla
+thailand_districts.json,Galyani Vadhana,name_th,,กัลยาณิวัฒนา,TH5025,missing_in_system,จังหวัด Chiang Mai · th_not_found; en_not_found · ไม่เพิ่มรูปเส้นเขต
+thailand_districts.json,Mueang Nakhon Si Thammarat,name_th,,นครศรีธรรมราช,TH8001,missing_in_system,"จังหวัด Nakhon Si Thammarat · th_not_found; en_not_found · ไม่เพิ่มรูปเส้นเขต · อาจเป็นอำเภอเดียวกับแถวฝั่งเดียวอีกแถว (ต่างแค่คำว่า ""เมือง"") กฎ C5 ไม่จับคู่ จึงไม่เสนอแก้"
+thailand_districts.json,Bang Sai,name_th,,บางไทร,TH1404,missing_in_system,จังหวัด Phra Nakhon Si Ayutthaya · ชนกับแถวอื่นที่ระบบ BangSai (เก็บคู่ที่ชื่อไทยตรง) · ไม่เพิ่มรูปเส้นเขต
