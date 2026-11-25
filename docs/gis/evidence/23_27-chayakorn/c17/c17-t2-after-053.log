@@ -1,0 +1,138 @@
+C17 T2 after 053  2026-11-25 21:56:58  repo=<clone-c17> branch=23_27-chayakorn-c17 HEAD=d67ce5a47e7927779c194070c9642f6df85bb119 gis-unlock=7501cc8 worktree_clean=True
+rt = <runtime-c17> (path only)
+PS> & $py -I -B dev\gis_local\t2_integration.py --runtime-dir $rt
+{"name": "actual_local_auth_created_and_signed_in_three_synthetic_users", "status": "Pass"}
+{"name": "missing_jwt_401", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "malformed_jwt_401", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "valid_user_metadata_is_not_admin", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "valid_admin_live_profile", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "tampered_expired_claim_401", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "tampered_wrong_issuer_401", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "tampered_wrong_audience_401", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "tampered_wrong_role_401", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "tampered_future_iat_401", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "tampered_missing_exp_401", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "invalid_signature_rejected_by_real_auth", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "unsigned_jwt_401", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "legacy_admin_header_not_authentication", "status": "Pass", "expected_status": 401, "actual_status": 401}
+{"name": "normal_user_catalog_forbidden", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "normal_user_create_forbidden", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "metadata_admin_cannot_self_grant", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "legacy_header_cannot_upgrade_user", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "admin_grants_officer", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "officer_live_database_capabilities", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "officer_cannot_grant", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "officer_cannot_list_admin_grants", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "officer_cannot_revoke", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "direct_authenticated_gis_readiness_denied", "status": "Pass"}
+{"name": "direct_authenticated_gis_read_denied", "status": "Pass"}
+{"name": "direct_authenticated_gis_command_denied", "status": "Pass"}
+{"name": "direct_private_schema_access_denied", "status": "Pass"}
+{"name": "province_reference_real_rpc", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "dataset_create", "status": "Pass", "expected_status": 201, "actual_status": 201}
+{"name": "dataset_detail_redacted", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "duplicate_dataset_identity_conflict", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "missing_idempotency_key_422", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "malformed_idempotency_key_422", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "body_actor_id_forgery_rejected", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "body_role_forgery_rejected", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "body_state_forgery_rejected", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "strict_boolean_revision_rejected", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "stale_dataset_revision_409", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "dataset_title_update", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "receipt_replay_precedes_stale_revision", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "idempotency_changed_payload_conflict", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "missing_dataset_404", "status": "Pass", "expected_status": 404, "actual_status": 404}
+{"name": "missing_edition_404", "status": "Pass", "expected_status": 404, "actual_status": 404}
+{"name": "missing_job_404", "status": "Pass", "expected_status": 404, "actual_status": 404}
+{"name": "missing_parent_editions_404", "status": "Pass", "expected_status": 404, "actual_status": 404}
+{"name": "missing_parent_history_404", "status": "Pass", "expected_status": 404, "actual_status": 404}
+{"name": "missing_parent_attempts_404", "status": "Pass", "expected_status": 404, "actual_status": 404}
+{"name": "missing_parent_result_404", "status": "Pass", "expected_status": 404, "actual_status": 404}
+{"name": "invalid_uuid_path_422", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "unknown_query_key_422", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "bounded_page_limit_422", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "malformed_cursor_422", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "datasets_exact_identity_filters", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "dataset_cursor_first_page", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "dataset_cursor_next_page_no_duplicate", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "edition_create", "status": "Pass", "expected_status": 201, "actual_status": 201}
+{"name": "edition_detail", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "edition_parent_list", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "draft_edition_update", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "stale_draft_revision_409", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "remote_manifest_url_422", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "unknown_fixture_manifest_422", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "nonfinite_manifest_422", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "clone_edition_new_draft", "status": "Pass", "expected_status": 201, "actual_status": 201}
+{"name": "edition_history_real_audit", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "real_metadata_draft_only", "status": "Pass", "expected_status": 201, "actual_status": 201}
+{"name": "real_metadata_cannot_enqueue", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "hard_delete_not_exposed", "status": "Pass", "expected_status": 405, "actual_status": 405}
+{"name": "concurrent_idempotency_same_actor_one_effect", "status": "Pass"}
+{"name": "concurrent_single_row_receipt_audit", "status": "Pass"}
+{"name": "enqueue_real_queued_job", "status": "Pass", "expected_status": 202, "actual_status": 202}
+{"name": "enqueue_idempotent_202", "status": "Pass", "expected_status": 202, "actual_status": 202}
+{"name": "enqueue_semantic_dedup_202", "status": "Pass", "expected_status": 202, "actual_status": 202}
+{"name": "queued_job_never_fake_succeeded", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "pending_result_is_null", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "pending_attempt_history_empty", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "job_filter_by_parent_and_state", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "validating_input_edit_conflict", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "queued_retry_ineligible_409", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "manual_sql_success_fixture_not_api_or_python_worker", "status": "Pass"}
+{"name": "stored_successful_result_read", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "job_detail_has_real_stored_result", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "attempts_redact_lease_and_worker", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "terminal_enqueue_semantic_dedup_200", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "validated_input_edit_conflict", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "retry_fixture_enqueue", "status": "Pass", "expected_status": 202, "actual_status": 202}
+{"name": "retry_stale_hash_409", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "retry_stale_revision_409", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "explicit_retry_one_child_202", "status": "Pass", "expected_status": 202, "actual_status": 202}
+{"name": "explicit_retry_key_replays_202", "status": "Pass", "expected_status": 202, "actual_status": 202}
+{"name": "explicit_retry_budget_conflict", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "failed_job_safe_error_code", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "retry_child_chain_forbidden", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "activation_fixture_current_dataset", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "officer_cannot_activate", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "default_activation_gates_503", "status": "Pass", "expected_status": 503, "actual_status": 503}
+{"name": "backend_on_database_gate_off_503", "status": "Pass", "expected_status": 503, "actual_status": 503}
+{"name": "database_on_backend_gate_off_503", "status": "Pass", "expected_status": 503, "actual_status": 503}
+{"name": "activation_requires_prepared_publication_409", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "publication_prepared_for_synthetic_editions", "status": "Pass"}
+{"name": "admin_synthetic_activation", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "activation_stale_revision_409", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "second_edition_for_rollback", "status": "Pass", "expected_status": 201, "actual_status": 201}
+{"name": "second_validation_fixture_enqueue", "status": "Pass", "expected_status": 202, "actual_status": 202}
+{"name": "rollback_requires_prior_activation_history", "status": "Pass", "expected_status": 409, "actual_status": 409}
+{"name": "activate_new_preserves_old_edition", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "rollback_transactional_pointer", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "officer_cannot_withdraw", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "admin_withdraw_clears_pointer", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "original_publication_ready_restored_byte_identical", "status": "Pass"}
+{"name": "admin_grant_second_officer_for_page", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "officer_cursor_first_page", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "officer_page_is_bounded_with_cursor", "status": "Pass"}
+{"name": "officer_next_page_no_duplicate", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "officer_dto_no_email_or_grantor", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "admin_revoke_temporary_user_grant", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "ordinary_user_rights_restored", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "read_revision_before_officer_revoke", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "create_receipt_before_revocation", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "admin_revokes_officer", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "revoked_officer_me_updated", "status": "Pass", "expected_status": 200, "actual_status": 200}
+{"name": "revoked_officer_catalog_denied", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "revoked_officer_receipt_replay_denied", "status": "Pass", "expected_status": 403, "actual_status": 403}
+{"name": "cors_local_origin_required_headers", "status": "Pass"}
+{"name": "cors_untrusted_origin_denied", "status": "Pass"}
+{"name": "cors_legacy_admin_header_denied", "status": "Pass"}
+{"name": "oversized_body_rejected", "status": "Pass", "expected_status": 422, "actual_status": 422}
+{"name": "default_disabled_app_503", "status": "Pass", "expected_status": 503, "actual_status": 503}
+{"name": "owned_jobs_terminal_and_gate_restored", "status": "Pass"}
+{"report": "integration-af826eec-2670-4be9-ab59-341c0f5ca0d8.json", "counts": {"Pass": 129, "Fail": 0}}
+
+[stderr]
+<clone-c6>\green-area-backend\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+exit=0  [2026-11-25 22:02:52]

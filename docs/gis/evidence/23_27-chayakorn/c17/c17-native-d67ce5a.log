@@ -1,0 +1,90 @@
+C17 native (image built from d67ce5a)  2026-11-25 22:02:59  cwd=<clone-c17>\green-area-backend branch=23_27-chayakorn-c17 HEAD=d67ce5a47e7927779c194070c9642f6df85bb119 gis-unlock=7501cc8 worktree_clean=True
+PS> docker build -f gis_worker/Dockerfile -t gis-native-runtime:c17-d67ce5a .
+
+[stderr]
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.78kB 0.0s done
+#1 DONE 0.1s
+
+#2 [internal] load metadata for docker.io/library/python:3.11-slim
+#2 DONE 2.1s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 143B 0.0s done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 DONE 0.0s
+
+#5 [1/5] FROM docker.io/library/python:3.11-slim@sha256:61e01f72680f86a5279ad510818ab7b2ee9f049822589d4e34e33e044360356c
+#5 resolve docker.io/library/python:3.11-slim@sha256:61e01f72680f86a5279ad510818ab7b2ee9f049822589d4e34e33e044360356c 0.0s done
+#5 DONE 0.1s
+
+#4 [internal] load build context
+#4 transferring context: 45B done
+#4 DONE 0.0s
+
+#6 [2/5] RUN apt-get update     && apt-get install -y --no-install-recommends libexpat1     && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [3/5] COPY requirements-native.txt /tmp/requirements-native.txt
+#7 CACHED
+
+#8 [4/5] RUN pip install --no-cache-dir -r /tmp/requirements-native.txt     && rm /tmp/requirements-native.txt
+#8 CACHED
+
+#9 [5/5] WORKDIR /app/gis_worker
+#9 CACHED
+
+#10 exporting to image
+#10 exporting layers done
+#10 exporting manifest sha256:5d64a7d1bcfd472b8c92af076e8546a950deecdaf2d3b03ad1f36007e02350ae done
+#10 exporting config sha256:050fc884e5be1fec11df428734f465a926f19ce09c77e5712f5a747bc832ed53 done
+#10 exporting attestation manifest sha256:cd8888200153023ac4f6c33cc94228648a158a61776809c363f86342511e9817
+#10 exporting attestation manifest sha256:cd8888200153023ac4f6c33cc94228648a158a61776809c363f86342511e9817 0.0s done
+#10 exporting manifest list sha256:897195e2960a5a3dea58cf9ccd82288e7a3a8726b4e0e464eddfa767fd8c1d04 0.1s done
+#10 naming to docker.io/library/gis-native-runtime:c17-d67ce5a done
+#10 unpacking to docker.io/library/gis-native-runtime:c17-d67ce5a
+#10 unpacking to docker.io/library/gis-native-runtime:c17-d67ce5a 0.0s done
+#10 DONE 0.2s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/rq894m87ttg48be1d0pwjsozi
+build exit=0
+PS> docker image inspect --format {{.Id}} gis-native-runtime:c17-d67ce5a
+sha256:897195e2960a5a3dea58cf9ccd82288e7a3a8726b4e0e464eddfa767fd8c1d04
+PS> docker run --rm -v "${PWD}:/src:ro" -w /src gis-native-runtime:c17-d67ce5a sh -c "pip install --quiet --no-cache-dir pytest && python -m pytest -q -p no:cacheprovider tests/test_ldd_policy_native.py tests/test_ldd_prepare_native.py tests/test_ldd_publication_native.py tests/test_geotiff_native.py tests/test_geotiff_prepare_native.py tests/test_geotiff_publication_native.py tests/test_gis_native_provider.py"
+........................................................................ [ 33%]
+........................................................................ [ 66%]
+........................................................................ [ 99%]
+.                                                                        [100%]
+=============================== warnings summary ===============================
+../usr/local/lib/python3.11/site-packages/rasterio/transform.py:178: 3 warnings
+tests/test_geotiff_native.py: 37 warnings
+tests/test_geotiff_prepare_native.py: 28 warnings
+tests/test_geotiff_publication_native.py: 12 warnings
+  /usr/local/lib/python3.11/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[ndvi_ready-0-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[ndvi_ready-0-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_celsius_ready-20-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_celsius_ready-20-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_kelvin_ready-20-1]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_kelvin_ready-20-1]
+tests/test_geotiff_publication_native.py::test_explicit_matching_month_remains_unverified
+tests/test_geotiff_publication_native.py::test_display_mercator_asymmetric_grid_known_nearest_positions
+tests/test_geotiff_publication_native.py::test_display_mercator_asymmetric_grid_known_nearest_positions
+  /usr/local/lib/python3.11/site-packages/rasterio/transform.py:189: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(west, north) * Affine.scale(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+217 passed, 89 warnings in 42.89s
+
+[stderr]
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+
+[notice] A new release of pip is available: 24.0 -> 26.3
+[notice] To update, run: pip install --upgrade pip
+exit=0  [2026-11-25 22:03:54]

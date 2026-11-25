@@ -1,0 +1,21 @@
+C17 ledger after 053 (README section 13, READ ONLY)  2026-11-25 21:53:23  repo=<clone-c17> branch=23_27-chayakorn-c17 HEAD=d67ce5a47e7927779c194070c9642f6df85bb119 gis-unlock=7501cc8 worktree_clean=True
+PS> docker exec green-area-gis-t0-db psql -X -q -P pager=off -U postgres -d postgres -c $sql
+    db    |   cluster_name    |      mode       | activation_enabled | n_migrations 
+----------+-------------------+-----------------+--------------------+--------------
+ postgres | green-area-gis-t0 | local_synthetic | false              |           27
+(1 row)
+
+exit=0
+PS> docker exec green-area-gis-t0-db psql -X -qAt -U postgres -d postgres -c $ver
+installed migrations (27): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53
+exit=0
+PS> docker exec green-area-gis-t0-db psql -X -q -P pager=off -U postgres -d gis_t1_upgrade -c $sql
+       db       |   cluster_name    |      mode       | activation_enabled | n_migrations 
+----------------+-------------------+-----------------+--------------------+--------------
+ gis_t1_upgrade | green-area-gis-t0 | local_synthetic | false              |           27
+(1 row)
+
+exit=0
+PS> docker exec green-area-gis-t0-db psql -X -qAt -U postgres -d gis_t1_upgrade -c $ver
+installed migrations (27): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53
+exit=0

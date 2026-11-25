@@ -1,6 +1,7 @@
 # C17 · นำไฟล์เส้นเขต 41 จังหวัดเข้าระบบ (migration 053) (สัปดาห์ที่ 4, 23–27 พ.ย. 2569)
 
-จัดทำ 25/11/2569 โดยชยากร · **ทำครบ: แก้โค้ด, ผ่านเทสต์ทุกชุด, probe และ migrate 053 บน T0 ในเครื่อง** · push บรานช์ `23_27-chayakorn-c17` (`515718f`) และ tag C17 แล้วเมื่อ 25 พ.ย. ตามที่อนุมัติในแชต · ภายหลังมี commit แก้ README อีก 1 ตัว `d67ce5a` ซึ่ง**ยังไม่ push** (commit ที่ยังไม่ push: 1) · ไม่ได้แตะ Supabase จริง
+จัดทำ 25/11/2569 โดยชยากร · **ทำครบ: แก้โค้ด, ผ่านเทสต์ทุกชุด, probe และ migrate 053 บน T0 ในเครื่อง** · push บรานช์ `23_27-chayakorn-c17` และ tag C17 แล้วเมื่อ 25 พ.ย. ตามที่อนุมัติในแชต · commit แก้ README `d67ce5a` ก็ push แล้ว (`git ls-remote` ได้บรานช์ = `d67ce5a` · commit ที่ยังไม่ push: 0) · ไม่ได้แตะ Supabase จริง
+- **รันซ้ำหลัง migrate 053 (25 พ.ย. 21:53–22:04):** ledger 27 migration ถึง 53 ทั้งสองฐาน · T1 85/85 ทั้งสองฐาน · T2 129/0 · native 217 (image ใหม่ build จาก `d67ce5a`)
 - เทสต์ใช้ข้อมูลสังเคราะห์ของเทสต์ ส่วนไฟล์เส้นเขตเป็นข้อมูลจริงจาก C7 · ทั้งหมดรันในเครื่อง (local) ไม่มีส่วนไหน deploy
 
 ## Commit และ tag (บรานช์ `23_27-chayakorn-c17` จาก 7501cc8)
@@ -13,7 +14,8 @@
 - `git show HEAD:green-area-backend/gis_worker/province_boundaries_ldd.json`: SHA256 `49473e7e59aeecfe4b3dff1c9b6ebc21ffe859fa76de47c46c45e1d55dae93a3` · 8,413,889 ไบต์ · ไม่มีตัวขึ้นบรรทัด (ไม่ถูกแปลง)
 - migration 053 ใน HEAD: `7db4320ec7b651a0c823d483469771e9af176829b5c5fbb87a713f707a0fe9a3`
 - ก่อน push: `git ls-remote origin refs/heads/23_27-chayakorn-c17 refs/tags/C17` ว่าง · หลัง push: บรานช์ = `515718f` · tag C17 = `357d988e…` (→ `515718f`)
-- commit 3 `d67ce5a` docs(gis): list upload-053-approval.json in the T0 rebuild README · แก้บรรทัด 16–17 ของ README ให้ครอบถึง `upload-053-approval.json` · tag C17 ไม่ย้าย · ยังไม่ push
+- commit 3 `d67ce5a` docs(gis): list upload-053-approval.json in the T0 rebuild README · แก้บรรทัด 16–17 ของ README ให้ครอบถึง `upload-053-approval.json` · tag C17 ไม่ย้าย · push แล้ว (origin/23_27-chayakorn-c17 = `d67ce5a`)
+- `c17.diff` ทำใหม่จาก `git diff 7501cc8 d67ce5a` ไม่รวมไฟล์เส้นเขต (10 ไฟล์ · รวมส่วนที่แก้ README ของ commit 3)
 
 ## ไฟล์ที่แก้ (11 ไฟล์ · `c17.diff` ไม่รวมไฟล์เส้นเขต)
 | ไฟล์ | สิ่งที่ทำ |
@@ -54,7 +56,16 @@
 | T0 ใหม่: readiness หัวข้อ 13 (ก่อน 053) | **26 ทั้งสองฐาน** | 26 | `c17-t0-rebuild.log` |
 | T1 postgres / gis_t1_upgrade (T0 ใหม่) | **85/85 · 85/85** | C1: 85/85 ทั้งสองฐาน | `c17-t1-*.log` |
 | T2 (T0 ใหม่) | **129 Pass / 0 Fail** | C1: 129 | `c17-t2.log` |
+| **หลัง migrate 053:** ledger หัวข้อ 13 (READ ONLY) | **27 ถึง 53 ทั้งสองฐาน** · `activation_enabled = false` | ก่อน 053: 26 | `c17-ledger-after-053.log` |
+| **หลัง 053:** T1 postgres / gis_t1_upgrade (HEAD `d67ce5a`) | **85/85 · 85/85** | ก่อน 053: 85/85 · 85/85 | `c17-t1-postgres-after-053.log` `c17-t1-gis_t1_upgrade-after-053.log` |
+| **หลัง 053:** T2 (HEAD `d67ce5a`) | **129 Pass / 0 Fail** | ก่อน 053: 129 / 0 | `c17-t2-after-053.log` |
+| **native ใหม่:** image `gis-native-runtime:c17-d67ce5a` build จาก green-area-c17 ที่ `d67ce5a` (working tree สะอาด) | **217 passed** | `c17` (working tree ก่อน commit 1): 217 | `c17-native-d67ce5a.log` |
 
+- **ขอบเขตของผล T1/T2 หลัง 053:** T1 และ T2 ไม่ได้เรียก `gis.validate_ldd_report`
+  - ค้น `validate_ldd_report` ใน `dev/gis_local/tests/t1_cases.py` และ `dev/gis_local/t2_integration.py` ไม่เจอ · `ldd-valid-v1` มีแค่ในบรรทัด 70 ของ T1 (ไม่มีเคสไหนเรียกใช้) · ทุกเคสที่ complete ใช้รายงานของ fixture สังเคราะห์ ndvi/lst/invalid
+  - ผลที่ผ่านจึงบอกได้แค่ว่า 053 ไม่ทำให้สิทธิ์และ API เดิมพัง
+  - **ตรรกะของ 053** (hash ใหม่ hash ชุด 24 จังหวัด และ hash GADM ผ่าน · hash ผิดไม่ผ่าน · กฎอื่นยังทำงาน · สิทธิ์ของฟังก์ชัน) **ยืนยันได้จาก probe เท่านั้น** (`upload_053_lifecycle.sql` ใน `c17-053-probe-migrate.log`)
+- log ชุดหลัง 053 ทุกไฟล์มีบรรทัดแรกเป็น HEAD เวลาที่รัน และ `gis-unlock=7501cc8` · เขียนเป็น UTF-8 ไม่มี BOM
 - backend และ native รันที่ working tree ก่อน commit 1 ซึ่งต่างจาก commit 1 แค่ `.gitattributes` (ไม่มีผลกับโค้ดหรือเทสต์)
 - **T2 รอบแรกล้ม (บน T0 เดิม 09:43):** `integration_dependency_failed` (AuthApiError)
   - log ของ auth ได้ 403 `bad_jwt` "token is expired" (ดู `c17-t2-auth-log.txt`)
@@ -94,9 +105,9 @@
 - **T0 ใหม่ยังเปิดอยู่ที่ 053** · ส่วน T0 เดิมถูกลบแล้ว แต่มีข้อมูลสำรองอยู่ที่ `<backup-20261125>`
 
 ## ยังไม่ได้ตรวจ
-- ยังไม่ได้รัน T1/T2 ซ้ำหลัง migrate 053 (คำสั่งให้รันก่อน probe)
-- ยังไม่ได้อัปโหลดแพ็กเกจจริงผ่านตัวตรวจบน T0 ที่ 053
-- ยังไม่มีคนอื่นตรวจโค้ด · commit `d67ce5a` ยังไม่ push
+- ยังไม่ได้อัปโหลดแพ็กเกจจริงผ่านตัวตรวจบน T0 ที่ 053 จึงยังไม่มีเทสต์ใดเรียก `validate_ldd_report` ของ 053 นอกจาก probe
+- ยังไม่ได้รัน backend ทั้งชุดซ้ำที่ `d67ce5a` (commit 3 แก้แค่ README)
+- ยังไม่มีคนอื่นตรวจโค้ด
 
 ## ไฟล์ใน `docs/gis/evidence/23_27-chayakorn/c17/`
-`c17-summary.md` · `c17.diff` · `c17-backend.log` · `c17-backend.xml` · `c17-native.log` · `c17-readiness.log` · `c17-t1-postgres.log` · `c17-t1-gis_t1_upgrade.log` · `c17-t2.log` · `c17-t2-auth-log.txt` · `c17-old-t0-backup.log` · `c17-t0-rebuild.log` · `c17-053-probe-migrate.log` · `c17-gadm-province-survey.py` · `c17-gadm-province-survey.json` · `c17-gadm-province-survey.log`
+`c17-summary.md` · `c17.diff` · `c17-backend.log` · `c17-backend.xml` · `c17-native.log` · `c17-readiness.log` · `c17-t1-postgres.log` · `c17-t1-gis_t1_upgrade.log` · `c17-t2.log` · `c17-t2-auth-log.txt` · `c17-old-t0-backup.log` · `c17-t0-rebuild.log` · `c17-053-probe-migrate.log` · `c17-ledger-after-053.log` · `c17-t1-postgres-after-053.log` · `c17-t1-gis_t1_upgrade-after-053.log` · `c17-t2-after-053.log` · `c17-native-d67ce5a.log` · `c17-gadm-province-survey.py` · `c17-gadm-province-survey.json` · `c17-gadm-province-survey.log`

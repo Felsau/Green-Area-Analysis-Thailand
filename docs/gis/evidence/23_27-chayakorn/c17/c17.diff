@@ -15,7 +15,7 @@ index ee38800..652e279 100644
  # conversion on a Windows checkout would change their bytes and make every LDD validation fail.
  /green-area-backend/gis_worker/ldd_codes.json -text
 diff --git a/dev/gis_local/t0-rebuild/README.md b/dev/gis_local/t0-rebuild/README.md
-index c9482ce..9776169 100644
+index c9482ce..612def6 100644
 --- a/dev/gis_local/t0-rebuild/README.md
 +++ b/dev/gis_local/t0-rebuild/README.md
 @@ -1,4 +1,4 @@
@@ -24,11 +24,13 @@ index c9482ce..9776169 100644
  
  ลำดับคำสั่งนี้คัดจากการสร้าง T0 จริงเมื่อ 10–11 พ.ย. 2569 (งาน W4) บนเครื่อง Windows
  ผลที่ควรเห็นทุกขั้นคัดจาก log ของรอบนั้น ค่า `runtime_instance`, id ของ container และ id ของรายงานจะต่างกันทุกเครื่อง
-@@ -14,6 +14,7 @@
+@@ -13,7 +13,8 @@
+ | `t3-identity-independent-review.json` | 5 |
  | `migration-032-independent-review.json`, `migration-033-independent-review.json`, `run_032_033.py` | 6 |
  | `review-034.json`, `review-035.json` | 7 |
- | `gee-dashboard-048-approval.json`, `upload-049-approval.json` … `upload-052-approval.json` | 12 |
-+| `../upload_053_local.py`, `../upload_053_lifecycle.sql` (อยู่ใน `dev/gis_local` · ยังไม่มี `upload-053-approval.json` ต้องออกหลัง probe ผ่านและได้รับอนุมัติ) | 12 |
+-| `gee-dashboard-048-approval.json`, `upload-049-approval.json` … `upload-052-approval.json` | 12 |
++| `gee-dashboard-048-approval.json`, `upload-049-approval.json` … `upload-053-approval.json` | 12 |
++| `../upload_053_local.py`, `../upload_053_lifecycle.sql` (อยู่ใน `dev/gis_local`) | 12 |
  
  ## คำเตือน
  - **runtime dir มีค่าลับของเครื่อง** (`manage.py prepare` สร้างเอง) ต้องอยู่นอก repo ห้าม commit ห้ามแนบ และห้ามถ่ายภาพเนื้อหา
