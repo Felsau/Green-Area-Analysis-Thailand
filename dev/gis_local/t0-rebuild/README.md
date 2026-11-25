@@ -13,8 +13,8 @@
 | `t3-identity-independent-review.json` | 5 |
 | `migration-032-independent-review.json`, `migration-033-independent-review.json`, `run_032_033.py` | 6 |
 | `review-034.json`, `review-035.json` | 7 |
-| `gee-dashboard-048-approval.json`, `upload-049-approval.json` … `upload-052-approval.json` | 12 |
-| `../upload_053_local.py`, `../upload_053_lifecycle.sql` (อยู่ใน `dev/gis_local` · ยังไม่มี `upload-053-approval.json` ต้องออกหลัง probe ผ่านและได้รับอนุมัติ) | 12 |
+| `gee-dashboard-048-approval.json`, `upload-049-approval.json` … `upload-053-approval.json` | 12 |
+| `../upload_053_local.py`, `../upload_053_lifecycle.sql` (อยู่ใน `dev/gis_local`) | 12 |
 
 ## คำเตือน
 - **runtime dir มีค่าลับของเครื่อง** (`manage.py prepare` สร้างเอง) ต้องอยู่นอก repo ห้าม commit ห้ามแนบ และห้ามถ่ายภาพเนื้อหา
