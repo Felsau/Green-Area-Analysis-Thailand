@@ -1,0 +1,40 @@
+{
+ "decimals": 8,
+ "provinces": 36,
+ "files": {
+  "c7": {
+   "bytes": 8413889,
+   "sha256": "49473e7e59aeecfe4b3dff1c9b6ebc21ffe859fa76de47c46c45e1d55dae93a3"
+  },
+  "raw": {
+   "file": "province_boundaries_ocha_raw.json",
+   "bytes": 42829450,
+   "sha256": "cda1946dd86bdc109089bae45d456e7332cd1b70cb64229d7de13c2442924f7c",
+   "vs_c7_bytes": 34415561,
+   "ocha36_vertices": 1324131
+  },
+  "10": {
+   "file": "province_boundaries_ocha_10.json",
+   "bytes": 12571321,
+   "sha256": "9bd5ce814fe8f32ee7613b8042ab1024256c53114301c89abaaf33d3ff153784",
+   "vs_c7_bytes": 4157432,
+   "ocha36_vertices": 179579
+  },
+  "25": {
+   "file": "province_boundaries_ocha_25.json",
+   "bytes": 10542392,
+   "sha256": "f08e0a55b5e689a781b0917abd13d3613df1cb5a30a759a3fad6ae3bedc047ea",
+   "vs_c7_bytes": 2128503,
+   "ocha36_vertices": 102150
+  },
+  "50": {
+   "file": "province_boundaries_ocha_50.json",
+   "bytes": 9525428,
+   "sha256": "aee23045fa69b5c4fe13068d04d9db2de6b3b551f4591cee937ae425d5c65a0b",
+   "vs_c7_bytes": 1111539,
+   "ocha36_vertices": 63364
+  }
+ },
+ "invalid": [],
+ "gadm36_vertices": 30421
+}

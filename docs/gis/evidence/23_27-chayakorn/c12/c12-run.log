@@ -1,0 +1,52 @@
+# C12 run log · paths replaced: <clone-c6> <gis-w4-hdx> <gis-w4-evidence> <ldd-77> <c12-work>
+# python = <clone-c6>\green-area-backend\.venv\Scripts\python.exe (3.11.9 · fiona 1.10.1 · shapely 2.2.0 · rasterio 1.4.4), run with -I -B
+
+## pre-check
+git -C <clone-c6> rev-parse --abbrev-ref HEAD / --short HEAD -> 23_27-chayakorn c12d521 · git status --short: empty
+git -C <clone-c6> diff --stat 7501cc8 HEAD -- green-area-backend dev -> empty
+Get-FileHash <gis-w4-hdx>\tha_admin_boundaries.shp.zip -> CC62B47B3D38A83B958673C3DC6EC888326180AA437B2CD9224D7A8B1EFF64AA
+
+## simplify (44 s)
+PS> python -I -B <gis-w4-evidence>\c12\c12_ocha_simplify.py simplify --code <clone-c6> --c9-dir <gis-w4-evidence>\c9
+      --c7-asset <clone-c6>\docs\gis\evidence\23_27-chayakorn\province_boundaries_ldd.json
+      --c9-compare <gis-w4-evidence>\c9\c9-boundary-compare.csv --adm1 <gis-w4-hdx>\shp\tha_admin1.shp
+      --out-csv c12-compare.csv --out-json c12-simplify.json --out-dir <c12-work>
+36 provinces · invalid [] · decimals 8
+c7       8413889  49473e7e59aeecfe4b3dff1c9b6ebc21ffe859fa76de47c46c45e1d55dae93a3
+raw     42829450  cda1946dd86bdc109089bae45d456e7332cd1b70cb64229d7de13c2442924f7c  OCHA36 vertices 1324131
+10 m    12571321  9bd5ce814fe8f32ee7613b8042ab1024256c53114301c89abaaf33d3ff153784  179579
+25 m    10542392  f08e0a55b5e689a781b0917abd13d3613df1cb5a30a759a3fad6ae3bedc047ea  102150
+50 m     9525428  aee23045fa69b5c4fe13068d04d9db2de6b3b551f4591cee937ae425d5c65a0b  63364
+GADM36 vertices 30421
+
+## verify · Ang Thong first (gate)
+PS> python -I -B ...\c12_ocha_simplify.py verify --code <clone-c6> --c9-dir <gis-w4-evidence>\c9 --ldd77 <ldd-77>
+      --c10-csv <clone-c6>\docs\gis\evidence\23_27-chayakorn\c10\ldd_upload_report.csv
+      --round gadm=<C7 asset> --round ocha_raw=<c12-work>\province_boundaries_ocha_raw.json
+      --round ocha_25=<c12-work>\province_boundaries_ocha_25.json --round ocha_50=<c12-work>\province_boundaries_ocha_50.json
+      --province "Ang Thong"
+Ang Thong · Landuse_อ่างทอง_2568.zip · LU_ATG_2568.shp · EPSG:32647 · 15004 parcels · 4.2 s
+  gadm      inside 14404 · minor 358 · review 25 · OUTSIDE_PROVINCE 217 · repaired 31 · 1.8169% · flag True   <- equals C3, continue
+  ocha_raw  inside 14426 · minor 478 · review 22 · OUTSIDE_PROVINCE 78 · 1.2691% · flag True
+  ocha_25   inside 14415 · minor 487 · review 25 · OUTSIDE_PROVINCE 77 · 1.2693% · flag True
+  ocha_50   inside 14400 · minor 504 · review 22 · OUTSIDE_PROVINCE 78 · 1.2791% · flag True
+
+## verify · other 35 (6 processes in parallel, balanced by parcel count; <c12-work>\run_verify.ps1)
+group 0 424399 parcels: Nakhon Ratchasima, Surin, Si Sa Ket, Roi Et, Phangnga, Satun
+group 1 409655: Nakhon Si Thammarat, Chaiyaphum, Nakhon Phanom, Krabi, Narathiwat
+group 2 423019: Loei, Buri Ram, Maha Sarakham, Nong Khai, Trang, Ranong
+group 3 427411: Surat Thani, Sakon Nakhon, Bueng Kan, Nong Bua Lam Phu, Amnat Charoen, Pattani
+group 4 425735: Udon Thani, Khon Kaen, Chumphon, Songkhla, Phatthalung, Yala
+group 5 413694: Ubon Ratchathani, Kalasin, Mukdahan, Yasothon, Lop Buri, Phuket
+done in 198 s · exit 0 ×6 · stderr empty ×6
+Lop Buri read through the inner ZIP: ลพบุรีs.zip > Landuse_ลพบุรี_2566(ปีล่าสุด).zip
+
+## collect
+PS> python -I -B ...\c12_ocha_simplify.py collect --jsonl <c12-work>\verify_angthong.jsonl --jsonl <c12-work>\verify_g0..5.jsonl
+      --simplify-json c12-simplify.json --out-csv c12-verify.csv --out-json c12-verify-summary.json
+(first collect gave 35 provinces: verify_angthong.jsonl had been saved as UTF-16 by Tee-Object; re-saved as UTF-8, collected again -> 36)
+gadm      36 · not flagged 14 · not flagged & OUTSIDE_PROVINCE 0: 0 · OUTSIDE_PROVINCE 22963 · review 3300 · minor 32657 · 2538917 parcels
+ocha_raw  36 · not flagged 29 · 0 · 4697 · 614 · 35207
+ocha_25   36 · not flagged 29 · 0 · 4726 · 600 · 37032
+ocha_50   36 · not flagged 29 · 0 · 4755 · 609 · 38285
+stopped (VALIDATION_ASSET_INVALID): none · other_issues: none · crs errors: none

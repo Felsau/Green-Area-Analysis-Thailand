@@ -1,0 +1,58 @@
+{
+ "gadm": {
+  "provinces": 36,
+  "not_flagged": 14,
+  "not_flagged_and_outside_province_0": 0,
+  "outside_province_0": 0,
+  "outside_province_total": 22963,
+  "review_required_total": 3300,
+  "outside_minor_total": 32657,
+  "parcels_total": 2538917,
+  "stopped": 0,
+  "seconds_total": 593.5,
+  "asset_bytes": 8413889,
+  "asset_sha256": "49473e7e59aeecfe4b3dff1c9b6ebc21ffe859fa76de47c46c45e1d55dae93a3"
+ },
+ "ocha_raw": {
+  "provinces": 36,
+  "not_flagged": 29,
+  "not_flagged_and_outside_province_0": 0,
+  "outside_province_0": 0,
+  "outside_province_total": 4697,
+  "review_required_total": 614,
+  "outside_minor_total": 35207,
+  "parcels_total": 2538917,
+  "stopped": 0,
+  "seconds_total": 775.0,
+  "asset_bytes": 42829450,
+  "asset_sha256": "cda1946dd86bdc109089bae45d456e7332cd1b70cb64229d7de13c2442924f7c"
+ },
+ "ocha_25": {
+  "provinces": 36,
+  "not_flagged": 29,
+  "not_flagged_and_outside_province_0": 0,
+  "outside_province_0": 0,
+  "outside_province_total": 4726,
+  "review_required_total": 600,
+  "outside_minor_total": 37032,
+  "parcels_total": 2538917,
+  "stopped": 0,
+  "seconds_total": 589.9,
+  "asset_bytes": 10542392,
+  "asset_sha256": "f08e0a55b5e689a781b0917abd13d3613df1cb5a30a759a3fad6ae3bedc047ea"
+ },
+ "ocha_50": {
+  "provinces": 36,
+  "not_flagged": 29,
+  "not_flagged_and_outside_province_0": 0,
+  "outside_province_0": 0,
+  "outside_province_total": 4755,
+  "review_required_total": 609,
+  "outside_minor_total": 38285,
+  "parcels_total": 2538917,
+  "stopped": 0,
+  "seconds_total": 581.4,
+  "asset_bytes": 9525428,
+  "asset_sha256": "aee23045fa69b5c4fe13068d04d9db2de6b3b551f4591cee937ae425d5c65a0b"
+ }
+}
