@@ -1,0 +1,552 @@
+[
+ {
+  "province": "Bangkok Metropolis",
+  "package": "Landuse_Bangkok_2566_.zip",
+  "layer": "LU_BKK_2566.shp",
+  "crs": "EPSG:32647",
+  "encoding": "UTF-8",
+  "parcels": 11073,
+  "vertices": 315943,
+  "no_polygon": 0,
+  "districts": 66,
+  "own_districts": 50,
+  "other_province_districts": [
+   [
+    "TH1102",
+    "บางบ่อ",
+    1
+   ],
+   [
+    "TH1103",
+    "บางพลี",
+    14
+   ],
+   [
+    "TH1104",
+    "พระประแดง",
+    23
+   ],
+   [
+    "TH1105",
+    "พระสมุทรเจดีย์",
+    18
+   ],
+   [
+    "TH1106",
+    "บางเสาธง",
+    4
+   ],
+   [
+    "TH1201",
+    "เมืองนนทบุรี",
+    8
+   ],
+   [
+    "TH1202",
+    "บางกรวย",
+    18
+   ],
+   [
+    "TH1206",
+    "ปากเกร็ด",
+    4
+   ],
+   [
+    "TH1301",
+    "เมืองปทุมธานี",
+    1
+   ],
+   [
+    "TH1306",
+    "ลำลูกกา",
+    26
+   ],
+   [
+    "TH2401",
+    "เมืองฉะเชิงเทรา",
+    6
+   ],
+   [
+    "TH2403",
+    "บางน้ำเปรี้ยว",
+    2
+   ],
+   [
+    "TH7306",
+    "สามพราน",
+    9
+   ],
+   [
+    "TH7307",
+    "พุทธมณฑล",
+    7
+   ],
+   [
+    "TH7401",
+    "เมืองสมุทรสาคร",
+    35
+   ],
+   [
+    "TH7402",
+    "กระทุ่มแบน",
+    30
+   ]
+  ],
+  "parcels_in_no_district": 1,
+  "point_on_shared_border_ties": 0,
+  "adm2_invalid_in_package_crs": 0,
+  "districts_over_caps": 0,
+  "over_caps_by_kind": {},
+  "largest_by_zip": {
+   "province": "Bangkok Metropolis",
+   "district_pcode": "TH1003",
+   "district_th": "หนองจอก",
+   "district_en": "Nong Chok",
+   "district_adm1_pcode": "TH10",
+   "other_province": false,
+   "parcels": 2696,
+   "vertices": 62780,
+   "zip_bytes": 817644,
+   "zip_mib": 0.78,
+   "largest_member": ".dbf",
+   "largest_member_bytes": 4141506,
+   "expanded_bytes": 5319564,
+   "expanded_mib": 5.07,
+   "members": 5,
+   "max_member_ratio": 42.08,
+   "overall_ratio": 6.51,
+   "geojson_bytes": 2002566,
+   "geojson_mib": 1.91,
+   "record_count_check": "ok",
+   "guarded_zip": "ok",
+   "over_caps": ""
+  },
+  "largest_by_parcels": "TH1003",
+  "record_count_not_ok": [],
+  "guarded_zip_codes": {
+   "ok": 67
+  },
+  "zip_total_bytes": 3991633,
+  "source_zip_bytes": 5515403,
+  "seconds": {
+   "adm2": 21.4,
+   "read": 11.6,
+   "total": 34.8
+  }
+ },
+ {
+  "province": "Nong Bua Lam Phu",
+  "package": "Landuse_หนองบัวลำภู_2566 (ปีล่าสุด).zip",
+  "layer": "LU_NBP_2566.shp",
+  "crs": "EPSG:32648",
+  "encoding": "UTF-8",
+  "parcels": 50121,
+  "vertices": 2553311,
+  "no_polygon": 0,
+  "districts": 14,
+  "own_districts": 6,
+  "other_province_districts": [
+   [
+    "TH4006",
+    "สีชมพู",
+    44
+   ],
+   [
+    "TH4023",
+    "หนองนาคำ",
+    94
+   ],
+   [
+    "TH4103",
+    "หนองวัวซอ",
+    313
+   ],
+   [
+    "TH4117",
+    "บ้านผือ",
+    2
+   ],
+   [
+    "TH4118",
+    "น้ำโสม",
+    187
+   ],
+   [
+    "TH4202",
+    "นาด้วง",
+    49
+   ],
+   [
+    "TH4212",
+    "ผาขาว",
+    147
+   ],
+   [
+    "TH4213",
+    "เอราวัณ",
+    70
+   ]
+  ],
+  "parcels_in_no_district": 0,
+  "point_on_shared_border_ties": 0,
+  "adm2_invalid_in_package_crs": 0,
+  "districts_over_caps": 0,
+  "over_caps_by_kind": {},
+  "largest_by_zip": {
+   "province": "Nong Bua Lam Phu",
+   "district_pcode": "TH3901",
+   "district_th": "เมืองหนองบัวลำภู",
+   "district_en": "Mueang Nong Bua Lam Phu",
+   "district_adm1_pcode": "TH39",
+   "other_province": false,
+   "parcels": 12441,
+   "vertices": 554108,
+   "zip_bytes": 6372598,
+   "zip_mib": 6.08,
+   "largest_member": ".dbf",
+   "largest_member_bytes": 18748973,
+   "expanded_bytes": 28416105,
+   "expanded_mib": 27.1,
+   "members": 5,
+   "max_member_ratio": 69.19,
+   "overall_ratio": 4.46,
+   "geojson_bytes": 15275119,
+   "geojson_mib": 14.57,
+   "record_count_check": "ok",
+   "guarded_zip": "ok",
+   "over_caps": ""
+  },
+  "largest_by_parcels": "TH3901",
+  "record_count_not_ok": [],
+  "guarded_zip_codes": {
+   "ok": 14
+  },
+  "zip_total_bytes": 28769324,
+  "source_zip_bytes": 29326305,
+  "seconds": {
+   "adm2": 22.1,
+   "read": 56.0,
+   "total": 91.8
+  }
+ },
+ {
+  "province": "Nakhon Ratchasima",
+  "package": "Landuse_นครราชสีมา_2566 (ปีล่าสุด).zip",
+  "layer": "LU_NMA_2566.shp",
+  "crs": "EPSG:32648",
+  "encoding": "UTF-8",
+  "parcels": 153319,
+  "vertices": 11404194,
+  "no_polygon": 0,
+  "districts": 52,
+  "own_districts": 32,
+  "other_province_districts": [
+   [
+    "TH1610",
+    "ลำสนธิ",
+    15
+   ],
+   [
+    "TH1911",
+    "มวกเหล็ก",
+    259
+   ],
+   [
+    "TH2503",
+    "นาดี",
+    10
+   ],
+   [
+    "TH2601",
+    "เมืองนครนายก",
+    4
+   ],
+   [
+    "TH3102",
+    "คูเมือง",
+    34
+   ],
+   [
+    "TH3105",
+    "หนองกี่",
+    192
+   ],
+   [
+    "TH3109",
+    "พุทไธสง",
+    60
+   ],
+   [
+    "TH3110",
+    "ลำปลายมาศ",
+    169
+   ],
+   [
+    "TH3114",
+    "หนองหงส์",
+    33
+   ],
+   [
+    "TH3117",
+    "โนนสุวรรณ",
+    10
+   ],
+   [
+    "TH3119",
+    "บ้านใหม่ไชยพจน์",
+    123
+   ],
+   [
+    "TH3601",
+    "เมืองชัยภูมิ",
+    122
+   ],
+   [
+    "TH3603",
+    "คอนสวรรค์",
+    23
+   ],
+   [
+    "TH3606",
+    "จัตุรัส",
+    42
+   ],
+   [
+    "TH3607",
+    "บำเหน็จณรงค์",
+    31
+   ],
+   [
+    "TH3609",
+    "เทพสถิต",
+    83
+   ],
+   [
+    "TH3615",
+    "เนินสง่า",
+    1
+   ],
+   [
+    "TH4012",
+    "พล",
+    70
+   ],
+   [
+    "TH4014",
+    "แวงน้อย",
+    44
+   ],
+   [
+    "TH4015",
+    "หนองสองห้อง",
+    98
+   ]
+  ],
+  "parcels_in_no_district": 0,
+  "point_on_shared_border_ties": 0,
+  "adm2_invalid_in_package_crs": 0,
+  "districts_over_caps": 4,
+  "over_caps_by_kind": {
+   "geojson": 4,
+   "member": 1,
+   "vertices": 1
+  },
+  "largest_by_zip": {
+   "province": "Nakhon Ratchasima",
+   "district_pcode": "TH3021",
+   "district_th": "ปากช่อง",
+   "district_en": "Pak Chong",
+   "district_adm1_pcode": "TH30",
+   "other_province": false,
+   "parcels": 19978,
+   "vertices": 1534322,
+   "zip_bytes": 16933676,
+   "zip_mib": 16.15,
+   "largest_member": ".dbf",
+   "largest_member_bytes": 30686658,
+   "expanded_bytes": 56518709,
+   "expanded_mib": 53.9,
+   "members": 5,
+   "max_member_ratio": 41.82,
+   "overall_ratio": 3.34,
+   "geojson_bytes": 39220614,
+   "geojson_mib": 37.4,
+   "record_count_check": "ok",
+   "guarded_zip": "ZIP_MEMBER_SIZE_LIMIT",
+   "over_caps": "member vertices geojson"
+  },
+  "largest_by_parcels": "TH3021",
+  "record_count_not_ok": [],
+  "guarded_zip_codes": {
+   "ok": 51,
+   "ZIP_MEMBER_SIZE_LIMIT": 1
+  },
+  "zip_total_bytes": 125603356,
+  "source_zip_bytes": 128117480,
+  "seconds": {
+   "adm2": 24.1,
+   "read": 184.7,
+   "total": 238.7
+  }
+ },
+ {
+  "province": "Chiang Mai",
+  "package": "เชียงใหม่2567_ปีล่าสุด.zip",
+  "layer": "LU_CMI_2567.shp",
+  "crs": "EPSG:32647",
+  "encoding": "UTF-8",
+  "parcels": 162832,
+  "vertices": 11097284,
+  "no_polygon": 0,
+  "districts": 45,
+  "own_districts": 25,
+  "other_province_districts": [
+   [
+    "TH5101",
+    "เมืองลำพูน",
+    16
+   ],
+   [
+    "TH5103",
+    "บ้านโฮ่ง",
+    31
+   ],
+   [
+    "TH5104",
+    "ลี้",
+    39
+   ],
+   [
+    "TH5106",
+    "ป่าซาง",
+    1
+   ],
+   [
+    "TH5107",
+    "บ้านธิ",
+    136
+   ],
+   [
+    "TH5108",
+    "เวียงหนองล่อง",
+    1
+   ],
+   [
+    "TH5213",
+    "เมืองปาน",
+    7
+   ],
+   [
+    "TH5701",
+    "เมืองเชียงราย",
+    51
+   ],
+   [
+    "TH5707",
+    "แม่จัน",
+    592
+   ],
+   [
+    "TH5710",
+    "แม่สรวย",
+    31
+   ],
+   [
+    "TH5711",
+    "เวียงป่าเป้า",
+    46
+   ],
+   [
+    "TH5801",
+    "เมืองแม่ฮ่องสอน",
+    4
+   ],
+   [
+    "TH5802",
+    "ขุนยวม",
+    9
+   ],
+   [
+    "TH5803",
+    "ปาย",
+    82
+   ],
+   [
+    "TH5804",
+    "แม่สะเรียง",
+    7
+   ],
+   [
+    "TH5805",
+    "แม่ลาน้อย",
+    83
+   ],
+   [
+    "TH5806",
+    "สบเมย",
+    558
+   ],
+   [
+    "TH6303",
+    "สามเงา",
+    287
+   ],
+   [
+    "TH6304",
+    "แม่ระมาด",
+    36
+   ],
+   [
+    "TH6305",
+    "ท่าสองยาง",
+    56
+   ]
+  ],
+  "parcels_in_no_district": 28,
+  "point_on_shared_border_ties": 0,
+  "adm2_invalid_in_package_crs": 0,
+  "districts_over_caps": 3,
+  "over_caps_by_kind": {
+   "vertices": 2,
+   "geojson": 3,
+   "member": 1
+  },
+  "largest_by_zip": {
+   "province": "Chiang Mai",
+   "district_pcode": "TH5018",
+   "district_th": "อมก๋อย",
+   "district_en": "Omkoi",
+   "district_adm1_pcode": "TH50",
+   "other_province": false,
+   "parcels": 19314,
+   "vertices": 1584283,
+   "zip_bytes": 16772733,
+   "zip_mib": 16.0,
+   "largest_member": ".dbf",
+   "largest_member_bytes": 28932758,
+   "expanded_bytes": 55542332,
+   "expanded_mib": 52.97,
+   "members": 5,
+   "max_member_ratio": 93.66,
+   "overall_ratio": 3.31,
+   "geojson_bytes": 38640719,
+   "geojson_mib": 36.85,
+   "record_count_check": "ok",
+   "guarded_zip": "ZIP_MEMBER_SIZE_LIMIT",
+   "over_caps": "member vertices geojson"
+  },
+  "largest_by_parcels": "TH5018",
+  "record_count_not_ok": [],
+  "guarded_zip_codes": {
+   "ok": 45,
+   "ZIP_MEMBER_SIZE_LIMIT": 1
+  },
+  "zip_total_bytes": 118546686,
+  "source_zip_bytes": 123371407,
+  "seconds": {
+   "adm2": 23.8,
+   "read": 189.1,
+   "total": 241.6
+  }
+ }
+]

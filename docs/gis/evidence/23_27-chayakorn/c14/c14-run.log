@@ -1,0 +1,17 @@
+# C14 run log · paths replaced: <clone-c6> <gis-w4-evidence> <gis-w4-hdx> <ldd-77> <c14-work>
+# python = <clone-c6>\green-area-backend\.venv\Scripts\python.exe 3.11.9, run with -I -B
+
+## trial on Bangkok (output in <c14-work>\test, deleted after the check)
+66 districts · 315943 vertices (= C8) · _record_count ok · guarded_zip ok ×67 · 28.6 s
+
+## run (4 processes in parallel; <c14-work>\run_split.ps1)
+python -I -B <gis-w4-evidence>\c14\c14_split.py --backend <clone-c6>\green-area-backend --c12-dir <gis-w4-evidence>\c12
+  --c9-dir <gis-w4-evidence>\c9 --c9-compare <gis-w4-evidence>\c9\c9-boundary-compare.csv --adm2 <gis-w4-hdx>\shp\tha_admin2.shp
+  --work <c14-work> --province <P> --zip <ldd-77>\<package> --out-csv <c14-work>\split_<p>.csv --out-json <c14-work>\summary_<p>.json
+done in 243 s · exit 0 ×4 · stderr empty ×4
+Bangkok Metropolis  11073 parcels · 315943 vertices · 66 districts (50 own) · none 1 · over caps 0 · guarded_zip ok 67 · 34.8 s
+Nong Bua Lam Phu    50121 · 2553311 · 14 (6) · none 0 · over 0 · ok 14 · 91.8 s
+Nakhon Ratchasima   153319 · 11404194 · 52 (32) · none 0 · over 4 (geojson 4, vertices 1, member 1) · ok 51, ZIP_MEMBER_SIZE_LIMIT 1 · 238.7 s
+Chiang Mai          162832 · 11097284 · 45 (25) · none 28 · over 3 (geojson 3, vertices 2, member 1) · ok 45, ZIP_MEMBER_SIZE_LIMIT 1 · 241.6 s
+_record_count not ok: none
+c14-split.csv = split_bkk + split_nbp + split_nma + split_cmi (179 rows) · c14-provinces.json = the 4 summaries
