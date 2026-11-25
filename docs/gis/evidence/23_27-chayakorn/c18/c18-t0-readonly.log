@@ -1,0 +1,87 @@
+C18 T0 READ ONLY district names  2026-11-25 22:13:52  repo=<worktree-c18> HEAD=c9445400f9834bf3c69e94662682b11570ddc199  T0 ledger 27 (53)
+PS> Get-Content c18_t0_readonly.sql | docker exec -i green-area-gis-t0-db psql -X -P pager=off -U postgres -d postgres -v ON_ERROR_STOP=1
+BEGIN
+    db    | districts_table 
+----------+-----------------
+ postgres | districts
+(1 row)
+
+        table_name        | column_name | data_type 
+--------------------------+-------------+-----------
+ access_300m              | district    | text
+ district_lst_annual      | district    | text
+ district_lst_monthly     | district    | text
+ district_ndvi_annual     | district    | text
+ district_ndvi_monthly    | district    | text
+ districts                | name_th     | text
+ planting_recommendations | district    | text
+ provinces                | name_th     | text
+ urban_ndvi_annual        | district    | text
+(9 rows)
+
+ districts_rows | name_th_not_null 
+----------------+------------------
+            928 |                0
+(1 row)
+
+   province   |   name_en    | name_th 
+--------------+--------------+---------
+ Nakhon Sawan | LatYao       | 
+ Nakhon Sawan | PhayuhaKhiri | 
+ Nakhon Sawan | Takhli       | 
+ Nakhon Sawan | ThaTako      | 
+(4 rows)
+
+NOTICE:  table access_300m rows 0 thai_district_values 0
+NOTICE:  table district_lst_annual rows 0 thai_district_values 0
+NOTICE:  table district_lst_monthly rows 0 thai_district_values 0
+NOTICE:  table district_ndvi_annual rows 0 thai_district_values 0
+NOTICE:  table district_ndvi_monthly rows 0 thai_district_values 0
+NOTICE:  table planting_recommendations rows 0 thai_district_values 0
+NOTICE:  table urban_ndvi_annual rows 0 thai_district_values 0
+DO
+ROLLBACK
+exit=0
+PS> Get-Content c18_t0_readonly.sql | docker exec -i green-area-gis-t0-db psql -X -P pager=off -U postgres -d gis_t1_upgrade -v ON_ERROR_STOP=1
+BEGIN
+       db       | districts_table 
+----------------+-----------------
+ gis_t1_upgrade | districts
+(1 row)
+
+        table_name        | column_name | data_type 
+--------------------------+-------------+-----------
+ access_300m              | district    | text
+ district_lst_annual      | district    | text
+ district_lst_monthly     | district    | text
+ district_ndvi_annual     | district    | text
+ district_ndvi_monthly    | district    | text
+ districts                | name_th     | text
+ planting_recommendations | district    | text
+ provinces                | name_th     | text
+ urban_ndvi_annual        | district    | text
+(9 rows)
+
+ districts_rows | name_th_not_null 
+----------------+------------------
+            928 |                0
+(1 row)
+
+   province   |   name_en    | name_th 
+--------------+--------------+---------
+ Nakhon Sawan | LatYao       | 
+ Nakhon Sawan | PhayuhaKhiri | 
+ Nakhon Sawan | Takhli       | 
+ Nakhon Sawan | ThaTako      | 
+(4 rows)
+
+NOTICE:  table access_300m rows 0 thai_district_values 0
+NOTICE:  table district_lst_annual rows 0 thai_district_values 0
+NOTICE:  table district_lst_monthly rows 0 thai_district_values 0
+NOTICE:  table district_ndvi_annual rows 0 thai_district_values 0
+NOTICE:  table district_ndvi_monthly rows 0 thai_district_values 0
+NOTICE:  table planting_recommendations rows 0 thai_district_values 0
+NOTICE:  table urban_ndvi_annual rows 0 thai_district_values 0
+DO
+ROLLBACK
+exit=0

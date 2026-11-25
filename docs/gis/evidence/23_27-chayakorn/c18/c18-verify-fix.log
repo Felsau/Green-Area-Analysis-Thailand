@@ -1,0 +1,6 @@
+C18 verify fix  2026-11-25 22:12:26  repo=<worktree-c18> base=c944540
+copies byte-identical: True · sha256 67f3bc8ecf235603df11705164d12639929cc327f036e2b67c5c426313aac1b5 · 2631552 B
+green-area-backend/data/thailand_districts.json: base 2631549 B sha f4231a763fd9 · features 928 · changed features [('Nakhon Sawan', 'PhayuhaKhiri', 'ลาดยาว', 'พยุหะคีรี'), ('Nakhon Sawan', 'Takhli', 'ท่าตะโก', 'ตาคลี')] · byte-level edits [('replace', ',"name_th":"ลาดยาว"},', ',"name_th":"พยุหะคีรี"},'), ('replace', ',"name_th":"ท่าตะโก"},', ',"name_th":"ตาคลี"},')] · duplicate name_th in a province: none · ends with newline: False · has CR: False
+green-area-frontend/public/thailand_districts.json: base 2631549 B sha f4231a763fd9 · features 928 · changed features [('Nakhon Sawan', 'PhayuhaKhiri', 'ลาดยาว', 'พยุหะคีรี'), ('Nakhon Sawan', 'Takhli', 'ท่าตะโก', 'ตาคลี')] · byte-level edits [('replace', ',"name_th":"ลาดยาว"},', ',"name_th":"พยุหะคีรี"},'), ('replace', ',"name_th":"ท่าตะโก"},', ',"name_th":"ตาคลี"},')] · duplicate name_th in a province: none · ends with newline: False · has CR: False
+ALL_OK
+exit=0

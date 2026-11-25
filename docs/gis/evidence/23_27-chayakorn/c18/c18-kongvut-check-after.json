@@ -1,0 +1,878 @@
+{
+ "kongvut": {
+  "provinces": 77,
+  "districts": 930,
+  "district_rows_with_deleted_at": 0,
+  "keys_old_script_reads_present": {
+   "province name_en": false,
+   "district name_en": false,
+   "district name_th": false
+  },
+  "keys_now": {
+   "province": [
+    "created_at",
+    "deleted_at",
+    "geography_id",
+    "id",
+    "name",
+    "prefix",
+    "updated_at"
+   ],
+   "district": [
+    "created_at",
+    "deleted_at",
+    "id",
+    "name",
+    "prefix",
+    "province_id",
+    "updated_at"
+   ]
+  }
+ },
+ "extra_manual_c18": false,
+ "features": 928,
+ "layers": {
+  "strict": 763,
+  "loose": 80,
+  "manual": 85
+ },
+ "strict_lookup_entries": 927,
+ "loose_lookup_entries": 927,
+ "diff_count": 0,
+ "diffs": [],
+ "bangkok_khet_only_count": 45,
+ "bangkok_khet_only": [
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangBon",
+   "file_name_th": "เขตบางบอน",
+   "rebuilt_name_th": "บางบอน",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangKapi",
+   "file_name_th": "เขตบางกะปิ",
+   "rebuilt_name_th": "บางกะปิ",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangKhae",
+   "file_name_th": "เขตบางแค",
+   "rebuilt_name_th": "บางแค",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangKhen",
+   "file_name_th": "เขตบางเขน",
+   "rebuilt_name_th": "บางเขน",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangKhoLaem",
+   "file_name_th": "เขตบางคอแหลม",
+   "rebuilt_name_th": "บางคอแหลม",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangNa",
+   "file_name_th": "เขตบางนา",
+   "rebuilt_name_th": "บางนา",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangPlad",
+   "file_name_th": "เขตบางพลัด",
+   "rebuilt_name_th": "บางพลัด",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangRak",
+   "file_name_th": "เขตบางรัก",
+   "rebuilt_name_th": "บางรัก",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangSu",
+   "file_name_th": "เขตบางซื่อ",
+   "rebuilt_name_th": "บางซื่อ",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Bangkhuntien",
+   "file_name_th": "เขตบางขุนเทียน",
+   "rebuilt_name_th": "บางขุนเทียน",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangkokNoi",
+   "file_name_th": "เขตบางกอกน้อย",
+   "rebuilt_name_th": "บางกอกน้อย",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BangkokYai",
+   "file_name_th": "เขตบางกอกใหญ่",
+   "rebuilt_name_th": "บางกอกใหญ่",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "BungKum",
+   "file_name_th": "เขตบึงกุ่ม",
+   "rebuilt_name_th": "บึงกุ่ม",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Chatuchak",
+   "file_name_th": "เขตจตุจักร",
+   "rebuilt_name_th": "จตุจักร",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "ChomThong",
+   "file_name_th": "เขตจอมทอง",
+   "rebuilt_name_th": "จอมทอง",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "DinDang",
+   "file_name_th": "เขตดินแดง",
+   "rebuilt_name_th": "ดินแดง",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "DonMuang",
+   "file_name_th": "เขตดอนเมือง",
+   "rebuilt_name_th": "ดอนเมือง",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Dusit",
+   "file_name_th": "เขตดุสิต",
+   "rebuilt_name_th": "ดุสิต",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "HuaiKwang",
+   "file_name_th": "เขตห้วยขวาง",
+   "rebuilt_name_th": "ห้วยขวาง",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "KhlongToey",
+   "file_name_th": "เขตคลองเตย",
+   "rebuilt_name_th": "คลองเตย",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "LakSi",
+   "file_name_th": "เขตหลักสี่",
+   "rebuilt_name_th": "หลักสี่",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "LatKrabang",
+   "file_name_th": "เขตลาดกระบัง",
+   "rebuilt_name_th": "ลาดกระบัง",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "LatPhrao",
+   "file_name_th": "เขตลาดพร้าว",
+   "rebuilt_name_th": "ลาดพร้าว",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "MinBuri",
+   "file_name_th": "เขตมีนบุรี",
+   "rebuilt_name_th": "มีนบุรี",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "NongChok",
+   "file_name_th": "เขตหนองจอก",
+   "rebuilt_name_th": "หนองจอก",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "PathumWan",
+   "file_name_th": "เขตปทุมวัน",
+   "rebuilt_name_th": "ปทุมวัน",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "PhasiCharoen",
+   "file_name_th": "เขตภาษีเจริญ",
+   "rebuilt_name_th": "ภาษีเจริญ",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "PhayaThai",
+   "file_name_th": "เขตพญาไท",
+   "rebuilt_name_th": "พญาไท",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "PhraNakhon",
+   "file_name_th": "เขตพระนคร",
+   "rebuilt_name_th": "พระนคร",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Prakanong",
+   "file_name_th": "เขตพระโขนง",
+   "rebuilt_name_th": "พระโขนง",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Prawet",
+   "file_name_th": "เขตประเวศ",
+   "rebuilt_name_th": "ประเวศ",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "RatBurana",
+   "file_name_th": "เขตราษฎร์บูรณะ",
+   "rebuilt_name_th": "ราษฎร์บูรณะ",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Ratchathewi",
+   "file_name_th": "เขตราชเทวี",
+   "rebuilt_name_th": "ราชเทวี",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "SaiMai",
+   "file_name_th": "เขตสายไหม",
+   "rebuilt_name_th": "สายไหม",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Samphantawong",
+   "file_name_th": "เขตสัมพันธวงศ์",
+   "rebuilt_name_th": "สัมพันธวงศ์",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "SaphanSung",
+   "file_name_th": "เขตสะพานสูง",
+   "rebuilt_name_th": "สะพานสูง",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Sathorn",
+   "file_name_th": "เขตสาทร",
+   "rebuilt_name_th": "สาทร",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "SuanLuang",
+   "file_name_th": "เขตสวนหลวง",
+   "rebuilt_name_th": "สวนหลวง",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "TalingChan",
+   "file_name_th": "เขตตลิ่งชัน",
+   "rebuilt_name_th": "ตลิ่งชัน",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "ThawiWattana",
+   "file_name_th": "เขตทวีวัฒนา",
+   "rebuilt_name_th": "ทวีวัฒนา",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "ThonBuri",
+   "file_name_th": "เขตธนบุรี",
+   "rebuilt_name_th": "ธนบุรี",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Thungkru",
+   "file_name_th": "เขตทุ่งครุ",
+   "rebuilt_name_th": "ทุ่งครุ",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "WangThonglang",
+   "file_name_th": "เขตวังทองหลาง",
+   "rebuilt_name_th": "วังทองหลาง",
+   "layer": "strict"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Wattana",
+   "file_name_th": "เขตวัฒนา",
+   "rebuilt_name_th": "วัฒนา",
+   "layer": "loose"
+  },
+  {
+   "province": "Bangkok Metropolis",
+   "name": "Yannawa",
+   "file_name_th": "เขตยานนาวา",
+   "rebuilt_name_th": "ยานนาวา",
+   "layer": "strict"
+  }
+ ],
+ "kongvut_same_english_name_in_province": [
+  {
+   "key": [
+    "Phra Nakhon Si Ayutthaya",
+    "bang sai"
+   ],
+   "rows": [
+    {
+     "id": 1404,
+     "en": "Bang Sai",
+     "th": "บางไทร",
+     "deleted_at": null
+    },
+    {
+     "id": 1413,
+     "en": "Bang Sai",
+     "th": "บางซ้าย",
+     "deleted_at": null
+    }
+   ]
+  },
+  {
+   "key": [
+    "Nakhon Sawan",
+    "takhli"
+   ],
+   "rows": [
+    {
+     "id": 6007,
+     "en": "Takhli",
+     "th": "ตาคลี",
+     "deleted_at": null
+    },
+    {
+     "id": 6008,
+     "en": "Takhli",
+     "th": "ท่าตะโก",
+     "deleted_at": null
+    }
+   ]
+  },
+  {
+   "key": [
+    "Nakhon Sawan",
+    "phayuha khiri"
+   ],
+   "rows": [
+    {
+     "id": 6010,
+     "en": "Phayuha Khiri",
+     "th": "พยุหะคีรี",
+     "deleted_at": null
+    },
+    {
+     "id": 6011,
+     "en": "Phayuha Khiri",
+     "th": "ลาดยาว",
+     "deleted_at": null
+    }
+   ]
+  }
+ ],
+ "kongvut_same_strict_key_in_province": [
+  {
+   "key": [
+    "Phra Nakhon Si Ayutthaya",
+    "bangsai"
+   ],
+   "rows": [
+    {
+     "id": 1404,
+     "en": "Bang Sai",
+     "th": "บางไทร",
+     "deleted_at": null
+    },
+    {
+     "id": 1413,
+     "en": "Bang Sai",
+     "th": "บางซ้าย",
+     "deleted_at": null
+    }
+   ]
+  },
+  {
+   "key": [
+    "Nakhon Sawan",
+    "takhli"
+   ],
+   "rows": [
+    {
+     "id": 6007,
+     "en": "Takhli",
+     "th": "ตาคลี",
+     "deleted_at": null
+    },
+    {
+     "id": 6008,
+     "en": "Takhli",
+     "th": "ท่าตะโก",
+     "deleted_at": null
+    }
+   ]
+  },
+  {
+   "key": [
+    "Nakhon Sawan",
+    "phayuhakhiri"
+   ],
+   "rows": [
+    {
+     "id": 6010,
+     "en": "Phayuha Khiri",
+     "th": "พยุหะคีรี",
+     "deleted_at": null
+    },
+    {
+     "id": 6011,
+     "en": "Phayuha Khiri",
+     "th": "ลาดยาว",
+     "deleted_at": null
+    }
+   ]
+  }
+ ],
+ "kongvut_same_loose_key_in_province": [
+  {
+   "key": [
+    "Phra Nakhon Si Ayutthaya",
+    "bangsai"
+   ],
+   "rows": [
+    {
+     "id": 1404,
+     "en": "Bang Sai",
+     "th": "บางไทร",
+     "deleted_at": null
+    },
+    {
+     "id": 1413,
+     "en": "Bang Sai",
+     "th": "บางซ้าย",
+     "deleted_at": null
+    }
+   ]
+  },
+  {
+   "key": [
+    "Nakhon Sawan",
+    "takli"
+   ],
+   "rows": [
+    {
+     "id": 6007,
+     "en": "Takhli",
+     "th": "ตาคลี",
+     "deleted_at": null
+    },
+    {
+     "id": 6008,
+     "en": "Takhli",
+     "th": "ท่าตะโก",
+     "deleted_at": null
+    }
+   ]
+  },
+  {
+   "key": [
+    "Nakhon Sawan",
+    "paiohakiri"
+   ],
+   "rows": [
+    {
+     "id": 6010,
+     "en": "Phayuha Khiri",
+     "th": "พยุหะคีรี",
+     "deleted_at": null
+    },
+    {
+     "id": 6011,
+     "en": "Phayuha Khiri",
+     "th": "ลาดยาว",
+     "deleted_at": null
+    }
+   ]
+  }
+ ],
+ "strict_overwrites_with_different_th": [
+  {
+   "key": [
+    "Phra Nakhon Si Ayutthaya",
+    "bangsai"
+   ],
+   "earlier": {
+    "id": 1404,
+    "en": "Bang Sai",
+    "th": "บางไทร",
+    "deleted_at": null
+   },
+   "later_wins": {
+    "id": 1413,
+    "en": "Bang Sai",
+    "th": "บางซ้าย",
+    "deleted_at": null
+   }
+  },
+  {
+   "key": [
+    "Nakhon Sawan",
+    "takhli"
+   ],
+   "earlier": {
+    "id": 6007,
+    "en": "Takhli",
+    "th": "ตาคลี",
+    "deleted_at": null
+   },
+   "later_wins": {
+    "id": 6008,
+    "en": "Takhli",
+    "th": "ท่าตะโก",
+    "deleted_at": null
+   }
+  },
+  {
+   "key": [
+    "Nakhon Sawan",
+    "phayuhakhiri"
+   ],
+   "earlier": {
+    "id": 6010,
+    "en": "Phayuha Khiri",
+    "th": "พยุหะคีรี",
+    "deleted_at": null
+   },
+   "later_wins": {
+    "id": 6011,
+    "en": "Phayuha Khiri",
+    "th": "ลาดยาว",
+    "deleted_at": null
+   }
+  }
+ ],
+ "loose_overwrites_with_different_th": [
+  {
+   "key": [
+    "Phra Nakhon Si Ayutthaya",
+    "bangsai"
+   ],
+   "earlier": {
+    "id": 1404,
+    "en": "Bang Sai",
+    "th": "บางไทร",
+    "deleted_at": null
+   },
+   "later_wins": {
+    "id": 1413,
+    "en": "Bang Sai",
+    "th": "บางซ้าย",
+    "deleted_at": null
+   }
+  },
+  {
+   "key": [
+    "Nakhon Sawan",
+    "takli"
+   ],
+   "earlier": {
+    "id": 6007,
+    "en": "Takhli",
+    "th": "ตาคลี",
+    "deleted_at": null
+   },
+   "later_wins": {
+    "id": 6008,
+    "en": "Takhli",
+    "th": "ท่าตะโก",
+    "deleted_at": null
+   }
+  },
+  {
+   "key": [
+    "Nakhon Sawan",
+    "paiohakiri"
+   ],
+   "earlier": {
+    "id": 6010,
+    "en": "Phayuha Khiri",
+    "th": "พยุหะคีรี",
+    "deleted_at": null
+   },
+   "later_wins": {
+    "id": 6011,
+    "en": "Phayuha Khiri",
+    "th": "ลาดยาว",
+    "deleted_at": null
+   }
+  }
+ ],
+ "file_duplicate_name_th_in_province": [],
+ "nakhon_sawan_and_bangsai": {
+  "Nakhon Sawan / BanphotPhisai": {
+   "file_name_th": "บรรพตพิสัย",
+   "rebuilt_name_th": "บรรพตพิสัย",
+   "layer": "strict",
+   "key": [
+    "Nakhon Sawan",
+    "banphotphisai"
+   ],
+   "kongvut_row": {
+    "id": 6005,
+    "en": "Banphot Phisai",
+    "th": "บรรพตพิสัย",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / Chumsaeng": {
+   "file_name_th": "ชุมแสง",
+   "rebuilt_name_th": "ชุมแสง",
+   "layer": "strict",
+   "key": [
+    "Nakhon Sawan",
+    "chumsaeng"
+   ],
+   "kongvut_row": {
+    "id": 6003,
+    "en": "Chum Saeng",
+    "th": "ชุมแสง",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / K.ChumTaBong": {
+   "file_name_th": "ชุมตาบง",
+   "rebuilt_name_th": "ชุมตาบง",
+   "layer": "strict",
+   "key": [
+    "Nakhon Sawan",
+    "chumtabong"
+   ],
+   "kongvut_row": {
+    "id": 6015,
+    "en": "Chum Ta Bong",
+    "th": "ชุมตาบง",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / K.MaePoen": {
+   "file_name_th": "แม่เปิน",
+   "rebuilt_name_th": "แม่เปิน",
+   "layer": "strict",
+   "key": [
+    "Nakhon Sawan",
+    "maepoen"
+   ],
+   "kongvut_row": {
+    "id": 6014,
+    "en": "Mae Poen",
+    "th": "แม่เปิน",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / KaoLieo": {
+   "file_name_th": "เก้าเลี้ยว",
+   "rebuilt_name_th": "เก้าเลี้ยว",
+   "layer": "loose",
+   "key": [
+    "Nakhon Sawan",
+    "kaolio"
+   ],
+   "kongvut_row": {
+    "id": 6006,
+    "en": "Kao Liao",
+    "th": "เก้าเลี้ยว",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / KrokPhra": {
+   "file_name_th": "โกรกพระ",
+   "rebuilt_name_th": "โกรกพระ",
+   "layer": "strict",
+   "key": [
+    "Nakhon Sawan",
+    "krokphra"
+   ],
+   "kongvut_row": {
+    "id": 6002,
+    "en": "Krok Phra",
+    "th": "โกรกพระ",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / LatYao": {
+   "file_name_th": "ลาดยาว",
+   "rebuilt_name_th": "ลาดยาว",
+   "layer": "manual",
+   "key": [
+    "Nakhon Sawan",
+    "latyao"
+   ]
+  },
+  "Nakhon Sawan / MaeWong": {
+   "file_name_th": "แม่วงก์",
+   "rebuilt_name_th": "แม่วงก์",
+   "layer": "strict",
+   "key": [
+    "Nakhon Sawan",
+    "maewong"
+   ],
+   "kongvut_row": {
+    "id": 6013,
+    "en": "Mae Wong",
+    "th": "แม่วงก์",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / MuangNakhonSawan": {
+   "file_name_th": "เมืองนครสวรรค์",
+   "rebuilt_name_th": "เมืองนครสวรรค์",
+   "layer": "strict",
+   "key": [
+    "Nakhon Sawan",
+    "nakhonsawan"
+   ],
+   "kongvut_row": {
+    "id": 6001,
+    "en": "Mueang Nakhon Sawan",
+    "th": "เมืองนครสวรรค์",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / NongBua": {
+   "file_name_th": "หนองบัว",
+   "rebuilt_name_th": "หนองบัว",
+   "layer": "strict",
+   "key": [
+    "Nakhon Sawan",
+    "nongbua"
+   ],
+   "kongvut_row": {
+    "id": 6004,
+    "en": "Nong Bua",
+    "th": "หนองบัว",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / Phaisali": {
+   "file_name_th": "ไพศาลี",
+   "rebuilt_name_th": "ไพศาลี",
+   "layer": "strict",
+   "key": [
+    "Nakhon Sawan",
+    "phaisali"
+   ],
+   "kongvut_row": {
+    "id": 6009,
+    "en": "Phaisali",
+    "th": "ไพศาลี",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / PhayuhaKhiri": {
+   "file_name_th": "พยุหะคีรี",
+   "rebuilt_name_th": "พยุหะคีรี",
+   "layer": "manual",
+   "key": [
+    "Nakhon Sawan",
+    "phayuhakhiri"
+   ]
+  },
+  "Nakhon Sawan / TakFa": {
+   "file_name_th": "ตากฟ้า",
+   "rebuilt_name_th": "ตากฟ้า",
+   "layer": "strict",
+   "key": [
+    "Nakhon Sawan",
+    "takfa"
+   ],
+   "kongvut_row": {
+    "id": 6012,
+    "en": "Tak Fa",
+    "th": "ตากฟ้า",
+    "deleted_at": null
+   }
+  },
+  "Nakhon Sawan / Takhli": {
+   "file_name_th": "ตาคลี",
+   "rebuilt_name_th": "ตาคลี",
+   "layer": "manual",
+   "key": [
+    "Nakhon Sawan",
+    "takhli"
+   ]
+  },
+  "Nakhon Sawan / ThaTako": {
+   "file_name_th": "ท่าตะโก",
+   "rebuilt_name_th": "ท่าตะโก",
+   "layer": "manual",
+   "key": [
+    "Nakhon Sawan",
+    "thatako"
+   ]
+  },
+  "Phra Nakhon Si Ayutthaya / BangSai": {
+   "file_name_th": "บางซ้าย",
+   "rebuilt_name_th": "บางซ้าย",
+   "layer": "strict",
+   "key": [
+    "Phra Nakhon Si Ayutthaya",
+    "bangsai"
+   ],
+   "kongvut_row": {
+    "id": 1413,
+    "en": "Bang Sai",
+    "th": "บางซ้าย",
+    "deleted_at": null
+   }
+  }
+ }
+}

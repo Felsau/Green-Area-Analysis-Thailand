@@ -1,0 +1,160 @@
+C18 run log  2026-11-25 22:15:18  repo=<worktree-c18> branch=23_27-chayakorn-c18 HEAD=7658e54ffbe084d750937f83b7313e739e860cd2 base=c944540 (origin/main) tag C18 -> 7658e54
+inputs: <gis-w4-hdx>\shp\tha_admin2.shp sha256 5b51516dde6a329d683d8ff6f677caac2e89ef2fbe20f96600f18aeedf177351 (C15 file, from tha_admin_boundaries.shp.zip sha256 cc62b47b3d38a83b958673c3dc6ec888326180aa437b2cd9224d7a8b1eff64aa)
+        kongvut province.json sha256 8696f01825cde1443f4dacb5efd4d16bd460cbc910870434a524496ef71065b0 · district.json sha256 0682df1dd2d462f98526fde22343902eeeed7fbaff01cdd608090087412a3200 (downloaded 2026-11-25 15:07:56 UTC, HTTP 200; URLs = KONGVUT_PROVINCE / KONGVUT_DISTRICT of add_district_th_names.py)
+        thailand_districts.json at c944540 sha256 f4231a763fd925d76a9dc20d6515177c5c7d9629b80e82a8d89d525782f8768d (2631549 B)
+
+== step 1 shape check (base file; geometry is unchanged by the fix)
+PS> & $py -I -B c18_shape_check.py --districts (git show c944540:green-area-backend/data/thailand_districts.json) --adm2 <gis-w4-hdx>\shp\tha_admin2.shp --policy <clone-c6>\green-area-backend\gis_worker\ldd_policy.py --out <c18>
+       Takhli (ท่าตะโก) vs TH6007 Takhli (ตาคลี):  94.87% of system ·  90.72% of OCHA  <- same name
+       Takhli (ท่าตะโก) vs TH6008 Tha Tako (ท่าตะโก):   0.00% of system ·   0.00% of OCHA
+       Takhli (ท่าตะโก) vs TH6010 Phayuha Khiri (พยุหะคีรี):   0.37% of system ·   0.44% of OCHA
+       Takhli (ท่าตะโก) vs TH6011 Lat Yao (ลาดยาว):   0.00% of system ·   0.00% of OCHA
+      ThaTako (ท่าตะโก) vs TH6007 Takhli (ตาคลี):   0.00% of system ·   0.00% of OCHA
+      ThaTako (ท่าตะโก) vs TH6008 Tha Tako (ท่าตะโก):  92.35% of system ·  96.86% of OCHA  <- same name
+      ThaTako (ท่าตะโก) vs TH6010 Phayuha Khiri (พยุหะคีรี):   0.09% of system ·   0.12% of OCHA
+      ThaTako (ท่าตะโก) vs TH6011 Lat Yao (ลาดยาว):   0.00% of system ·   0.00% of OCHA
+       LatYao (ลาดยาว) vs TH6007 Takhli (ตาคลี):   0.00% of system ·   0.00% of OCHA
+       LatYao (ลาดยาว) vs TH6008 Tha Tako (ท่าตะโก):   0.00% of system ·   0.00% of OCHA
+       LatYao (ลาดยาว) vs TH6010 Phayuha Khiri (พยุหะคีรี):   0.00% of system ·   0.00% of OCHA
+       LatYao (ลาดยาว) vs TH6011 Lat Yao (ลาดยาว):  95.50% of system ·  91.52% of OCHA  <- same name
+ PhayuhaKhiri (ลาดยาว) vs TH6007 Takhli (ตาคลี):   0.86% of system ·   0.69% of OCHA
+ PhayuhaKhiri (ลาดยาว) vs TH6008 Tha Tako (ท่าตะโก):   0.21% of system ·   0.17% of OCHA
+ PhayuhaKhiri (ลาดยาว) vs TH6010 Phayuha Khiri (พยุหะคีรี):  93.41% of system ·  93.82% of OCHA  <- same name
+ PhayuhaKhiri (ลาดยาว) vs TH6011 Lat Yao (ลาดยาว):   0.00% of system ·   0.00% of OCHA
+      BangSai (บางซ้าย) vs TH1404 Bang Sai (บางไทร):  59.52% of system ·  97.80% of OCHA
+      BangSai (บางซ้าย) vs TH1413 Bang Sai (บางซ้าย):  34.27% of system ·  87.56% of OCHA
+repaired: none · below 50% same name: 0
+
+exit=0
+
+== step 2 kongvut lookup rebuilt as the script would (base file, script at c944540)
+PS> & $py -I -B c18_kongvut_check.py --script (git show c944540:green-area-backend/add_district_th_names.py) --kongvut <gis-w4-kongvut> --districts (c944540 file) --out <c18>\c18-kongvut-check.json
+{"kongvut": {"provinces": 77, "districts": 930, "district_rows_with_deleted_at": 0, "keys_old_script_reads_present": {"province name_en": false, "district name_en": false, "district name_th": false}, "keys_now": {"province": ["created_at", "deleted_at", "geography_id", "id", "name", "prefix", "updated_at"], "district": ["created_at", "deleted_at", "id", "name", "prefix", "province_id", "updated_at"]}}, "extra_manual_c18": false, "features": 928, "layers": {"strict": 765, "loose": 80, "manual": 83}, "strict_lookup_entries": 927, "loose_lookup_entries": 927, "diff_count": 0, "bangkok_khet_only_count": 45}
+kongvut_same_english_name_in_province 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bang sai"], "rows": [{"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "takhli"], "rows": [{"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "phayuha khiri"], "rows": [{"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}]}
+kongvut_same_strict_key_in_province 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "rows": [{"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "takhli"], "rows": [{"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "phayuhakhiri"], "rows": [{"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}]}
+kongvut_same_loose_key_in_province 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "rows": [{"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "takli"], "rows": [{"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "paiohakiri"], "rows": [{"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}]}
+strict_overwrites_with_different_th 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "earlier": {"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, "later_wins": {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "takhli"], "earlier": {"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, "later_wins": {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "phayuhakhiri"], "earlier": {"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, "later_wins": {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}}
+loose_overwrites_with_different_th 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "earlier": {"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, "later_wins": {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "takli"], "earlier": {"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, "later_wins": {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "paiohakiri"], "earlier": {"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, "later_wins": {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}}
+file_duplicate_name_th_in_province [['Nakhon Sawan', 'ลาดยาว', 2], ['Nakhon Sawan', 'ท่าตะโก', 2]]
+Nakhon Sawan / BanphotPhisai {"file_name_th": "บรรพตพิสัย", "rebuilt_name_th": "บรรพตพิสัย", "layer": "strict", "key": ["Nakhon Sawan", "banphotphisai"], "kongvut_row": {"id": 6005, "en": "Banphot Phisai", "th": "บรรพตพิสัย", "deleted_at": null}}
+Nakhon Sawan / Chumsaeng {"file_name_th": "ชุมแสง", "rebuilt_name_th": "ชุมแสง", "layer": "strict", "key": ["Nakhon Sawan", "chumsaeng"], "kongvut_row": {"id": 6003, "en": "Chum Saeng", "th": "ชุมแสง", "deleted_at": null}}
+Nakhon Sawan / K.ChumTaBong {"file_name_th": "ชุมตาบง", "rebuilt_name_th": "ชุมตาบง", "layer": "strict", "key": ["Nakhon Sawan", "chumtabong"], "kongvut_row": {"id": 6015, "en": "Chum Ta Bong", "th": "ชุมตาบง", "deleted_at": null}}
+Nakhon Sawan / K.MaePoen {"file_name_th": "แม่เปิน", "rebuilt_name_th": "แม่เปิน", "layer": "strict", "key": ["Nakhon Sawan", "maepoen"], "kongvut_row": {"id": 6014, "en": "Mae Poen", "th": "แม่เปิน", "deleted_at": null}}
+Nakhon Sawan / KaoLieo {"file_name_th": "เก้าเลี้ยว", "rebuilt_name_th": "เก้าเลี้ยว", "layer": "loose", "key": ["Nakhon Sawan", "kaolio"], "kongvut_row": {"id": 6006, "en": "Kao Liao", "th": "เก้าเลี้ยว", "deleted_at": null}}
+Nakhon Sawan / KrokPhra {"file_name_th": "โกรกพระ", "rebuilt_name_th": "โกรกพระ", "layer": "strict", "key": ["Nakhon Sawan", "krokphra"], "kongvut_row": {"id": 6002, "en": "Krok Phra", "th": "โกรกพระ", "deleted_at": null}}
+Nakhon Sawan / LatYao {"file_name_th": "ลาดยาว", "rebuilt_name_th": "ลาดยาว", "layer": "manual", "key": ["Nakhon Sawan", "latyao"]}
+Nakhon Sawan / MaeWong {"file_name_th": "แม่วงก์", "rebuilt_name_th": "แม่วงก์", "layer": "strict", "key": ["Nakhon Sawan", "maewong"], "kongvut_row": {"id": 6013, "en": "Mae Wong", "th": "แม่วงก์", "deleted_at": null}}
+Nakhon Sawan / MuangNakhonSawan {"file_name_th": "เมืองนครสวรรค์", "rebuilt_name_th": "เมืองนครสวรรค์", "layer": "strict", "key": ["Nakhon Sawan", "nakhonsawan"], "kongvut_row": {"id": 6001, "en": "Mueang Nakhon Sawan", "th": "เมืองนครสวรรค์", "deleted_at": null}}
+Nakhon Sawan / NongBua {"file_name_th": "หนองบัว", "rebuilt_name_th": "หนองบัว", "layer": "strict", "key": ["Nakhon Sawan", "nongbua"], "kongvut_row": {"id": 6004, "en": "Nong Bua", "th": "หนองบัว", "deleted_at": null}}
+Nakhon Sawan / Phaisali {"file_name_th": "ไพศาลี", "rebuilt_name_th": "ไพศาลี", "layer": "strict", "key": ["Nakhon Sawan", "phaisali"], "kongvut_row": {"id": 6009, "en": "Phaisali", "th": "ไพศาลี", "deleted_at": null}}
+Nakhon Sawan / PhayuhaKhiri {"file_name_th": "ลาดยาว", "rebuilt_name_th": "ลาดยาว", "layer": "strict", "key": ["Nakhon Sawan", "phayuhakhiri"], "kongvut_row": {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}}
+Nakhon Sawan / TakFa {"file_name_th": "ตากฟ้า", "rebuilt_name_th": "ตากฟ้า", "layer": "strict", "key": ["Nakhon Sawan", "takfa"], "kongvut_row": {"id": 6012, "en": "Tak Fa", "th": "ตากฟ้า", "deleted_at": null}}
+Nakhon Sawan / Takhli {"file_name_th": "ท่าตะโก", "rebuilt_name_th": "ท่าตะโก", "layer": "strict", "key": ["Nakhon Sawan", "takhli"], "kongvut_row": {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}}
+Nakhon Sawan / ThaTako {"file_name_th": "ท่าตะโก", "rebuilt_name_th": "ท่าตะโก", "layer": "manual", "key": ["Nakhon Sawan", "thatako"]}
+Phra Nakhon Si Ayutthaya / BangSai {"file_name_th": "บางซ้าย", "rebuilt_name_th": "บางซ้าย", "layer": "strict", "key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "kongvut_row": {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}}
+
+exit=0
+
+== step 2b same lookup plus the two C18 overrides (base file)
+PS> & $py -I -B c18_kongvut_check.py ... --out <c18>\c18-kongvut-check-with-c18-overrides.json --extra-manual
+{"kongvut": {"provinces": 77, "districts": 930, "district_rows_with_deleted_at": 0, "keys_old_script_reads_present": {"province name_en": false, "district name_en": false, "district name_th": false}, "keys_now": {"province": ["created_at", "deleted_at", "geography_id", "id", "name", "prefix", "updated_at"], "district": ["created_at", "deleted_at", "id", "name", "prefix", "province_id", "updated_at"]}}, "extra_manual_c18": true, "features": 928, "layers": {"strict": 763, "loose": 80, "manual": 85}, "strict_lookup_entries": 927, "loose_lookup_entries": 927, "diff_count": 2, "bangkok_khet_only_count": 45}
+DIFF {'province': 'Nakhon Sawan', 'name': 'PhayuhaKhiri', 'file_name_th': 'ลาดยาว', 'rebuilt_name_th': 'พยุหะคีรี', 'layer': 'manual'}
+DIFF {'province': 'Nakhon Sawan', 'name': 'Takhli', 'file_name_th': 'ท่าตะโก', 'rebuilt_name_th': 'ตาคลี', 'layer': 'manual'}
+kongvut_same_english_name_in_province 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bang sai"], "rows": [{"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "takhli"], "rows": [{"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "phayuha khiri"], "rows": [{"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}]}
+kongvut_same_strict_key_in_province 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "rows": [{"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "takhli"], "rows": [{"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "phayuhakhiri"], "rows": [{"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}]}
+kongvut_same_loose_key_in_province 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "rows": [{"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "takli"], "rows": [{"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "paiohakiri"], "rows": [{"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}]}
+strict_overwrites_with_different_th 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "earlier": {"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, "later_wins": {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "takhli"], "earlier": {"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, "later_wins": {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "phayuhakhiri"], "earlier": {"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, "later_wins": {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}}
+loose_overwrites_with_different_th 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "earlier": {"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, "later_wins": {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "takli"], "earlier": {"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, "later_wins": {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "paiohakiri"], "earlier": {"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, "later_wins": {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}}
+file_duplicate_name_th_in_province [['Nakhon Sawan', 'ลาดยาว', 2], ['Nakhon Sawan', 'ท่าตะโก', 2]]
+Nakhon Sawan / BanphotPhisai {"file_name_th": "บรรพตพิสัย", "rebuilt_name_th": "บรรพตพิสัย", "layer": "strict", "key": ["Nakhon Sawan", "banphotphisai"], "kongvut_row": {"id": 6005, "en": "Banphot Phisai", "th": "บรรพตพิสัย", "deleted_at": null}}
+Nakhon Sawan / Chumsaeng {"file_name_th": "ชุมแสง", "rebuilt_name_th": "ชุมแสง", "layer": "strict", "key": ["Nakhon Sawan", "chumsaeng"], "kongvut_row": {"id": 6003, "en": "Chum Saeng", "th": "ชุมแสง", "deleted_at": null}}
+Nakhon Sawan / K.ChumTaBong {"file_name_th": "ชุมตาบง", "rebuilt_name_th": "ชุมตาบง", "layer": "strict", "key": ["Nakhon Sawan", "chumtabong"], "kongvut_row": {"id": 6015, "en": "Chum Ta Bong", "th": "ชุมตาบง", "deleted_at": null}}
+Nakhon Sawan / K.MaePoen {"file_name_th": "แม่เปิน", "rebuilt_name_th": "แม่เปิน", "layer": "strict", "key": ["Nakhon Sawan", "maepoen"], "kongvut_row": {"id": 6014, "en": "Mae Poen", "th": "แม่เปิน", "deleted_at": null}}
+Nakhon Sawan / KaoLieo {"file_name_th": "เก้าเลี้ยว", "rebuilt_name_th": "เก้าเลี้ยว", "layer": "loose", "key": ["Nakhon Sawan", "kaolio"], "kongvut_row": {"id": 6006, "en": "Kao Liao", "th": "เก้าเลี้ยว", "deleted_at": null}}
+Nakhon Sawan / KrokPhra {"file_name_th": "โกรกพระ", "rebuilt_name_th": "โกรกพระ", "layer": "strict", "key": ["Nakhon Sawan", "krokphra"], "kongvut_row": {"id": 6002, "en": "Krok Phra", "th": "โกรกพระ", "deleted_at": null}}
+Nakhon Sawan / LatYao {"file_name_th": "ลาดยาว", "rebuilt_name_th": "ลาดยาว", "layer": "manual", "key": ["Nakhon Sawan", "latyao"]}
+Nakhon Sawan / MaeWong {"file_name_th": "แม่วงก์", "rebuilt_name_th": "แม่วงก์", "layer": "strict", "key": ["Nakhon Sawan", "maewong"], "kongvut_row": {"id": 6013, "en": "Mae Wong", "th": "แม่วงก์", "deleted_at": null}}
+Nakhon Sawan / MuangNakhonSawan {"file_name_th": "เมืองนครสวรรค์", "rebuilt_name_th": "เมืองนครสวรรค์", "layer": "strict", "key": ["Nakhon Sawan", "nakhonsawan"], "kongvut_row": {"id": 6001, "en": "Mueang Nakhon Sawan", "th": "เมืองนครสวรรค์", "deleted_at": null}}
+Nakhon Sawan / NongBua {"file_name_th": "หนองบัว", "rebuilt_name_th": "หนองบัว", "layer": "strict", "key": ["Nakhon Sawan", "nongbua"], "kongvut_row": {"id": 6004, "en": "Nong Bua", "th": "หนองบัว", "deleted_at": null}}
+Nakhon Sawan / Phaisali {"file_name_th": "ไพศาลี", "rebuilt_name_th": "ไพศาลี", "layer": "strict", "key": ["Nakhon Sawan", "phaisali"], "kongvut_row": {"id": 6009, "en": "Phaisali", "th": "ไพศาลี", "deleted_at": null}}
+Nakhon Sawan / PhayuhaKhiri {"file_name_th": "ลาดยาว", "rebuilt_name_th": "พยุหะคีรี", "layer": "manual", "key": ["Nakhon Sawan", "phayuhakhiri"]}
+Nakhon Sawan / TakFa {"file_name_th": "ตากฟ้า", "rebuilt_name_th": "ตากฟ้า", "layer": "strict", "key": ["Nakhon Sawan", "takfa"], "kongvut_row": {"id": 6012, "en": "Tak Fa", "th": "ตากฟ้า", "deleted_at": null}}
+Nakhon Sawan / Takhli {"file_name_th": "ท่าตะโก", "rebuilt_name_th": "ตาคลี", "layer": "manual", "key": ["Nakhon Sawan", "takhli"]}
+Nakhon Sawan / ThaTako {"file_name_th": "ท่าตะโก", "rebuilt_name_th": "ท่าตะโก", "layer": "manual", "key": ["Nakhon Sawan", "thatako"]}
+Phra Nakhon Si Ayutthaya / BangSai {"file_name_th": "บางซ้าย", "rebuilt_name_th": "บางซ้าย", "layer": "strict", "key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "kongvut_row": {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}}
+
+exit=0
+
+== step 2c committed script (HEAD) against the fixed file: no differences except Bangkok "เขต"
+PS> & $py -I -B c18_kongvut_check.py --script <worktree-c18>\green-area-backend\add_district_th_names.py --kongvut <gis-w4-kongvut> --districts <worktree-c18>\green-area-backend\data\thailand_districts.json --out <c18>\c18-kongvut-check-after.json
+{"kongvut": {"provinces": 77, "districts": 930, "district_rows_with_deleted_at": 0, "keys_old_script_reads_present": {"province name_en": false, "district name_en": false, "district name_th": false}, "keys_now": {"province": ["created_at", "deleted_at", "geography_id", "id", "name", "prefix", "updated_at"], "district": ["created_at", "deleted_at", "id", "name", "prefix", "province_id", "updated_at"]}}, "extra_manual_c18": false, "features": 928, "layers": {"strict": 763, "loose": 80, "manual": 85}, "strict_lookup_entries": 927, "loose_lookup_entries": 927, "diff_count": 0, "bangkok_khet_only_count": 45}
+kongvut_same_english_name_in_province 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bang sai"], "rows": [{"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "takhli"], "rows": [{"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "phayuha khiri"], "rows": [{"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}]}
+kongvut_same_strict_key_in_province 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "rows": [{"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "takhli"], "rows": [{"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "phayuhakhiri"], "rows": [{"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}]}
+kongvut_same_loose_key_in_province 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "rows": [{"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "takli"], "rows": [{"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}]}
+    {"key": ["Nakhon Sawan", "paiohakiri"], "rows": [{"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}]}
+strict_overwrites_with_different_th 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "earlier": {"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, "later_wins": {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "takhli"], "earlier": {"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, "later_wins": {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "phayuhakhiri"], "earlier": {"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, "later_wins": {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}}
+loose_overwrites_with_different_th 3
+    {"key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "earlier": {"id": 1404, "en": "Bang Sai", "th": "บางไทร", "deleted_at": null}, "later_wins": {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "takli"], "earlier": {"id": 6007, "en": "Takhli", "th": "ตาคลี", "deleted_at": null}, "later_wins": {"id": 6008, "en": "Takhli", "th": "ท่าตะโก", "deleted_at": null}}
+    {"key": ["Nakhon Sawan", "paiohakiri"], "earlier": {"id": 6010, "en": "Phayuha Khiri", "th": "พยุหะคีรี", "deleted_at": null}, "later_wins": {"id": 6011, "en": "Phayuha Khiri", "th": "ลาดยาว", "deleted_at": null}}
+file_duplicate_name_th_in_province []
+Nakhon Sawan / BanphotPhisai {"file_name_th": "บรรพตพิสัย", "rebuilt_name_th": "บรรพตพิสัย", "layer": "strict", "key": ["Nakhon Sawan", "banphotphisai"], "kongvut_row": {"id": 6005, "en": "Banphot Phisai", "th": "บรรพตพิสัย", "deleted_at": null}}
+Nakhon Sawan / Chumsaeng {"file_name_th": "ชุมแสง", "rebuilt_name_th": "ชุมแสง", "layer": "strict", "key": ["Nakhon Sawan", "chumsaeng"], "kongvut_row": {"id": 6003, "en": "Chum Saeng", "th": "ชุมแสง", "deleted_at": null}}
+Nakhon Sawan / K.ChumTaBong {"file_name_th": "ชุมตาบง", "rebuilt_name_th": "ชุมตาบง", "layer": "strict", "key": ["Nakhon Sawan", "chumtabong"], "kongvut_row": {"id": 6015, "en": "Chum Ta Bong", "th": "ชุมตาบง", "deleted_at": null}}
+Nakhon Sawan / K.MaePoen {"file_name_th": "แม่เปิน", "rebuilt_name_th": "แม่เปิน", "layer": "strict", "key": ["Nakhon Sawan", "maepoen"], "kongvut_row": {"id": 6014, "en": "Mae Poen", "th": "แม่เปิน", "deleted_at": null}}
+Nakhon Sawan / KaoLieo {"file_name_th": "เก้าเลี้ยว", "rebuilt_name_th": "เก้าเลี้ยว", "layer": "loose", "key": ["Nakhon Sawan", "kaolio"], "kongvut_row": {"id": 6006, "en": "Kao Liao", "th": "เก้าเลี้ยว", "deleted_at": null}}
+Nakhon Sawan / KrokPhra {"file_name_th": "โกรกพระ", "rebuilt_name_th": "โกรกพระ", "layer": "strict", "key": ["Nakhon Sawan", "krokphra"], "kongvut_row": {"id": 6002, "en": "Krok Phra", "th": "โกรกพระ", "deleted_at": null}}
+Nakhon Sawan / LatYao {"file_name_th": "ลาดยาว", "rebuilt_name_th": "ลาดยาว", "layer": "manual", "key": ["Nakhon Sawan", "latyao"]}
+Nakhon Sawan / MaeWong {"file_name_th": "แม่วงก์", "rebuilt_name_th": "แม่วงก์", "layer": "strict", "key": ["Nakhon Sawan", "maewong"], "kongvut_row": {"id": 6013, "en": "Mae Wong", "th": "แม่วงก์", "deleted_at": null}}
+Nakhon Sawan / MuangNakhonSawan {"file_name_th": "เมืองนครสวรรค์", "rebuilt_name_th": "เมืองนครสวรรค์", "layer": "strict", "key": ["Nakhon Sawan", "nakhonsawan"], "kongvut_row": {"id": 6001, "en": "Mueang Nakhon Sawan", "th": "เมืองนครสวรรค์", "deleted_at": null}}
+Nakhon Sawan / NongBua {"file_name_th": "หนองบัว", "rebuilt_name_th": "หนองบัว", "layer": "strict", "key": ["Nakhon Sawan", "nongbua"], "kongvut_row": {"id": 6004, "en": "Nong Bua", "th": "หนองบัว", "deleted_at": null}}
+Nakhon Sawan / Phaisali {"file_name_th": "ไพศาลี", "rebuilt_name_th": "ไพศาลี", "layer": "strict", "key": ["Nakhon Sawan", "phaisali"], "kongvut_row": {"id": 6009, "en": "Phaisali", "th": "ไพศาลี", "deleted_at": null}}
+Nakhon Sawan / PhayuhaKhiri {"file_name_th": "พยุหะคีรี", "rebuilt_name_th": "พยุหะคีรี", "layer": "manual", "key": ["Nakhon Sawan", "phayuhakhiri"]}
+Nakhon Sawan / TakFa {"file_name_th": "ตากฟ้า", "rebuilt_name_th": "ตากฟ้า", "layer": "strict", "key": ["Nakhon Sawan", "takfa"], "kongvut_row": {"id": 6012, "en": "Tak Fa", "th": "ตากฟ้า", "deleted_at": null}}
+Nakhon Sawan / Takhli {"file_name_th": "ตาคลี", "rebuilt_name_th": "ตาคลี", "layer": "manual", "key": ["Nakhon Sawan", "takhli"]}
+Nakhon Sawan / ThaTako {"file_name_th": "ท่าตะโก", "rebuilt_name_th": "ท่าตะโก", "layer": "manual", "key": ["Nakhon Sawan", "thatako"]}
+Phra Nakhon Si Ayutthaya / BangSai {"file_name_th": "บางซ้าย", "rebuilt_name_th": "บางซ้าย", "layer": "strict", "key": ["Phra Nakhon Si Ayutthaya", "bangsai"], "kongvut_row": {"id": 1413, "en": "Bang Sai", "th": "บางซ้าย", "deleted_at": null}}
+
+exit=0
+

@@ -1,0 +1,20 @@
+C18 backend  2026-11-25 22:12:45  repo=<worktree-c18> branch=23_27-chayakorn-c18 HEAD=c9445400f9834bf3c69e94662682b11570ddc199 + working tree (M green-area-backend/add_district_th_names.py · M green-area-backend/data/thailand_districts.json · M green-area-frontend/public/thailand_districts.json) python=<clone-c6>\green-area-backend\.venv (requirements.txt and requirements.in byte-identical to C6)
+PS> python -m pytest tests/ -q -rs -p no:cacheprovider --junitxml=<c18>\c18-backend.xml
+........................................................................ [ 10%]
+........................................................................ [ 21%]
+........................................................................ [ 32%]
+........................................................................ [ 43%]
+........................................................................ [ 54%]
+........................................................................ [ 64%]
+........................................................................ [ 75%]
+........................................................................ [ 86%]
+........................................................................ [ 97%]
+..................                                                       [100%]
+============================== warnings summary ===============================
+..\..\green-area-c6\green-area-backend\.venv\Lib\site-packages\google\api_core\_python_version_support.py:255
+  <clone-c6>\green-area-backend\.venv\Lib\site-packages\google\api_core\_python_version_support.py:255: FutureWarning: You are using a Python version (3.11.9) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2027-10-24). Please upgrade to the latest Python version, or at least Python 3.12, to continue receiving updates for google.api_core past that date.
+    warnings.warn(message, FutureWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+666 passed, 1 warning in 7.03s
+exit=0  [2026-11-25 22:12:55]

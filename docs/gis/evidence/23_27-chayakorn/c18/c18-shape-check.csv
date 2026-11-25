@@ -1,0 +1,19 @@
+province,system_name,system_name_th,ocha_pcode,ocha_name_en,ocha_name_th,utm,system_area_km2,ocha_area_km2,overlap_km2,pct_of_system,pct_of_ocha,same_english_name
+Nakhon Sawan,Takhli,ท่าตะโก,TH6007,Takhli,ตาคลี,EPSG:32647,794.553,830.864,753.802,94.87,90.72,True
+Nakhon Sawan,Takhli,ท่าตะโก,TH6008,Tha Tako,ท่าตะโก,EPSG:32647,794.553,837.136,0.0,0.0,0.0,False
+Nakhon Sawan,Takhli,ท่าตะโก,TH6010,Phayuha Khiri,พยุหะคีรี,EPSG:32647,794.553,661.795,2.925,0.37,0.44,False
+Nakhon Sawan,Takhli,ท่าตะโก,TH6011,Lat Yao,ลาดยาว,EPSG:32647,794.553,748.176,0.0,0.0,0.0,False
+Nakhon Sawan,ThaTako,ท่าตะโก,TH6007,Takhli,ตาคลี,EPSG:32647,878.017,830.864,0.0,0.0,0.0,False
+Nakhon Sawan,ThaTako,ท่าตะโก,TH6008,Tha Tako,ท่าตะโก,EPSG:32647,878.017,837.136,810.83,92.35,96.86,True
+Nakhon Sawan,ThaTako,ท่าตะโก,TH6010,Phayuha Khiri,พยุหะคีรี,EPSG:32647,878.017,661.795,0.819,0.09,0.12,False
+Nakhon Sawan,ThaTako,ท่าตะโก,TH6011,Lat Yao,ลาดยาว,EPSG:32647,878.017,748.176,0.0,0.0,0.0,False
+Nakhon Sawan,LatYao,ลาดยาว,TH6007,Takhli,ตาคลี,EPSG:32647,717.004,830.864,0.0,0.0,0.0,False
+Nakhon Sawan,LatYao,ลาดยาว,TH6008,Tha Tako,ท่าตะโก,EPSG:32647,717.004,837.136,0.0,0.0,0.0,False
+Nakhon Sawan,LatYao,ลาดยาว,TH6010,Phayuha Khiri,พยุหะคีรี,EPSG:32647,717.004,661.795,0.0,0.0,0.0,False
+Nakhon Sawan,LatYao,ลาดยาว,TH6011,Lat Yao,ลาดยาว,EPSG:32647,717.004,748.176,684.719,95.5,91.52,True
+Nakhon Sawan,PhayuhaKhiri,ลาดยาว,TH6007,Takhli,ตาคลี,EPSG:32647,664.753,830.864,5.713,0.86,0.69,False
+Nakhon Sawan,PhayuhaKhiri,ลาดยาว,TH6008,Tha Tako,ท่าตะโก,EPSG:32647,664.753,837.136,1.418,0.21,0.17,False
+Nakhon Sawan,PhayuhaKhiri,ลาดยาว,TH6010,Phayuha Khiri,พยุหะคีรี,EPSG:32647,664.753,661.795,620.924,93.41,93.82,True
+Nakhon Sawan,PhayuhaKhiri,ลาดยาว,TH6011,Lat Yao,ลาดยาว,EPSG:32647,664.753,748.176,0.0,0.0,0.0,False
+Phra Nakhon Si Ayutthaya,BangSai,บางซ้าย,TH1404,Bang Sai,บางไทร,EPSG:32647,405.504,246.808,241.37,59.52,97.8,False
+Phra Nakhon Si Ayutthaya,BangSai,บางซ้าย,TH1413,Bang Sai,บางซ้าย,EPSG:32647,405.504,158.68,138.947,34.27,87.56,False
