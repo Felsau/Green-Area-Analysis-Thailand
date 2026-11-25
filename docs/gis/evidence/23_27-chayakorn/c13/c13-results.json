@@ -1,0 +1,424 @@
+[
+ {
+  "province": "Bangkok Metropolis",
+  "package": "Landuse_Bangkok_2566_.zip",
+  "bytes": 5515403,
+  "sha256": "c3ef854cfb3e036b7b94cdbaac5c15a45fcbde1d5e6a1971fae27e7c2ededdb8",
+  "crs": "EPSG:32647",
+  "data_year": 2023,
+  "assess": {
+   "mode": "assess",
+   "exit": 0,
+   "parent_wall_s": 3.61,
+   "sampled_max_wset_mb": 169.8,
+   "valid": true,
+   "error_code": null,
+   "errors_top5": [],
+   "errors_total": 0,
+   "warnings": [
+    {
+     "code": "BOUNDARY_FROM_DATA_PRODUCER",
+     "count": 1
+    },
+    {
+     "code": "DATA_YEAR_METADATA_DECLARED",
+     "count": 1
+    },
+    {
+     "code": "LDD_POLICY_V2",
+     "count": 1
+    },
+    {
+     "code": "FIELD_PROFILE_LDD_LU_TEXT_V1",
+     "count": 1
+    },
+    {
+     "code": "BOUNDARY_OUTSIDE_MINOR",
+     "count": 579
+    },
+    {
+     "code": "GEOMETRY_REPAIRED",
+     "count": 6
+    }
+   ],
+   "checks": [
+    "source_hash_match",
+    "archive_safety",
+    "components",
+    "encoding",
+    "crs",
+    "dataset_association",
+    "attributes",
+    "geometry",
+    "province_bounds",
+    "ldd_codes"
+   ],
+   "feature_count": 11073,
+   "coordinates": 315943,
+   "outcomes": {
+    "accepted": 10489,
+    "accepted_with_warnings": 584,
+    "review_required": 0,
+    "rejected": 0
+   },
+   "boundary": {
+    "minor": 579,
+    "review": 0,
+    "fatal": 0,
+    "outside_area_m2": 26.360535070494116
+   },
+   "boundary_source": "ldd-package",
+   "wall_s": 3.33,
+   "cpu_user_s": 2.98,
+   "cpu_system_s": 0.33,
+   "cpu_s": 3.31,
+   "peak_wset_mb": 172.4,
+   "peak_pagefile_mb": 497.4
+  },
+  "prepare": {
+   "mode": "prepare",
+   "exit": 0,
+   "parent_wall_s": 11.68,
+   "sampled_max_wset_mb": 192.4,
+   "built": true,
+   "artifacts": {
+    "ldd_geometry": 9738680,
+    "ldd_summary": 6056
+   },
+   "artifact_limit": 20971520,
+   "coordinates": 315943,
+   "wall_s": 11.41,
+   "cpu_user_s": 11.12,
+   "cpu_system_s": 0.34,
+   "cpu_s": 11.47,
+   "peak_wset_mb": 203.0,
+   "peak_pagefile_mb": 527.4
+  }
+ },
+ {
+  "province": "Nong Bua Lam Phu",
+  "package": "Landuse_หนองบัวลำภู_2566 (ปีล่าสุด).zip",
+  "bytes": 29326305,
+  "sha256": "15a26d677ef9e282532132527c93e36a671ddf5338cc044506f2c909933681be",
+  "crs": "EPSG:32648",
+  "data_year": 2023,
+  "assess": {
+   "mode": "assess",
+   "exit": 0,
+   "parent_wall_s": 16.0,
+   "sampled_max_wset_mb": 621.1,
+   "valid": false,
+   "error_code": "OUTSIDE_PROVINCE",
+   "errors_top5": [
+    {
+     "code": "OUTSIDE_PROVINCE",
+     "count": 459
+    },
+    {
+     "code": "BOUNDARY_OUTSIDE_REVIEW_REQUIRED",
+     "count": 94
+    },
+    {
+     "code": "UNKNOWN_CODE_REVIEW_REQUIRED",
+     "count": 39
+    },
+    {
+     "code": "BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED",
+     "count": 1
+    }
+   ],
+   "errors_total": 4,
+   "warnings": [
+    {
+     "code": "BOUNDARY_APPROXIMATE",
+     "count": 1
+    },
+    {
+     "code": "DATA_YEAR_METADATA_DECLARED",
+     "count": 1
+    },
+    {
+     "code": "LDD_POLICY_V2",
+     "count": 1
+    },
+    {
+     "code": "FIELD_PROFILE_LDD_LU_TEXT_V1",
+     "count": 1
+    },
+    {
+     "code": "CRS_VERTICAL_IGNORED",
+     "count": 1
+    },
+    {
+     "code": "BOUNDARY_OUTSIDE_MINOR",
+     "count": 582
+    },
+    {
+     "code": "GEOMETRY_REPAIRED",
+     "count": 101
+    },
+    {
+     "code": "COMPOSITE_PLUS_SEPARATOR",
+     "count": 148
+    }
+   ],
+   "checks": [
+    "source_hash_match",
+    "archive_safety",
+    "components",
+    "encoding",
+    "crs",
+    "dataset_association",
+    "attributes"
+   ],
+   "feature_count": 50121,
+   "coordinates": 2553311,
+   "outcomes": {
+    "accepted": 48704,
+    "accepted_with_warnings": 825,
+    "review_required": 133,
+    "rejected": 459
+   },
+   "boundary": {
+    "minor": 582,
+    "review": 94,
+    "fatal": 459,
+    "outside_area_m2": 59629108.36298441
+   },
+   "boundary_source": "gadm-approx",
+   "wall_s": 15.55,
+   "cpu_user_s": 14.89,
+   "cpu_system_s": 0.64,
+   "cpu_s": 15.53,
+   "peak_wset_mb": 622.3,
+   "peak_pagefile_mb": 949.1
+  },
+  "prepare": {
+   "mode": "prepare",
+   "exit": 0,
+   "parent_wall_s": 15.77,
+   "sampled_max_wset_mb": 621.6,
+   "built": false,
+   "error_code": "OUTSIDE_PROVINCE",
+   "coordinates": 2553311,
+   "wall_s": 15.47,
+   "cpu_user_s": 14.86,
+   "cpu_system_s": 0.55,
+   "cpu_s": 15.41,
+   "peak_wset_mb": 623.0,
+   "peak_pagefile_mb": 949.9
+  }
+ },
+ {
+  "province": "Nakhon Ratchasima",
+  "package": "Landuse_นครราชสีมา_2566 (ปีล่าสุด).zip",
+  "bytes": 128117480,
+  "sha256": "18fdad1a185cf277f5ca06a39b41778e5f31e2d22fd87a4dd4ed3d3160598c44",
+  "crs": "EPSG:32648",
+  "data_year": 2023,
+  "assess": {
+   "mode": "assess",
+   "exit": 0,
+   "parent_wall_s": 57.09,
+   "sampled_max_wset_mb": 2225.3,
+   "valid": false,
+   "error_code": "OUTSIDE_PROVINCE",
+   "errors_top5": [
+    {
+     "code": "OUTSIDE_PROVINCE",
+     "count": 738
+    },
+    {
+     "code": "UNKNOWN_CODE_REVIEW_REQUIRED",
+     "count": 246
+    },
+    {
+     "code": "BOUNDARY_OUTSIDE_REVIEW_REQUIRED",
+     "count": 237
+    }
+   ],
+   "errors_total": 3,
+   "warnings": [
+    {
+     "code": "BOUNDARY_APPROXIMATE",
+     "count": 1
+    },
+    {
+     "code": "DATA_YEAR_METADATA_DECLARED",
+     "count": 1
+    },
+    {
+     "code": "LDD_POLICY_V2",
+     "count": 1
+    },
+    {
+     "code": "FIELD_PROFILE_LDD_LU_TEXT_V1",
+     "count": 1
+    },
+    {
+     "code": "BOUNDARY_OUTSIDE_MINOR",
+     "count": 1726
+    },
+    {
+     "code": "GEOMETRY_REPAIRED",
+     "count": 170
+    }
+   ],
+   "checks": [
+    "source_hash_match",
+    "archive_safety",
+    "components",
+    "encoding",
+    "crs",
+    "dataset_association",
+    "attributes"
+   ],
+   "feature_count": 153319,
+   "coordinates": 11404194,
+   "outcomes": {
+    "accepted": 150232,
+    "accepted_with_warnings": 1872,
+    "review_required": 477,
+    "rejected": 738
+   },
+   "boundary": {
+    "minor": 1726,
+    "review": 237,
+    "fatal": 738,
+    "outside_area_m2": 129127544.29980256
+   },
+   "boundary_source": "gadm-approx",
+   "wall_s": 56.18,
+   "cpu_user_s": 54.09,
+   "cpu_system_s": 1.73,
+   "cpu_s": 55.83,
+   "peak_wset_mb": 2226.7,
+   "peak_pagefile_mb": 2556.5
+  },
+  "prepare": {
+   "mode": "prepare",
+   "exit": 0,
+   "parent_wall_s": 57.01,
+   "sampled_max_wset_mb": 2221.4,
+   "built": false,
+   "error_code": "OUTSIDE_PROVINCE",
+   "coordinates": 11404194,
+   "wall_s": 56.71,
+   "cpu_user_s": 54.89,
+   "cpu_system_s": 1.73,
+   "cpu_s": 56.62,
+   "peak_wset_mb": 2226.2,
+   "peak_pagefile_mb": 2556.1
+  }
+ },
+ {
+  "province": "Chiang Mai",
+  "package": "เชียงใหม่2567_ปีล่าสุด.zip",
+  "bytes": 123371407,
+  "sha256": "c775df5115b739f2f0fcd29df0fc3fdc25dc6459fd436efeec08d86fc9d856a2",
+  "crs": "EPSG:32647",
+  "data_year": 2024,
+  "assess": {
+   "mode": "assess",
+   "exit": 0,
+   "parent_wall_s": 70.51,
+   "sampled_max_wset_mb": 2357.1,
+   "valid": false,
+   "error_code": "OUTSIDE_PROVINCE",
+   "errors_top5": [
+    {
+     "code": "OUTSIDE_PROVINCE",
+     "count": 2498
+    },
+    {
+     "code": "UNKNOWN_CODE_REVIEW_REQUIRED",
+     "count": 179
+    },
+    {
+     "code": "BOUNDARY_OUTSIDE_REVIEW_REQUIRED",
+     "count": 154
+    },
+    {
+     "code": "BOUNDARY_OUTSIDE_AREA_REVIEW_REQUIRED",
+     "count": 1
+    }
+   ],
+   "errors_total": 4,
+   "warnings": [
+    {
+     "code": "BOUNDARY_APPROXIMATE",
+     "count": 1
+    },
+    {
+     "code": "DATA_YEAR_METADATA_DECLARED",
+     "count": 1
+    },
+    {
+     "code": "LDD_POLICY_V2",
+     "count": 1
+    },
+    {
+     "code": "FIELD_PROFILE_LDD_LU_AREA_SQM_V1",
+     "count": 1
+    },
+    {
+     "code": "BOUNDARY_OUTSIDE_MINOR",
+     "count": 1232
+    },
+    {
+     "code": "GEOMETRY_REPAIRED",
+     "count": 270
+    },
+    {
+     "code": "COMPOSITE_PLUS_SEPARATOR",
+     "count": 3205
+    }
+   ],
+   "checks": [
+    "source_hash_match",
+    "archive_safety",
+    "components",
+    "encoding",
+    "crs",
+    "dataset_association",
+    "attributes"
+   ],
+   "feature_count": 162832,
+   "coordinates": 11097284,
+   "outcomes": {
+    "accepted": 155343,
+    "accepted_with_warnings": 4658,
+    "review_required": 333,
+    "rejected": 2498
+   },
+   "boundary": {
+    "minor": 1232,
+    "review": 154,
+    "fatal": 2498,
+    "outside_area_m2": 423501701.5897129
+   },
+   "boundary_source": "gadm-approx",
+   "wall_s": 69.57,
+   "cpu_user_s": 66.91,
+   "cpu_system_s": 1.97,
+   "cpu_s": 68.88,
+   "peak_wset_mb": 2359.1,
+   "peak_pagefile_mb": 2695.2
+  },
+  "prepare": {
+   "mode": "prepare",
+   "exit": 0,
+   "parent_wall_s": 68.14,
+   "sampled_max_wset_mb": 2350.5,
+   "built": false,
+   "error_code": "OUTSIDE_PROVINCE",
+   "coordinates": 11097284,
+   "wall_s": 67.76,
+   "cpu_user_s": 65.55,
+   "cpu_system_s": 2.02,
+   "cpu_s": 67.56,
+   "peak_wset_mb": 2356.8,
+   "peak_pagefile_mb": 2693.1
+  }
+ }
+]

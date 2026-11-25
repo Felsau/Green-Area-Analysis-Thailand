@@ -1,0 +1,31 @@
+# C13 run log · paths replaced: <clone-c6> <gis-w4-evidence> <ldd-77> <c13-work>
+# python = <clone-c6>\green-area-backend\.venv\Scripts\python.exe 3.11.9, run with -I -B
+
+PS> <clone-c6>\green-area-backend\.venv\Scripts\python.exe -m pip install psutil      -> psutil 7.2.2 (venv had none; only this package)
+RAM 30.86 GB · kill above 15.43 GB (half)
+
+## run 1 (numbers NOT used)
+MAX_ZIP_BYTES raised to 4 GiB -> read(MAX_ZIP_BYTES + 1) pre-allocates: peak_pagefile ~4116 MiB in every process, wset >= 2074 MiB even for Bangkok
+parent sampled only the venv launcher (4.2 MiB), not its child
+validation outcomes identical to run 2. Output kept in <c13-work>\run_c13_first.out and c13-results_first.json (not evidence)
+
+## run 2 (used) · MAX_ZIP_BYTES = package size · monitor covers the launcher's child process
+PS> powershell -File <c13-work>\run_c13.ps1
+    python -I -B <gis-w4-evidence>\c13\c13_memory.py --backend <clone-c6>\green-area-backend --c12-dir <gis-w4-evidence>\c12
+      --c9-dir <gis-w4-evidence>\c9 --work <c13-work> --out c13-results.json
+      --pkg "Bangkok Metropolis|2023|<ldd-77>\Landuse_Bangkok_2566_.zip" --pkg "Nong Bua Lam Phu|2023|<ldd-77>\Landuse_หนองบัวลำภู_2566 (ปีล่าสุด).zip"
+      --pkg "Nakhon Ratchasima|2023|<ldd-77>\Landuse_นครราชสีมา_2566 (ปีล่าสุด).zip" --pkg "Chiang Mai|2024|<ldd-77>\เชียงใหม่2567_ปีล่าสุด.zip"
+Bangkok Metropolis  5515403 B  c3ef854c…  EPSG:32647
+  assess   valid · 11073 features · 315943 coords · wset 172.4 · pagefile 497.4 MiB · cpu 3.31 s · wall 3.33 s
+  prepare  built · ldd_geometry 9738680 B · ldd_summary 6056 B · wset 203.0 · pagefile 527.4 · cpu 11.47 · wall 11.41
+Nong Bua Lam Phu  29326305 B  15a26d67…  EPSG:32648
+  assess   OUTSIDE_PROVINCE · 50121 · 2553311 · wset 622.3 · pagefile 949.1 · cpu 15.53 · wall 15.55
+  prepare  stopped OUTSIDE_PROVINCE · wset 623.0 · pagefile 949.9 · cpu 15.41
+Nakhon Ratchasima  128117480 B  18fdad1a…  EPSG:32648
+  assess   OUTSIDE_PROVINCE · 153319 · 11404194 · wset 2226.7 · pagefile 2556.5 · cpu 55.83 · wall 56.18
+  prepare  stopped OUTSIDE_PROVINCE · wset 2226.2 · pagefile 2556.1 · cpu 56.62
+Chiang Mai  123371407 B  c775df51…  EPSG:32647
+  assess   OUTSIDE_PROVINCE · 162832 · 11097284 · wset 2359.1 · pagefile 2695.2 · cpu 68.88 · wall 69.57
+  prepare  stopped OUTSIDE_PROVINCE · wset 2356.8 · pagefile 2693.1 · cpu 67.56
+no process killed · exit 0 · wall 304 s
+c13-memory.csv written from c13-results.json
