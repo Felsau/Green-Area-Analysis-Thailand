@@ -32,7 +32,7 @@ from gis_worker import ldd_provider as ldd  # noqa: E402
 
 ID = '11111111-1111-4111-8111-111111111111'
 PROVINCE = 'Bangkok Metropolis'   # the validator reads the producer's own outline for it (source ldd-package)
-GADM_PROVINCE = 'Chiang Mai'      # no package supplied an outline: assess() reads the same GADM geometry as the pre-v2 validator
+GADM_PROVINCE = 'Ranong'          # outline still GADM (assess() reads the pre-v2 geometry); widest margin to the legacy 0.002 degree buffer among UTM 47 gadm-approx provinces
 TEXT = {'LUL1_CODE': 'str:4', 'LU_CODE': 'str:20', 'Shape_Area': 'float'}
 
 

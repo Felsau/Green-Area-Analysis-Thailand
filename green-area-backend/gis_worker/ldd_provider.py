@@ -29,9 +29,10 @@ BUILD = 'ldd-local-v1'
 BOUNDARY_SHA256 = 'ac2b28255f22861ab644bf083fa40f28dd9da1294648d4b01cfc6f9cdc156a21'
 # Policy v2 validation: the province layer shipped in the LDD package of each province that supplied
 # one (source ldd-package), the same GADM outline elsewhere (source gadm-approx). Built by
-# dev/gis_local/build_ldd_boundaries.py. Migration 051 lets the database accept this hash too.
+# dev/gis_local/build_ldd_boundaries.py. 41 provinces supply one; migration 053 lets the database accept
+# this hash (051 accepted the earlier 24-province asset).
 BOUNDARY_LDD_ASSET = 'province_boundaries_ldd.json'
-BOUNDARY_LDD_SHA256 = '1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac'
+BOUNDARY_LDD_SHA256 = '49473e7e59aeecfe4b3dff1c9b6ebc21ffe859fa76de47c46c45e1d55dae93a3'
 BOUNDARY_SOURCES = ('gadm-approx', 'ldd-package')
 # The first legend (Bangkok 2566, 96 codes) is frozen: the pre-v2 validator and v1 preparation pin it.
 LEGEND_SHA256 = '34069bca1cf06474fab22f8b7211f91d4dc5d4deb37c0fec414efd05c63afbde'

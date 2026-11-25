@@ -76,10 +76,12 @@ def test_second_legend_keeps_every_first_legend_entry_and_adds_the_official_tabl
 
 
 OFFICIAL_OUTLINES = {
-    'Bangkok Metropolis', 'Chachoengsao', 'Chai Nat', 'Chanthaburi', 'Chon Buri', 'Kanchanaburi', 'Nakhon Nayok',
-    'Nakhon Pathom', 'Nonthaburi', 'Pathum Thani', 'Phetchaburi', 'Phra Nakhon Si Ayutthaya', 'Prachin Buri',
-    'Prachuap Khiri Khan', 'Ratchaburi', 'Rayong', 'Sa Kaeo', 'Samut Prakan', 'Samut Sakhon', 'Samut Songkhram',
-    'Saraburi', 'Sing Buri', 'Suphan Buri', 'Trat'}
+    'Bangkok Metropolis', 'Chachoengsao', 'Chai Nat', 'Chanthaburi', 'Chiang Mai', 'Chiang Rai', 'Chon Buri',
+    'Kamphaeng Phet', 'Kanchanaburi', 'Lampang', 'Lamphun', 'Mae Hong Son', 'Nakhon Nayok', 'Nakhon Pathom',
+    'Nakhon Sawan', 'Nan', 'Nonthaburi', 'Pathum Thani', 'Phayao', 'Phetchabun', 'Phetchaburi', 'Phichit',
+    'Phitsanulok', 'Phra Nakhon Si Ayutthaya', 'Phrae', 'Prachin Buri', 'Prachuap Khiri Khan', 'Ratchaburi', 'Rayong',
+    'Sa Kaeo', 'Samut Prakan', 'Samut Sakhon', 'Samut Songkhram', 'Saraburi', 'Sing Buri', 'Sukhothai', 'Suphan Buri',
+    'Tak', 'Trat', 'Uthai Thani', 'Uttaradit'}
 
 
 def test_boundary_asset_replaces_only_the_provinces_a_package_supplied():
@@ -100,19 +102,32 @@ def test_boundary_asset_replaces_only_the_provinces_a_package_supplied():
             continue
         official.add(name)
         assert re.fullmatch('[0-9a-f]{64}', props['package_sha256']) and re.fullmatch('[0-9a-f]{64}', props['shp_sha256'])
-        assert props['data_year_be'] in (2566, 2567, 2568)
+        assert props['data_year_be'] in (2563, 2564, 2566, 2567, 2568)
         previous = shapely_geometry.shape(old[name]['geometry'])
         assert shape.intersection(previous).area / shape.union(previous).area > 0.9   # the same province, only more detailed
-    assert official == OFFICIAL_OUTLINES and len(official) == 24
+    assert official == OFFICIAL_OUTLINES and len(official) == 41
 
 
-def test_migration_051_names_exactly_the_two_boundary_assets_the_code_pins():
-    """A rebuilt asset or a changed constant must not drift away from the SQL that admits its hash."""
+BOUNDARY_LDD24_SHA256 = '1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac'   # the 24-province asset 051 admits
+BOUNDARY_GADM_SHA256 = 'ac2b28255f22861ab644bf083fa40f28dd9da1294648d4b01cfc6f9cdc156a21'    # the GADM asset 034 admits
+
+
+def test_migration_051_names_exactly_the_two_boundary_assets_it_admitted():
+    """051 is applied and frozen: it names the 24-province asset and the GADM asset, whatever the code pins now."""
     migrations = Path(__file__).resolve().parents[1] / 'migrations'
     sql = (migrations / '051_gis_ldd_boundary_asset.sql').read_text(encoding='utf-8')
     previous = hashlib.sha256((migrations / '050_gis_ldd_report_audit.sql').read_bytes()).hexdigest()
-    assert set(re.findall(r'[0-9a-f]{64}', sql)) == {ldd.BOUNDARY_LDD_SHA256, ldd.BOUNDARY_SHA256, previous}
-    assert ldd.BOUNDARY_SHA256 in (migrations / '034_ldd_upload.sql').read_text(encoding='utf-8')
+    assert set(re.findall(r'[0-9a-f]{64}', sql)) == {BOUNDARY_LDD24_SHA256, BOUNDARY_GADM_SHA256, previous}
+    assert BOUNDARY_GADM_SHA256 in (migrations / '034_ldd_upload.sql').read_text(encoding='utf-8')
+
+
+def test_migration_053_names_exactly_the_boundary_asset_the_code_pins():
+    """A rebuilt asset or a changed constant must not drift away from the SQL that admits its hash."""
+    migrations = Path(__file__).resolve().parents[1] / 'migrations'
+    sql = (migrations / '053_gis_ldd_boundary_asset_v2.sql').read_text(encoding='utf-8')
+    previous = hashlib.sha256((migrations / '052_gis_ldd_prepare_publication_v2.sql').read_bytes()).hexdigest()
+    assert set(re.findall(r'[0-9a-f]{64}', sql)) == {ldd.BOUNDARY_LDD_SHA256, BOUNDARY_LDD24_SHA256, previous}
+    assert ldd.BOUNDARY_SHA256 == BOUNDARY_GADM_SHA256
     assert hashlib.sha256((Path(ldd.__file__).parent / ldd.BOUNDARY_LDD_ASSET).read_bytes()).hexdigest() == ldd.BOUNDARY_LDD_SHA256
     assert not (Path(ldd.__file__).parent / ldd.BOUNDARY_LDD_ASSET).read_bytes().count(b'\n')   # immune to line-ending conversion
 

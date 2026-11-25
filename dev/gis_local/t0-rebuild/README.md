@@ -1,4 +1,4 @@
-# สร้าง sandbox T0 ใหม่ตั้งแต่ศูนย์จนถึง migration 052
+# สร้าง sandbox T0 ใหม่ตั้งแต่ศูนย์จนถึง migration 053
 
 ลำดับคำสั่งนี้คัดจากการสร้าง T0 จริงเมื่อ 10–11 พ.ย. 2569 (งาน W4) บนเครื่อง Windows
 ผลที่ควรเห็นทุกขั้นคัดจาก log ของรอบนั้น ค่า `runtime_instance`, id ของ container และ id ของรายงานจะต่างกันทุกเครื่อง
@@ -14,6 +14,7 @@
 | `migration-032-independent-review.json`, `migration-033-independent-review.json`, `run_032_033.py` | 6 |
 | `review-034.json`, `review-035.json` | 7 |
 | `gee-dashboard-048-approval.json`, `upload-049-approval.json` … `upload-052-approval.json` | 12 |
+| `../upload_053_local.py`, `../upload_053_lifecycle.sql` (อยู่ใน `dev/gis_local` · ยังไม่มี `upload-053-approval.json` ต้องออกหลัง probe ผ่านและได้รับอนุมัติ) | 12 |
 
 ## คำเตือน
 - **runtime dir มีค่าลับของเครื่อง** (`manage.py prepare` สร้างเอง) ต้องอยู่นอก repo ห้าม commit ห้ามแนบ และห้ามถ่ายภาพเนื้อหา
@@ -191,7 +192,7 @@ probe ของ 044 ต้องมีแถวใน `gis.officers` ทุก�
 - สาเหตุคือข้อมูลทดสอบใน `gee_genuine_checks.py` แข่งกับนาฬิการะดับ µs ไม่ใช่ schema เสีย probe ทำงานใน transaction ที่ rollback จึงไม่มีอะไรค้าง
 - ให้**รัน probe ซ้ำ 1 ครั้ง** (รอบ W4 ผ่านในรอบที่ 2) แล้วจึง migrate ถ้ายังล้มให้หยุดและรายงาน
 
-## 12. 048–052 (probe แล้ว migrate ด้วยไฟล์อนุมัติ)
+## 12. 048–053 (probe แล้ว migrate ด้วยไฟล์อนุมัติ)
 ```powershell
 & $py -I -B dev\gis_local\gee_dashboard_local.py probe --runtime-dir $rt
 & $py -I -B dev\gis_local\gee_dashboard_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\gee-dashboard-048-approval.json
@@ -203,6 +204,8 @@ probe ของ 044 ต้องมีแถวใน `gis.officers` ทุก�
 & $py -I -B dev\gis_local\upload_051_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-051-approval.json
 & $py -I -B dev\gis_local\upload_052_local.py probe --runtime-dir $rt
 & $py -I -B dev\gis_local\upload_052_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-052-approval.json
+& $py -I -B dev\gis_local\upload_053_local.py probe --runtime-dir $rt
+& $py -I -B dev\gis_local\upload_053_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-053-approval.json
 ```
 - probe ต้องมีผู้ใช้สังเคราะห์ (officer, profile ที่ไม่ใช่ officer, admin) และจังหวัดในทั้งสองฐาน ผู้ใช้สังเคราะห์มาจากขั้น 10 ส่วนจังหวัดมาจาก seed ของ migration 006 ตอน baseline ในขั้น 2
 - ไฟล์อนุมัติมีแค่ `{"approval": "local_apply_0xx_after_rollback_probe", "migration_sha256": "<sha ของไฟล์ migration>"}` ตัวรันเทียบแบบตรงตัว
@@ -216,6 +219,7 @@ probe ของ 044 ต้องมีแถวใน `gis.officers` ทุก�
 | 050 | `87a09b59ddeae481a0f927ebde641fa915260837bc82729fd8effcb026bac893` |
 | 051 | `875cd02e5f5bb40f1fd7828c84335b856f097f65e3e496fde087f60c7c32cccc` |
 | 052 | `329ce1a52a47db9735a8fca99488e00f0881c0403a4878268f07c77f6f229875` |
+| 053 | `7db4320ec7b651a0c823d483469771e9af176829b5c5fbb87a713f707a0fe9a3` |
 
 ## 13. ตรวจ readiness แบบ READ ONLY ทั้งสองฐาน
 ```powershell
@@ -227,8 +231,8 @@ foreach ($db in 'postgres', 'gis_t1_upgrade') {
 }
 ```
 ผลที่ควรเห็น (ทั้งสองฐาน):
-- `cluster_name = green-area-gis-t0` · `mode = local_synthetic` · `activation_enabled = false` · `n_migrations = 26`
-- `installed migrations (26): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52`
+- `cluster_name = green-area-gis-t0` · `mode = local_synthetic` · `activation_enabled = false` · `n_migrations = 27`
+- `installed migrations (27): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53`
 
 ## ข้อจำกัดที่ทราบ
 - **แก้แล้ว (11 พ.ย. 2569): migration 000–026 ต้องเป็น LF** เดิมค่า sha ของ migration 000–026 ทั้ง 27 ค่าที่ปักไว้เป็นค่าของไฟล์แบบ CRLF ทำให้เครื่องที่ checkout เป็น LF หยุดที่ 035 (`check_frozen` ใน `dev/gis_ui/phase3_local.py` เทียบกับ `phase2-evidence-index.json`) และจะหยุดซ้ำที่ 041 และ 042 (`geotiff_prepare_local.py` และ `geotiff_publication_local.py` เทียบกับ `before.json`) ตอนนี้ `.gitattributes` ตั้ง `-text` ให้ 000–026 แล้ว และค่า 27 ค่าในไฟล์ทั้งสี่ (`phase2-evidence-index.json`, `phase3-evidence-index.json`, `a4-geotiff-prepare-before.json`, `a4-2-geotiff-publication-before.json`) เปลี่ยนเป็นค่า LF แล้ว clone ที่ยังมีไฟล์ CRLF ค้างอยู่ให้ทำตามขั้น 0
