@@ -109,6 +109,7 @@ export default function CompareTab({ data, handlers }) {
       {compareData.length > 0 && (
         <ExportBar
           targetId="export-compare"
+          disabled={compareLoading}
           baseName={`compare_${compareYear}`}
           onCsv={() => exportCompareCsv({ compareData, compareYear, compareMetric })}
           onPdf={() => import('../../utils/reportPdf').then(m => m.buildCompareReport({ compareData, compareYear, compareMetric }))}

@@ -1,4 +1,8 @@
-import { urbanFallbackHint, degC } from './StatsTab';
+import { render, screen, fireEvent } from '@testing-library/react';
+import StatsTab, { urbanFallbackHint, degC } from './StatsTab';
+import { exportStatsCsv } from '../../utils/exportUtils';
+
+vi.mock('../../utils/exportUtils', () => ({ exportStatsCsv: vi.fn() }));
 
 // แถว "ต่อหัวประชากร" ถอยไปแสดงค่าทั้งจังหวัดเมื่อไม่มีค่าเขตเมือง — ข้อความกำกับ
 // ต้องบอกเหตุผลตามสถานะจริงของคำขอ ไม่ใช่โชว์ "กำลังดึง…" ค้างไว้ทุกกรณีที่ค่ายังไม่มา
@@ -51,5 +55,34 @@ describe('degC', () => {
   it('null/undefined → ขีด ไม่ใช่ "null°C"', () => {
     expect(degC(null)).toBe('—');
     expect(degC(undefined)).toBe('—');
+  });
+});
+
+// B2: ระหว่างโหลด NDVI/LST ค่าเดิมถูกล้างเป็น null — ส่งออกตอนนี้ได้ไฟล์ว่าง
+describe('export while loading', () => {
+  const handlers = new Proxy({}, { get: () => () => {} });
+  const renderStats = (loading) => render(<StatsTab data={{
+    selectedProvince: 'กรุงเทพมหานคร', selectedProvinceEN: 'Bangkok Metropolis',
+    ndviLoading: loading, lstLoading: loading,
+    ndviStats: null, lstStats: null, ndviMonthly: [], lstMonthly: [],
+    urbanStatus: loading ? 'loading' : 'idle', landuseLoading: false,
+  }} handlers={handlers} />);
+
+  beforeEach(() => vi.clearAllMocks());
+
+  it('ระหว่างโหลด → ปุ่มส่งออกกดไม่ได้ และกด CSV ไม่ส่งออก', () => {
+    renderStats(true);
+    const csv = screen.getByRole('button', { name: 'CSV' });
+    expect(csv).toBeDisabled();
+    fireEvent.click(csv);
+    expect(exportStatsCsv).not.toHaveBeenCalled();
+  });
+
+  it('โหลดเสร็จ → กด CSV ส่งออกได้ตามเดิม', () => {
+    renderStats(false);
+    const csv = screen.getByRole('button', { name: 'CSV' });
+    expect(csv).toBeEnabled();
+    fireEvent.click(csv);
+    expect(exportStatsCsv).toHaveBeenCalledTimes(1);
   });
 });

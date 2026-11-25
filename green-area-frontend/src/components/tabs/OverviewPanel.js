@@ -184,6 +184,7 @@ export default function OverviewPanel({ data, handlers }) {
       {rankingStats && (
         <ExportBar
           targetId="export-ranking"
+          disabled={rankingLoading}
           baseName={`ranking_${selectedYear}`}
           onCsv={() => exportRankingCsv({ rankingData, rankingYear: selectedYear, rankingStats })}
           onPdf={() => import('../../utils/reportPdf').then(m => m.buildRankingReport({ rankingData, rankingYear: selectedYear, rankingStats }))}

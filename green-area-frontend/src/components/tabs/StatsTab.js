@@ -312,6 +312,7 @@ export default function StatsTab({ data, handlers }) {
 
       <ExportBar
         targetId="export-stats"
+        disabled={ndviLoading || lstLoading || districtNdviLoading || districtLstLoading}
         baseName={`stats_${(selectedDistrictEN || selectedProvinceEN || 'province').replace(/\s+/g, '_')}`}
         onCsv={() => exportStatsCsv({
           selectedProvince, selectedProvinceEN, selectedDistrict, selectedDistrictEN,

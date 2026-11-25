@@ -1,5 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import OverviewPanel from './OverviewPanel';
+import { exportRankingCsv } from '../../utils/exportUtils';
+
+vi.mock('../../utils/exportUtils', () => ({ exportRankingCsv: vi.fn() }));
 
 const handlers = {
   onFetchRanking: () => {}, setSelectedYear: () => {},
@@ -44,4 +47,34 @@ test('ranking states its scope is built-up area only, not the whole province', (
 
   expect(screen.getByText(/พื้นที่สิ่งปลูกสร้าง \(เขตเมือง\)/)).toBeInTheDocument();
   expect(screen.getByText(/ไม่ใช่ทั้งจังหวัด/)).toBeInTheDocument();
+});
+
+// B2: rankingStats ของรอบก่อนยังค้างระหว่างโหลดปีใหม่ — ส่งออกตอนนี้ได้อันดับของปีเก่า
+describe('export while loading', () => {
+  const renderRanking = (rankingLoading) => render(<OverviewPanel data={{
+    rankingData: [{ province: 'Bangkok Metropolis', rank: 1, m2_per_person_urban: 30.1 }],
+    rankingStats: { total: 77, whoPass: 77, whoFail: 0 },
+    rankingLoading,
+    selectedYear: 2026,
+    ndviCache: {},
+    provinceList: [],
+  }} handlers={handlers} />);
+
+  beforeEach(() => vi.clearAllMocks());
+
+  test('while the ranking is loading, export is disabled and CSV exports nothing', () => {
+    renderRanking(true);
+    const csv = screen.getByRole('button', { name: 'CSV' });
+    expect(csv).toBeDisabled();
+    fireEvent.click(csv);
+    expect(exportRankingCsv).not.toHaveBeenCalled();
+  });
+
+  test('after the ranking has loaded, CSV export works', () => {
+    renderRanking(false);
+    const csv = screen.getByRole('button', { name: 'CSV' });
+    expect(csv).toBeEnabled();
+    fireEvent.click(csv);
+    expect(exportRankingCsv).toHaveBeenCalledTimes(1);
+  });
 });
