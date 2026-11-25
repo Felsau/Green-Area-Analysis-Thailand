@@ -135,6 +135,7 @@ export default function TrendTab({ data, handlers }) {
       {trendData.length > 0 && (
         <ExportBar
           targetId="export-trend"
+          disabled={trendLoading}
           baseName={`trend_${selectedProvinceEN || 'province'}`}
           onCsv={() => exportTrendCsv({ selectedProvince, selectedProvinceEN, trendData, trendMetric })}
           onPdf={() => import('../../utils/reportPdf').then(m => m.buildTrendReport({ selectedProvince, selectedProvinceEN, trendData, trendMetric }))}
