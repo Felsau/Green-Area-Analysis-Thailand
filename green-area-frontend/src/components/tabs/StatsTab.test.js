@@ -86,3 +86,17 @@ describe('export while loading', () => {
     expect(exportStatsCsv).toHaveBeenCalledTimes(1);
   });
 });
+
+// B3: ค่าหลักบนจอคือ m²/คน เขตเมือง (urbanStats) — ปุ่ม CSV ต้องส่งค่านี้ไปด้วย
+it('ปุ่ม CSV ส่ง urbanStats ที่จอแสดงไปให้ exportStatsCsv', () => {
+  vi.clearAllMocks();
+  const urbanStats = { m2_per_person_urban: 32.57 };
+  render(<StatsTab data={{
+    selectedProvince: 'กรุงเทพมหานคร', selectedProvinceEN: 'Bangkok Metropolis',
+    ndviStats: { ndvi_mean: 0.31, green_area_pct: 30, green_area_m2_per_person: 87.83 },
+    ndviMonthly: [], lstMonthly: [], urbanStats, urbanStatus: 'ready',
+  }} handlers={new Proxy({}, { get: () => () => {} })} />);
+  expect(screen.getByText('32.6 m²')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'CSV' }));
+  expect(exportStatsCsv).toHaveBeenCalledWith(expect.objectContaining({ urbanStats }));
+});
