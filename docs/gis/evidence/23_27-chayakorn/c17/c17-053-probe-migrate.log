@@ -1,0 +1,62 @@
+﻿C17 053 probe/migrate  2026-11-25 10:39:00  repo=<clone-c17>  (leader-approved: local gis-unlock -> C17 commit only for probe/migrate, then back to 7501cc8; no push)
+PS> git branch -f gis-unlock 1932d1db7345bd5e4c4240d9c6ab28838b9f1211
+PS> git switch gis-unlock
+  Your branch is ahead of 'origin/gis-unlock' by 1 commit.
+    (use "git push" to publish your local commits)
+  Switched to branch 'gis-unlock'
+PS> git rev-parse HEAD; git branch --show-current; git status --short
+  1932d1db7345bd5e4c4240d9c6ab28838b9f1211
+  gis-unlock
+  (status empty above = clean)
+PS> & $py -I -B dev\gis_local\upload_053_local.py proof --runtime-dir $rt   (before probe)
+  {"local_only": true, "both_databases_verified": true, "gate_closed": true, "ledger_source_match": true}
+  exit=0
+HEAD=1932d1db7345bd5e4c4240d9c6ab28838b9f1211 branch=gis-unlock
+ledger (before probe, README 13 read-only query):
+  postgres: installed migrations (26): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52 ยท max 52
+  gis_t1_upgrade: installed migrations (26): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52 ยท max 52
+PS> & $py -I -B dev\gis_local\upload_053_local.py probe --runtime-dir $rt   (probe)
+  {"sha256": "7db4320ec7b651a0c823d483469771e9af176829b5c5fbb87a713f707a0fe9a3", "lifecycle_sha256": "c8efc21419e7a11ee7a95f41e0a6ff08090ccd92ed703bb17d4413796cf35273", "runtime_instance": "22c69b32a1ec4da2bfdae7f513d422c4", "databases": {"postgres": "rolled_back_lifecycle", "gis_t1_upgrade": "rolled_back_lifecycle"}}
+  exit=0  [10:39:49]
+PS> & $py -I -B dev\gis_local\upload_053_local.py proof --runtime-dir $rt   (proof after probe)
+  {"local_only": true, "both_databases_verified": true, "gate_closed": true, "ledger_source_match": true}
+  exit=0  [10:39:58]
+ledger (after probe, README 13 read-only query):
+  postgres: installed migrations (26): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52 ยท max 52
+  gis_t1_upgrade: installed migrations (26): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52 ยท max 52
+
+approval file dev/gis_local/t0-rebuild/upload-053-approval.json (140 bytes, as 052): {"approval": "local_apply_053_after_rollback_probe", "migration_sha256": "7db4320ec7b651a0c823d483469771e9af176829b5c5fbb87a713f707a0fe9a3"}
+HEAD=1932d1db7345bd5e4c4240d9c6ab28838b9f1211 branch=gis-unlock
+PS> & $py -I -B dev\gis_local\upload_053_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-053-approval.json   (migrate)
+  {"sha256": "7db4320ec7b651a0c823d483469771e9af176829b5c5fbb87a713f707a0fe9a3", "lifecycle_sha256": "c8efc21419e7a11ee7a95f41e0a6ff08090ccd92ed703bb17d4413796cf35273", "runtime_instance": "22c69b32a1ec4da2bfdae7f513d422c4", "databases": {"postgres": "applied", "gis_t1_upgrade": "applied"}}
+  exit=0  [10:40:32]
+PS> & $py -I -B dev\gis_local\upload_053_local.py proof --runtime-dir $rt   (proof after migrate)
+  {"local_only": true, "both_databases_verified": true, "gate_closed": true, "ledger_source_match": true}
+  exit=0  [10:40:41]
+ledger (after migrate, README 13 read-only query):
+  postgres: installed migrations (27): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53 ยท max 53
+  gis_t1_upgrade: installed migrations (27): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53 ยท max 53
+README 13 readiness (READ ONLY):
+      db    |   cluster_name    |      mode       | activation_enabled | n_migrations 
+  ----------+-------------------+-----------------+--------------------+--------------
+   postgres | green-area-gis-t0 | local_synthetic | false              |           27
+  (1 row)
+  
+         db       |   cluster_name    |      mode       | activation_enabled | n_migrations 
+  ----------------+-------------------+-----------------+--------------------+--------------
+   gis_t1_upgrade | green-area-gis-t0 | local_synthetic | false              |           27
+  (1 row)
+  
+
+## restore (step 8)
+PS> git switch 23_27-chayakorn-c17
+  Switched to branch '23_27-chayakorn-c17'
+PS> git branch -f gis-unlock 7501cc8
+PS> git rev-parse gis-unlock
+  7501cc87782a1441dc5678fa5504cf37bc1495d2
+PS> git rev-parse origin/gis-unlock
+  7501cc87782a1441dc5678fa5504cf37bc1495d2
+PS> git branch --show-current; git rev-parse --short HEAD
+  23_27-chayakorn-c17 1932d1d
+PS> git status --short
+  ?? dev/gis_local/t0-rebuild/upload-053-approval.json

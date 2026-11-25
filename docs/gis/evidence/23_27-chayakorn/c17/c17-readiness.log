@@ -1,0 +1,17 @@
+﻿C17 readiness  2026-11-25 09:40:32  repo=<clone-c17> branch=23_27-chayakorn-c17 (T0 resumed with dev\gis_local\t1_database.py resume)
+PS> docker exec green-area-gis-t0-db psql ... -d postgres -c $sql
+    db    |   cluster_name    |      mode       | activation_enabled | n_migrations 
+----------+-------------------+-----------------+--------------------+--------------
+ postgres | green-area-gis-t0 | local_synthetic | false              |           26
+(1 row)
+
+PS> docker exec green-area-gis-t0-db psql ... -d postgres -c $ver
+installed migrations (26): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52
+PS> docker exec green-area-gis-t0-db psql ... -d gis_t1_upgrade -c $sql
+       db       |   cluster_name    |      mode       | activation_enabled | n_migrations 
+----------------+-------------------+-----------------+--------------------+--------------
+ gis_t1_upgrade | green-area-gis-t0 | local_synthetic | false              |           26
+(1 row)
+
+PS> docker exec green-area-gis-t0-db psql ... -d gis_t1_upgrade -c $ver
+installed migrations (26): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52

@@ -1,0 +1,65 @@
+C17 backend  2026-11-25 09:37:13  repo=<clone-c17> branch=23_27-chayakorn-c17 GADM_PROVINCE=Ranong python=<clone-c6>\green-area-backend\.venv
+PS> python -m pytest tests/ -q -rs -p no:cacheprovider --junitxml=<c17>\c17-backend.xml
+........................................................................ [ 79%]
+........................................................................ [ 82%]
+........................................................................ [ 85%]
+........................................................................ [ 89%]
+........................................................................ [ 92%]
+........................................................................ [ 95%]
+........................................................................ [ 98%]
+...............................                                          [100%]
+============================== warnings summary ===============================
+<clone-c6>\green-area-backend\.venv\Lib\site-packages\google\api_core\_python_version_support.py:255
+  <clone-c6>\green-area-backend\.venv\Lib\site-packages\google\api_core\_python_version_support.py:255: FutureWarning: You are using a Python version (3.11.9) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2027-10-24). Please upgrade to the latest Python version, or at least Python 3.12, to continue receiving updates for google.api_core past that date.
+    warnings.warn(message, FutureWarning)
+
+<clone-c6>\green-area-backend\.venv\Lib\site-packages\rasterio\transform.py:178: 5 warnings
+tests/test_geotiff_bands_native.py: 1 warning
+tests/test_geotiff_native.py: 37 warnings
+tests/test_geotiff_prepare_native.py: 28 warnings
+tests/test_geotiff_publication_native.py: 12 warnings
+  <clone-c6>\green-area-backend\.venv\Lib\site-packages\rasterio\transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[ndvi_ready-0-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[ndvi_ready-0-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_celsius_ready-20-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_celsius_ready-20-0]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_kelvin_ready-20-1]
+tests/test_geotiff_publication_native.py::test_actual_raster_summary_png_and_once_conversion[lst_kelvin_ready-20-1]
+tests/test_geotiff_publication_native.py::test_explicit_matching_month_remains_unverified
+tests/test_geotiff_publication_native.py::test_display_mercator_asymmetric_grid_known_nearest_positions
+tests/test_geotiff_publication_native.py::test_display_mercator_asymmetric_grid_known_nearest_positions
+  <clone-c6>\green-area-backend\.venv\Lib\site-packages\rasterio\transform.py:189: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(west, north) * Affine.scale(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [3] tests\test_gee_credential_boundary.py:135: Linux kernel boundary
+SKIPPED [1] tests\test_gee_credential_boundary.py:144: Linux kernel boundary
+SKIPPED [1] tests\test_gee_credential_boundary.py:158: Linux thread-wide kernel installation boundary
+SKIPPED [1] tests\test_gee_credential_boundary.py:174: Linux credential-bearing IPC
+SKIPPED [2] tests\test_gee_credential_boundary.py:181: Linux UID credential parser checks
+SKIPPED [7] tests\test_gee_credential_boundary.py:201: Isolated Linux root supervisor drops child UIDs
+SKIPPED [1] tests\test_gee_credential_boundary.py:428: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [1] tests\test_gee_credential_boundary.py:521: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [2] tests\test_gee_credential_boundary.py:530: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [4] tests\test_gee_credential_boundary.py:541: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [13] tests\test_gee_credential_boundary.py:553: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [5] tests\test_gee_credential_boundary.py:575: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [1] tests\test_gee_credential_boundary.py:588: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [1] tests\test_gee_credential_boundary.py:621: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [20] tests\test_gee_credential_boundary.py:628: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [1] tests\test_gee_credential_boundary.py:658: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [2] tests\test_gee_credential_boundary.py:668: Linux SCM_CREDENTIALS socket IPC
+SKIPPED [1] tests\test_gee_credential_boundary.py:796: Linux /proc
+SKIPPED [1] tests\test_gee_credential_boundary.py:817: Linux non-root process self-measurement
+SKIPPED [8] tests\test_gee_execution_safety.py:143: real isolated child requires Linux
+SKIPPED [1] tests\test_gee_execution_safety.py:154: real isolated child requires Linux
+SKIPPED [1] tests\test_gee_execution_safety.py:161: real isolated child requires Linux
+SKIPPED [2] tests\test_gee_execution_safety.py:168: real isolated child requires Linux
+SKIPPED [1] tests\test_ldd_policy_native.py:563: frozen artifact bytes are only meaningful inside the pinned worker runtime; set GIS_NATIVE_RUNTIME=pinned when running there
+2182 passed, 81 skipped, 93 warnings in 103.96s (0:01:43)
+exit=0  wall 106 s
+
+[exited with code 0]

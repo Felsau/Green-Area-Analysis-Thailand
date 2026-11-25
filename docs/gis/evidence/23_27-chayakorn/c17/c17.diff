@@ -1,0 +1,406 @@
+diff --git a/.gitattributes b/.gitattributes
+index ee38800..652e279 100644
+--- a/.gitattributes
++++ b/.gitattributes
+@@ -38,9 +38,10 @@
+ /dev/gis_local/gee_live_runtime.Dockerfile -text
+ /dev/gis_local/gee-runtime-*.json -text
+ /docs/gis/a6-4d2-*.md -text
+-# Migrations 047-052 are checksum-bound by the ledger like 027-046 above.
++# Migrations 047-053 are checksum-bound by the ledger like 027-046 above.
+ /green-area-backend/migrations/04[7-9]_*.sql -text
+ /green-area-backend/migrations/05[0-2]_*.sql -text
++/green-area-backend/migrations/053_*.sql -text
+ # Hash-pinned validator assets (ldd_provider pins them; migration 051 pins the boundary one). A line-ending
+ # conversion on a Windows checkout would change their bytes and make every LDD validation fail.
+ /green-area-backend/gis_worker/ldd_codes.json -text
+diff --git a/dev/gis_local/t0-rebuild/README.md b/dev/gis_local/t0-rebuild/README.md
+index c9482ce..9776169 100644
+--- a/dev/gis_local/t0-rebuild/README.md
++++ b/dev/gis_local/t0-rebuild/README.md
+@@ -1,4 +1,4 @@
+-# สร้าง sandbox T0 ใหม่ตั้งแต่ศูนย์จนถึง migration 052
++# สร้าง sandbox T0 ใหม่ตั้งแต่ศูนย์จนถึง migration 053
+ 
+ ลำดับคำสั่งนี้คัดจากการสร้าง T0 จริงเมื่อ 10–11 พ.ย. 2569 (งาน W4) บนเครื่อง Windows
+ ผลที่ควรเห็นทุกขั้นคัดจาก log ของรอบนั้น ค่า `runtime_instance`, id ของ container และ id ของรายงานจะต่างกันทุกเครื่อง
+@@ -14,6 +14,7 @@
+ | `migration-032-independent-review.json`, `migration-033-independent-review.json`, `run_032_033.py` | 6 |
+ | `review-034.json`, `review-035.json` | 7 |
+ | `gee-dashboard-048-approval.json`, `upload-049-approval.json` … `upload-052-approval.json` | 12 |
++| `../upload_053_local.py`, `../upload_053_lifecycle.sql` (อยู่ใน `dev/gis_local` · ยังไม่มี `upload-053-approval.json` ต้องออกหลัง probe ผ่านและได้รับอนุมัติ) | 12 |
+ 
+ ## คำเตือน
+ - **runtime dir มีค่าลับของเครื่อง** (`manage.py prepare` สร้างเอง) ต้องอยู่นอก repo ห้าม commit ห้ามแนบ และห้ามถ่ายภาพเนื้อหา
+@@ -191,7 +192,7 @@ probe ของ 044 ต้องมีแถวใน `gis.officers` ทุก
+ - สาเหตุคือข้อมูลทดสอบใน `gee_genuine_checks.py` แข่งกับนาฬิการะดับ µs ไม่ใช่ schema เสีย probe ทำงานใน transaction ที่ rollback จึงไม่มีอะไรค้าง
+ - ให้**รัน probe ซ้ำ 1 ครั้ง** (รอบ W4 ผ่านในรอบที่ 2) แล้วจึง migrate ถ้ายังล้มให้หยุดและรายงาน
+ 
+-## 12. 048–052 (probe แล้ว migrate ด้วยไฟล์อนุมัติ)
++## 12. 048–053 (probe แล้ว migrate ด้วยไฟล์อนุมัติ)
+ ```powershell
+ & $py -I -B dev\gis_local\gee_dashboard_local.py probe --runtime-dir $rt
+ & $py -I -B dev\gis_local\gee_dashboard_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\gee-dashboard-048-approval.json
+@@ -203,6 +204,8 @@ probe ของ 044 ต้องมีแถวใน `gis.officers` ทุก
+ & $py -I -B dev\gis_local\upload_051_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-051-approval.json
+ & $py -I -B dev\gis_local\upload_052_local.py probe --runtime-dir $rt
+ & $py -I -B dev\gis_local\upload_052_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-052-approval.json
++& $py -I -B dev\gis_local\upload_053_local.py probe --runtime-dir $rt
++& $py -I -B dev\gis_local\upload_053_local.py migrate --runtime-dir $rt --approval dev\gis_local\t0-rebuild\upload-053-approval.json
+ ```
+ - probe ต้องมีผู้ใช้สังเคราะห์ (officer, profile ที่ไม่ใช่ officer, admin) และจังหวัดในทั้งสองฐาน ผู้ใช้สังเคราะห์มาจากขั้น 10 ส่วนจังหวัดมาจาก seed ของ migration 006 ตอน baseline ในขั้น 2
+ - ไฟล์อนุมัติมีแค่ `{"approval": "local_apply_0xx_after_rollback_probe", "migration_sha256": "<sha ของไฟล์ migration>"}` ตัวรันเทียบแบบตรงตัว
+@@ -216,6 +219,7 @@ probe ของ 044 ต้องมีแถวใน `gis.officers` ทุก
+ | 050 | `87a09b59ddeae481a0f927ebde641fa915260837bc82729fd8effcb026bac893` |
+ | 051 | `875cd02e5f5bb40f1fd7828c84335b856f097f65e3e496fde087f60c7c32cccc` |
+ | 052 | `329ce1a52a47db9735a8fca99488e00f0881c0403a4878268f07c77f6f229875` |
++| 053 | `7db4320ec7b651a0c823d483469771e9af176829b5c5fbb87a713f707a0fe9a3` |
+ 
+ ## 13. ตรวจ readiness แบบ READ ONLY ทั้งสองฐาน
+ ```powershell
+@@ -227,8 +231,8 @@ foreach ($db in 'postgres', 'gis_t1_upgrade') {
+ }
+ ```
+ ผลที่ควรเห็น (ทั้งสองฐาน):
+-- `cluster_name = green-area-gis-t0` · `mode = local_synthetic` · `activation_enabled = false` · `n_migrations = 26`
+-- `installed migrations (26): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52`
++- `cluster_name = green-area-gis-t0` · `mode = local_synthetic` · `activation_enabled = false` · `n_migrations = 27`
++- `installed migrations (27): 27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53`
+ 
+ ## ข้อจำกัดที่ทราบ
+ - **แก้แล้ว (11 พ.ย. 2569): migration 000–026 ต้องเป็น LF** เดิมค่า sha ของ migration 000–026 ทั้ง 27 ค่าที่ปักไว้เป็นค่าของไฟล์แบบ CRLF ทำให้เครื่องที่ checkout เป็น LF หยุดที่ 035 (`check_frozen` ใน `dev/gis_ui/phase3_local.py` เทียบกับ `phase2-evidence-index.json`) และจะหยุดซ้ำที่ 041 และ 042 (`geotiff_prepare_local.py` และ `geotiff_publication_local.py` เทียบกับ `before.json`) ตอนนี้ `.gitattributes` ตั้ง `-text` ให้ 000–026 แล้ว และค่า 27 ค่าในไฟล์ทั้งสี่ (`phase2-evidence-index.json`, `phase3-evidence-index.json`, `a4-geotiff-prepare-before.json`, `a4-2-geotiff-publication-before.json`) เปลี่ยนเป็นค่า LF แล้ว clone ที่ยังมีไฟล์ CRLF ค้างอยู่ให้ทำตามขั้น 0
+diff --git a/dev/gis_local/t0-rebuild/upload-053-approval.json b/dev/gis_local/t0-rebuild/upload-053-approval.json
+new file mode 100644
+index 0000000..63fe46c
+--- /dev/null
++++ b/dev/gis_local/t0-rebuild/upload-053-approval.json
+@@ -0,0 +1 @@
++{"approval": "local_apply_053_after_rollback_probe", "migration_sha256": "7db4320ec7b651a0c823d483469771e9af176829b5c5fbb87a713f707a0fe9a3"}
+\ No newline at end of file
+diff --git a/dev/gis_local/upload_053_lifecycle.sql b/dev/gis_local/upload_053_lifecycle.sql
+new file mode 100644
+index 0000000..e077da9
+--- /dev/null
++++ b/dev/gis_local/upload_053_lifecycle.sql
+@@ -0,0 +1,72 @@
++-- 053 rolled-back lifecycle (caller: BEGIN; migration; ledger; this; ROLLBACK).
++-- Settings t.actor (officer), t.worker (another profile), t.province come from the caller.
++-- A report may name the 41-province asset (053), the 24-province asset (051) or the GADM asset (034).
++SET LOCAL ROLE gis_owner;
++DO $t$ DECLARE a uuid:=current_setting('t.actor')::uuid; w uuid:=current_setting('t.worker')::uuid; p text:=current_setting('t.province');
++ ds jsonb; up jsonb; job jsonb; ok jsonb; bad jsonb; r jsonb; failed boolean; sha text:=repeat('e',64); h text;
++ gadm text:='ac2b28255f22861ab644bf083fa40f28dd9da1294648d4b01cfc6f9cdc156a21';
++ ldd24 text:='1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac';
++ ldd41 text:='49473e7e59aeecfe4b3dff1c9b6ebc21ffe859fa76de47c46c45e1d55dae93a3';
++ ed gis.editions; jb gis.jobs; role_name text;
++BEGIN
++ ds:=gis.command(a,'dddddddd-0530-4000-8000-000000000001','create_dataset',jsonb_build_object('province',p,'data_year',2011,'month',0,'kind','ldd_shapefile','purpose','landuse','title','t053-ldd'),false)->'body';
++ up:=gis.ldd_command(a,'dddddddd-0530-4000-8000-000000000002','upload',jsonb_build_object('dataset_id',ds->>'id','expected_revision',ds->'revision','upload_id','dddddddd-0530-4000-8000-0000000000a1','sha256',sha,'byte_size',10,'crs','EPSG:32647','encoding','utf-8','source_label','t053'),false);
++ PERFORM gis.ldd_command(a,'dddddddd-0530-4000-8000-000000000003','enqueue',jsonb_build_object('edition_id',up->'body'->>'edition_id','expected_revision',1),false);
++ job:=gis.queue_protocol_kind('claim',jsonb_build_object('worker_id',w),'ldd')->'job';
++ IF job->>'upload_id'<>up->'body'->>'upload_id' THEN RAISE EXCEPTION 'T_CLAIM %',job; END IF;
++ SELECT * INTO ed FROM gis.editions WHERE id=(up->'body'->>'edition_id')::uuid;
++ SELECT * INTO jb FROM gis.jobs WHERE id=(job->>'id')::uuid;
++ -- An accepted report, the shape a real validation produces.
++ ok:=jsonb_build_object('schema_version',1,'provider_build','ldd-local-v1','upload_id',job->>'upload_id','artifact_sha256',sha,'observed_sha256',sha,'byte_size',10,
++   'input_hash',job->>'input_hash','input_revision',job->'input_revision','province',p,'data_year',2011,'crs','EPSG:32647','encoding','utf-8','valid',true,
++   'checks','["source_hash_match","archive_safety","components","crs","geometry","attributes","encoding","ldd_codes","province_bounds","dataset_association"]'::jsonb,
++   'errors','[]'::jsonb,'warnings','[{"code":"BOUNDARY_FROM_DATA_PRODUCER","count":1},{"code":"DATA_YEAR_METADATA_DECLARED","count":1}]'::jsonb,'error_code',NULL::text,
++   'boundary_sha256',ldd41,
++   'statistics','{"feature_count":3,"total_area_m2":100,"unknown_area_m2":0,"unknown_code_count":0,"composite_feature_count":0,"geometry_error_count":0,"area_by_main_m2":{"U":100,"A":0,"F":0,"W":0,"M":0}}'::jsonb);
++ -- The three known assets pass; the 049/050 layers underneath still run (an audit is checked with the new hash).
++ FOREACH h IN ARRAY ARRAY[ldd41,ldd24,gadm] LOOP
++   PERFORM gis.validate_ldd_report(jsonb_set(ok,'{boundary_sha256}',to_jsonb(h)),ed,jb);
++ END LOOP;
++ PERFORM gis.validate_ldd_report(ok||jsonb_build_object('audit','{"policy_version":"ldd-policy-v2","outcome":"accepted","field_profile":"ldd-lu-text-v1","field_mapping":{"main_code":"LUL1_CODE","lu_code":"LU_CODE","declared_area":"Shape_Area"},"declared_area_units":"m2","feature_outcomes":{"accepted":3,"accepted_with_warnings":0,"review_required":0,"rejected":0},"boundary":{"minor":0,"review":0,"fatal":0,"outside_area_m2":0},"unknown_samples":[],"repairs":[],"repairs_total":0}'::jsonb),ed,jb);
++ -- Nothing else is accepted: another hash, a near miss of the new one, a wrong type, a missing key.
++ FOR bad IN SELECT x FROM unnest(ARRAY[
++   jsonb_set(ok,'{boundary_sha256}',to_jsonb(repeat('0',64))), jsonb_set(ok,'{boundary_sha256}',to_jsonb(upper(ldd41))),
++   jsonb_set(ok,'{boundary_sha256}',to_jsonb(ldd41||'0')), jsonb_set(ok,'{boundary_sha256}',to_jsonb(left(ldd41,63))),
++   jsonb_set(ok,'{boundary_sha256}',to_jsonb(upper(ldd24))),
++   jsonb_set(ok,'{boundary_sha256}','null'::jsonb), jsonb_set(ok,'{boundary_sha256}','42'::jsonb), ok-'boundary_sha256']) x LOOP
++   failed:=false;
++   BEGIN PERFORM gis.validate_ldd_report(bad,ed,jb);
++   EXCEPTION WHEN raise_exception THEN failed:=SQLERRM LIKE 'GIS_%'; END;
++   IF NOT failed THEN RAISE EXCEPTION 'T_BAD_BOUNDARY_HASH_ACCEPTED %',bad->'boundary_sha256'; END IF;
++ END LOOP;
++ -- Every other rule still holds with the new hash.
++ FOR bad IN SELECT x FROM unnest(ARRAY[
++   jsonb_set(ok,'{upload_id}','"dddddddd-0530-4000-8000-0000000000ff"'),
++   jsonb_set(ok,'{province}','"Not A Province"'),
++   jsonb_set(ok,'{observed_sha256}',to_jsonb(repeat('f',64))),
++   ok||'{"extra":1}'::jsonb,
++   jsonb_set(ok,'{statistics,unknown_code_count}','1'),
++   jsonb_set(ok,'{checks}','["source_hash_match"]'),
++   ok||jsonb_build_object('audit','{"outcome":"accepted"}'::jsonb)]) x LOOP
++   failed:=false;
++   BEGIN PERFORM gis.validate_ldd_report(bad,ed,jb);
++   EXCEPTION WHEN raise_exception THEN failed:=SQLERRM LIKE 'GIS_%'; END;
++   IF NOT failed THEN RAISE EXCEPTION 'T_OTHER_RULE_NOT_ENFORCED %',left(bad::text,200); END IF;
++ END LOOP;
++ -- A non-object report is still refused by the previous function, not by a type error of the wrapper.
++ failed:=false;
++ BEGIN PERFORM gis.validate_ldd_report('"text"'::jsonb,ed,jb); EXCEPTION WHEN raise_exception THEN failed:=SQLERRM LIKE 'GIS_%'; END;
++ IF NOT failed THEN RAISE EXCEPTION 'T_NON_OBJECT_ACCEPTED'; END IF;
++ -- The queue stores the accepted report with the hash it carried, not the one the previous function saw.
++ r:=gis.queue_protocol_kind('complete',jsonb_build_object('job_id',job->>'id','worker_id',w,'lease_token',job->>'lease_token','report',ok),'ldd');
++ IF r->>'state' IS DISTINCT FROM 'succeeded' THEN RAISE EXCEPTION 'T_COMPLETE_STATE %',r; END IF;
++ IF (SELECT validation_report->>'boundary_sha256' FROM gis.attempts WHERE job_id=(job->>'id')::uuid)<>ldd41 THEN RAISE EXCEPTION 'T_STORED_HASH_CHANGED'; END IF;
++ -- The functions stay closed to every API and worker role, the 051 one underneath included.
++ FOR role_name IN SELECT unnest(ARRAY['anon','authenticated','service_role','gis_worker','gis_native_worker']) LOOP
++   IF has_function_privilege(role_name,'gis.validate_ldd_report(jsonb,gis.editions,gis.jobs)','EXECUTE')
++     OR has_function_privilege(role_name,'gis.u053_previous_validate_ldd_report(jsonb,gis.editions,gis.jobs)','EXECUTE')
++     OR has_function_privilege(role_name,'gis.u051_previous_validate_ldd_report(jsonb,gis.editions,gis.jobs)','EXECUTE') THEN
++     RAISE EXCEPTION 'T_VALIDATOR_REACHABLE_BY %',role_name; END IF;
++ END LOOP;
++END $t$;
++RESET ROLE;
+diff --git a/dev/gis_local/upload_053_local.py b/dev/gis_local/upload_053_local.py
+new file mode 100644
+index 0000000..dd54ccc
+--- /dev/null
++++ b/dev/gis_local/upload_053_local.py
+@@ -0,0 +1,93 @@
++"""Operator for migration 053 (LDD validation accepts the 41-province boundary asset) on the local T0.
++
++  probe    053 + rolled-back lifecycle on both local databases; the ledger stays at 52.
++  migrate  053 for real, only after a matching probe and an approval file you write.
++  proof    read-only ledger and gate check.
++
++Uses the attested local operator from gee_dashboard_local for runtime proof and SQL
++transport. Nothing here reaches Google or Cloud. Output: <runtime root>/upload-053/.
++"""
++import argparse
++import hashlib
++import importlib.util
++import json
++import logging
++from pathlib import Path
++import sys
++
++HERE = Path(__file__).resolve().parent
++spec = importlib.util.spec_from_file_location('upload_053_dashboard', HERE / 'gee_dashboard_local.py')
++d = importlib.util.module_from_spec(spec); sys.modules[spec.name] = d; spec.loader.exec_module(d)
++MIGRATION = d.REPO / 'green-area-backend/migrations/053_gis_ldd_boundary_asset_v2.sql'
++LIFECYCLE = HERE / 'upload_053_lifecycle.sql'
++APPROVAL = 'local_apply_053_after_rollback_probe'
++
++
++def digest(path):
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++class BoundaryV2Local(d.DashboardLocal):
++    def __init__(self, root):
++        super().__init__(root)
++        self.output = self.db.runtime.root / 'upload-053'
++        self.output.mkdir(exist_ok=True)
++
++    def run_053(self, *, probe):
++        self.proof(allow=(52,) if probe else (52, 53))
++        sha = digest(MIGRATION)
++        q = d._t1().literal
++        prior = {db: self.sql('SELECT to_jsonb(sha256) FROM gis.schema_migrations WHERE version=53', db, read_only=True)
++            for db in d.DATABASES}
++        if any(old is not None and old != sha for old in prior.values()):
++            raise RuntimeError('APPLIED_CHECKSUM_DRIFT_FORWARD_MIGRATION_REQUIRED')
++        results = {}
++        for db, old in prior.items():
++            if old is not None:
++                results[db] = 'already_applied'
++                continue
++            self.db.proof(db, stage='gis')
++            body = "BEGIN;SET LOCAL lock_timeout='5s';SET LOCAL statement_timeout='60s';"
++            body += "SELECT set_config('gis.runtime_instance'," + q(self.db.instance) + ",true);"
++            body += "SELECT set_config('gis.baseline_fingerprint'," + q(d._t1().legacy_fingerprint()) + ",true);"
++            body += MIGRATION.read_text(encoding='utf-8')
++            body += "\nSET LOCAL ROLE gis_owner;INSERT INTO gis.schema_migrations(version,sha256) VALUES(53," + q(sha) + ");RESET ROLE;"
++            if probe:
++                body += self._prelude(db) + LIFECYCLE.read_text(encoding='utf-8') + "\nSET CONSTRAINTS ALL IMMEDIATE;ROLLBACK;"
++            else:
++                body += "COMMIT;"
++            self.db.transport(db, body)
++            results[db] = 'rolled_back_lifecycle' if probe else 'applied'
++        record = {'sha256': sha, 'lifecycle_sha256': digest(LIFECYCLE), 'runtime_instance': self.db.instance, 'databases': results}
++        (self.output / ('probe.json' if probe else 'migration-053.json')).write_text(json.dumps(record, indent=2), encoding='utf-8')
++        return record
++
++    def migrate_053(self, approval):
++        sha = digest(MIGRATION)
++        value = json.loads(Path(approval).read_text(encoding='utf-8'))
++        if value != {'approval': APPROVAL, 'migration_sha256': sha}:
++            raise RuntimeError('MIGRATION_053_APPROVAL_REQUIRED')
++        probe = json.loads((self.output / 'probe.json').read_text(encoding='utf-8'))
++        if (probe.get('sha256') != sha or probe.get('lifecycle_sha256') != digest(LIFECYCLE)
++                or probe.get('runtime_instance') != self.db.instance
++                or probe.get('databases') != {db: 'rolled_back_lifecycle' for db in d.DATABASES}):
++            raise RuntimeError('MIGRATION_053_PROBE_REQUIRED')
++        return self.run_053(probe=False)
++
++
++if __name__ == '__main__':
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('action', choices=('proof', 'probe', 'migrate'))
++    parser.add_argument('--runtime-dir', type=Path, required=True)
++    parser.add_argument('--approval', type=Path)
++    args = parser.parse_args()
++    for name in ('httpx', 'httpcore', 'postgrest', 'supabase_auth', 'gotrue'):
++        logging.getLogger(name).setLevel(logging.CRITICAL)
++    local = BoundaryV2Local(args.runtime_dir)
++    if args.action == 'proof':
++        value = local.proof(allow=(52, 53))
++    elif args.action == 'probe':
++        value = local.run_053(probe=True)
++    else:
++        value = local.migrate_053(args.approval)
++    print(json.dumps(value))
+diff --git a/docs/gis/ldd-field-policy.md b/docs/gis/ldd-field-policy.md
+index 445943d..9948eea 100644
+--- a/docs/gis/ldd-field-policy.md
++++ b/docs/gis/ldd-field-policy.md
+@@ -77,7 +77,7 @@ Policy-v2 validation tolerates two variants written by the producer's software.
+ 
+ Boundary source (`province_boundaries_ldd.json`, `ldd-boundaries-v1`, rebuilt with `dev/gis_local/run_build_ldd_boundaries.ps1`):
+ 
+-- For the 24 provinces whose LDD package carries a province layer (`*_Pro.shp` or `prov_*.shp`) the validator reads that layer (`source: ldd-package`). It is snapped to 1e-8° (about 1 mm) and records the SHA256 of the package and of the layer it came from. The other 53 provinces keep the approximate GADM outline, byte for byte (`source: gadm-approx`). Ang Thong and Lop Buri have packages but no province layer, so they stay on GADM.
++- For the 41 provinces whose LDD package carries a province layer (`*_Pro.shp` or `prov_*.shp`) the validator reads that layer (`source: ldd-package`). It is snapped to 1e-8° (about 1 mm) and records the SHA256 of the package and of the layer it came from. The other 36 provinces keep the approximate GADM outline, byte for byte (`source: gadm-approx`). Ang Thong and Lop Buri have packages but no province layer, so they stay on GADM.
+ - Packages were matched to provinces by overlap with the GADM outline (IoU 0.93 to 0.99), never by file name. Each layer was checked against its own land-use layer (1,059,852 parcels in all, including provinces too large for the validator's current limits): none lies more than 225 m outside it, 1.8 % touch the line within that tolerance, and the area outside is at most 0.007 % of a province (Sing Buri), usually under 0.00002 %.
+ - The report names the asset it read (`boundary_sha256`) and says which kind of outline it was: the warning `BOUNDARY_FROM_DATA_PRODUCER` or `BOUNDARY_APPROXIMATE`. The producer's outline is not an independent source; it is the line the producer clipped its own parcels to.
+ - The frozen pre-v2 validator, the v1 preparation and GeoTIFF clipping still read the GADM asset (`province_boundaries.json`, hash unchanged).
+diff --git a/green-area-backend/gis_worker/ldd_provider.py b/green-area-backend/gis_worker/ldd_provider.py
+index 9af46ba..77fde7f 100644
+--- a/green-area-backend/gis_worker/ldd_provider.py
++++ b/green-area-backend/gis_worker/ldd_provider.py
+@@ -29,9 +29,10 @@ BUILD = 'ldd-local-v1'
+ BOUNDARY_SHA256 = 'ac2b28255f22861ab644bf083fa40f28dd9da1294648d4b01cfc6f9cdc156a21'
+ # Policy v2 validation: the province layer shipped in the LDD package of each province that supplied
+ # one (source ldd-package), the same GADM outline elsewhere (source gadm-approx). Built by
+-# dev/gis_local/build_ldd_boundaries.py. Migration 051 lets the database accept this hash too.
++# dev/gis_local/build_ldd_boundaries.py. 41 provinces supply one; migration 053 lets the database accept
++# this hash (051 accepted the earlier 24-province asset).
+ BOUNDARY_LDD_ASSET = 'province_boundaries_ldd.json'
+-BOUNDARY_LDD_SHA256 = '1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac'
++BOUNDARY_LDD_SHA256 = '49473e7e59aeecfe4b3dff1c9b6ebc21ffe859fa76de47c46c45e1d55dae93a3'
+ BOUNDARY_SOURCES = ('gadm-approx', 'ldd-package')
+ # The first legend (Bangkok 2566, 96 codes) is frozen: the pre-v2 validator and v1 preparation pin it.
+ LEGEND_SHA256 = '34069bca1cf06474fab22f8b7211f91d4dc5d4deb37c0fec414efd05c63afbde'
+diff --git a/green-area-backend/migrations/053_gis_ldd_boundary_asset_v2.sql b/green-area-backend/migrations/053_gis_ldd_boundary_asset_v2.sql
+new file mode 100644
+index 0000000..a95ae8c
+--- /dev/null
++++ b/green-area-backend/migrations/053_gis_ldd_boundary_asset_v2.sql
+@@ -0,0 +1,41 @@
++-- 053 LDD validation reports may name the 41-province boundary asset.
++-- province_boundaries_ldd.json is rebuilt from all 77 LDD packages: the province layer shipped in the package
++-- for the 41 provinces that supply one (the 24 of 051 plus 17 northern provinces), the same GADM outline for
++-- the other 36. 051 is left as applied (its sha256 is bound by the ledger and the approval records), so its
++-- header still describes the 24-province asset; this header is the description of the current one.
++-- A report naming the new asset is checked exactly as a report naming the 24-province asset: the previous
++-- function is called with that hash, so every rule of 034/049/050/051 applies unchanged, and the stored report
++-- keeps the hash it carried. The 24-province hash and the GADM hash are still accepted; any other is refused.
++-- Nothing here changes what passes validation, prepare or publication.
++-- The attested operator supplies BEGIN/runtime proof and the INSERT-only ledger entry.
++DO $guard$ BEGIN
++ IF current_database() NOT IN ('postgres','gis_t1_upgrade') OR NOT gis.target_ok()
++ OR NOT EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version=52 AND sha256='329ce1a52a47db9735a8fca99488e00f0881c0403a4878268f07c77f6f229875')
++ OR EXISTS(SELECT 1 FROM gis.schema_migrations WHERE version>=53)
++ OR NOT EXISTS(SELECT 1 FROM gis.environment WHERE singleton AND NOT activation_enabled
++ AND runtime_instance=current_setting('gis.runtime_instance',true) AND baseline_fingerprint=current_setting('gis.baseline_fingerprint',true))
++ THEN RAISE EXCEPTION 'GIS_LOCAL_BASELINE_052_REQUIRED';END IF;
++END $guard$;
++SET LOCAL ROLE gis_owner;
++SELECT gis.assert_environment();
++
++ALTER FUNCTION gis.validate_ldd_report(jsonb,gis.editions,gis.jobs) RENAME TO u053_previous_validate_ldd_report;
++CREATE FUNCTION gis.validate_ldd_report(p_report jsonb,p_edition gis.editions,p_job gis.jobs) RETURNS void
++LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,gis AS $f$
++BEGIN
++ IF jsonb_typeof(p_report)='object' AND p_report->>'boundary_sha256'='49473e7e59aeecfe4b3dff1c9b6ebc21ffe859fa76de47c46c45e1d55dae93a3' THEN
++  PERFORM gis.u053_previous_validate_ldd_report(
++   jsonb_set(p_report,'{boundary_sha256}',to_jsonb('1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac'::text)),p_edition,p_job);
++ ELSE
++  PERFORM gis.u053_previous_validate_ldd_report(p_report,p_edition,p_job);
++ END IF;
++END $f$;
++
++DO $acl$ DECLARE f record;BEGIN
++ FOR f IN SELECT p.oid::regprocedure AS sig FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
++ WHERE n.nspname='gis' AND p.proname IN ('validate_ldd_report','u053_previous_validate_ldd_report') LOOP
++ EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role,gis_worker,gis_native_worker,gis_gee_mock_worker,gis_gee_live_worker,gis_gee_safety_worker,gis_gee_transport_recorder,gis_gee_https_worker,gis_gee_https_recorder',f.sig);
++ END LOOP;
++END $acl$;
++RESET ROLE;
++NOTIFY pgrst,'reload schema';
+diff --git a/green-area-backend/tests/test_ldd_native.py b/green-area-backend/tests/test_ldd_native.py
+index 6edbbd5..768b124 100644
+--- a/green-area-backend/tests/test_ldd_native.py
++++ b/green-area-backend/tests/test_ldd_native.py
+@@ -76,10 +76,12 @@ def test_second_legend_keeps_every_first_legend_entry_and_adds_the_official_tabl
+ 
+ 
+ OFFICIAL_OUTLINES = {
+-    'Bangkok Metropolis', 'Chachoengsao', 'Chai Nat', 'Chanthaburi', 'Chon Buri', 'Kanchanaburi', 'Nakhon Nayok',
+-    'Nakhon Pathom', 'Nonthaburi', 'Pathum Thani', 'Phetchaburi', 'Phra Nakhon Si Ayutthaya', 'Prachin Buri',
+-    'Prachuap Khiri Khan', 'Ratchaburi', 'Rayong', 'Sa Kaeo', 'Samut Prakan', 'Samut Sakhon', 'Samut Songkhram',
+-    'Saraburi', 'Sing Buri', 'Suphan Buri', 'Trat'}
++    'Bangkok Metropolis', 'Chachoengsao', 'Chai Nat', 'Chanthaburi', 'Chiang Mai', 'Chiang Rai', 'Chon Buri',
++    'Kamphaeng Phet', 'Kanchanaburi', 'Lampang', 'Lamphun', 'Mae Hong Son', 'Nakhon Nayok', 'Nakhon Pathom',
++    'Nakhon Sawan', 'Nan', 'Nonthaburi', 'Pathum Thani', 'Phayao', 'Phetchabun', 'Phetchaburi', 'Phichit',
++    'Phitsanulok', 'Phra Nakhon Si Ayutthaya', 'Phrae', 'Prachin Buri', 'Prachuap Khiri Khan', 'Ratchaburi', 'Rayong',
++    'Sa Kaeo', 'Samut Prakan', 'Samut Sakhon', 'Samut Songkhram', 'Saraburi', 'Sing Buri', 'Sukhothai', 'Suphan Buri',
++    'Tak', 'Trat', 'Uthai Thani', 'Uttaradit'}
+ 
+ 
+ def test_boundary_asset_replaces_only_the_provinces_a_package_supplied():
+@@ -100,19 +102,32 @@ def test_boundary_asset_replaces_only_the_provinces_a_package_supplied():
+             continue
+         official.add(name)
+         assert re.fullmatch('[0-9a-f]{64}', props['package_sha256']) and re.fullmatch('[0-9a-f]{64}', props['shp_sha256'])
+-        assert props['data_year_be'] in (2566, 2567, 2568)
++        assert props['data_year_be'] in (2563, 2564, 2566, 2567, 2568)
+         previous = shapely_geometry.shape(old[name]['geometry'])
+         assert shape.intersection(previous).area / shape.union(previous).area > 0.9   # the same province, only more detailed
+-    assert official == OFFICIAL_OUTLINES and len(official) == 24
++    assert official == OFFICIAL_OUTLINES and len(official) == 41
+ 
+ 
+-def test_migration_051_names_exactly_the_two_boundary_assets_the_code_pins():
+-    """A rebuilt asset or a changed constant must not drift away from the SQL that admits its hash."""
++BOUNDARY_LDD24_SHA256 = '1b6cf62b8f43504078c51c9ca3e94f6fffe56c2ca1b3765674d5aa2d7c62e1ac'   # the 24-province asset 051 admits
++BOUNDARY_GADM_SHA256 = 'ac2b28255f22861ab644bf083fa40f28dd9da1294648d4b01cfc6f9cdc156a21'    # the GADM asset 034 admits
++
++
++def test_migration_051_names_exactly_the_two_boundary_assets_it_admitted():
++    """051 is applied and frozen: it names the 24-province asset and the GADM asset, whatever the code pins now."""
+     migrations = Path(__file__).resolve().parents[1] / 'migrations'
+     sql = (migrations / '051_gis_ldd_boundary_asset.sql').read_text(encoding='utf-8')
+     previous = hashlib.sha256((migrations / '050_gis_ldd_report_audit.sql').read_bytes()).hexdigest()
+-    assert set(re.findall(r'[0-9a-f]{64}', sql)) == {ldd.BOUNDARY_LDD_SHA256, ldd.BOUNDARY_SHA256, previous}
+-    assert ldd.BOUNDARY_SHA256 in (migrations / '034_ldd_upload.sql').read_text(encoding='utf-8')
++    assert set(re.findall(r'[0-9a-f]{64}', sql)) == {BOUNDARY_LDD24_SHA256, BOUNDARY_GADM_SHA256, previous}
++    assert BOUNDARY_GADM_SHA256 in (migrations / '034_ldd_upload.sql').read_text(encoding='utf-8')
++
++
++def test_migration_053_names_exactly_the_boundary_asset_the_code_pins():
++    """A rebuilt asset or a changed constant must not drift away from the SQL that admits its hash."""
++    migrations = Path(__file__).resolve().parents[1] / 'migrations'
++    sql = (migrations / '053_gis_ldd_boundary_asset_v2.sql').read_text(encoding='utf-8')
++    previous = hashlib.sha256((migrations / '052_gis_ldd_prepare_publication_v2.sql').read_bytes()).hexdigest()
++    assert set(re.findall(r'[0-9a-f]{64}', sql)) == {ldd.BOUNDARY_LDD_SHA256, BOUNDARY_LDD24_SHA256, previous}
++    assert ldd.BOUNDARY_SHA256 == BOUNDARY_GADM_SHA256
+     assert hashlib.sha256((Path(ldd.__file__).parent / ldd.BOUNDARY_LDD_ASSET).read_bytes()).hexdigest() == ldd.BOUNDARY_LDD_SHA256
+     assert not (Path(ldd.__file__).parent / ldd.BOUNDARY_LDD_ASSET).read_bytes().count(b'\n')   # immune to line-ending conversion
+ 
+diff --git a/green-area-backend/tests/test_ldd_policy_native.py b/green-area-backend/tests/test_ldd_policy_native.py
+index eb66c12..e5ee485 100644
+--- a/green-area-backend/tests/test_ldd_policy_native.py
++++ b/green-area-backend/tests/test_ldd_policy_native.py
+@@ -32,7 +32,7 @@ from gis_worker import ldd_provider as ldd  # noqa: E402
+ 
+ ID = '11111111-1111-4111-8111-111111111111'
+ PROVINCE = 'Bangkok Metropolis'   # the validator reads the producer's own outline for it (source ldd-package)
+-GADM_PROVINCE = 'Chiang Mai'      # no package supplied an outline: assess() reads the same GADM geometry as the pre-v2 validator
++GADM_PROVINCE = 'Ranong'          # outline still GADM (assess() reads the pre-v2 geometry); widest margin to the legacy 0.002 degree buffer among UTM 47 gadm-approx provinces
+ TEXT = {'LUL1_CODE': 'str:4', 'LU_CODE': 'str:20', 'Shape_Area': 'float'}
+ 
+ 

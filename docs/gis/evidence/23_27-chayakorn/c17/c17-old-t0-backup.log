@@ -1,0 +1,99 @@
+﻿C17 old T0 backup  2026-11-25 10:15:20  (approved in chat: เธชเธณเธฃเธญเธเนเธเธ C1 เนเธฅเนเธงเธฅเธ)
+
+## 1 old T0 items (before)
+PS> docker ps -a --filter name=green-area-gis-t0
+  green-area-gis-t0-db | Up 35 minutes (healthy) | f371b5f3f2ac
+  green-area-gis-t0-gateway | Up 35 minutes (healthy) | 9a2ae6699a2c
+  green-area-gis-t0-auth | Up 35 minutes (healthy) | 1736a63078f5
+  green-area-gis-t0-rest | Up 35 minutes (healthy) | c7cd7e265a85
+  exit=0
+PS> docker volume ls --filter name=green-area-gis-t0
+  green-area-gis-t0-data
+  green-area-gis-t0-db-config
+  exit=0
+PS> docker network ls --filter name=green-area-gis-t0
+  green-area-gis-t0-ingress
+  green-area-gis-t0-internal
+  exit=0
+T0 instance label gis.t0.instance:  ยท runtime dir: <runtime-c1> (path only, not read)
+
+## 2 stop the owned T0 services
+PS> python -I -B dev\gis_local\t1_database.py stop --runtime-dir <runtime-c1>   (from <clone-c17>)
+  {"stopped_owned_services": ["gateway", "rest", "auth", "db"], "volumes_preserved": true}
+  exit=0
+PS> docker ps -a --filter name=green-area-gis-t0
+  green-area-gis-t0-db | Exited (0) Less than a second ago
+  green-area-gis-t0-gateway | Exited (0) 1 second ago
+  green-area-gis-t0-auth | Exited (0) Less than a second ago
+  green-area-gis-t0-rest | Exited (255) 1 second ago
+  exit=0
+
+## 3 backup folder (new, empty, outside every repo): <backup-20261125>
+helper image = the T0 db image already present (sha256:f371b5f3f2ac...) ยท --network=none ยท volumes mounted read-only
+PS> docker run --rm --network=none --entrypoint tar -v green-area-gis-t0-data:/v:ro -v <backup>:/b <db-image> -cf /b/volume-green-area-gis-t0-data.tar -C /v .
+  exit=0
+PS> docker run --rm --network=none --entrypoint tar -v green-area-gis-t0-db-config:/v:ro -v <backup>:/b <db-image> -cf /b/volume-green-area-gis-t0-db-config.tar -C /v .
+  exit=0
+
+## 4 pg_dump both databases (db container only, no published port)
+PS> docker start green-area-gis-t0-db
+  green-area-gis-t0-db
+  exit=0
+db health: healthy
+PS> docker exec green-area-gis-t0-db pg_dump -U postgres -Fc -d postgres -f /tmp/c17-postgres.dump
+  exit=0
+  pg_restore --list entries postgres: 1555
+PS> docker cp green-area-gis-t0-db:/tmp/c17-postgres.dump <backup>\postgres.dump
+  exit=0
+PS> docker exec green-area-gis-t0-db rm /tmp/c17-postgres.dump
+  exit=0
+PS> docker exec green-area-gis-t0-db pg_dump -U postgres -Fc -d gis_t1_upgrade -f /tmp/c17-gis_t1_upgrade.dump
+  exit=0
+  pg_restore --list entries gis_t1_upgrade: 1337
+PS> docker cp green-area-gis-t0-db:/tmp/c17-gis_t1_upgrade.dump <backup>\gis_t1_upgrade.dump
+  exit=0
+PS> docker exec green-area-gis-t0-db rm /tmp/c17-gis_t1_upgrade.dump
+  exit=0
+PS> docker stop --time 15 green-area-gis-t0-db
+  Flag --time has been deprecated, use --timeout instead
+  green-area-gis-t0-db
+  exit=0
+
+## 5 backup files (name, bytes, sha256)
+gis_t1_upgrade.dump                                 951498  e89daaf98f4b83ad53e86f9f1cfdf1a922143c25f57746cd04debd8c8a2fb5df
+postgres.dump                                      1080131  e840b3414eb702be625d07430d16b21db3d90eb637f7e4a5527320209cf223aa
+volume-green-area-gis-t0-data.tar                 87054336  d613f136ece4e6b6255bc96bb7e2372a679cbd5b06b6dad9b4a9f6e2c0478238
+volume-green-area-gis-t0-db-config.tar               40448  fe9100909543a49873aebd03b209d1213ff2d8d51fe6b2e826bd967e63ceda4f
+tar entries volume-green-area-gis-t0-data.tar: 2359
+tar entries volume-green-area-gis-t0-db-config.tar: 32
+
+BACKUP_DONE 10:15:37
+
+## 5b SHA256SUMS.txt rewritten (first write mixed display lines in) and checked:
+  OK  gis_t1_upgrade.dump
+  OK  postgres.dump
+  OK  volume-green-area-gis-t0-data.tar
+  OK  volume-green-area-gis-t0-db-config.tar
+
+## 6 delete exactly the items of section 1, one name at a time (no image, no runtime dir, no worker container)
+PS> docker rm green-area-gis-t0-db
+  green-area-gis-t0-db  exit=0
+PS> docker rm green-area-gis-t0-gateway
+  green-area-gis-t0-gateway  exit=0
+PS> docker rm green-area-gis-t0-auth
+  green-area-gis-t0-auth  exit=0
+PS> docker rm green-area-gis-t0-rest
+  green-area-gis-t0-rest  exit=0
+PS> docker volume rm green-area-gis-t0-data
+  green-area-gis-t0-data  exit=0
+PS> docker volume rm green-area-gis-t0-db-config
+  green-area-gis-t0-db-config  exit=0
+PS> docker network rm green-area-gis-t0-ingress
+  green-area-gis-t0-ingress  exit=0
+PS> docker network rm green-area-gis-t0-internal
+  green-area-gis-t0-internal  exit=0
+## 7 README step 0 checks
+PS> docker ps -a --filter name=green-area-gis-t0
+PS> docker volume ls --filter name=green-area-gis-t0
+PS> docker network ls --filter name=green-area-gis-t0
+(empty above = OK)
