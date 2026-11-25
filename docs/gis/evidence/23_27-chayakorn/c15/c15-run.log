@@ -1,0 +1,21 @@
+# C15 run log · paths replaced: <clone-c6> <gis-w4-evidence> <gis-w4-hdx> <ldd-77> <scratch>
+# python = <clone-c6>\green-area-backend\.venv\Scripts\python.exe 3.11.9, run with -I -B
+
+## inputs from tag C5 (read-only, git show from <clone-c6>; C5 = fe4cb14a)
+git show C5:docs/gis/evidence/16_20-chayakorn/c5/c5_name_map.py     -> <scratch>\c5_name_map.py  (blob bffbed4e9298, same as C9)
+git show C5:docs/gis/evidence/16_20-chayakorn/c5/c5-name-map.csv    -> <scratch>\c5-name-map.csv (937 rows: th 429 · en 3 · none 505)
+git show C5:docs/gis/evidence/16_20-chayakorn/c5/c5-province-map.csv
+git show C5:docs/gis/evidence/16_20-chayakorn/c4/c4-ldd-inventory.csv   (has_amp yes 41)
+
+## run
+python -I -B <gis-w4-evidence>\c15\c15_district_compare.py --backend <clone-c6>\green-area-backend --c5-script <scratch>\c5_name_map.py
+  --c5-map <scratch>\c5-name-map.csv --c5-provinces <scratch>\c5-province-map.csv --c4-inventory <scratch>\c4-ldd-inventory.csv
+  --c9-dir <gis-w4-evidence>\c9 --ldd77 <ldd-77> --adm1 <gis-w4-hdx>\shp\tha_admin1.shp --adm2 <gis-w4-hdx>\shp\tha_admin2.shp
+  --out c15-district-compare.csv --stats c15-stats.json
+attempt 1: stopped on an assert, Chon Buri has 2 amphoe layers (_Amp, _Amp_D) -> use the first, as C5 read_layers does (Rayong the same)
+attempt 2: 142 LDD districts not found in the layer (keys read by fiona differ from the C5 dbf reading in 14 provinces)
+           -> keys now read with c5.dbf_records exactly as C5, geometry by record order (counts asserted equal)
+attempt 3 (used): exit 0 · 78 s · ldd_districts 439 · measured 432 · skipped (C5 unmatched) 7
+other  383: OCHA closer by area 373 · by Hausdorff 327
+bangkok 49: OCHA closer by area 49 · by Hausdorff 46
+all    432: OCHA closer by area 422 · by Hausdorff 373

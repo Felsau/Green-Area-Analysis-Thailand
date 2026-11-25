@@ -1,0 +1,101 @@
+{
+ "counts": {
+  "ldd_districts": 439,
+  "measured": 432,
+  "skip_c5_unmatched": 7,
+  "provinces_with_several_amp_layers": 2,
+  "several_amp_layers": []
+ },
+ "provinces": 41,
+ "seconds": 134.4,
+ "other": {
+  "ocha_vs_ldd_symdiff_pct": {
+   "median": 2.922,
+   "max": 1387.636,
+   "max_at": "Chon Buri / BangLamung"
+  },
+  "gadm_vs_ldd_symdiff_pct": {
+   "median": 11.18,
+   "max": 1366.205,
+   "max_at": "Chon Buri / BangLamung"
+  },
+  "ocha_vs_ldd_hausdorff_m": {
+   "median": 1242.8,
+   "max": 26518.9,
+   "max_at": "Phrae / RongKwang"
+  },
+  "gadm_vs_ldd_hausdorff_m": {
+   "median": 3439.3,
+   "max": 32440.7,
+   "max_at": "Phra Nakhon Si Ayutthaya / BangSai"
+  },
+  "districts": 383,
+  "ocha_closer_by_area": 373,
+  "ocha_closer_by_hausdorff": 327,
+  "vertices": {
+   "ldd": 752804,
+   "ocha": 2467865,
+   "gadm": 59483
+  }
+ },
+ "bangkok": {
+  "ocha_vs_ldd_symdiff_pct": {
+   "median": 1.046,
+   "max": 37.973,
+   "max_at": "Bangkok Metropolis / BangNa"
+  },
+  "gadm_vs_ldd_symdiff_pct": {
+   "median": 24.945,
+   "max": 98.724,
+   "max_at": "Bangkok Metropolis / Samphantawong"
+  },
+  "ocha_vs_ldd_hausdorff_m": {
+   "median": 51.9,
+   "max": 1718.8,
+   "max_at": "Bangkok Metropolis / Bangkhuntien"
+  },
+  "gadm_vs_ldd_hausdorff_m": {
+   "median": 489.1,
+   "max": 2094.4,
+   "max_at": "Bangkok Metropolis / ThawiWattana"
+  },
+  "districts": 49,
+  "ocha_closer_by_area": 49,
+  "ocha_closer_by_hausdorff": 46,
+  "vertices": {
+   "ldd": 42582,
+   "ocha": 36769,
+   "gadm": 1031
+  }
+ },
+ "all": {
+  "ocha_vs_ldd_symdiff_pct": {
+   "median": 2.624,
+   "max": 1387.636,
+   "max_at": "Chon Buri / BangLamung"
+  },
+  "gadm_vs_ldd_symdiff_pct": {
+   "median": 12.09,
+   "max": 1366.205,
+   "max_at": "Chon Buri / BangLamung"
+  },
+  "ocha_vs_ldd_hausdorff_m": {
+   "median": 1087.05,
+   "max": 26518.9,
+   "max_at": "Phrae / RongKwang"
+  },
+  "gadm_vs_ldd_hausdorff_m": {
+   "median": 2980.45,
+   "max": 32440.7,
+   "max_at": "Phra Nakhon Si Ayutthaya / BangSai"
+  },
+  "districts": 432,
+  "ocha_closer_by_area": 422,
+  "ocha_closer_by_hausdorff": 373,
+  "vertices": {
+   "ldd": 795386,
+   "ocha": 2504634,
+   "gadm": 60514
+  }
+ }
+}
