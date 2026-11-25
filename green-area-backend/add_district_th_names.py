@@ -148,6 +148,10 @@ MANUAL_OVERRIDES = {
     ("Nakhon Ratchasima",   "nongbunnak"):        "หนองบุญมาก",
     ("Nakhon Sawan",        "latyao"):            "ลาดยาว",
     ("Nakhon Sawan",        "thatako"):           "ท่าตะโก",
+    # kongvut also spells ท่าตะโก "Takhli" and ลาดยาว "Phayuha Khiri"; those later rows win the
+    # strict lookup and would rename Takhli and PhayuhaKhiri, so pin both here.
+    ("Nakhon Sawan",        "takhli"):            "ตาคลี",
+    ("Nakhon Sawan",        "phayuhakhiri"):      "พยุหะคีรี",
     ("Nakhon Si Thammarat", "chulaphon"):         "จุฬาภรณ์",
     ("Nakhon Si Thammarat", "ronphipun"):         "ร่อนพิบูลย์",
     ("Nan",                 "boklue"):            "บ่อเกลือ",
